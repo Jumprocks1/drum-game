@@ -20,5 +20,11 @@ Currently I do not distribute the mp3's required for playing the audio for beatm
 ## Linux/MacOS/Android/iOS
 If you are interested in getting Drum Game on one of these platforms, please [create an issue](https://github.com/Jumprocks1/drum-game/issues/new) and I will set up a build for that platform. The source code is already cross-platform, so it should just be a matter of building and testing.
 
+## Tutorial
+- Most things can be learned and accessed through the use of the command palette. To start, just press <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>P</kbd> and begin searching.
+- An easy way to learn some of the hotkeys is with the keyboard view, this can be access with <kbd>Shift</kbd> + <kbd>F1</kbd> by default.
+- There are some useful keybinds for `osu-framework` [here](https://github.com/ppy/osu-framework/wiki/Framework-Key-Bindings).
+    - Most of these are not listed under the command palette since the bindings are not controlled by Drum Game directly.
+
 ## Contributing
 Currently the source code for Drum Game is not released. In the future I plan to make the game open source (probably under GPLv3) so that others can more easily provide suggestions and contributions.

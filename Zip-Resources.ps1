@@ -10,6 +10,10 @@ Write-Host "Output: $outputPath" -ForegroundColor Cyan
 
 [System.Collections.ArrayList]$targetFiles = @()
 
+foreach ($f in Get-ChildItem "$resources/Fonts" -File) {
+    $targetFiles.Add($f.FullName) > $null
+}
+
 $includeAudioArtists = "Dare I Dream","Resisting the Silence"
 $includeAudio = ,"BRS.bjson"
 

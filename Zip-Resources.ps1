@@ -54,7 +54,8 @@ $relativeTo = "$resources/.." | Convert-Path
 
 # write entries with relative paths as names
 foreach ($f in $targetFiles) {
-    $relative = [System.IO.Path]::GetRelativePath($relativeTo, $f)
+    # on Windows systems, this will make paths with \ in it. We don't want \ in our zip files.
+    $relative = [System.IO.Path]::GetRelativePath($relativeTo, $f) -replace "\\","/"
     $entry = $zip.CreateEntry($relative)
     $writer = New-Object -TypeName System.IO.BinaryWriter $entry.Open()
     $writer.Write([System.IO.File]::ReadAllBytes($f))

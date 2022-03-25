@@ -11,7 +11,7 @@ This project is still in early development. Most of the features are geared towa
 ## Running Drum Game
 To start, download the latest [binary release](https://github.com/Jumprocks1/drum-game/releases). If you are not running Windows, please [submit an issue](https://github.com/Jumprocks1/drum-game/issues/new) so I can provide a release for your platform of choice.
 
-You will also need a copy of the `resources` folder, which for now you can obtain from [release v1.0.0](https://github.com/Jumprocks1/drum-game/releases).
+You will also need a copy of the `resources` folder, which for now you can obtain from [release v0.1.1](https://github.com/Jumprocks1/drum-game/releases).
 
 The `resources` folder contains all beatmaps and audio files used by Drum Game. For the most part releases will be separate from the `resources` folder, meaning you can update the game without updating `resources` (and vice-versa).
 

@@ -1,0 +1,77 @@
+{
+    "$schema": "https://json-schema.org/draft-07/schema",
+    "$ref": "#/$defs/collection",
+    "$defs": {
+        "collection": {
+            "title": "Collection definition",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [],
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "rules": {
+                    "type": "array",
+                    "title": "List of rules applied in order",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "query",
+                            "op"
+                        ],
+                        "properties": {
+                            "query": {
+                                "anyOf": [
+                                    {
+                                        "title": "Search query",
+                                        "description": "Works just like the search in song select",
+                                        "type": "string"
+                                    },
+                                    {
+                                        "title": "Exact filename list",
+                                        "description": "Will typically be converted to a HashSet and then compared against the current result set.",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    {
+                                        "$ref": "#/$defs/collection"
+                                    },
+                                    {
+                                        "title": "Collection file reference",
+                                        "description": "Loads a different collection based on a file reference. Useful for inverting/extending existing collections.",
+                                        "type": "object",
+                                        "additionalProperties": false,
+                                        "required": [
+                                            "ref"
+                                        ],
+                                        "properties": {
+                                            "ref": {
+                                                "type": "string",
+                                                "pattern": ".*\\.json"
+                                            }
+                                        }
+                                    }
+                                ]
+                            },
+                            "op": {
+                                "title": "Operation",
+                                "enum": [
+                                    "and",
+                                    "or",
+                                    "not"
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

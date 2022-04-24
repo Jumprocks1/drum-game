@@ -1,7 +1,14 @@
-*
-!/.gitignore
-!/README.md
-!/Zip-Resources.ps1
+/*
+
+!.gitignore
+!README.md
+!Zip-Resources.ps1
 !MIDI-Help.md
+!.vscode
+
 
 !*-schema.json
+
+!resources
+resources/*
+!resources/Fonts

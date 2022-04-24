@@ -12,3 +12,8 @@
 !resources
 resources/*
 !resources/Fonts
+
+# Shader
+!resources/sh_Shaders
+resources/sh_Shaders/*
+!resources/sh_Shaders/sh_ErrorGraph.fs

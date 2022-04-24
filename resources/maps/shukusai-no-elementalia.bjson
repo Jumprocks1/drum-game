@@ -1,0 +1,5418 @@
+{
+  "bookmarks": [],
+  "annotations": [],
+  "relativeVolume": 0.3,
+  "audio": "shukusai-no-elementalia.mp3",
+  "offset": 2198.0,
+  "leadIn": 0.0,
+  "bpm": [
+    {
+      "time": 0.0,
+      "bpm": 150.0
+    },
+    {
+      "time": 387.53125,
+      "bpm": 170.0
+    }
+  ],
+  "title": "Shukusai no Elementalia",
+  "artist": "Ni-Sokkususu",
+  "mapper": "Rhytoly",
+  "difficulty": "Normal",
+  "difficultyName": "Special Kneesocks",
+  "tags": "osu-import taiko",
+  "notes": [
+    {
+      "time": 0.0,
+      "channel": "snare"
+    },
+    {
+      "time": 0.5,
+      "channel": "snare"
+    },
+    {
+      "time": 1.0,
+      "channel": "rim"
+    },
+    {
+      "time": 1.5,
+      "channel": "snare"
+    },
+    {
+      "time": 2.0,
+      "channel": "rim"
+    },
+    {
+      "time": 2.5,
+      "channel": "rim"
+    },
+    {
+      "time": 3.0,
+      "channel": "snare"
+    },
+    {
+      "time": 3.5,
+      "channel": "snare"
+    },
+    {
+      "time": 4.0,
+      "channel": "rim"
+    },
+    {
+      "time": 4.5,
+      "channel": "snare"
+    },
+    {
+      "time": 5.0,
+      "channel": "rim"
+    },
+    {
+      "time": 5.5,
+      "channel": "snare"
+    },
+    {
+      "time": 6.0,
+      "channel": "rim"
+    },
+    {
+      "time": 6.5,
+      "channel": "rim"
+    },
+    {
+      "time": 7.0,
+      "channel": "snare"
+    },
+    {
+      "time": 7.5,
+      "channel": "rim"
+    },
+    {
+      "time": 8.0,
+      "channel": "snare"
+    },
+    {
+      "time": 8.5,
+      "channel": "snare"
+    },
+    {
+      "time": 9.0,
+      "channel": "rim"
+    },
+    {
+      "time": 9.5,
+      "channel": "snare"
+    },
+    {
+      "time": 10.0,
+      "channel": "rim"
+    },
+    {
+      "time": 10.5,
+      "channel": "rim"
+    },
+    {
+      "time": 11.0,
+      "channel": "snare"
+    },
+    {
+      "time": 11.5,
+      "channel": "snare"
+    },
+    {
+      "time": 12.0,
+      "channel": "rim"
+    },
+    {
+      "time": 12.5,
+      "channel": "snare"
+    },
+    {
+      "time": 13.0,
+      "channel": "rim"
+    },
+    {
+      "time": 13.5,
+      "channel": "snare"
+    },
+    {
+      "time": 14.0,
+      "channel": "rim"
+    },
+    {
+      "time": 14.5,
+      "channel": "rim"
+    },
+    {
+      "time": 15.0,
+      "channel": "snare"
+    },
+    {
+      "time": 15.5,
+      "channel": "rim"
+    },
+    {
+      "time": 16.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 16.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 17.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 17.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 18.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 18.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 19.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 19.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 20.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 20.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 21.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 21.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 22.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 22.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 23.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 23.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 24.03125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 24.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 25.03125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 25.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 26.03125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 26.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 27.03125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 27.53125,
+      "channel": "rim"
+    },
+    {
+      "duration": 2.0,
+      "time": 28.03125,
+      "channel": "snare"
+    },
+    {
+      "duration": 2.0,
+      "time": 28.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 31.03125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 32.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 32.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 32.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 32.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 33.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 33.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 33.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 33.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 34.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 34.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 34.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 34.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 35.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 35.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 35.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 35.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 36.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 36.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 36.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 37.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 37.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 37.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 37.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 38.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 38.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 38.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 39.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 39.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 40.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 40.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 40.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 40.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 41.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 41.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 41.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 41.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 42.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 42.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 42.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 42.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 43.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 43.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 43.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 43.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 44.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 44.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 44.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 45.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 45.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 45.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 45.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 46.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 46.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 46.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 46.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 47.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 48.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 48.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 48.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 48.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 49.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 49.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 49.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 49.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 50.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 50.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 50.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 50.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 51.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 51.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 51.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 51.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 52.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 52.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 52.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 53.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 53.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 53.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 53.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 54.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 54.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 54.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 55.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 55.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 56.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 56.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 56.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 56.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 57.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 57.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 57.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 57.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 58.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 58.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 58.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 58.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 59.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 59.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 59.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 59.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 60.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 60.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 60.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 61.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 61.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 61.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 61.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 62.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 62.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 62.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 62.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 63.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 64.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 64.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 64.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 65.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 65.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 66.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 66.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 66.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 67.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 67.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 68.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 68.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 68.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 69.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 69.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 69.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 70.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 70.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 70.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 71.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 71.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 71.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 72.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 72.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 72.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 73.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 73.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 74.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 74.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 74.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 75.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 75.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 76.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 76.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 76.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 77.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 77.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 77.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 78.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 78.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 78.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 79.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 79.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 79.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 80.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 80.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 80.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 81.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 81.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 82.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 82.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 82.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 83.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 83.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 84.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 84.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 84.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 85.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 85.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 85.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 86.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 86.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 86.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 87.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 87.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 87.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 88.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 88.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 88.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 89.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 89.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 90.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 90.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 90.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 91.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 91.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 92.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 92.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 93.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 93.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 94.03125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 94.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 95.03125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 95.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 96.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 96.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 96.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 97.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 97.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 98.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 98.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 98.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 99.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 99.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 100.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 100.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 100.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 101.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 101.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 101.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 102.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 102.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 102.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 103.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 103.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 103.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 104.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 104.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 104.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 105.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 105.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 106.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 106.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 106.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 107.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 107.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 108.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 108.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 108.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 109.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 109.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 109.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 110.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 110.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 110.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 111.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 111.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 111.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 111.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 112.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 112.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 112.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 113.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 113.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 114.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 114.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 114.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 115.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 115.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 116.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 116.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 116.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 117.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 117.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 117.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 118.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 118.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 118.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 119.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 119.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 119.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 120.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 120.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 120.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 121.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 121.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 122.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 122.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 122.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 123.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 123.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 124.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 124.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 125.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 125.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 126.03125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 126.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 127.03125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 127.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 128.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 128.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 128.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 129.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 129.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 130.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 130.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 130.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 131.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 131.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 131.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 132.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 132.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 133.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 133.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 133.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 134.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 134.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 135.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 135.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 135.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 135.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 136.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 136.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 136.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 137.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 137.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 138.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 138.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 138.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 139.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 139.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 139.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 139.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 140.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 140.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 141.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 141.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 141.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 142.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 142.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 143.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 143.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 143.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 143.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 144.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 144.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 145.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 145.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 145.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 145.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 146.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 146.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 147.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 147.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 147.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 147.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 148.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 148.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 148.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 149.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 149.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 149.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 149.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 150.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 150.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 150.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 150.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 151.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 151.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 151.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 151.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 152.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 156.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 156.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 156.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 156.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 157.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 157.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 157.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 157.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 158.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 159.03125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 160.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 160.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 160.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 161.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 161.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 162.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 162.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 162.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 162.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 163.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 163.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 163.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 164.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 164.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 164.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 165.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 165.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 166.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 166.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 166.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 167.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 167.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 168.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 168.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 168.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 169.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 169.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 170.03125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 170.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 170.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 171.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 171.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 172.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 172.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 173.03125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 173.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 174.03125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 174.78125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 175.53125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 176.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 176.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 176.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 177.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 177.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 177.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 178.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 178.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 179.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 179.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 179.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 180.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 180.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 180.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 180.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 181.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 181.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 182.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 182.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 182.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 183.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 183.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 184.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 184.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 184.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 185.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 185.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 186.03125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 186.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 186.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 187.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 187.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 188.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 188.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 189.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 189.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 190.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 190.78125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 191.53125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 192.03125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 194.03125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 196.03125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 198.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 198.53125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 199.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 200.03125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 202.03125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 204.03125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 206.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 206.53125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 207.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 208.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 208.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 208.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 208.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 209.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 209.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 209.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 209.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 210.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 210.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 210.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 210.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 211.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 211.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 211.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 211.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 212.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 212.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 212.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 213.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 213.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 213.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 213.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 214.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 214.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 214.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 215.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 215.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 216.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 216.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 216.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 216.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 217.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 217.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 217.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 217.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 218.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 218.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 218.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 218.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 219.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 219.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 219.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 219.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 220.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 220.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 220.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 221.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 221.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 221.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 221.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 222.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 222.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 222.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 222.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 223.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 224.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 224.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 224.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 225.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 225.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 226.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 226.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 226.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 227.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 227.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 228.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 228.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 228.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 229.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 229.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 229.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 230.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 230.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 230.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 231.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 231.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 231.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 232.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 232.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 232.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 233.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 233.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 234.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 234.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 234.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 235.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 235.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 238.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 238.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 239.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 239.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 239.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 239.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 240.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 240.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 240.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 241.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 241.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 242.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 242.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 242.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 243.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 243.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 244.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 244.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 244.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 245.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 245.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 245.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 246.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 246.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 246.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 247.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 247.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 247.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 248.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 248.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 248.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 249.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 249.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 250.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 250.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 250.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 251.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 251.53125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 256.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 256.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 256.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 257.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 257.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 258.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 258.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 258.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 259.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 259.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 260.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 260.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 260.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 261.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 261.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 261.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 262.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 262.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 263.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 263.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 263.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 263.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 264.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 264.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 264.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 265.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 265.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 266.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 266.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 266.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 267.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 267.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 267.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 267.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 268.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 268.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 269.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 269.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 269.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 270.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 270.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 271.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 271.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 271.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 271.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 272.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 272.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 273.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 273.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 273.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 273.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 274.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 274.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 275.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 275.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 275.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 275.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 276.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 276.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 276.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 277.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 277.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 277.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 277.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 278.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 278.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 278.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 278.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 279.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 279.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 279.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 279.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 280.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 284.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 284.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 284.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 284.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 285.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 285.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 285.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 285.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 286.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 287.03125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 288.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 288.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 288.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 289.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 289.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 290.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 290.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 290.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 290.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 291.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 291.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 291.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 292.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 292.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 292.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 293.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 293.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 294.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 294.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 294.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 295.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 295.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 296.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 296.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 296.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 297.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 297.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 298.03125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 298.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 298.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 299.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 299.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 300.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 300.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 301.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 301.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 302.03125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 302.78125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 303.53125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 304.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 304.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 304.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 305.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 305.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 305.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 306.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 306.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 307.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 307.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 307.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 308.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 308.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 308.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 308.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 309.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 309.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 310.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 310.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 310.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 311.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 311.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 312.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 312.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 312.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 313.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 313.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 314.03125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 314.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 314.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 315.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 315.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 316.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 316.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 317.03125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 317.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 318.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 318.78125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 319.53125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 320.03125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 321.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 321.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 322.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 322.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 323.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 323.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 324.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 324.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 325.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 325.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 326.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 326.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 327.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 327.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 328.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 328.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 329.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 329.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 330.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 330.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 331.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 331.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 332.03125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 332.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 333.03125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 333.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 334.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 334.53125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 335.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 336.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 336.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 337.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 337.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 337.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 337.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 338.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 338.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 339.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 339.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 339.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 339.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 340.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 340.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 341.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 341.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 341.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 341.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 342.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 342.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 342.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 343.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 343.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 343.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 343.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 344.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 344.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 345.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 345.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 345.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 345.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 346.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 346.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 347.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 347.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 347.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 348.03125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 348.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 349.03125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 349.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 350.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 350.53125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 351.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 351.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 352.03125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 352.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 353.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 353.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 353.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 353.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 354.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 354.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 354.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 355.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 355.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 355.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 355.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 356.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 356.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 356.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 357.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 357.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 357.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 358.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 358.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 358.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 359.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 359.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 359.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 360.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 360.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 360.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 360.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 361.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 361.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 361.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 361.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 362.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 362.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 362.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 363.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 363.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 363.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 364.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 364.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 364.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 364.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 365.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 365.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 365.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 366.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 366.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 366.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 366.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 367.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 367.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 367.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 367.6979166666667,
+      "channel": "rim"
+    },
+    {
+      "time": 367.8645833333333,
+      "channel": "rim"
+    },
+    {
+      "time": 368.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 369.03125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 369.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 369.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 370.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 370.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 370.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 371.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 371.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 371.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 372.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 372.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 372.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 373.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 373.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 373.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 373.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 374.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 374.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 374.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 375.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 375.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 375.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 376.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 376.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 376.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 376.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 377.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 377.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 377.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 378.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 378.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 378.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 378.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 379.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 379.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 379.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 379.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 380.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 380.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 380.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 380.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 381.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 381.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 381.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 381.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 382.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 382.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 382.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 382.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 383.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 387.53125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 388.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 389.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 390.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 391.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 391.53125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 392.53125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 393.53125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 394.03125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 394.53125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 395.53125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 396.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 396.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 396.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 396.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 397.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 397.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 397.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 398.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 398.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 398.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 398.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 399.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 399.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 400.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 400.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 400.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 400.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 401.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 401.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 401.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 402.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 402.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 402.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 402.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 403.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 403.53125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 404.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 404.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 404.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 404.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 405.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 405.53125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 406.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 406.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 406.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 406.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 407.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 407.53125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 408.03125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 408.53125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 409.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 409.53125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 410.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 410.28125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 410.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 411.03125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 411.53125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 412.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 412.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 412.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 412.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 413.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 413.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 413.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 413.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 414.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 414.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 415.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 415.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 415.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 415.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 416.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 416.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 416.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 417.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 417.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 417.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 417.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 418.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 418.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 418.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 418.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 419.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 419.53125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 420.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 420.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 420.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 420.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 421.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 421.53125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 422.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 422.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 422.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 422.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 423.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 423.53125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 424.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 424.53125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 425.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 425.53125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 426.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 426.28125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 426.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 427.03125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 427.53125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 428.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 428.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 428.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 428.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 429.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 429.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 429.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 429.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 430.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 430.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 431.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 431.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 431.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 431.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 432.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 432.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 432.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 432.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 433.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 433.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 433.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 433.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 434.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 434.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 434.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 434.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 435.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 435.53125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 436.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 436.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 436.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 436.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 437.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 437.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 437.53125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 438.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 438.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 438.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 438.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 439.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 439.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 439.53125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 440.03125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 440.53125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 441.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 441.53125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 442.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 442.28125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 442.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 443.03125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 443.53125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 444.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 444.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 444.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 444.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 445.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 445.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 445.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 445.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 446.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 446.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 446.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 447.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 447.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 447.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 447.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 448.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 448.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 448.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 448.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 449.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 449.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 449.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 449.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 450.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 450.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 450.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 450.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 451.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 451.53125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 452.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 452.53125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 453.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 453.53125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 454.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 454.53125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 455.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 455.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 455.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 456.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 456.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 456.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 456.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 457.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 457.1979166666667,
+      "channel": "snare"
+    },
+    {
+      "time": 457.3645833333333,
+      "channel": "snare"
+    },
+    {
+      "time": 457.53125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 458.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 458.28125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 458.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 459.03125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 459.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 459.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 460.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 460.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 460.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 460.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 461.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 461.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 461.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 461.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 462.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 462.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 462.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 462.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 463.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 463.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 463.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 463.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 464.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 464.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 464.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 464.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 465.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 465.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 465.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 465.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 466.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 466.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 466.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 466.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 467.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 467.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 467.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 467.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 468.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 468.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 468.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 468.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 469.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 469.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 469.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 469.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 470.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 470.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 470.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 470.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 471.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 471.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 471.53125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 472.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 472.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 472.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 472.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 473.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 473.1979166666667,
+      "channel": "snare"
+    },
+    {
+      "time": 473.3645833333333,
+      "channel": "snare"
+    },
+    {
+      "time": 473.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 473.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 474.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 474.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 474.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 474.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 475.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 475.1979166666667,
+      "channel": "snare"
+    },
+    {
+      "time": 475.3645833333333,
+      "channel": "snare"
+    },
+    {
+      "time": 475.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 475.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 476.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 476.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 476.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 476.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 477.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 477.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 477.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 477.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 478.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 478.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 478.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 478.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 479.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 479.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 479.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 479.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 480.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 480.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 480.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 480.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 481.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 481.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 481.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 481.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 482.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 482.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 482.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 482.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 483.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 483.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 483.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 483.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 484.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 484.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 484.53125,
+      "channel": "snare"
+    },
+    {
+      "time": 484.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 485.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 485.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 485.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 485.78125,
+      "channel": "rim"
+    },
+    {
+      "time": 486.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 486.28125,
+      "channel": "rim"
+    },
+    {
+      "time": 486.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 486.78125,
+      "channel": "snare"
+    },
+    {
+      "time": 487.03125,
+      "channel": "rim"
+    },
+    {
+      "time": 487.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 487.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 487.6979166666667,
+      "channel": "rim"
+    },
+    {
+      "time": 487.8645833333333,
+      "channel": "rim"
+    },
+    {
+      "time": 488.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 488.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 488.53125,
+      "channel": "rim"
+    },
+    {
+      "time": 488.6979166666667,
+      "channel": "rim"
+    },
+    {
+      "time": 488.8645833333333,
+      "channel": "rim"
+    },
+    {
+      "time": 489.03125,
+      "channel": "snare"
+    },
+    {
+      "time": 489.28125,
+      "channel": "snare"
+    },
+    {
+      "time": 489.53125,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 490.03125,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 490.53125,
+      "channel": "rim",
+      "modifier": "accent"
+    }
+  ]
+}

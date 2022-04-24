@@ -1,0 +1,3984 @@
+{
+  "bookmarks": [],
+  "annotations": [],
+  "relativeVolume": 0.3,
+  "audio": "the-emperor.mp3",
+  "offset": 780.38,
+  "leadIn": 0.0,
+  "bpm": 190.0,
+  "title": "The Emperor",
+  "artist": "Aether Realm",
+  "mapper": "Greenshell",
+  "difficulty": "Normal",
+  "difficultyName": "Cowardice",
+  "tags": "osu-import taiko",
+  "notes": [
+    {
+      "time": 0.0,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 6.0,
+      "channel": "rim"
+    },
+    {
+      "time": 6.5,
+      "channel": "rim"
+    },
+    {
+      "time": 7.0,
+      "channel": "snare"
+    },
+    {
+      "time": 7.5,
+      "channel": "snare"
+    },
+    {
+      "time": 8.0,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 14.0,
+      "channel": "rim"
+    },
+    {
+      "time": 14.5,
+      "channel": "snare"
+    },
+    {
+      "time": 15.0,
+      "channel": "rim"
+    },
+    {
+      "time": 15.5,
+      "channel": "rim"
+    },
+    {
+      "time": 16.0,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 22.0,
+      "channel": "rim"
+    },
+    {
+      "time": 22.5,
+      "channel": "rim"
+    },
+    {
+      "time": 23.0,
+      "channel": "snare"
+    },
+    {
+      "time": 23.5,
+      "channel": "snare"
+    },
+    {
+      "time": 24.0,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 30.0,
+      "channel": "rim"
+    },
+    {
+      "time": 30.5,
+      "channel": "rim"
+    },
+    {
+      "time": 32.0,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 33.0,
+      "channel": "rim"
+    },
+    {
+      "time": 35.0,
+      "channel": "rim"
+    },
+    {
+      "time": 37.0,
+      "channel": "rim"
+    },
+    {
+      "time": 38.0,
+      "channel": "rim"
+    },
+    {
+      "time": 38.5,
+      "channel": "rim"
+    },
+    {
+      "time": 39.0,
+      "channel": "snare"
+    },
+    {
+      "time": 39.5,
+      "channel": "snare"
+    },
+    {
+      "time": 40.0,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 41.0,
+      "channel": "rim"
+    },
+    {
+      "time": 43.0,
+      "channel": "rim"
+    },
+    {
+      "time": 45.0,
+      "channel": "rim"
+    },
+    {
+      "time": 46.0,
+      "channel": "rim"
+    },
+    {
+      "time": 46.5,
+      "channel": "snare"
+    },
+    {
+      "time": 47.0,
+      "channel": "rim"
+    },
+    {
+      "time": 47.5,
+      "channel": "rim"
+    },
+    {
+      "time": 48.0,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 49.0,
+      "channel": "snare"
+    },
+    {
+      "time": 50.0,
+      "channel": "snare"
+    },
+    {
+      "time": 51.0,
+      "channel": "snare"
+    },
+    {
+      "time": 52.0,
+      "channel": "snare"
+    },
+    {
+      "time": 53.0,
+      "channel": "snare"
+    },
+    {
+      "time": 53.5,
+      "channel": "rim"
+    },
+    {
+      "time": 53.666666666666664,
+      "channel": "rim"
+    },
+    {
+      "time": 53.833333333333336,
+      "channel": "rim"
+    },
+    {
+      "time": 54.0,
+      "channel": "snare"
+    },
+    {
+      "time": 54.5,
+      "channel": "snare"
+    },
+    {
+      "time": 55.0,
+      "channel": "rim"
+    },
+    {
+      "time": 55.5,
+      "channel": "rim"
+    },
+    {
+      "time": 56.0,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 63.5,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 70.0,
+      "channel": "snare"
+    },
+    {
+      "time": 70.5,
+      "channel": "snare"
+    },
+    {
+      "time": 71.0,
+      "channel": "snare"
+    },
+    {
+      "time": 71.5,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 77.0,
+      "channel": "rim"
+    },
+    {
+      "time": 77.25,
+      "channel": "snare"
+    },
+    {
+      "time": 77.5,
+      "channel": "snare"
+    },
+    {
+      "time": 78.0,
+      "channel": "rim"
+    },
+    {
+      "time": 78.5,
+      "channel": "rim"
+    },
+    {
+      "time": 79.0,
+      "channel": "snare"
+    },
+    {
+      "time": 79.5,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 81.0,
+      "channel": "rim"
+    },
+    {
+      "time": 83.0,
+      "channel": "rim"
+    },
+    {
+      "time": 85.0,
+      "channel": "rim"
+    },
+    {
+      "time": 87.0,
+      "channel": "rim"
+    },
+    {
+      "time": 87.5,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 88.5,
+      "channel": "snare"
+    },
+    {
+      "time": 89.0,
+      "channel": "rim"
+    },
+    {
+      "time": 89.5,
+      "channel": "snare"
+    },
+    {
+      "time": 90.0,
+      "channel": "rim"
+    },
+    {
+      "time": 90.5,
+      "channel": "rim"
+    },
+    {
+      "time": 91.0,
+      "channel": "snare"
+    },
+    {
+      "time": 91.5,
+      "channel": "snare"
+    },
+    {
+      "time": 92.0,
+      "channel": "snare"
+    },
+    {
+      "time": 92.5,
+      "channel": "rim"
+    },
+    {
+      "time": 93.0,
+      "channel": "snare"
+    },
+    {
+      "time": 93.25,
+      "channel": "snare"
+    },
+    {
+      "time": 93.5,
+      "channel": "snare"
+    },
+    {
+      "time": 93.75,
+      "channel": "snare"
+    },
+    {
+      "time": 94.0,
+      "channel": "rim"
+    },
+    {
+      "time": 94.25,
+      "channel": "rim"
+    },
+    {
+      "time": 94.5,
+      "channel": "snare"
+    },
+    {
+      "time": 94.75,
+      "channel": "snare"
+    },
+    {
+      "time": 95.0,
+      "channel": "snare"
+    },
+    {
+      "time": 95.5,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 96.5,
+      "channel": "snare"
+    },
+    {
+      "time": 97.0,
+      "channel": "rim"
+    },
+    {
+      "time": 97.5,
+      "channel": "snare"
+    },
+    {
+      "time": 97.75,
+      "channel": "snare"
+    },
+    {
+      "time": 98.0,
+      "channel": "snare"
+    },
+    {
+      "time": 99.0,
+      "channel": "rim"
+    },
+    {
+      "time": 99.5,
+      "channel": "snare"
+    },
+    {
+      "time": 100.0,
+      "channel": "snare"
+    },
+    {
+      "time": 101.0,
+      "channel": "rim"
+    },
+    {
+      "time": 101.5,
+      "channel": "rim"
+    },
+    {
+      "time": 102.0,
+      "channel": "snare"
+    },
+    {
+      "time": 102.5,
+      "channel": "rim"
+    },
+    {
+      "time": 103.0,
+      "channel": "snare"
+    },
+    {
+      "time": 103.5,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 104.5,
+      "channel": "snare"
+    },
+    {
+      "time": 105.0,
+      "channel": "rim"
+    },
+    {
+      "time": 105.5,
+      "channel": "snare"
+    },
+    {
+      "time": 105.75,
+      "channel": "snare"
+    },
+    {
+      "time": 106.0,
+      "channel": "rim"
+    },
+    {
+      "time": 106.5,
+      "channel": "snare"
+    },
+    {
+      "time": 106.75,
+      "channel": "snare"
+    },
+    {
+      "time": 107.0,
+      "channel": "rim"
+    },
+    {
+      "time": 107.5,
+      "channel": "rim"
+    },
+    {
+      "time": 108.0,
+      "channel": "rim"
+    },
+    {
+      "time": 108.25,
+      "channel": "snare"
+    },
+    {
+      "time": 108.5,
+      "channel": "snare"
+    },
+    {
+      "time": 108.75,
+      "channel": "snare"
+    },
+    {
+      "time": 109.0,
+      "channel": "rim"
+    },
+    {
+      "time": 109.25,
+      "channel": "snare"
+    },
+    {
+      "time": 109.5,
+      "channel": "snare"
+    },
+    {
+      "time": 109.75,
+      "channel": "snare"
+    },
+    {
+      "time": 110.0,
+      "channel": "rim"
+    },
+    {
+      "time": 110.5,
+      "channel": "rim"
+    },
+    {
+      "time": 111.0,
+      "channel": "rim"
+    },
+    {
+      "time": 111.5,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 112.5,
+      "channel": "snare"
+    },
+    {
+      "time": 113.0,
+      "channel": "rim"
+    },
+    {
+      "time": 113.5,
+      "channel": "snare"
+    },
+    {
+      "time": 113.75,
+      "channel": "snare"
+    },
+    {
+      "time": 114.0,
+      "channel": "snare"
+    },
+    {
+      "time": 115.0,
+      "channel": "rim"
+    },
+    {
+      "time": 115.5,
+      "channel": "snare"
+    },
+    {
+      "time": 116.0,
+      "channel": "snare"
+    },
+    {
+      "time": 117.0,
+      "channel": "rim"
+    },
+    {
+      "time": 117.5,
+      "channel": "snare"
+    },
+    {
+      "time": 118.0,
+      "channel": "rim"
+    },
+    {
+      "time": 118.5,
+      "channel": "rim"
+    },
+    {
+      "time": 119.0,
+      "channel": "snare"
+    },
+    {
+      "time": 119.5,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 120.5,
+      "channel": "snare"
+    },
+    {
+      "time": 120.75,
+      "channel": "snare"
+    },
+    {
+      "time": 121.0,
+      "channel": "rim"
+    },
+    {
+      "time": 121.5,
+      "channel": "snare"
+    },
+    {
+      "time": 122.0,
+      "channel": "rim"
+    },
+    {
+      "time": 122.5,
+      "channel": "rim"
+    },
+    {
+      "time": 123.0,
+      "channel": "rim"
+    },
+    {
+      "time": 123.5,
+      "channel": "snare"
+    },
+    {
+      "time": 124.0,
+      "channel": "snare"
+    },
+    {
+      "time": 124.5,
+      "channel": "rim"
+    },
+    {
+      "time": 124.75,
+      "channel": "rim"
+    },
+    {
+      "time": 125.0,
+      "channel": "rim"
+    },
+    {
+      "time": 125.5,
+      "channel": "snare"
+    },
+    {
+      "time": 125.75,
+      "channel": "snare"
+    },
+    {
+      "time": 126.0,
+      "channel": "rim"
+    },
+    {
+      "time": 126.5,
+      "channel": "snare"
+    },
+    {
+      "time": 127.0,
+      "channel": "rim"
+    },
+    {
+      "time": 127.5,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 128.5,
+      "channel": "snare"
+    },
+    {
+      "time": 129.0,
+      "channel": "rim"
+    },
+    {
+      "time": 129.5,
+      "channel": "rim"
+    },
+    {
+      "time": 129.75,
+      "channel": "rim"
+    },
+    {
+      "time": 130.0,
+      "channel": "snare"
+    },
+    {
+      "time": 131.0,
+      "channel": "rim"
+    },
+    {
+      "time": 131.5,
+      "channel": "snare"
+    },
+    {
+      "time": 132.0,
+      "channel": "snare"
+    },
+    {
+      "time": 133.0,
+      "channel": "rim"
+    },
+    {
+      "time": 133.5,
+      "channel": "rim"
+    },
+    {
+      "time": 134.0,
+      "channel": "snare"
+    },
+    {
+      "time": 134.25,
+      "channel": "snare"
+    },
+    {
+      "time": 134.5,
+      "channel": "snare"
+    },
+    {
+      "time": 134.75,
+      "channel": "snare"
+    },
+    {
+      "time": 135.0,
+      "channel": "rim"
+    },
+    {
+      "time": 135.5,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 136.5,
+      "channel": "snare"
+    },
+    {
+      "time": 137.0,
+      "channel": "rim"
+    },
+    {
+      "time": 137.5,
+      "channel": "snare"
+    },
+    {
+      "time": 138.0,
+      "channel": "rim"
+    },
+    {
+      "time": 138.5,
+      "channel": "snare"
+    },
+    {
+      "time": 139.0,
+      "channel": "rim"
+    },
+    {
+      "time": 139.5,
+      "channel": "rim"
+    },
+    {
+      "time": 140.0,
+      "channel": "rim"
+    },
+    {
+      "time": 140.25,
+      "channel": "rim"
+    },
+    {
+      "time": 140.5,
+      "channel": "snare"
+    },
+    {
+      "time": 140.75,
+      "channel": "snare"
+    },
+    {
+      "time": 141.0,
+      "channel": "rim"
+    },
+    {
+      "time": 141.25,
+      "channel": "rim"
+    },
+    {
+      "time": 141.5,
+      "channel": "snare"
+    },
+    {
+      "time": 141.75,
+      "channel": "snare"
+    },
+    {
+      "time": 142.0,
+      "channel": "rim"
+    },
+    {
+      "time": 142.5,
+      "channel": "snare"
+    },
+    {
+      "time": 142.75,
+      "channel": "snare"
+    },
+    {
+      "time": 143.0,
+      "channel": "rim"
+    },
+    {
+      "time": 143.5,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 144.5,
+      "channel": "snare"
+    },
+    {
+      "time": 145.0,
+      "channel": "rim"
+    },
+    {
+      "time": 145.5,
+      "channel": "rim"
+    },
+    {
+      "time": 145.75,
+      "channel": "rim"
+    },
+    {
+      "time": 146.0,
+      "channel": "snare"
+    },
+    {
+      "time": 147.0,
+      "channel": "rim"
+    },
+    {
+      "time": 147.5,
+      "channel": "snare"
+    },
+    {
+      "time": 148.0,
+      "channel": "snare"
+    },
+    {
+      "time": 149.0,
+      "channel": "rim"
+    },
+    {
+      "time": 149.5,
+      "channel": "snare"
+    },
+    {
+      "time": 150.0,
+      "channel": "rim"
+    },
+    {
+      "time": 150.5,
+      "channel": "rim"
+    },
+    {
+      "time": 151.0,
+      "channel": "snare"
+    },
+    {
+      "time": 151.5,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 152.5,
+      "channel": "snare"
+    },
+    {
+      "time": 152.75,
+      "channel": "snare"
+    },
+    {
+      "time": 153.0,
+      "channel": "rim"
+    },
+    {
+      "time": 153.5,
+      "channel": "snare"
+    },
+    {
+      "time": 154.0,
+      "channel": "rim"
+    },
+    {
+      "time": 154.5,
+      "channel": "rim"
+    },
+    {
+      "time": 155.0,
+      "channel": "rim"
+    },
+    {
+      "time": 155.5,
+      "channel": "snare"
+    },
+    {
+      "time": 156.0,
+      "channel": "snare"
+    },
+    {
+      "time": 156.5,
+      "channel": "rim"
+    },
+    {
+      "time": 156.75,
+      "channel": "snare"
+    },
+    {
+      "time": 157.0,
+      "channel": "rim"
+    },
+    {
+      "time": 157.5,
+      "channel": "snare"
+    },
+    {
+      "time": 157.75,
+      "channel": "snare"
+    },
+    {
+      "time": 158.0,
+      "channel": "rim"
+    },
+    {
+      "time": 158.5,
+      "channel": "snare"
+    },
+    {
+      "time": 159.0,
+      "channel": "rim"
+    },
+    {
+      "time": 159.5,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 160.5,
+      "channel": "snare"
+    },
+    {
+      "time": 161.0,
+      "channel": "rim"
+    },
+    {
+      "time": 162.0,
+      "channel": "rim"
+    },
+    {
+      "time": 162.5,
+      "channel": "snare"
+    },
+    {
+      "time": 163.0,
+      "channel": "snare"
+    },
+    {
+      "time": 163.5,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 164.5,
+      "channel": "snare"
+    },
+    {
+      "time": 165.0,
+      "channel": "snare"
+    },
+    {
+      "time": 166.0,
+      "channel": "rim"
+    },
+    {
+      "time": 166.5,
+      "channel": "snare"
+    },
+    {
+      "time": 167.0,
+      "channel": "rim"
+    },
+    {
+      "time": 167.5,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 168.5,
+      "channel": "snare"
+    },
+    {
+      "time": 169.0,
+      "channel": "rim"
+    },
+    {
+      "time": 170.0,
+      "channel": "rim"
+    },
+    {
+      "time": 170.5,
+      "channel": "snare"
+    },
+    {
+      "time": 171.0,
+      "channel": "rim"
+    },
+    {
+      "time": 171.5,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 172.5,
+      "channel": "rim"
+    },
+    {
+      "time": 173.0,
+      "channel": "snare"
+    },
+    {
+      "time": 173.5,
+      "channel": "snare"
+    },
+    {
+      "time": 174.0,
+      "channel": "rim"
+    },
+    {
+      "time": 174.5,
+      "channel": "snare"
+    },
+    {
+      "time": 174.75,
+      "channel": "snare"
+    },
+    {
+      "time": 175.0,
+      "channel": "rim"
+    },
+    {
+      "time": 175.5,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 176.5,
+      "channel": "snare"
+    },
+    {
+      "time": 177.0,
+      "channel": "rim"
+    },
+    {
+      "time": 178.0,
+      "channel": "rim"
+    },
+    {
+      "time": 178.5,
+      "channel": "rim"
+    },
+    {
+      "time": 179.0,
+      "channel": "snare"
+    },
+    {
+      "time": 179.5,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 180.5,
+      "channel": "snare"
+    },
+    {
+      "time": 181.0,
+      "channel": "snare"
+    },
+    {
+      "time": 182.0,
+      "channel": "rim"
+    },
+    {
+      "time": 182.5,
+      "channel": "rim"
+    },
+    {
+      "time": 183.0,
+      "channel": "snare"
+    },
+    {
+      "time": 183.5,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 184.5,
+      "channel": "snare"
+    },
+    {
+      "time": 185.0,
+      "channel": "rim"
+    },
+    {
+      "time": 186.0,
+      "channel": "rim"
+    },
+    {
+      "time": 186.5,
+      "channel": "snare"
+    },
+    {
+      "time": 187.0,
+      "channel": "rim"
+    },
+    {
+      "time": 187.5,
+      "channel": "snare"
+    },
+    {
+      "time": 187.75,
+      "channel": "snare"
+    },
+    {
+      "time": 188.0,
+      "channel": "rim"
+    },
+    {
+      "time": 188.5,
+      "channel": "rim"
+    },
+    {
+      "time": 189.0,
+      "channel": "snare"
+    },
+    {
+      "time": 189.5,
+      "channel": "snare"
+    },
+    {
+      "time": 190.0,
+      "channel": "rim"
+    },
+    {
+      "time": 190.5,
+      "channel": "snare"
+    },
+    {
+      "time": 191.0,
+      "channel": "snare"
+    },
+    {
+      "time": 191.5,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 192.5,
+      "channel": "rim"
+    },
+    {
+      "time": 193.0,
+      "channel": "snare"
+    },
+    {
+      "time": 193.5,
+      "channel": "snare"
+    },
+    {
+      "time": 194.0,
+      "channel": "rim"
+    },
+    {
+      "time": 194.5,
+      "channel": "rim"
+    },
+    {
+      "time": 195.0,
+      "channel": "snare"
+    },
+    {
+      "time": 195.5,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 196.5,
+      "channel": "rim"
+    },
+    {
+      "time": 197.0,
+      "channel": "snare"
+    },
+    {
+      "time": 197.5,
+      "channel": "snare"
+    },
+    {
+      "time": 198.0,
+      "channel": "rim"
+    },
+    {
+      "time": 198.5,
+      "channel": "snare"
+    },
+    {
+      "time": 199.0,
+      "channel": "rim"
+    },
+    {
+      "time": 199.5,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 200.5,
+      "channel": "rim"
+    },
+    {
+      "time": 201.0,
+      "channel": "snare"
+    },
+    {
+      "time": 201.5,
+      "channel": "rim"
+    },
+    {
+      "time": 202.0,
+      "channel": "rim"
+    },
+    {
+      "time": 202.5,
+      "channel": "snare"
+    },
+    {
+      "time": 203.0,
+      "channel": "snare"
+    },
+    {
+      "time": 203.5,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 204.5,
+      "channel": "rim"
+    },
+    {
+      "time": 205.0,
+      "channel": "snare"
+    },
+    {
+      "time": 205.5,
+      "channel": "rim"
+    },
+    {
+      "time": 206.0,
+      "channel": "rim"
+    },
+    {
+      "time": 206.5,
+      "channel": "snare"
+    },
+    {
+      "time": 207.0,
+      "channel": "rim"
+    },
+    {
+      "time": 207.5,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 208.5,
+      "channel": "snare"
+    },
+    {
+      "time": 209.0,
+      "channel": "snare"
+    },
+    {
+      "time": 209.5,
+      "channel": "rim"
+    },
+    {
+      "time": 210.0,
+      "channel": "rim"
+    },
+    {
+      "time": 210.5,
+      "channel": "snare"
+    },
+    {
+      "time": 211.0,
+      "channel": "rim"
+    },
+    {
+      "time": 211.5,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 212.5,
+      "channel": "snare"
+    },
+    {
+      "time": 213.0,
+      "channel": "snare"
+    },
+    {
+      "time": 213.5,
+      "channel": "snare"
+    },
+    {
+      "time": 214.0,
+      "channel": "rim"
+    },
+    {
+      "time": 214.5,
+      "channel": "snare"
+    },
+    {
+      "time": 215.0,
+      "channel": "rim"
+    },
+    {
+      "time": 215.5,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 216.5,
+      "channel": "snare"
+    },
+    {
+      "time": 217.0,
+      "channel": "rim"
+    },
+    {
+      "time": 217.5,
+      "channel": "snare"
+    },
+    {
+      "time": 218.0,
+      "channel": "rim"
+    },
+    {
+      "time": 218.5,
+      "channel": "rim"
+    },
+    {
+      "time": 219.0,
+      "channel": "snare"
+    },
+    {
+      "time": 219.5,
+      "channel": "rim"
+    },
+    {
+      "time": 220.0,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 223.5,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 224.5,
+      "channel": "snare"
+    },
+    {
+      "time": 225.0,
+      "channel": "rim"
+    },
+    {
+      "time": 225.5,
+      "channel": "snare"
+    },
+    {
+      "time": 226.0,
+      "channel": "snare"
+    },
+    {
+      "time": 227.0,
+      "channel": "rim"
+    },
+    {
+      "time": 227.5,
+      "channel": "snare"
+    },
+    {
+      "time": 227.75,
+      "channel": "snare"
+    },
+    {
+      "time": 228.0,
+      "channel": "snare"
+    },
+    {
+      "time": 228.5,
+      "channel": "rim"
+    },
+    {
+      "time": 229.0,
+      "channel": "rim"
+    },
+    {
+      "time": 229.5,
+      "channel": "snare"
+    },
+    {
+      "time": 230.0,
+      "channel": "rim"
+    },
+    {
+      "time": 230.5,
+      "channel": "rim"
+    },
+    {
+      "time": 231.0,
+      "channel": "snare"
+    },
+    {
+      "time": 231.5,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 232.5,
+      "channel": "snare"
+    },
+    {
+      "time": 233.0,
+      "channel": "rim"
+    },
+    {
+      "time": 233.5,
+      "channel": "snare"
+    },
+    {
+      "time": 234.0,
+      "channel": "rim"
+    },
+    {
+      "time": 235.0,
+      "channel": "rim"
+    },
+    {
+      "time": 235.5,
+      "channel": "snare"
+    },
+    {
+      "time": 235.75,
+      "channel": "snare"
+    },
+    {
+      "time": 236.0,
+      "channel": "rim"
+    },
+    {
+      "time": 236.25,
+      "channel": "snare"
+    },
+    {
+      "time": 236.5,
+      "channel": "snare"
+    },
+    {
+      "time": 236.75,
+      "channel": "snare"
+    },
+    {
+      "time": 237.0,
+      "channel": "rim"
+    },
+    {
+      "time": 237.5,
+      "channel": "snare"
+    },
+    {
+      "time": 237.75,
+      "channel": "snare"
+    },
+    {
+      "time": 238.0,
+      "channel": "rim"
+    },
+    {
+      "time": 238.25,
+      "channel": "rim"
+    },
+    {
+      "time": 238.5,
+      "channel": "snare"
+    },
+    {
+      "time": 238.75,
+      "channel": "snare"
+    },
+    {
+      "time": 239.0,
+      "channel": "rim"
+    },
+    {
+      "time": 239.5,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 240.5,
+      "channel": "snare"
+    },
+    {
+      "time": 241.0,
+      "channel": "rim"
+    },
+    {
+      "time": 241.5,
+      "channel": "snare"
+    },
+    {
+      "time": 242.0,
+      "channel": "snare"
+    },
+    {
+      "time": 243.0,
+      "channel": "rim"
+    },
+    {
+      "time": 243.5,
+      "channel": "snare"
+    },
+    {
+      "time": 243.75,
+      "channel": "snare"
+    },
+    {
+      "time": 244.0,
+      "channel": "snare"
+    },
+    {
+      "time": 244.5,
+      "channel": "rim"
+    },
+    {
+      "time": 245.0,
+      "channel": "rim"
+    },
+    {
+      "time": 245.5,
+      "channel": "snare"
+    },
+    {
+      "time": 246.0,
+      "channel": "snare"
+    },
+    {
+      "time": 246.5,
+      "channel": "rim"
+    },
+    {
+      "time": 247.0,
+      "channel": "snare"
+    },
+    {
+      "time": 247.5,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 248.5,
+      "channel": "snare"
+    },
+    {
+      "time": 249.0,
+      "channel": "rim"
+    },
+    {
+      "time": 249.5,
+      "channel": "snare"
+    },
+    {
+      "time": 250.0,
+      "channel": "rim"
+    },
+    {
+      "time": 251.0,
+      "channel": "rim"
+    },
+    {
+      "time": 251.5,
+      "channel": "snare"
+    },
+    {
+      "time": 251.75,
+      "channel": "snare"
+    },
+    {
+      "time": 252.0,
+      "channel": "rim"
+    },
+    {
+      "time": 252.25,
+      "channel": "rim"
+    },
+    {
+      "time": 252.5,
+      "channel": "snare"
+    },
+    {
+      "time": 252.75,
+      "channel": "snare"
+    },
+    {
+      "time": 253.0,
+      "channel": "rim"
+    },
+    {
+      "time": 253.5,
+      "channel": "snare"
+    },
+    {
+      "time": 253.75,
+      "channel": "snare"
+    },
+    {
+      "time": 254.0,
+      "channel": "rim"
+    },
+    {
+      "time": 254.25,
+      "channel": "snare"
+    },
+    {
+      "time": 254.5,
+      "channel": "snare"
+    },
+    {
+      "time": 254.75,
+      "channel": "snare"
+    },
+    {
+      "time": 255.0,
+      "channel": "rim"
+    },
+    {
+      "time": 255.5,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 256.5,
+      "channel": "snare"
+    },
+    {
+      "time": 257.0,
+      "channel": "rim"
+    },
+    {
+      "time": 257.5,
+      "channel": "rim"
+    },
+    {
+      "time": 258.0,
+      "channel": "snare"
+    },
+    {
+      "time": 259.0,
+      "channel": "rim"
+    },
+    {
+      "time": 259.5,
+      "channel": "snare"
+    },
+    {
+      "time": 259.75,
+      "channel": "snare"
+    },
+    {
+      "time": 260.0,
+      "channel": "snare"
+    },
+    {
+      "time": 260.5,
+      "channel": "rim"
+    },
+    {
+      "time": 261.0,
+      "channel": "rim"
+    },
+    {
+      "time": 261.5,
+      "channel": "snare"
+    },
+    {
+      "time": 261.75,
+      "channel": "snare"
+    },
+    {
+      "time": 262.0,
+      "channel": "rim"
+    },
+    {
+      "time": 262.5,
+      "channel": "rim"
+    },
+    {
+      "time": 263.0,
+      "channel": "snare"
+    },
+    {
+      "time": 263.5,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 264.5,
+      "channel": "snare"
+    },
+    {
+      "time": 265.0,
+      "channel": "rim"
+    },
+    {
+      "time": 265.5,
+      "channel": "snare"
+    },
+    {
+      "time": 266.0,
+      "channel": "rim"
+    },
+    {
+      "time": 267.0,
+      "channel": "rim"
+    },
+    {
+      "time": 267.5,
+      "channel": "snare"
+    },
+    {
+      "time": 267.75,
+      "channel": "snare"
+    },
+    {
+      "time": 268.0,
+      "channel": "rim"
+    },
+    {
+      "time": 268.25,
+      "channel": "snare"
+    },
+    {
+      "time": 268.5,
+      "channel": "snare"
+    },
+    {
+      "time": 268.75,
+      "channel": "snare"
+    },
+    {
+      "time": 269.0,
+      "channel": "rim"
+    },
+    {
+      "time": 269.25,
+      "channel": "snare"
+    },
+    {
+      "time": 269.5,
+      "channel": "snare"
+    },
+    {
+      "time": 269.75,
+      "channel": "snare"
+    },
+    {
+      "time": 270.0,
+      "channel": "rim"
+    },
+    {
+      "time": 270.25,
+      "channel": "rim"
+    },
+    {
+      "time": 270.5,
+      "channel": "snare"
+    },
+    {
+      "time": 270.75,
+      "channel": "snare"
+    },
+    {
+      "time": 271.0,
+      "channel": "rim"
+    },
+    {
+      "time": 271.5,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 272.5,
+      "channel": "snare"
+    },
+    {
+      "time": 273.0,
+      "channel": "rim"
+    },
+    {
+      "time": 273.5,
+      "channel": "rim"
+    },
+    {
+      "time": 274.0,
+      "channel": "snare"
+    },
+    {
+      "time": 275.0,
+      "channel": "rim"
+    },
+    {
+      "time": 275.5,
+      "channel": "snare"
+    },
+    {
+      "time": 275.75,
+      "channel": "snare"
+    },
+    {
+      "time": 276.0,
+      "channel": "snare"
+    },
+    {
+      "time": 276.5,
+      "channel": "rim"
+    },
+    {
+      "time": 277.0,
+      "channel": "rim"
+    },
+    {
+      "time": 277.5,
+      "channel": "snare"
+    },
+    {
+      "time": 277.75,
+      "channel": "snare"
+    },
+    {
+      "time": 278.0,
+      "channel": "rim"
+    },
+    {
+      "time": 278.5,
+      "channel": "snare"
+    },
+    {
+      "time": 279.0,
+      "channel": "rim"
+    },
+    {
+      "time": 279.5,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 280.5,
+      "channel": "snare"
+    },
+    {
+      "time": 281.0,
+      "channel": "rim"
+    },
+    {
+      "time": 281.5,
+      "channel": "snare"
+    },
+    {
+      "time": 282.0,
+      "channel": "rim"
+    },
+    {
+      "time": 283.0,
+      "channel": "rim"
+    },
+    {
+      "time": 283.5,
+      "channel": "snare"
+    },
+    {
+      "time": 284.0,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 284.5,
+      "channel": "snare"
+    },
+    {
+      "time": 285.0,
+      "channel": "rim"
+    },
+    {
+      "time": 285.5,
+      "channel": "snare"
+    },
+    {
+      "time": 285.75,
+      "channel": "snare"
+    },
+    {
+      "time": 286.0,
+      "channel": "rim"
+    },
+    {
+      "time": 286.5,
+      "channel": "snare"
+    },
+    {
+      "time": 287.0,
+      "channel": "rim"
+    },
+    {
+      "time": 287.5,
+      "channel": "snare"
+    },
+    {
+      "time": 287.75,
+      "channel": "snare"
+    },
+    {
+      "time": 288.0,
+      "channel": "rim"
+    },
+    {
+      "time": 288.5,
+      "channel": "snare"
+    },
+    {
+      "time": 288.75,
+      "channel": "snare"
+    },
+    {
+      "time": 289.0,
+      "channel": "rim"
+    },
+    {
+      "time": 289.25,
+      "channel": "snare"
+    },
+    {
+      "time": 289.5,
+      "channel": "snare"
+    },
+    {
+      "time": 289.75,
+      "channel": "snare"
+    },
+    {
+      "time": 290.0,
+      "channel": "rim"
+    },
+    {
+      "time": 290.5,
+      "channel": "snare"
+    },
+    {
+      "time": 290.75,
+      "channel": "snare"
+    },
+    {
+      "time": 291.0,
+      "channel": "rim"
+    },
+    {
+      "time": 291.5,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 292.5,
+      "channel": "snare"
+    },
+    {
+      "time": 293.0,
+      "channel": "rim"
+    },
+    {
+      "time": 293.5,
+      "channel": "snare"
+    },
+    {
+      "time": 294.0,
+      "channel": "snare"
+    },
+    {
+      "time": 294.5,
+      "channel": "snare"
+    },
+    {
+      "time": 295.0,
+      "channel": "rim"
+    },
+    {
+      "time": 295.5,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 296.5,
+      "channel": "snare"
+    },
+    {
+      "time": 297.0,
+      "channel": "rim"
+    },
+    {
+      "time": 297.5,
+      "channel": "snare"
+    },
+    {
+      "time": 298.0,
+      "channel": "rim"
+    },
+    {
+      "time": 298.5,
+      "channel": "snare"
+    },
+    {
+      "time": 299.0,
+      "channel": "rim"
+    },
+    {
+      "time": 299.5,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 300.5,
+      "channel": "snare"
+    },
+    {
+      "time": 301.0,
+      "channel": "rim"
+    },
+    {
+      "time": 301.5,
+      "channel": "rim"
+    },
+    {
+      "time": 302.0,
+      "channel": "snare"
+    },
+    {
+      "time": 302.5,
+      "channel": "snare"
+    },
+    {
+      "time": 303.0,
+      "channel": "rim"
+    },
+    {
+      "time": 303.5,
+      "channel": "snare"
+    },
+    {
+      "time": 303.75,
+      "channel": "snare"
+    },
+    {
+      "time": 304.0,
+      "channel": "snare"
+    },
+    {
+      "time": 304.5,
+      "channel": "snare"
+    },
+    {
+      "time": 305.0,
+      "channel": "rim"
+    },
+    {
+      "time": 305.5,
+      "channel": "snare"
+    },
+    {
+      "time": 306.0,
+      "channel": "rim"
+    },
+    {
+      "time": 306.5,
+      "channel": "snare"
+    },
+    {
+      "time": 306.75,
+      "channel": "snare"
+    },
+    {
+      "time": 307.0,
+      "channel": "rim"
+    },
+    {
+      "time": 307.5,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 308.5,
+      "channel": "snare"
+    },
+    {
+      "time": 309.0,
+      "channel": "rim"
+    },
+    {
+      "time": 309.5,
+      "channel": "snare"
+    },
+    {
+      "time": 309.75,
+      "channel": "snare"
+    },
+    {
+      "time": 310.0,
+      "channel": "snare"
+    },
+    {
+      "time": 310.5,
+      "channel": "snare"
+    },
+    {
+      "time": 311.0,
+      "channel": "rim"
+    },
+    {
+      "time": 311.5,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 312.5,
+      "channel": "snare"
+    },
+    {
+      "time": 313.0,
+      "channel": "rim"
+    },
+    {
+      "time": 313.5,
+      "channel": "snare"
+    },
+    {
+      "time": 313.75,
+      "channel": "snare"
+    },
+    {
+      "time": 314.0,
+      "channel": "rim"
+    },
+    {
+      "time": 314.5,
+      "channel": "snare"
+    },
+    {
+      "time": 315.0,
+      "channel": "rim"
+    },
+    {
+      "time": 315.5,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 316.5,
+      "channel": "snare"
+    },
+    {
+      "time": 317.0,
+      "channel": "rim"
+    },
+    {
+      "time": 317.5,
+      "channel": "rim"
+    },
+    {
+      "time": 317.75,
+      "channel": "rim"
+    },
+    {
+      "time": 318.0,
+      "channel": "snare"
+    },
+    {
+      "time": 318.5,
+      "channel": "snare"
+    },
+    {
+      "time": 319.0,
+      "channel": "rim"
+    },
+    {
+      "time": 319.5,
+      "channel": "snare"
+    },
+    {
+      "time": 319.75,
+      "channel": "snare"
+    },
+    {
+      "time": 320.0,
+      "channel": "rim"
+    },
+    {
+      "time": 320.25,
+      "channel": "rim"
+    },
+    {
+      "time": 320.5,
+      "channel": "snare"
+    },
+    {
+      "time": 320.75,
+      "channel": "snare"
+    },
+    {
+      "time": 321.0,
+      "channel": "rim"
+    },
+    {
+      "time": 321.5,
+      "channel": "snare"
+    },
+    {
+      "time": 321.75,
+      "channel": "snare"
+    },
+    {
+      "time": 322.0,
+      "channel": "rim"
+    },
+    {
+      "time": 322.25,
+      "channel": "snare"
+    },
+    {
+      "time": 322.5,
+      "channel": "snare"
+    },
+    {
+      "time": 322.75,
+      "channel": "snare"
+    },
+    {
+      "time": 323.0,
+      "channel": "rim"
+    },
+    {
+      "time": 323.5,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "duration": 2.5,
+      "time": 328.0,
+      "channel": "snare"
+    },
+    {
+      "duration": 2.5,
+      "time": 328.0,
+      "channel": "rim"
+    },
+    {
+      "time": 331.5,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 332.5,
+      "channel": "rim"
+    },
+    {
+      "time": 332.75,
+      "channel": "snare"
+    },
+    {
+      "time": 333.0,
+      "channel": "snare"
+    },
+    {
+      "time": 333.25,
+      "channel": "snare"
+    },
+    {
+      "time": 333.5,
+      "channel": "rim"
+    },
+    {
+      "time": 333.75,
+      "channel": "rim"
+    },
+    {
+      "time": 334.0,
+      "channel": "snare"
+    },
+    {
+      "time": 334.25,
+      "channel": "snare"
+    },
+    {
+      "time": 334.5,
+      "channel": "rim"
+    },
+    {
+      "time": 334.75,
+      "channel": "snare"
+    },
+    {
+      "time": 335.0,
+      "channel": "snare"
+    },
+    {
+      "time": 335.25,
+      "channel": "snare"
+    },
+    {
+      "time": 335.5,
+      "channel": "rim"
+    },
+    {
+      "time": 335.75,
+      "channel": "rim"
+    },
+    {
+      "time": 336.0,
+      "channel": "snare"
+    },
+    {
+      "time": 336.25,
+      "channel": "snare"
+    },
+    {
+      "time": 336.5,
+      "channel": "rim"
+    },
+    {
+      "time": 336.75,
+      "channel": "snare"
+    },
+    {
+      "time": 337.0,
+      "channel": "snare"
+    },
+    {
+      "time": 337.25,
+      "channel": "snare"
+    },
+    {
+      "time": 337.5,
+      "channel": "rim"
+    },
+    {
+      "time": 337.75,
+      "channel": "snare"
+    },
+    {
+      "time": 338.0,
+      "channel": "snare"
+    },
+    {
+      "time": 338.25,
+      "channel": "snare"
+    },
+    {
+      "time": 338.5,
+      "channel": "rim"
+    },
+    {
+      "time": 338.75,
+      "channel": "snare"
+    },
+    {
+      "time": 339.0,
+      "channel": "rim"
+    },
+    {
+      "time": 339.25,
+      "channel": "rim"
+    },
+    {
+      "time": 339.5,
+      "channel": "rim"
+    },
+    {
+      "time": 339.75,
+      "channel": "snare"
+    },
+    {
+      "time": 340.0,
+      "channel": "snare"
+    },
+    {
+      "time": 340.25,
+      "channel": "snare"
+    },
+    {
+      "time": 340.5,
+      "channel": "rim"
+    },
+    {
+      "time": 340.75,
+      "channel": "snare"
+    },
+    {
+      "time": 341.0,
+      "channel": "snare"
+    },
+    {
+      "time": 341.25,
+      "channel": "snare"
+    },
+    {
+      "time": 341.5,
+      "channel": "rim"
+    },
+    {
+      "time": 341.75,
+      "channel": "rim"
+    },
+    {
+      "time": 342.0,
+      "channel": "snare"
+    },
+    {
+      "time": 342.25,
+      "channel": "snare"
+    },
+    {
+      "time": 342.5,
+      "channel": "rim"
+    },
+    {
+      "time": 342.75,
+      "channel": "snare"
+    },
+    {
+      "time": 343.0,
+      "channel": "snare"
+    },
+    {
+      "time": 343.25,
+      "channel": "snare"
+    },
+    {
+      "time": 343.5,
+      "channel": "rim"
+    },
+    {
+      "time": 343.75,
+      "channel": "rim"
+    },
+    {
+      "time": 344.0,
+      "channel": "snare"
+    },
+    {
+      "time": 344.25,
+      "channel": "snare"
+    },
+    {
+      "time": 344.5,
+      "channel": "rim"
+    },
+    {
+      "time": 344.75,
+      "channel": "snare"
+    },
+    {
+      "time": 345.0,
+      "channel": "snare"
+    },
+    {
+      "time": 345.25,
+      "channel": "snare"
+    },
+    {
+      "time": 345.5,
+      "channel": "rim"
+    },
+    {
+      "time": 345.75,
+      "channel": "snare"
+    },
+    {
+      "time": 346.0,
+      "channel": "rim"
+    },
+    {
+      "time": 346.25,
+      "channel": "snare"
+    },
+    {
+      "time": 346.5,
+      "channel": "rim"
+    },
+    {
+      "time": 346.75,
+      "channel": "rim"
+    },
+    {
+      "time": 347.0,
+      "channel": "snare"
+    },
+    {
+      "time": 347.25,
+      "channel": "snare"
+    },
+    {
+      "time": 347.5,
+      "channel": "rim"
+    },
+    {
+      "time": 347.75,
+      "channel": "rim"
+    },
+    {
+      "time": 348.0,
+      "channel": "snare"
+    },
+    {
+      "time": 348.25,
+      "channel": "snare"
+    },
+    {
+      "time": 348.5,
+      "channel": "rim"
+    },
+    {
+      "time": 348.75,
+      "channel": "rim"
+    },
+    {
+      "time": 349.0,
+      "channel": "rim"
+    },
+    {
+      "time": 349.25,
+      "channel": "snare"
+    },
+    {
+      "time": 349.5,
+      "channel": "rim"
+    },
+    {
+      "time": 349.75,
+      "channel": "snare"
+    },
+    {
+      "time": 350.0,
+      "channel": "rim"
+    },
+    {
+      "time": 350.25,
+      "channel": "rim"
+    },
+    {
+      "time": 350.5,
+      "channel": "snare"
+    },
+    {
+      "time": 350.75,
+      "channel": "snare"
+    },
+    {
+      "time": 351.0,
+      "channel": "rim"
+    },
+    {
+      "time": 351.25,
+      "channel": "snare"
+    },
+    {
+      "time": 351.5,
+      "channel": "snare"
+    },
+    {
+      "time": 351.75,
+      "channel": "snare"
+    },
+    {
+      "time": 352.0,
+      "channel": "rim"
+    },
+    {
+      "time": 352.25,
+      "channel": "snare"
+    },
+    {
+      "time": 352.5,
+      "channel": "rim"
+    },
+    {
+      "time": 352.75,
+      "channel": "snare"
+    },
+    {
+      "time": 353.0,
+      "channel": "rim"
+    },
+    {
+      "time": 353.25,
+      "channel": "rim"
+    },
+    {
+      "time": 353.5,
+      "channel": "snare"
+    },
+    {
+      "time": 353.75,
+      "channel": "snare"
+    },
+    {
+      "time": 354.0,
+      "channel": "rim"
+    },
+    {
+      "time": 354.25,
+      "channel": "snare"
+    },
+    {
+      "time": 354.5,
+      "channel": "snare"
+    },
+    {
+      "time": 354.75,
+      "channel": "snare"
+    },
+    {
+      "time": 355.0,
+      "channel": "rim"
+    },
+    {
+      "time": 355.5,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 356.5,
+      "channel": "snare"
+    },
+    {
+      "time": 356.75,
+      "channel": "snare"
+    },
+    {
+      "time": 357.0,
+      "channel": "snare"
+    },
+    {
+      "time": 358.0,
+      "channel": "rim"
+    },
+    {
+      "time": 359.5,
+      "channel": "snare"
+    },
+    {
+      "time": 360.0,
+      "channel": "snare"
+    },
+    {
+      "time": 361.0,
+      "channel": "snare"
+    },
+    {
+      "time": 361.25,
+      "channel": "snare"
+    },
+    {
+      "time": 361.5,
+      "channel": "snare"
+    },
+    {
+      "time": 361.75,
+      "channel": "snare"
+    },
+    {
+      "time": 362.0,
+      "channel": "rim"
+    },
+    {
+      "time": 362.5,
+      "channel": "snare"
+    },
+    {
+      "time": 363.0,
+      "channel": "rim"
+    },
+    {
+      "time": 363.5,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 364.5,
+      "channel": "snare"
+    },
+    {
+      "time": 365.0,
+      "channel": "snare"
+    },
+    {
+      "time": 366.0,
+      "channel": "rim"
+    },
+    {
+      "time": 367.0,
+      "channel": "snare"
+    },
+    {
+      "time": 367.5,
+      "channel": "rim"
+    },
+    {
+      "time": 367.75,
+      "channel": "rim"
+    },
+    {
+      "time": 368.0,
+      "channel": "snare"
+    },
+    {
+      "time": 368.25,
+      "channel": "snare"
+    },
+    {
+      "time": 368.5,
+      "channel": "snare"
+    },
+    {
+      "time": 368.75,
+      "channel": "snare"
+    },
+    {
+      "time": 369.0,
+      "channel": "snare"
+    },
+    {
+      "time": 369.25,
+      "channel": "snare"
+    },
+    {
+      "time": 369.5,
+      "channel": "snare"
+    },
+    {
+      "time": 369.75,
+      "channel": "snare"
+    },
+    {
+      "time": 370.0,
+      "channel": "rim"
+    },
+    {
+      "time": 370.5,
+      "channel": "snare"
+    },
+    {
+      "time": 371.0,
+      "channel": "rim"
+    },
+    {
+      "time": 371.5,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 372.5,
+      "channel": "snare"
+    },
+    {
+      "time": 373.0,
+      "channel": "snare"
+    },
+    {
+      "time": 374.0,
+      "channel": "rim"
+    },
+    {
+      "time": 375.5,
+      "channel": "snare"
+    },
+    {
+      "time": 376.0,
+      "channel": "snare"
+    },
+    {
+      "time": 377.0,
+      "channel": "snare"
+    },
+    {
+      "time": 377.25,
+      "channel": "snare"
+    },
+    {
+      "time": 377.5,
+      "channel": "snare"
+    },
+    {
+      "time": 377.75,
+      "channel": "snare"
+    },
+    {
+      "time": 378.0,
+      "channel": "rim"
+    },
+    {
+      "time": 378.5,
+      "channel": "rim"
+    },
+    {
+      "time": 379.0,
+      "channel": "snare"
+    },
+    {
+      "time": 379.5,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 380.5,
+      "channel": "snare"
+    },
+    {
+      "time": 380.75,
+      "channel": "snare"
+    },
+    {
+      "time": 381.0,
+      "channel": "snare"
+    },
+    {
+      "time": 382.0,
+      "channel": "rim"
+    },
+    {
+      "time": 383.5,
+      "channel": "snare"
+    },
+    {
+      "time": 384.0,
+      "channel": "snare"
+    },
+    {
+      "time": 384.5,
+      "channel": "rim"
+    },
+    {
+      "time": 385.0,
+      "channel": "snare"
+    },
+    {
+      "time": 385.25,
+      "channel": "snare"
+    },
+    {
+      "time": 385.5,
+      "channel": "snare"
+    },
+    {
+      "time": 385.75,
+      "channel": "snare"
+    },
+    {
+      "time": 386.0,
+      "channel": "rim"
+    },
+    {
+      "time": 386.25,
+      "channel": "rim"
+    },
+    {
+      "time": 386.5,
+      "channel": "snare"
+    },
+    {
+      "time": 386.75,
+      "channel": "snare"
+    },
+    {
+      "time": 387.0,
+      "channel": "rim"
+    },
+    {
+      "time": 387.5,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 388.5,
+      "channel": "snare"
+    },
+    {
+      "time": 389.0,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 390.0,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 391.5,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 393.0,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 394.0,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 395.5,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 396.5,
+      "channel": "rim"
+    },
+    {
+      "time": 397.0,
+      "channel": "snare"
+    },
+    {
+      "time": 397.5,
+      "channel": "snare"
+    },
+    {
+      "time": 398.0,
+      "channel": "rim"
+    },
+    {
+      "time": 399.0,
+      "channel": "rim"
+    },
+    {
+      "time": 399.5,
+      "channel": "snare"
+    },
+    {
+      "time": 400.0,
+      "channel": "snare"
+    },
+    {
+      "time": 400.5,
+      "channel": "rim"
+    },
+    {
+      "time": 401.0,
+      "channel": "snare"
+    },
+    {
+      "time": 401.25,
+      "channel": "snare"
+    },
+    {
+      "time": 401.5,
+      "channel": "snare"
+    },
+    {
+      "time": 401.75,
+      "channel": "snare"
+    },
+    {
+      "time": 402.0,
+      "channel": "rim"
+    },
+    {
+      "time": 402.5,
+      "channel": "snare"
+    },
+    {
+      "time": 403.0,
+      "channel": "rim"
+    },
+    {
+      "time": 403.5,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 404.5,
+      "channel": "snare"
+    },
+    {
+      "time": 405.0,
+      "channel": "rim"
+    },
+    {
+      "time": 406.0,
+      "channel": "rim"
+    },
+    {
+      "time": 406.5,
+      "channel": "rim"
+    },
+    {
+      "time": 407.0,
+      "channel": "snare"
+    },
+    {
+      "time": 407.5,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 408.5,
+      "channel": "snare"
+    },
+    {
+      "time": 409.0,
+      "channel": "rim"
+    },
+    {
+      "time": 409.25,
+      "channel": "rim"
+    },
+    {
+      "time": 409.5,
+      "channel": "snare"
+    },
+    {
+      "time": 409.75,
+      "channel": "snare"
+    },
+    {
+      "time": 410.0,
+      "channel": "rim"
+    },
+    {
+      "time": 410.5,
+      "channel": "rim"
+    },
+    {
+      "time": 411.0,
+      "channel": "snare"
+    },
+    {
+      "time": 411.5,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 412.5,
+      "channel": "snare"
+    },
+    {
+      "time": 413.0,
+      "channel": "rim"
+    },
+    {
+      "time": 413.5,
+      "channel": "snare"
+    },
+    {
+      "time": 414.0,
+      "channel": "rim"
+    },
+    {
+      "time": 414.5,
+      "channel": "snare"
+    },
+    {
+      "time": 415.0,
+      "channel": "rim"
+    },
+    {
+      "time": 415.25,
+      "channel": "rim"
+    },
+    {
+      "time": 415.5,
+      "channel": "rim"
+    },
+    {
+      "time": 415.75,
+      "channel": "rim"
+    },
+    {
+      "time": 416.0,
+      "channel": "snare"
+    },
+    {
+      "time": 416.25,
+      "channel": "snare"
+    },
+    {
+      "time": 416.5,
+      "channel": "rim"
+    },
+    {
+      "time": 416.75,
+      "channel": "rim"
+    },
+    {
+      "time": 417.0,
+      "channel": "snare"
+    },
+    {
+      "time": 417.25,
+      "channel": "snare"
+    },
+    {
+      "time": 417.5,
+      "channel": "snare"
+    },
+    {
+      "time": 417.75,
+      "channel": "snare"
+    },
+    {
+      "time": 418.0,
+      "channel": "rim"
+    },
+    {
+      "time": 418.25,
+      "channel": "snare"
+    },
+    {
+      "time": 418.5,
+      "channel": "snare"
+    },
+    {
+      "time": 418.75,
+      "channel": "snare"
+    },
+    {
+      "time": 419.0,
+      "channel": "rim"
+    },
+    {
+      "time": 419.5,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 420.5,
+      "channel": "rim"
+    },
+    {
+      "time": 421.0,
+      "channel": "snare"
+    },
+    {
+      "time": 421.5,
+      "channel": "snare"
+    },
+    {
+      "time": 422.0,
+      "channel": "rim"
+    },
+    {
+      "time": 422.5,
+      "channel": "rim"
+    },
+    {
+      "time": 423.0,
+      "channel": "snare"
+    },
+    {
+      "time": 423.5,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 424.5,
+      "channel": "rim"
+    },
+    {
+      "time": 425.0,
+      "channel": "snare"
+    },
+    {
+      "time": 425.5,
+      "channel": "snare"
+    },
+    {
+      "time": 426.0,
+      "channel": "rim"
+    },
+    {
+      "time": 426.5,
+      "channel": "snare"
+    },
+    {
+      "time": 427.0,
+      "channel": "rim"
+    },
+    {
+      "time": 427.5,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 428.5,
+      "channel": "rim"
+    },
+    {
+      "time": 429.0,
+      "channel": "snare"
+    },
+    {
+      "time": 429.5,
+      "channel": "rim"
+    },
+    {
+      "time": 430.0,
+      "channel": "rim"
+    },
+    {
+      "time": 430.5,
+      "channel": "snare"
+    },
+    {
+      "time": 431.0,
+      "channel": "snare"
+    },
+    {
+      "time": 431.5,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 432.5,
+      "channel": "rim"
+    },
+    {
+      "time": 433.0,
+      "channel": "snare"
+    },
+    {
+      "time": 433.5,
+      "channel": "rim"
+    },
+    {
+      "time": 434.0,
+      "channel": "rim"
+    },
+    {
+      "time": 434.5,
+      "channel": "snare"
+    },
+    {
+      "time": 435.0,
+      "channel": "rim"
+    },
+    {
+      "time": 435.5,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 436.5,
+      "channel": "snare"
+    },
+    {
+      "time": 437.0,
+      "channel": "snare"
+    },
+    {
+      "time": 437.5,
+      "channel": "rim"
+    },
+    {
+      "time": 438.0,
+      "channel": "rim"
+    },
+    {
+      "time": 438.5,
+      "channel": "snare"
+    },
+    {
+      "time": 439.0,
+      "channel": "rim"
+    },
+    {
+      "time": 439.5,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 440.5,
+      "channel": "snare"
+    },
+    {
+      "time": 441.0,
+      "channel": "snare"
+    },
+    {
+      "time": 441.5,
+      "channel": "snare"
+    },
+    {
+      "time": 442.0,
+      "channel": "rim"
+    },
+    {
+      "time": 442.5,
+      "channel": "snare"
+    },
+    {
+      "time": 443.0,
+      "channel": "rim"
+    },
+    {
+      "time": 443.5,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 444.5,
+      "channel": "snare"
+    },
+    {
+      "time": 445.0,
+      "channel": "rim"
+    },
+    {
+      "time": 445.5,
+      "channel": "snare"
+    },
+    {
+      "time": 446.0,
+      "channel": "rim"
+    },
+    {
+      "time": 446.25,
+      "channel": "snare"
+    },
+    {
+      "time": 446.5,
+      "channel": "snare"
+    },
+    {
+      "time": 446.75,
+      "channel": "snare"
+    },
+    {
+      "time": 447.0,
+      "channel": "rim"
+    },
+    {
+      "time": 447.25,
+      "channel": "snare"
+    },
+    {
+      "time": 447.5,
+      "channel": "snare"
+    },
+    {
+      "time": 447.75,
+      "channel": "snare"
+    },
+    {
+      "time": 448.0,
+      "channel": "rim"
+    },
+    {
+      "time": 448.25,
+      "channel": "rim"
+    },
+    {
+      "time": 448.5,
+      "channel": "snare"
+    },
+    {
+      "time": 448.75,
+      "channel": "snare"
+    },
+    {
+      "time": 449.0,
+      "channel": "rim"
+    },
+    {
+      "time": 449.25,
+      "channel": "rim"
+    },
+    {
+      "time": 449.5,
+      "channel": "snare"
+    },
+    {
+      "time": 449.75,
+      "channel": "snare"
+    },
+    {
+      "time": 450.0,
+      "channel": "rim"
+    },
+    {
+      "time": 450.5,
+      "channel": "snare"
+    },
+    {
+      "time": 451.0,
+      "channel": "rim"
+    },
+    {
+      "time": 451.5,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 458.0,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 458.5,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 459.0,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 459.5,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 460.5,
+      "channel": "snare"
+    },
+    {
+      "time": 461.0,
+      "channel": "rim"
+    },
+    {
+      "time": 461.5,
+      "channel": "snare"
+    },
+    {
+      "time": 462.0,
+      "channel": "rim"
+    },
+    {
+      "time": 463.0,
+      "channel": "rim"
+    },
+    {
+      "time": 463.5,
+      "channel": "snare"
+    },
+    {
+      "time": 463.75,
+      "channel": "snare"
+    },
+    {
+      "time": 464.0,
+      "channel": "rim"
+    },
+    {
+      "time": 464.25,
+      "channel": "snare"
+    },
+    {
+      "time": 464.5,
+      "channel": "snare"
+    },
+    {
+      "time": 464.75,
+      "channel": "snare"
+    },
+    {
+      "time": 465.0,
+      "channel": "rim"
+    },
+    {
+      "time": 465.25,
+      "channel": "snare"
+    },
+    {
+      "time": 465.5,
+      "channel": "snare"
+    },
+    {
+      "time": 465.75,
+      "channel": "snare"
+    },
+    {
+      "time": 466.0,
+      "channel": "rim"
+    },
+    {
+      "time": 466.25,
+      "channel": "rim"
+    },
+    {
+      "time": 466.5,
+      "channel": "snare"
+    },
+    {
+      "time": 466.75,
+      "channel": "snare"
+    },
+    {
+      "time": 467.0,
+      "channel": "rim"
+    },
+    {
+      "time": 467.5,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 468.5,
+      "channel": "snare"
+    },
+    {
+      "time": 469.0,
+      "channel": "rim"
+    },
+    {
+      "time": 469.5,
+      "channel": "snare"
+    },
+    {
+      "time": 470.0,
+      "channel": "snare"
+    },
+    {
+      "time": 471.0,
+      "channel": "rim"
+    },
+    {
+      "time": 471.5,
+      "channel": "snare"
+    },
+    {
+      "time": 471.75,
+      "channel": "snare"
+    },
+    {
+      "time": 472.0,
+      "channel": "snare"
+    },
+    {
+      "time": 472.5,
+      "channel": "rim"
+    },
+    {
+      "time": 473.0,
+      "channel": "rim"
+    },
+    {
+      "time": 473.5,
+      "channel": "snare"
+    },
+    {
+      "time": 474.0,
+      "channel": "rim"
+    },
+    {
+      "time": 474.5,
+      "channel": "snare"
+    },
+    {
+      "time": 475.0,
+      "channel": "snare"
+    },
+    {
+      "time": 475.5,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 476.5,
+      "channel": "snare"
+    },
+    {
+      "time": 477.0,
+      "channel": "rim"
+    },
+    {
+      "time": 477.5,
+      "channel": "snare"
+    },
+    {
+      "time": 478.0,
+      "channel": "rim"
+    },
+    {
+      "time": 479.0,
+      "channel": "rim"
+    },
+    {
+      "time": 479.5,
+      "channel": "snare"
+    },
+    {
+      "time": 479.75,
+      "channel": "snare"
+    },
+    {
+      "time": 480.0,
+      "channel": "rim"
+    },
+    {
+      "time": 480.25,
+      "channel": "rim"
+    },
+    {
+      "time": 480.5,
+      "channel": "snare"
+    },
+    {
+      "time": 480.75,
+      "channel": "snare"
+    },
+    {
+      "time": 481.0,
+      "channel": "rim"
+    },
+    {
+      "time": 481.5,
+      "channel": "snare"
+    },
+    {
+      "time": 481.75,
+      "channel": "snare"
+    },
+    {
+      "time": 482.0,
+      "channel": "rim"
+    },
+    {
+      "time": 482.25,
+      "channel": "snare"
+    },
+    {
+      "time": 482.5,
+      "channel": "rim"
+    },
+    {
+      "time": 482.75,
+      "channel": "rim"
+    },
+    {
+      "time": 483.0,
+      "channel": "rim"
+    },
+    {
+      "time": 483.5,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 484.5,
+      "channel": "snare"
+    },
+    {
+      "time": 485.0,
+      "channel": "rim"
+    },
+    {
+      "time": 485.5,
+      "channel": "rim"
+    },
+    {
+      "time": 486.0,
+      "channel": "snare"
+    },
+    {
+      "time": 487.0,
+      "channel": "rim"
+    },
+    {
+      "time": 487.5,
+      "channel": "snare"
+    },
+    {
+      "time": 487.75,
+      "channel": "snare"
+    },
+    {
+      "time": 488.0,
+      "channel": "snare"
+    },
+    {
+      "time": 488.5,
+      "channel": "rim"
+    },
+    {
+      "time": 489.0,
+      "channel": "rim"
+    },
+    {
+      "time": 489.5,
+      "channel": "snare"
+    },
+    {
+      "time": 489.75,
+      "channel": "snare"
+    },
+    {
+      "time": 490.0,
+      "channel": "rim"
+    },
+    {
+      "time": 490.5,
+      "channel": "rim"
+    },
+    {
+      "time": 491.0,
+      "channel": "snare"
+    },
+    {
+      "time": 491.5,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 492.5,
+      "channel": "snare"
+    },
+    {
+      "time": 493.0,
+      "channel": "rim"
+    },
+    {
+      "time": 493.5,
+      "channel": "snare"
+    },
+    {
+      "time": 494.0,
+      "channel": "rim"
+    },
+    {
+      "time": 495.0,
+      "channel": "rim"
+    },
+    {
+      "time": 495.5,
+      "channel": "snare"
+    },
+    {
+      "time": 495.75,
+      "channel": "snare"
+    },
+    {
+      "time": 496.0,
+      "channel": "rim"
+    },
+    {
+      "time": 496.25,
+      "channel": "snare"
+    },
+    {
+      "time": 496.5,
+      "channel": "snare"
+    },
+    {
+      "time": 496.75,
+      "channel": "snare"
+    },
+    {
+      "time": 497.0,
+      "channel": "rim"
+    },
+    {
+      "time": 497.25,
+      "channel": "snare"
+    },
+    {
+      "time": 497.5,
+      "channel": "snare"
+    },
+    {
+      "time": 497.75,
+      "channel": "snare"
+    },
+    {
+      "time": 498.0,
+      "channel": "rim"
+    },
+    {
+      "time": 498.25,
+      "channel": "rim"
+    },
+    {
+      "time": 498.5,
+      "channel": "snare"
+    },
+    {
+      "time": 498.75,
+      "channel": "snare"
+    },
+    {
+      "time": 499.0,
+      "channel": "rim"
+    },
+    {
+      "time": 499.5,
+      "channel": "snare",
+      "modifier": "accent"
+    },
+    {
+      "time": 500.5,
+      "channel": "snare"
+    },
+    {
+      "time": 501.0,
+      "channel": "rim"
+    },
+    {
+      "time": 501.5,
+      "channel": "rim"
+    },
+    {
+      "time": 502.0,
+      "channel": "snare"
+    },
+    {
+      "time": 503.0,
+      "channel": "rim"
+    },
+    {
+      "time": 503.5,
+      "channel": "snare"
+    },
+    {
+      "time": 503.75,
+      "channel": "snare"
+    },
+    {
+      "time": 504.0,
+      "channel": "snare"
+    },
+    {
+      "time": 504.5,
+      "channel": "rim"
+    },
+    {
+      "time": 505.0,
+      "channel": "rim"
+    },
+    {
+      "time": 505.5,
+      "channel": "snare"
+    },
+    {
+      "time": 505.75,
+      "channel": "snare"
+    },
+    {
+      "time": 506.0,
+      "channel": "rim"
+    },
+    {
+      "time": 506.5,
+      "channel": "snare"
+    },
+    {
+      "time": 507.0,
+      "channel": "rim"
+    },
+    {
+      "time": 507.5,
+      "channel": "rim",
+      "modifier": "accent"
+    },
+    {
+      "time": 508.5,
+      "channel": "snare"
+    },
+    {
+      "time": 509.0,
+      "channel": "rim"
+    },
+    {
+      "time": 509.5,
+      "channel": "snare"
+    },
+    {
+      "time": 510.0,
+      "channel": "rim"
+    },
+    {
+      "time": 511.0,
+      "channel": "rim"
+    },
+    {
+      "time": 511.5,
+      "channel": "snare"
+    },
+    {
+      "time": 511.75,
+      "channel": "snare"
+    },
+    {
+      "time": 512.0,
+      "channel": "rim"
+    },
+    {
+      "time": 512.5,
+      "channel": "snare"
+    },
+    {
+      "time": 513.0,
+      "channel": "rim"
+    },
+    {
+      "time": 513.5,
+      "channel": "snare"
+    },
+    {
+      "time": 513.75,
+      "channel": "snare"
+    },
+    {
+      "time": 514.0,
+      "channel": "rim"
+    },
+    {
+      "time": 514.5,
+      "channel": "snare"
+    },
+    {
+      "time": 515.0,
+      "channel": "rim"
+    },
+    {
+      "time": 515.5,
+      "channel": "snare"
+    },
+    {
+      "time": 515.75,
+      "channel": "snare"
+    },
+    {
+      "time": 516.0,
+      "channel": "rim"
+    },
+    {
+      "time": 516.25,
+      "channel": "snare"
+    },
+    {
+      "time": 516.5,
+      "channel": "snare"
+    },
+    {
+      "time": 516.75,
+      "channel": "snare"
+    },
+    {
+      "time": 517.0,
+      "channel": "rim"
+    },
+    {
+      "time": 517.25,
+      "channel": "snare"
+    },
+    {
+      "time": 517.5,
+      "channel": "snare"
+    },
+    {
+      "time": 517.75,
+      "channel": "snare"
+    },
+    {
+      "time": 518.0,
+      "channel": "rim"
+    },
+    {
+      "time": 518.25,
+      "channel": "rim"
+    },
+    {
+      "time": 518.5,
+      "channel": "snare"
+    },
+    {
+      "time": 518.75,
+      "channel": "snare"
+    },
+    {
+      "time": 519.0,
+      "channel": "rim"
+    },
+    {
+      "time": 519.5,
+      "channel": "snare",
+      "modifier": "accent"
+    }
+  ]
+}

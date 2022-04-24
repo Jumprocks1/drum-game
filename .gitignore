@@ -20,6 +20,12 @@ resources/sh_Shaders/*
 !resources/sh_Shaders/sh_ErrorGraph.fs
 
 
+# Maps
+!resources/maps
+resources/maps/audio
+resources/maps/archive
+resources/maps/Test.bjson
+
 
 # Global ignores
 .cache.json

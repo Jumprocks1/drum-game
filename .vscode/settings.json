@@ -1,0 +1,16 @@
+{
+    "json.schemas": [
+        {
+            "fileMatch": [
+                "resources/collections/*.json"
+            ],
+            "url": "./collection-schema.json"
+        },
+        {
+            "fileMatch": [
+                "*.bjson"
+            ],
+            "url": "./bjson-schema.json"
+        }
+    ]
+}

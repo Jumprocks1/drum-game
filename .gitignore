@@ -11,9 +11,19 @@
 
 !resources
 resources/*
+!resources/database.md
 !resources/Fonts
 
 # Shader
 !resources/sh_Shaders
 resources/sh_Shaders/*
 !resources/sh_Shaders/sh_ErrorGraph.fs
+
+
+
+# Global ignores
+.cache.json
+*.db
+*.mp3
+*.mp4
+desktop.ini

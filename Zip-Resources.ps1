@@ -2,7 +2,7 @@
 
 $ErrorActionPreference = "Stop"
 
-$resources = Resolve-Path DrumGame/resources
+$resources = Resolve-Path resources
 Write-Host "Resources: $resources" -ForegroundColor Magenta
 
 $outputPath = Join-Path (Resolve-Path "releases") "resources.zip"
@@ -13,6 +13,7 @@ Write-Host "Output: $outputPath" -ForegroundColor Cyan
 foreach ($f in Get-ChildItem "$resources/Fonts" -File) {
     $targetFiles.Add($f.FullName) > $null
 }
+$targetFiles.Add(Resolve-Path "resources/sh_Shaders/sh_ErrorGraph.fs") > $null
 
 $includeAudioArtists = "Dare I Dream","Resisting the Silence"
 $includeAudio = ,"BRS.bjson"

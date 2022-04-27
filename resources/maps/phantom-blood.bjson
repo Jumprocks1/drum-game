@@ -5,11 +5,11 @@
   "audio": "audio/04 - Phantom Blood.mp3",
   "id": "210ace2c-c749-41df-80b2-b28f7a1dafa6",
   "offset": 239.02,
-  "leadIn": 0.0,
+  "leadIn": 1000.0,
   "bpm": 270.0,
   "title": "Phantom Blood",
   "artist": "Unlucky Morpheus",
-  "mapper": "Jumprocks (WIP)",
+  "mapper": "Jumprocks",
   "difficulty": "Expert+",
   "notes": [
     {
@@ -6799,10 +6799,6 @@
       "channel": "snare"
     },
     {
-      "time": 623.0,
-      "channel": "ride"
-    },
-    {
       "time": 623.5,
       "channel": "bass"
     },
@@ -8492,10 +8488,6 @@
     },
     {
       "time": 792.0,
-      "channel": "bass"
-    },
-    {
-      "time": 792.0,
       "channel": "crash"
     },
     {
@@ -8515,10 +8507,6 @@
       "channel": "snare"
     },
     {
-      "time": 793.5,
-      "channel": "bass"
-    },
-    {
       "time": 794.0,
       "channel": "ride"
     },
@@ -8533,10 +8521,6 @@
     {
       "time": 795.0,
       "channel": "snare"
-    },
-    {
-      "time": 795.0,
-      "channel": "bass"
     },
     {
       "time": 795.0,
@@ -8559,10 +8543,6 @@
       "channel": "snare"
     },
     {
-      "time": 796.5,
-      "channel": "bass"
-    },
-    {
       "time": 797.0,
       "channel": "ride"
     },
@@ -8583,20 +8563,12 @@
       "channel": "snare"
     },
     {
-      "time": 798.0,
-      "channel": "bass"
-    },
-    {
       "time": 798.5,
       "channel": "bass"
     },
     {
       "time": 799.0,
       "channel": "crash"
-    },
-    {
-      "time": 799.0,
-      "channel": "bass"
     },
     {
       "time": 799.0,

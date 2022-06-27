@@ -26,6 +26,22 @@ resources/maps/audio
 resources/maps/archive
 resources/maps/Test.bjson
 
+# WIP maps
+resources/maps/1984.bjson
+resources/maps/TomSawyer.bjson
+resources/maps/adamas.bjson
+resources/maps/boku-no-sensou.bjson
+resources/maps/boulevard-of-broken-dreams.bjson
+resources/maps/comedown.bjson
+resources/maps/crossing-field.bjson
+resources/maps/cry-baby.bjson
+resources/maps/good-things-fall-apart.bjson
+resources/maps/gurenge.bjson
+resources/maps/play-dice.bjson
+resources/maps/q.bjson
+resources/maps/telephone-number.bjson
+resources/maps/wit-and-love.bjson
+resources/maps/zenith.bjson
 
 # Global ignores
 .cache.json

@@ -1,7 +1,7 @@
 {
   "bookmarks": [],
   "annotations": [],
-  "relativeVolume": 0.3,
+  "relativeVolume": 0.39,
   "audio": "audio/01 - MAYDAY (feat. Ryo) [Explicit].mp3",
   "id": "71396d2a-4e65-4c83-8aed-f521ceb93703",
   "offset": 647.79,
@@ -20,7 +20,7 @@
   "title": "MAYDAY",
   "artist": "coldrain feat. Ryo",
   "mapper": "Jumprocks",
-  "difficulty": "Normal",
+  "difficulty": "Hard",
   "youTubeID": "PzaW0E7uRwc",
   "amazonASIN": "B07X32GDV4",
   "notes": [
@@ -946,7 +946,8 @@
     },
     {
       "time": 79.0,
-      "channel": "snare"
+      "channel": "snare",
+      "sticking": "right"
     },
     {
       "time": 79.0,
@@ -2474,7 +2475,8 @@
     },
     {
       "time": 191.0,
-      "channel": "snare"
+      "channel": "snare",
+      "sticking": "right"
     },
     {
       "time": 191.0,

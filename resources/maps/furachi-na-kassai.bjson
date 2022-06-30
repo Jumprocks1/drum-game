@@ -3,7 +3,7 @@
   "annotations": [],
   "relativeVolume": 0.3,
   "audio": "audio/01_04_不埒な喝采.m4a",
-  "offset": 1565.61,
+  "offset": 1609.0,
   "leadIn": 0.0,
   "bpm": 158.0,
   "measureConfig": [
@@ -19,7 +19,7 @@
   "title": "Furachi na Kassai",
   "artist": "Police Piccadilly feat. KAFU",
   "mapper": "Jumprocks",
-  "difficulty": "Normal",
+  "difficulty": "Hard",
   "youTubeID": "m10mNB8L9Kw",
   "ototoyAlbumID": 1108320,
   "notes": [
@@ -3787,7 +3787,8 @@
     },
     {
       "time": 284.25,
-      "channel": "high-tom"
+      "channel": "high-tom",
+      "sticking": "left"
     },
     {
       "time": 284.5,

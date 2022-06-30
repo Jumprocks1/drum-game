@@ -11,6 +11,8 @@
   "artist": "Unlucky Morpheus",
   "mapper": "Jumprocks",
   "difficulty": "Expert+",
+  "youTubeID": "YujGZll4Pu4",
+  "amazonASIN": "B07CNM5119",
   "notes": [
     {
       "time": 0.0,
@@ -7963,16 +7965,8 @@
       "channel": "snare"
     },
     {
-      "time": 723.25,
-      "channel": "snare"
-    },
-    {
       "time": 723.5,
-      "channel": "bass"
-    },
-    {
-      "time": 723.75,
-      "channel": "bass"
+      "channel": "snare"
     },
     {
       "time": 724.0,
@@ -8580,7 +8574,8 @@
     },
     {
       "time": 800.0,
-      "channel": "snare"
+      "channel": "snare",
+      "sticking": "left"
     },
     {
       "time": 800.25,

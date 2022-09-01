@@ -146,8 +146,15 @@
         "audio": {
             "type": "string"
         },
+        "image": {
+            "type": "string",
+            "description": "Image used as a background when showing this beatmap."
+        },
         "video": {
             "type": "string"
+        },
+        "videoOffset": {
+            "type": "number"
         },
         "offset": {
             "type": "number"
@@ -183,6 +190,9 @@
             "type": "string"
         },
         "artist": {
+            "type": "string"
+        },
+        "album": {
             "type": "string"
         },
         "mapper": {
@@ -231,6 +241,18 @@
         },
         "bandcampTrack": {
             "type": "string"
+        },
+        "songSource": {
+            "type": "string",
+            "description": "Origin of the song, such as another game, movie, anime, or event. Many songs should leave this empty."
+        },
+        "mapSourceUrl": {
+            "type": "string",
+            "description": "This should be where the map was downloaded from (or where it can be publicy shared)."
+        },
+        "creationTimeUtc": {
+            "type": "string",
+            "format": "date-time"
         },
         "links": {
             "type": "array",

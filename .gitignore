@@ -19,6 +19,7 @@ resources/*
 resources/sh_Shaders/*
 !resources/sh_Shaders/sh_ErrorGraph.fs
 
+resources/Fonts/Noto
 
 # Maps
 !resources/maps

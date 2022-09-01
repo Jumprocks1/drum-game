@@ -341,7 +341,8 @@
         },
         {
             "time": 30.0,
-            "channel": "snare"
+            "channel": "snare",
+            "sticking": "left"
         },
         {
             "time": 30.166666666666668,
@@ -849,7 +850,8 @@
         },
         {
             "time": 61.75,
-            "channel": "snare"
+            "channel": "snare",
+            "sticking": "left"
         },
         {
             "time": 62.0,
@@ -1942,7 +1944,7 @@
         },
         {
             "time": 146.0,
-            "channel": "open-hihat"
+            "channel": "china"
         },
         {
             "time": 146.25,
@@ -1962,7 +1964,7 @@
         },
         {
             "time": 147.0,
-            "channel": "open-hihat"
+            "channel": "china"
         },
         {
             "time": 147.25,
@@ -5992,11 +5994,7 @@
         },
         {
             "time": 443.5,
-            "channel": "open-hihat"
-        },
-        {
-            "time": 443.75,
-            "channel": "open-hihat"
+            "channel": "splash"
         },
         {
             "time": 444.0,
@@ -6012,7 +6010,7 @@
         },
         {
             "time": 445.0,
-            "channel": "crash"
+            "channel": "china"
         },
         {
             "time": 445.5,
@@ -6024,7 +6022,7 @@
         },
         {
             "time": 446.0,
-            "channel": "crash"
+            "channel": "china"
         },
         {
             "time": 446.5,
@@ -6036,7 +6034,7 @@
         },
         {
             "time": 447.0,
-            "channel": "crash"
+            "channel": "china"
         },
         {
             "time": 447.5,

@@ -44,6 +44,13 @@ resources/maps/q.bjson
 resources/maps/telephone-number.bjson
 resources/maps/wit-and-love.bjson
 resources/maps/zenith.bjson
+resources/maps/el-dorado-.bjson
+resources/maps/neurotica.bjson
+resources/maps/playing-god.bjson
+
+# Imported maps
+resources/maps/*.dtx.bjson
+resources/maps/*-dtx.bjson
 
 # Global ignores
 .cache.json

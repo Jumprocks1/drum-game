@@ -1,0 +1,4 @@
+node_modules/
+maps/*
+dist/*
+!dist/index.html

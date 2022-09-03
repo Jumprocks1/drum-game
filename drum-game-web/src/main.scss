@@ -1,0 +1,117 @@
+@import "styles/theme.scss";
+
+.notation-display {
+    width: 100%;
+    height: 100%;
+    background: white;
+    color: black;
+    overflow: hidden;
+
+    display: flex;
+    flex-direction: column;
+
+    canvas {
+        width: 100%;
+    }
+
+    .timeline {
+        height: 50px;
+        background: rgba(4, 4, 4, 0.9);
+        position: relative;
+
+        .timer {
+            color: white;
+            font-size: 18px;
+            text-align: center;
+            position: absolute;
+            width: 100%;
+        }
+
+        .bar-container {
+            position: absolute;
+            bottom: 0;
+            padding: 0 18px;
+            width: 100%;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            .bar {
+                width: 100%;
+                height: 6px;
+                border-radius: 3px;
+                background: honeydew;
+                position: relative;
+
+                .thumb {
+                    position: absolute;
+                    width: 18px;
+                    height: 18px;
+                    border-radius: 50%;
+                    top: 50%;
+                    transform: translate(-50%, -50%);
+                    background: gold;
+                    box-shadow: 0 0 3px khaki,
+                        0 0 6px khaki,
+                        0 0 12px khaki,
+                }
+            }
+        }
+    }
+
+}
+
+
+#map-selector {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    overflow-y: scroll;
+    height: 100%;
+}
+
+.beatmap-card {
+    cursor: pointer;
+    background: $DarkBackground;
+    padding: $s 0 $s $s3;
+
+    margin: $s*1.5 0;
+    margin-right: $s2;
+
+    border-radius: $s;
+    box-shadow: 0 0 $s2 $LightBorder,
+        0 0 $s2 $LightBorder,
+        0 0 $s3 $LightBorder;
+
+    flex: 0 0 90px;
+
+    width: 600px;
+
+    &:hover {
+        background: mix($DarkBackground, $DarkActiveBackground);
+    }
+
+    &.active {
+        background: $DarkActiveBackground;
+    }
+
+    >*:not(.title) {
+        font-size: $FontSize * 0.68;
+        padding-left: $s2;
+    }
+
+    position: relative;
+
+    $title-height: $FontSize * 1.4;
+
+    .artist {
+        top: $title-height;
+        position: absolute;
+    }
+
+    .bottom-line {
+        top: $title-height + $FontSize * 0.9;
+        position: absolute;
+    }
+}

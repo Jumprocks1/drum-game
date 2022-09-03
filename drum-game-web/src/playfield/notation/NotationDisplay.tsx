@@ -1,0 +1,157 @@
+import Component from "../../framework/Component";
+import { RegisterListener, RemoveListener, StartDrag } from "../../framework/Framework";
+import GlobalData from "../../GlobalData";
+import SMuFL from "../../interfaces/SMuFL";
+import Beatmap from "../../utils/Beatmap";
+import BeatmapPlayer from "../BeatmapPlayer";
+import Timeline from "../Timeline";
+import NoteContainer from "./NoteContainer";
+
+export default class NotationDisplay extends Component {
+    Player: BeatmapPlayer
+    Beatmap: Beatmap
+
+    Spacing = 5
+
+    Canvas: HTMLCanvasElement
+    Context: CanvasRenderingContext2D
+    Timeline: Timeline
+
+    RenderGroups: NoteContainer[]
+
+    // @ts-ignore
+    Bravura: SMuFL
+
+    CanvasLoaded = false;
+
+    StaffHeight = 100; // in real display pixels. This is what is used to set all scaling factors
+    static readonly StaffPadding = 0.5; // fraction of staff height, applied to top and bottom (total padding is this * 2)
+
+    InitCanvas() {
+        this.InitContext();
+        this.CanvasLoaded = true;
+        // console.log(this.Bravura);
+    }
+
+    Transform() {
+        this.Context.resetTransform();
+        // offset down to allow stems to go above the staff without clipping
+        this.Context.translate(0, this.StaffHeight * NotationDisplay.StaffPadding);
+
+        this.Context.scale(this.StaffHeight / 4, this.StaffHeight / 4)
+
+        const currentBeat = this.Player.CurrentBeat;
+
+        this.Context.translate(-currentBeat * this.Spacing, 0);
+    }
+
+    CheckSize(reinit: boolean) {
+        const targetHeight = this.StaffHeight * (1 + NotationDisplay.StaffPadding * 2);
+        // const pixelRatio = window.devicePixelRatio;
+        if (this.Canvas.width !== this.Canvas.clientWidth || this.Canvas.height !== targetHeight) {
+            this.Canvas.style.height = targetHeight + "px";
+            this.Canvas.height = targetHeight;
+            this.Canvas.width = this.Canvas.clientWidth;
+            if (reinit) this.InitContext(); // changing size resets all Context parameters
+        }
+    }
+
+    InitContext() {
+        console.log("initializing canvas context");
+        this.CheckSize(false);
+        // call this whenever the size changes
+
+        // px is the height of the staff in our scaled units.
+        // 4 is ideal since a lot of units are expressed in "staff spaces"
+        this.Context.font = "4px Bravura"
+    }
+
+    Render = () => {
+        if (!this.CanvasLoaded) return;
+        this.Player.Update();
+        this.Timeline.Update();
+
+        this.CheckSize(true);
+
+        const w = this.Canvas.width;
+        const scale = this.StaffHeight / 4;
+
+        this.Context.clearRect(0, 0, w, this.Canvas.height);
+
+        this.Context.save();
+
+        this.Transform();
+
+
+        const lineThickness = this.Bravura!.engravingDefaults.staffLineThickness;
+        for (let i = 0; i < 5; i++) // idk if we need to clip this before drawing
+            this.Context.fillRect(0, i - lineThickness / 2, this.Beatmap.Length * this.Spacing, lineThickness);
+
+        this.RenderGroups[0].Render(this, this.Context);
+        this.RenderGroups[1].Render(this, this.Context);
+        this.RenderGroups[2].Render(this, this.Context);
+        this.RenderGroups[3].Render(this, this.Context);
+
+        this.Context.restore();
+    }
+
+    AfterRemove() {
+        super.AfterRemove();
+        RemoveListener("newframe", this.Render)
+    }
+
+    AfterParent() {
+        super.AfterParent();
+        RegisterListener("newframe", this.Render);
+        this.Add(this.Timeline);
+    }
+
+    constructor(player: BeatmapPlayer) {
+        super();
+        this.Player = player;
+        this.Beatmap = player.Beatmap;
+
+        this.Canvas = <canvas /> as HTMLCanvasElement
+
+        const context = this.Canvas.getContext("2d");
+        if (!context) throw new Error("Failed to get canvas context");
+        this.Context = context;
+
+        const font = new FontFace('Bravura', 'url(/ce6ee6f8de441434baee.woff2)');
+        const metadata = GlobalData.LoadBravura();
+
+        // put synchronous work here (since both promises after started at this point)
+        this.RenderGroups = NoteContainer.BuildRenderGroups(this.Beatmap);
+
+        Promise.all([font, metadata]).then(([, bravura]) => {
+            document.fonts.add(font); // for some reason the first frame of the canvas doesn't use the font, not sure why
+            this.Bravura = bravura;
+            this.InitCanvas();
+        })
+
+        this.HTMLElement = <div className="notation-display">
+            <div>{this.Beatmap.BJson.title}</div>
+            <div>{this.Beatmap.BJson.mapper}</div>
+            <div>{this.Beatmap.BJson.difficulty}</div>
+            {this.Canvas}
+            <div className="spacer" />
+        </div>
+
+        this.HTMLElement.onmousedown = e => {
+            if (e.button !== 1) return;
+            const player = this.Player;
+            const wasPlaying = player.Playing;
+            player.Playing = false;
+            const gripPoint = e.clientX;
+            const startTime = player.CurrentTime;
+            StartDrag(e, e => {
+                const d = e.clientX - gripPoint;
+                player.CurrentTime = this.Beatmap.BeatToMs(this.Beatmap.MsToBeat(startTime) - d * 4 / this.Spacing / this.StaffHeight)
+            }, () => {
+                if (wasPlaying) player.Playing = true;
+            });
+        }
+
+        this.Timeline = new Timeline();
+    }
+}

@@ -1,0 +1,90 @@
+@import "bravura.scss";
+
+$ModalBackground: rgb(0, 0, 0, 120);
+$DarkBackground: rgb(41, 42, 45, 255); // copied from Windows
+$DarkBackgroundAlt: rgb(42, 49, 66, 255);
+$LightBorder: rgb(207, 209, 212, 255); // copied from Windows
+$DarkActiveBackground: rgb(43, 56, 86, 255);
+$ActiveField: rgb(43, 80, 130, 255);
+$InactiveField: rgb(42, 52, 74, 255);
+// ActiveButton=ActiveField; // for a button that will be activated with enter
+// Button=InactiveField; // for a regular button that is not currently active
+// ActiveCheckbox=rgb(44, 94, 158, 255);
+// CheckboxBackground=DarkActiveBackground;
+// Placeholder=White.MultiplyAlpha(0.4f);
+// Selection=White.MultiplyAlpha(0.4f);
+// RowHighlight=White.MultiplyAlpha(0.05f);
+// RowHighlightSecondary=White.MultiplyAlpha(0.02f);
+// Perfect=DeepSkyBlue;
+// Good=LawnGreen;
+// Bad=DarkOrange;
+// Miss=rgb(166, 12, 12, 255);
+// Error=Crimson;
+$ExpertPlus: rgb(65, 74, 76, 255);
+$Expert: MediumSlateBlue;
+$Insane: Crimson;
+$Hard: Orange;
+$Normal: LightBlue;
+$Easy: LimeGreen;
+$DarkRed: Maroon;
+$DarkGreen: DarkGreen;
+$DarkBlue: rgb(70, 110, 160, 255);
+$FontSize: 28px;
+$s: 4px;
+$s2: $s*2;
+$s3: $s*3;
+$s4: $s*4;
+
+* {
+    margin: 0;
+    box-sizing: border-box;
+}
+
+html,
+body,
+#root,
+.wrapper {
+    height: 100%;
+}
+
+body {
+    background: black;
+    color: white;
+    font-size: $FontSize;
+    font-family: 'Roboto', sans-serif;
+    overflow-x: hidden;
+}
+
+
+
+.difficulty-1 {
+    color: $Easy
+}
+
+.difficulty-2 {
+    color: $Normal
+}
+
+.difficulty-3 {
+    color: $Hard
+}
+
+.difficulty-4 {
+    color: $Insane
+}
+
+.difficulty-5 {
+    color: $Expert
+}
+
+.difficulty-6 {
+    color: $ExpertPlus;
+    text-shadow:
+        white 0 0 3px,
+        white 0 0 5px,
+        white 0 0 5px;
+}
+
+.spacer {
+    flex-grow: 1;
+}

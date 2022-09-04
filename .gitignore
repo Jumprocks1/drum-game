@@ -5,6 +5,7 @@
 !Zip-Resources.ps1
 !MIDI-Help.md
 !.vscode
+!.github
 
 !drum-game-web
 
@@ -14,6 +15,8 @@
 resources/*
 !resources/database.md
 !resources/Fonts
+
+!sheet-music
 
 # Shader
 !resources/sh_Shaders

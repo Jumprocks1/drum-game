@@ -51,8 +51,10 @@ public static class Program
     {
         if (!Directory.Exists("../dist/maps"))
         {
-            // copy maps from resources folder in repo
-            throw new NotImplementedException();
+            var outputDir = Directory.CreateDirectory("../dist/maps");
+            // move maps from resources folder in repo
+            foreach (var map in new DirectoryInfo("../../resources/maps").GetFiles("*.bjson"))
+                File.Move(map.FullName, Path.Join(outputDir.FullName, map.Name));
         }
         var maps = new DirectoryInfo("../dist/maps").GetFiles("*.bjson");
 

@@ -43,7 +43,8 @@ module.exports = function (env, argv) {
         },
         plugins: [new HtmlWebpackPlugin({
             hash: prod,
-            template: "./src/index.html"
+            template: "./src/index.html",
+            filename: prod ? "404.html" : undefined
         })],
         devtool: dev ? "inline-source-map" : undefined, // "source-map"
         devServer: dev ? {

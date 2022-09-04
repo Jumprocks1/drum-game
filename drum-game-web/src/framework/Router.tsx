@@ -1,3 +1,4 @@
+import { FrameworkConfig } from "./Framework";
 import NoDOMComponent from "./NoDOMComponent";
 import PageComponent from "./PageComponent";
 
@@ -33,6 +34,8 @@ export default class Router extends NoDOMComponent {
             // @ts-ignore page.Route will always exists when RouteUrl does not
             let target = page.RouteUrl ?? page.Route;
             if (!target.startsWith("/")) target = "/" + target;
+            if (FrameworkConfig.baseName)
+                target = FrameworkConfig.baseName + target;
             history.pushState({}, "", target);
         }
         this.Add(new page());
@@ -44,7 +47,9 @@ export default class Router extends NoDOMComponent {
     private UpdateRouting() {
         let targetPage: PageType | undefined = undefined;
 
-        const route = window.location.pathname
+        let route = window.location.pathname
+        if (FrameworkConfig.baseName && route.startsWith(FrameworkConfig.baseName))
+            route = route.substring(FrameworkConfig.baseName.length)
 
         for (const page of this.Pages) {
             // @ts-ignore page.Route will always exists when RouteRegex does not

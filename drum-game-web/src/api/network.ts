@@ -1,3 +1,4 @@
+import { FrameworkConfig } from "../framework/Framework"
 import { BJson } from "../interfaces/BJson"
 
 export const UNAUTHORIZED = 401
@@ -12,6 +13,10 @@ export interface FetchConfig {
 
 export async function fetchEndpoint<T = {}>(endpoint: string,
     { method = "get", body }: FetchConfig = {}) {
+
+    if (endpoint.startsWith("/") && FrameworkConfig.baseName)
+        endpoint = FrameworkConfig.baseName + endpoint;
+
     const headers = new Headers();
     const init: RequestInit = { headers, method }
     if (body) {

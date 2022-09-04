@@ -1,4 +1,5 @@
 const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = function (env, argv) {
     const dev = env.WEBPACK_SERVE ?? false;
@@ -38,7 +39,12 @@ module.exports = function (env, argv) {
         output: {
             filename: 'main.js',
             path: path.resolve(__dirname, 'dist'),
+            publicPath: prod ? "/drum-game" : "/"
         },
+        plugins: [new HtmlWebpackPlugin({
+            hash: prod,
+            template: "./src/index.html"
+        })],
         devtool: dev ? "inline-source-map" : undefined, // "source-map"
         devServer: dev ? {
             static: './dist',
@@ -48,7 +54,7 @@ module.exports = function (env, argv) {
                 "Access-Control-Allow-Headers": "X-Requested-With, content-type, Authorization"
             },
             historyApiFallback: {
-                index: "index.html"
+                index: "/"
             }
         } : undefined
     }

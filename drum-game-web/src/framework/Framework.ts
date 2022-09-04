@@ -46,7 +46,22 @@ function removeGlobalListener(type: keyof EventMap) {
         registeredListeners[type] = false;
 }
 
-export function Start(root: new () => Component) {
+interface FrameworkConfig {
+    baseName?: string
+}
+
+export const FrameworkConfig: FrameworkConfig = {}
+
+function loadConfig(config: FrameworkConfig) {
+    let baseName = config.baseName;
+    if (baseName) {
+        if (!baseName.startsWith("/")) baseName = "/" + baseName;
+        FrameworkConfig.baseName = baseName;
+    }
+}
+
+export function Start(root: new () => Component, config?: FrameworkConfig) {
+    if (config) loadConfig(config);
     window.createElement = createElement;
     const r = new root();
     r.Parent = r;

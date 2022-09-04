@@ -44,7 +44,6 @@ jobs:
       - name: Get maps
         run: |
           cd drum-game-web/scripts
-          cd scripts
           dotnet run
           cd ../..
 

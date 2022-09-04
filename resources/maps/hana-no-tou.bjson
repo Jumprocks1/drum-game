@@ -2446,11 +2446,6 @@
       "channel": "bass"
     },
     {
-      "time": 194.25,
-      "channel": "crash",
-      "modifier": "ghost"
-    },
-    {
       "time": 194.5,
       "channel": "bass"
     },
@@ -5574,15 +5569,18 @@
     },
     {
       "time": 457.25,
-      "channel": "snare"
+      "channel": "snare",
+      "sticking": "left"
     },
     {
       "time": 457.375,
-      "channel": "snare"
+      "channel": "snare",
+      "sticking": "left"
     },
     {
       "time": 457.5,
-      "channel": "snare"
+      "channel": "snare",
+      "sticking": "right"
     },
     {
       "time": 458.0,

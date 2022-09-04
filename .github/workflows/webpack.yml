@@ -34,6 +34,7 @@ jobs:
           cd drum-game-web
           npm install
           npx webpack
+          cd ..
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v1
@@ -42,9 +43,10 @@ jobs:
 
       - name: Get maps
         run: |
+          cd drum-game-web/scripts
           cd scripts
           dotnet run
-          cd ..
+          cd ../..
 
       - name: Setup Pages
         uses: actions/configure-pages@v2

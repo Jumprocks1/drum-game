@@ -47,20 +47,22 @@ function removeGlobalListener(type: keyof EventMap) {
 }
 
 interface FrameworkConfig {
-    baseName?: string
+    baseName: string
 }
 
-export const FrameworkConfig: FrameworkConfig = {}
+export const FrameworkConfig: FrameworkConfig = {
+    baseName: ""
+}
 
-function loadConfig(config: FrameworkConfig) {
+function loadConfig(config: Partial<FrameworkConfig>) {
     let baseName = config.baseName;
     if (baseName) {
-        if (!baseName.startsWith("/")) baseName = "/" + baseName;
+        if (!baseName.startsWith("/") && baseName !== "") baseName = "/" + baseName;
         FrameworkConfig.baseName = baseName;
     }
 }
 
-export function Start(root: new () => Component, config?: FrameworkConfig) {
+export function Start(root: new () => Component, config?: Partial<FrameworkConfig>) {
     if (config) loadConfig(config);
     window.createElement = createElement;
     const r = new root();

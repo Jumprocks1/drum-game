@@ -48,7 +48,7 @@ export default class Router extends NoDOMComponent {
         let targetPage: PageType | undefined = undefined;
 
         let route = window.location.pathname
-        if (FrameworkConfig.baseName && route.startsWith(FrameworkConfig.baseName))
+        if (route.startsWith(FrameworkConfig.baseName))
             route = route.substring(FrameworkConfig.baseName.length)
 
         for (const page of this.Pages) {
@@ -61,6 +61,6 @@ export default class Router extends NoDOMComponent {
         }
 
         if (targetPage) this.NavigateTo(targetPage, false);
-        else console.error("no page found");
+        else console.error(`no page found for route '${route}'`);
     }
 }

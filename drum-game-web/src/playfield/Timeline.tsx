@@ -43,10 +43,7 @@ export default class Timeline extends Component {
                 const x = Clamp((e.clientX - rect.left) / rect.width, 0, 1);
                 player.CurrentTime = x * player.Duration;
             }, () => {
-                console.log(player.Playing)
                 if (wasPlaying) player.Playing = true;
-                console.log(wasPlaying)
-                console.log(player.Playing)
             });
         }
     }

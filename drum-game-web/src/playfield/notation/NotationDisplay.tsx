@@ -1,5 +1,5 @@
 import Component from "../../framework/Component";
-import { RegisterListener, RemoveListener, StartDrag } from "../../framework/Framework";
+import { FrameworkConfig, RegisterListener, RemoveListener, StartDrag } from "../../framework/Framework";
 import GlobalData from "../../GlobalData";
 import SMuFL from "../../interfaces/SMuFL";
 import Beatmap from "../../utils/Beatmap";
@@ -117,7 +117,7 @@ export default class NotationDisplay extends Component {
         if (!context) throw new Error("Failed to get canvas context");
         this.Context = context;
 
-        const font = new FontFace('Bravura', 'url(/ce6ee6f8de441434baee.woff2)');
+        const font = new FontFace('Bravura', `url(${FrameworkConfig.baseName}/ce6ee6f8de441434baee.woff2)`);
         const metadata = GlobalData.LoadBravura();
 
         // put synchronous work here (since both promises after started at this point)

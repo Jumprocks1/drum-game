@@ -36,12 +36,13 @@ export default class BeatmapLoaderPage extends PageComponent {
         this.showingMap = true;
         this.loading = true;
         this.Clear();
-        this.Add(<Loading />);
-        (async () => {
+        const loading = (async () => {
             const fullMap = await loadMap(map.FileName);
             this.Clear();
             this.Add(new BeatmapPlayer(fullMap))
         })()
+
+        this.Add(Loading(loading));
     }
 
     ShowSelector() {

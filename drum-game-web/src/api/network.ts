@@ -41,7 +41,7 @@ export async function fetchEndpoint<T = {}>(endpoint: string,
 export async function loadMap(fileName: string): Promise<BJson> {
     console.log(`Loading ${fileName}`)
 
-    const url = `/resources/maps/${fileName}`
+    const url = `/maps/${fileName}`
     const res = await fetchEndpoint<BJson>(url);
     if (!res) throw new Error("failed to load");
 

@@ -1,3 +1,4 @@
 node_modules/
 maps/*
-dist
+dist/*
+!dist/bravura_metadata.json

@@ -5,7 +5,7 @@ import SMuFL from "../../interfaces/SMuFL";
 import Beatmap from "../../utils/Beatmap";
 import BeatmapPlayer from "../BeatmapPlayer";
 import Timeline from "../Timeline";
-import NoteContainer from "./NoteContainer";
+import RenderGroup from "./NoteContainer";
 
 export default class NotationDisplay extends Component {
     Player: BeatmapPlayer
@@ -17,7 +17,7 @@ export default class NotationDisplay extends Component {
     Context: CanvasRenderingContext2D
     Timeline: Timeline
 
-    RenderGroups: NoteContainer[]
+    RenderGroups: RenderGroup[]
 
     // @ts-ignore
     Bravura: SMuFL
@@ -121,7 +121,7 @@ export default class NotationDisplay extends Component {
         const metadata = GlobalData.LoadBravura();
 
         // put synchronous work here (since both promises after started at this point)
-        this.RenderGroups = NoteContainer.BuildRenderGroups(this.Beatmap);
+        this.RenderGroups = RenderGroup.BuildRenderGroups(this.Beatmap);
 
         Promise.all([font, metadata]).then(([, bravura]) => {
             document.fonts.add(font); // for some reason the first frame of the canvas doesn't use the font, not sure why

@@ -328,6 +328,10 @@
     },
     {
       "time": 23.0,
+      "channel": "china"
+    },
+    {
+      "time": 23.0,
       "channel": "bass"
     },
     {
@@ -337,6 +341,10 @@
     {
       "time": 24.0,
       "channel": "bass"
+    },
+    {
+      "time": 24.0,
+      "channel": "crash"
     },
     {
       "time": 24.0,
@@ -3127,11 +3135,19 @@
     },
     {
       "time": 251.0,
+      "channel": "china"
+    },
+    {
+      "time": 251.0,
       "channel": "bass"
     },
     {
       "time": 251.75,
       "channel": "snare"
+    },
+    {
+      "time": 252.0,
+      "channel": "crash"
     },
     {
       "time": 252.0,
@@ -3623,12 +3639,20 @@
       "channel": "snare"
     },
     {
+      "time": 295.5,
+      "channel": "open-hihat"
+    },
+    {
       "time": 296.0,
       "channel": "hihat-pedal"
     },
     {
       "time": 296.5,
       "channel": "snare"
+    },
+    {
+      "time": 296.5,
+      "channel": "open-hihat"
     },
     {
       "time": 297.0,

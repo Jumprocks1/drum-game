@@ -4,3 +4,4 @@
 - Virtualize + animate song select
 - Add drag distance option so that dragging only triggers after a certain distance and the click event isn't completely blocked
 - When opening map, add it to the URL
+- Should probably make it so at the very least `index.html` doesn't trigger a 404 error (even though the 404 errors work fine)

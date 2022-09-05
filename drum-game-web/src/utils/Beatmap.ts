@@ -28,6 +28,7 @@ export default class Beatmap {
         this.HitObjects = bjson.notes.map(e => {
             if (Array.isArray(e.time)) throw new Error("Array note time not supported");
             e.tick = this.BeatToTick(e.time);
+            e.voice = e.channel === "bass" || e.channel === "hihat-pedal" ? 1 : 0
             return e;
         });
 

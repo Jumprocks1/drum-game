@@ -1,4 +1,4 @@
-// covnerted from bjson-schema.json with https://transform.tools/json-schema-to-typescript
+// converted from bjson-schema.json with https://transform.tools/json-schema-to-typescript
 
 export interface BJson {
     notes?: Note[]
@@ -91,6 +91,7 @@ export interface Note {
     sticking?: "left" | "right"
     channel: DrumChannel
 
+    voice: number // this gets set after we load the JSON
 }
 
 export type DrumChannel =

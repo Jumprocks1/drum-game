@@ -10,7 +10,7 @@ export default class BeatmapPlayerPage extends PageComponent {
     Map: string | undefined;
 
     LoadRoute(parameters: RouteParameters) {
-        this.Map = parameters[1];
+        this.Map = parameters[0];
     }
 
     AfterParent() {

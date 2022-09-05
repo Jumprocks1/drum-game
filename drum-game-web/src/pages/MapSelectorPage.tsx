@@ -12,29 +12,20 @@ export default class MapSelectorPage extends PageComponent {
     AfterParent() {
         super.AfterParent();
 
-        const div = <div id="map-selector" />;
-        this.Add(div);
+        const selector = this.Add(<div id="map-selector" />);
 
         GlobalData.LoadMapList().then(maps => {
             if (!this.Alive) return;
             for (const key in maps.Maps)
-                div.Component!.Add(new BeatmapCard(maps.Maps[key]))
+                selector.Add(new BeatmapCard(maps.Maps[key]))
         })
     }
 
-
-    Focus(card: BeatmapCard) {
-        card.HTMLElement.scrollIntoView();
-    }
-
-    showingMap = false;
-
-    loading = false;
     LoadMap(map: CacheMap) {
         if (!this.Alive) return;
         GlobalData.LoadBravura(); // preload
         const ext = ".bjson";
         const target = map.FileName.endsWith(ext) ? map.FileName.substring(0, map.FileName.length - ext.length) : map.FileName
-        this.FindParent(Router).NavigateTo(BeatmapPlayerPage, target)
+        this.FindParent(Router).NavigateTo(BeatmapPlayerPage, target) // this will kill us
     }
 }

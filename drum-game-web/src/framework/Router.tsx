@@ -43,13 +43,12 @@ export default class Router extends NoDOMComponent {
         // @ts-ignore page.Route will always exists when RouteUrl does not
         let target: string = page.RouteUrl ?? page.Route;
         if (!target.startsWith("/")) target = "/" + target;
-        for (let i = 0; i < parameters.length; i++) {
+        for (let i = 0; i < parameters.length; i++)
             target = target.replace("$" + i, parameters[i]);
-        }
         if (FrameworkConfig.baseName)
             target = FrameworkConfig.baseName + target;
-        history.pushState({}, "", target);
-        this.UpdateRouting();
+        history.pushState(undefined, "", target);
+        this.LoadPage(page, parameters);
     }
 
     LoadPage(page: PageType, parameters?: RouteParameters) {
@@ -75,7 +74,7 @@ export default class Router extends NoDOMComponent {
             const regex = page.RouteRegex ??= buildRegex(page.Route)
             const res = route.match(regex);
             if (res) {
-                this.LoadPage(page, res);
+                this.LoadPage(page, res.slice(1));
                 return;
             }
         }

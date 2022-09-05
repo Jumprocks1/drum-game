@@ -60,6 +60,7 @@ export default class Component {
         component.AfterParent(); // we call AfterParent before checking DOMNode since AfterParent might assign the DOMNode
         if (component.DOMNode && component.DOMNode !== this.InnerNode) // for NoDOMComponents, these will be equal
             this.InnerNode?.appendChild(component.DOMNode);
+        return component;
     }
 
     RemoveFromDOM() {

@@ -7,9 +7,5 @@ export default class TestPage extends PageComponent {
 
     AfterParent() {
         super.AfterParent();
-
-        GlobalData.LoadMapList().then(e => {
-            this.Add(new BeatmapLoaderPage(e.Maps["torikago.bjson"]));
-        });
     }
 }

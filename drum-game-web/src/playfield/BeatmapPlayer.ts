@@ -3,6 +3,7 @@ import NoDOMComponent from "../framework/NoDOMComponent";
 import BeatmapLoaderPage from "../pages/BeatmapLoaderPage";
 import NotationDisplay from "./notation/NotationDisplay";
 import Beatmap from "../utils/Beatmap";
+import Router from "../framework/Router";
 
 export default class BeatmapPlayer extends NoDOMComponent {
     BJson: BJson
@@ -56,7 +57,7 @@ export default class BeatmapPlayer extends NoDOMComponent {
 
     OnKeyDown = (e: KeyboardEvent) => {
         if (e.key === "Escape") {
-            this.FindParent(BeatmapLoaderPage).ShowSelector();
+            this.FindParent(Router).NavigateTo(BeatmapLoaderPage);
         } else if (e.key === " ") {
             this.Playing = !this.Playing
         }

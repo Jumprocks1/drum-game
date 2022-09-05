@@ -1,55 +1,27 @@
-import { loadMap } from "../api/network";
-import Loading from "../components/Loading";
 import PageComponent from "../framework/PageComponent";
+import Router from "../framework/Router";
 import GlobalData from "../GlobalData";
 import { CacheMap } from "../interfaces/Cache";
-import WebSocketPage from "./WebSocketPage";
-import BeatmapPlayer from "../playfield/BeatmapPlayer";
 import MapSelector from "../selector/MapSelector";
+import BeatmapPlayerPage from "./BeatmapPlayerPage";
 
 export default class BeatmapLoaderPage extends PageComponent {
     static Route = ".*"
     static RouteUrl = ""
 
-    CurrentMap?: CacheMap;
-
-    constructor(startingMap?: CacheMap) {
-        super();
-        this.CurrentMap = startingMap;
-    }
-
     AfterParent() {
         super.AfterParent();
-        if (this.CurrentMap) {
-            this.LoadMap(this.CurrentMap);
-        } else {
-            this.Add(new MapSelector())
-        }
+        this.Add(new MapSelector()) // TODO merge this into this component
     }
 
     showingMap = false;
 
     loading = false;
     LoadMap(map: CacheMap) {
-        if (this.loading) return;
+        if (!this.Alive) return;
         GlobalData.LoadBravura(); // preload
-        this.showingMap = true;
-        this.loading = true;
-        this.Clear();
-        const loading = (async () => {
-            const fullMap = await loadMap(map.FileName);
-            this.Clear();
-            this.Add(new BeatmapPlayer(fullMap))
-        })()
-
-        this.Add(Loading(loading));
-    }
-
-    ShowSelector() {
-        if (!this.showingMap) return;
-        this.loading = false;
-        this.showingMap = false;
-        this.Clear();
-        this.Add(new MapSelector())
+        const ext = ".bjson";
+        const target = map.FileName.endsWith(ext) ? map.FileName.substring(0, map.FileName.length - ext.length) : map.FileName
+        this.FindParent(Router).NavigateTo(BeatmapPlayerPage, target)
     }
 }

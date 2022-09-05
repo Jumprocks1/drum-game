@@ -44,6 +44,7 @@ export async function fetchEndpoint<T = {}>(endpoint: string,
 
 
 export async function loadMap(fileName: string): Promise<BJson> {
+    if (!fileName.endsWith(".bjson")) fileName += ".bjson"
     console.log(`Loading ${fileName}`)
 
     const url = `/maps/${fileName}`

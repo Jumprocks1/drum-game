@@ -4,10 +4,12 @@ import Router from "./framework/Router";
 import WebSocketPage from "./pages/WebSocketPage";
 import BeatmapLoaderPage from "./pages/BeatmapLoaderPage";
 import TestPage from "./pages/TestPage";
+import BeatmapPlayerPage from "./pages/BeatmapPlayerPage";
 
 const pages: PageType[] = [
     TestPage,
     WebSocketPage,
+    BeatmapPlayerPage,
     BeatmapLoaderPage
 ]
 

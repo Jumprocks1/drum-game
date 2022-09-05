@@ -2,16 +2,29 @@ import PageComponent from "../framework/PageComponent";
 import Router from "../framework/Router";
 import GlobalData from "../GlobalData";
 import { CacheMap } from "../interfaces/Cache";
-import MapSelector from "../selector/MapSelector";
+import BeatmapCard from "../selector/BeatmapCard";
 import BeatmapPlayerPage from "./BeatmapPlayerPage";
 
-export default class BeatmapLoaderPage extends PageComponent {
+export default class MapSelectorPage extends PageComponent {
     static Route = ".*"
     static RouteUrl = ""
 
     AfterParent() {
         super.AfterParent();
-        this.Add(new MapSelector()) // TODO merge this into this component
+
+        const div = <div id="map-selector" />;
+        this.Add(div);
+
+        GlobalData.LoadMapList().then(maps => {
+            if (!this.Alive) return;
+            for (const key in maps.Maps)
+                div.Component!.Add(new BeatmapCard(maps.Maps[key]))
+        })
+    }
+
+
+    Focus(card: BeatmapCard) {
+        card.HTMLElement.scrollIntoView();
     }
 
     showingMap = false;

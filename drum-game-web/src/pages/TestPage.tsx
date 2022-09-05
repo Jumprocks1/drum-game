@@ -1,6 +1,6 @@
 import PageComponent from "../framework/PageComponent";
 import GlobalData from "../GlobalData";
-import BeatmapLoaderPage from "./BeatmapLoaderPage";
+import MapSelectorPage from "./MapSelectorPage";
 
 export default class TestPage extends PageComponent {
     static Route = "test"

@@ -1,7 +1,7 @@
 import DrumGameWebSocket from "../api/DrumGameWebSocket";
 import PageComponent from "../framework/PageComponent";
 import RouteButton from "../framework/RouteButton";
-import BeatmapLoaderPage from "./BeatmapLoaderPage";
+import MapSelectorPage from "./MapSelectorPage";
 
 export default class WebSocketPage extends PageComponent {
     static Route = "/ws";
@@ -25,7 +25,7 @@ export default class WebSocketPage extends PageComponent {
             Close WebSocket
         </button>
         this.Add(button);
-        this.Add(<RouteButton page={BeatmapLoaderPage}>
+        this.Add(<RouteButton page={MapSelectorPage}>
             Go to Drum Game web version
         </RouteButton>)
         this.Add(socket = new DrumGameWebSocket())

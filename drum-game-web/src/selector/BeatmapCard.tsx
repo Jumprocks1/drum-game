@@ -1,6 +1,6 @@
 import Component from "../framework/Component";
 import { CacheMap } from "../interfaces/Cache";
-import BeatmapLoaderPage from "../pages/BeatmapLoaderPage";
+import MapSelectorPage from "../pages/MapSelectorPage";
 
 
 export default class BeatmapCard extends Component {
@@ -30,7 +30,7 @@ export default class BeatmapCard extends Component {
         </div>;
 
         this.HTMLElement.onclick = () => {
-            this.FindParent(BeatmapLoaderPage).LoadMap(this.Map);
+            this.FindParent(MapSelectorPage).LoadMap(this.Map);
         }
     }
 }

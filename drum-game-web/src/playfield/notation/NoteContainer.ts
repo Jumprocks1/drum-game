@@ -18,8 +18,12 @@ export default class RenderGroup {
 
     Render(display: NotationDisplay, context: CanvasRenderingContext2D) {
         if (!this.Geometry) this.ComputeGeometry();
+        const bravura = display.Bravura;
         const lookup = ChannelInfo.ChannelNoteMapping
         for (const group of this.NoteGroups) {
+            const down = group.voice;
+            const dir = down ? 1 : -1;
+
             for (const flag of group.flags) {
                 for (const note of flag.notes) {
                     const l = lookup[note.channel];
@@ -60,7 +64,7 @@ export default class RenderGroup {
 
             const voice = note.voice;
             if (!(voice in currentNoteGroups)) {
-                const newGroup = { flags: [], beat };
+                const newGroup = { flags: [], beat, voice };
                 currentGroup.NoteGroups.push(newGroup);
                 currentNoteGroups[voice] = newGroup
             }
@@ -83,6 +87,7 @@ function addNote(noteGroup: NoteGroup, note: Note) {
 interface NoteGroup {
     flags: Flag[]
     beat: number // this number is what is used to push NoteGroups into RenderGroups. Simply divide it by 4 and round down to get the RenderGroup
+    voice: number
 }
 interface Flag {
     notes: Note[]

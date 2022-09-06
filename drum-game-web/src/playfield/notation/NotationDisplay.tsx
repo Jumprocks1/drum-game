@@ -1,5 +1,5 @@
 import Component from "../../framework/Component";
-import { FrameworkConfig, RegisterListener, RemoveListener, StartDrag } from "../../framework/Framework";
+import { RegisterListener, RemoveListener, StartDrag } from "../../framework/Framework";
 import GlobalData from "../../GlobalData";
 import SMuFL from "../../interfaces/SMuFL";
 import Beatmap from "../../utils/Beatmap";
@@ -88,10 +88,17 @@ export default class NotationDisplay extends Component {
         for (let i = 0; i < 5; i++) // idk if we need to clip this before drawing
             this.Context.fillRect(0, i - lineThickness / 2, this.Beatmap.Length * this.Spacing, lineThickness);
 
-        this.RenderGroups[0].Render(this, this.Context);
-        this.RenderGroups[1].Render(this, this.Context);
-        this.RenderGroups[2].Render(this, this.Context);
-        this.RenderGroups[3].Render(this, this.Context);
+        const visbileStart = this.Player.CurrentBeat; // we will need to subtract the beat inset here
+        const visibleBeats = w / scale / this.Spacing;
+        // in beats, we have to overdraw since some notes will render past their normal "bounds"
+        // there are extreme cases with MeasureChanges that can cause a lot of overdraw. 1 beat should be enough
+        const overdraw = 1;
+
+        const firstGroup = Math.max(0, Math.floor((visbileStart - overdraw) / 4));
+        const lastGroup = Math.floor((visbileStart + visibleBeats + overdraw) / 4) + 1;
+        // console.log(firstGroup + " : " + lastGroup)
+        for (let i = firstGroup; i < lastGroup; i++)
+            this.RenderGroups[i].Render(this, this.Context);
 
         this.Context.restore();
     }

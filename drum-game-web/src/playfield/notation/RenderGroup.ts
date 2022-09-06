@@ -68,9 +68,8 @@ export default class RenderGroup {
                     if (flag.duration == 0.75 || flag.duration == 0.375) {
                         const rightSide = down ? font.glyphsWithAnchors[ChannelInfo.CodepointMap[l[1]]].stemUpSE[0] : anchor;
                         let dotY = l[0];
-                        console.log(dotY)
-                        if (Number.isInteger(dotY)) dotY += dir / 2; // prevent dot being placed on a line
-                        context.fillText("\uE1E7", noteX + rightSide + AugmentationDotGap, l[0])
+                        if (Number.isInteger(dotY)) dotY += dir * 0.5; // prevent dot being placed on a line
+                        context.fillText("\uE1E7", noteX + rightSide + AugmentationDotGap, dotY)
                     }
                 }
                 let flagLeft = bottomX + bottomAnchor[0];
@@ -140,7 +139,7 @@ export default class RenderGroup {
                         }
                         else {
                             var end = flags[flags.length - 1].flagLeft;
-                            context.fillRect(beamStart, beamY, beamStart - end, beamHeight);
+                            context.fillRect(beamStart, beamY, end - beamStart, beamHeight);
                             added = true;
                         }
                     }

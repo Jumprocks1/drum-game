@@ -10,3 +10,4 @@
     - Also need to clamp seek to -leadIn
 - Canvas proxy for caching all canvas calls
     - Could also convert these calls into WebGL geometry
+- Don't get blurry when we zoom in Chrome (use window DPI value)

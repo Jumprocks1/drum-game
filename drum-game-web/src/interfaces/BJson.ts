@@ -92,6 +92,7 @@ export interface Note {
     channel: DrumChannel
 
     voice: number // this gets set after we load the JSON
+    noteMapping: [position: number, codePoint: string] // this gets set later
 }
 
 export type DrumChannel =

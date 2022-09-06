@@ -3,9 +3,10 @@ import { FrameworkConfig, RegisterListener, RemoveListener, StartDrag } from "..
 import GlobalData from "../../GlobalData";
 import SMuFL from "../../interfaces/SMuFL";
 import Beatmap from "../../utils/Beatmap";
+import ChannelInfo from "../../utils/ChannelInfo";
 import BeatmapPlayer from "../BeatmapPlayer";
 import Timeline from "../Timeline";
-import RenderGroup from "./NoteContainer";
+import RenderGroup from "./RenderGroup";
 
 export default class NotationDisplay extends Component {
     Player: BeatmapPlayer
@@ -20,12 +21,12 @@ export default class NotationDisplay extends Component {
     RenderGroups: RenderGroup[]
 
     // @ts-ignore
-    Bravura: SMuFL
+    Font: SMuFL
 
     CanvasLoaded = false;
 
     StaffHeight = 100; // in real display pixels. This is what is used to set all scaling factors
-    static readonly StaffPadding = 0.5; // fraction of staff height, applied to top and bottom (total padding is this * 2)
+    static readonly StaffPadding = 1; // fraction of staff height, applied to top and bottom (total padding is this * 2)
 
     InitCanvas() {
         this.InitContext();
@@ -83,7 +84,7 @@ export default class NotationDisplay extends Component {
         this.Transform();
 
 
-        const lineThickness = this.Bravura!.engravingDefaults.staffLineThickness;
+        const lineThickness = this.Font!.engravingDefaults.staffLineThickness;
         for (let i = 0; i < 5; i++) // idk if we need to clip this before drawing
             this.Context.fillRect(0, i - lineThickness / 2, this.Beatmap.Length * this.Spacing, lineThickness);
 
@@ -117,15 +118,12 @@ export default class NotationDisplay extends Component {
         if (!context) throw new Error("Failed to get canvas context");
         this.Context = context;
 
-        const font = new FontFace('Bravura', `url(${FrameworkConfig.baseName}/ce6ee6f8de441434baee.woff2)`);
         const metadata = GlobalData.LoadBravura();
 
-        // put synchronous work here (since both promises after started at this point)
         this.RenderGroups = RenderGroup.BuildRenderGroups(this.Beatmap);
 
-        Promise.all([font, metadata]).then(([, bravura]) => {
-            document.fonts.add(font); // for some reason the first frame of the canvas doesn't use the font, not sure why
-            this.Bravura = bravura;
+        metadata.then(bravura => {
+            this.Font = bravura;
             this.InitCanvas();
         })
 
@@ -153,5 +151,11 @@ export default class NotationDisplay extends Component {
         }
 
         this.Timeline = new Timeline();
+    }
+
+    static AnchorCache: { [key: string]: [number, number] } = {};
+    GetNoteheadAnchor(codepoint: string, down: boolean) {
+        const info = this.Font.glyphsWithAnchors[ChannelInfo.CodepointMap[codepoint]];
+        return down ? info.stemDownNW : info.stemUpSE
     }
 }

@@ -1,4 +1,5 @@
 import { BJson, Note } from "../interfaces/BJson";
+import ChannelInfo from "./ChannelInfo";
 
 export default class Beatmap {
     TickRate: number = 14400
@@ -29,6 +30,7 @@ export default class Beatmap {
             if (Array.isArray(e.time)) throw new Error("Array note time not supported");
             e.tick = this.BeatToTick(e.time);
             e.voice = e.channel === "bass" || e.channel === "hihat-pedal" ? 1 : 0
+            e.noteMapping = ChannelInfo.ChannelNoteMapping[e.channel];
             return e;
         });
 

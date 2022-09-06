@@ -2,6 +2,15 @@ export default interface SMuFL {
     fontName: string
     fontVersion: number
     engravingDefaults: EngravingDefaults
+    glyphsWithAnchors: {
+        [key: string]: AnchorInfo
+    }
+}
+
+interface AnchorInfo {
+    stemUpSE: [number, number]
+    stemDownNW: [number, number]
+    stemDownSW: [number, number]
 }
 
 interface EngravingDefaults {

@@ -12,7 +12,7 @@ export default class BeatmapPlayer extends NoDOMComponent {
     Duration = Number.POSITIVE_INFINITY;
 
     private startTime = new Date().getTime();
-    Playing = true;
+    Playing = false;
     private lastUpdate = this.startTime;
     private _currentTime = 0;
     private _currentBeat = 0;
@@ -42,6 +42,7 @@ export default class BeatmapPlayer extends NoDOMComponent {
         this.BJson = map;
         this.Beatmap = new Beatmap(map);
         this.Duration = this.Beatmap.BeatToMs(this.Beatmap.Length);
+        this.CurrentTime = -(map.leadIn ?? 0);
     }
 
     AfterParent() {

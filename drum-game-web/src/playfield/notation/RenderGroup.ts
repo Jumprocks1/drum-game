@@ -7,6 +7,8 @@ import ChannelInfo from "../../utils/ChannelInfo";
 import NotationDisplay from "./NotationDisplay";
 
 const stemHeight = 2.5;
+const AugmentationDotGap = 0.1;
+const AccentGap = 0.1;
 
 // contains multiple NoteGroups
 export default class RenderGroup {
@@ -28,29 +30,125 @@ export default class RenderGroup {
     Render(display: NotationDisplay, context: CanvasRenderingContext2D) {
         if (!this.Geometry) this.ComputeGeometry();
         const font = display.Font;
-        const lookup = ChannelInfo.ChannelNoteMapping
-        const tickRate = display.Beatmap.TickRate;
+        const engravingDefaults = font.engravingDefaults;
         const spacing = display.Spacing;
-        const offset = this.Index * 5;
         for (const group of this.NoteGroups) {
-            const down = group.voice;
+            const flags = group.flags;
+            const down = group.voice === 1;
             const dir = down ? 1 : -1;
+            const beamHeight = -dir * engravingDefaults.beamThickness
 
             const targetHeight = group.highestNote + dir * stemHeight
 
-            var beamLeft = Number.MAX_VALUE;
-            var beamRight = Number.MIN_VALUE;
+            let beamLeft = Number.MAX_VALUE;
+            let beamRight = Number.MIN_VALUE;
 
             // there's like 200 lines of code we need to add here
-            for (const flag of group.flags) {
+            for (const flag of flags) {
+                let bottomNote = flag.notes[0];
                 for (const note of flag.notes) {
-                    const l = note.noteMapping;
-                    context.fillText(l[1], note.time * spacing, l[0])
+                    if (down ? note.noteMapping[0] < bottomNote.noteMapping[0] : note.noteMapping[0] > bottomNote.noteMapping[0])
+                        bottomNote = note;
                 }
-                // var bottomAnchor = GetNoteheadAnchor(flag.BottomNote.Note.Glyph, down);
-                // context.fillRect(flag.beat * spacing, targetHeight, flag.duration! * spacing, 0.2)
+                const bottomAnchor = display.GetNoteheadAnchor(bottomNote.noteMapping[1], down);
+                const bottomX = flag.beat * spacing; // this is where we will render the bottom note for certain
+
+                let accent = false;
+
+                for (const note of flag.notes) {
+                    accent ||= note.modifier === "accent"
+                    const l = note.noteMapping;
+                    const anchor = display.GetNoteheadAnchor(l[1], down)[0];
+                    const noteX = bottomX + bottomAnchor[0] - anchor;
+                    context.fillText(l[1], noteX, l[0])
+                    if (note.modifier === "ghost")
+                        context.fillText("\uE0CE", noteX, l[0])
+
+                    // handle note dotting
+                    if (flag.duration == 0.75 || flag.duration == 0.375) {
+                        const rightSide = down ? font.glyphsWithAnchors[ChannelInfo.CodepointMap[l[1]]].stemUpSE[0] : anchor;
+                        let dotY = l[0];
+                        console.log(dotY)
+                        if (Number.isInteger(dotY)) dotY += dir / 2; // prevent dot being placed on a line
+                        context.fillText("\uE1E7", noteX + rightSide + AugmentationDotGap, l[0])
+                    }
+                }
+                let flagLeft = bottomX + bottomAnchor[0];
+                flag.flagLeft = flagLeft;
+                if (!down) flagLeft -= engravingDefaults.stemThickness;
+                beamLeft = Math.min(beamLeft, flagLeft);
+                beamRight = Math.max(beamRight, flagLeft + engravingDefaults.stemThickness);
+                // stem
+                context.fillRect(flagLeft, bottomNote.noteMapping[0] - bottomAnchor[1], engravingDefaults.stemThickness,
+                    targetHeight - bottomNote.noteMapping[0] + bottomAnchor[1]);
+
+
+                let flagGlyph: any = undefined;
+                if (flags.length == 1) // fancy flag
+                {
+                    if (flag.duration! <= 0.375)
+                        flagGlyph = down ? "\uE243" : "\uE242";
+                    else if (flag.duration! <= 0.75)
+                        flagGlyph = down ? "\uE241" : "\uE240";
+                    if (flagGlyph) {
+                        // this extension should technically be applied to targetHeight prior to this
+                        const extension = down ? 0.5 : -0.5;
+                        const y = targetHeight + extension;
+                        const name = ChannelInfo.CodepointMap[flagGlyph];
+                        const anchor = down ? font.glyphsWithAnchors[name].stemDownSW : font.glyphsWithAnchors[name].stemUpNW;
+                        context.fillText(flagGlyph, flagLeft - anchor[0], y + anchor[1]);
+                    }
+                }
+                if (accent) {
+                    const accentHeight = targetHeight + dir * (AccentGap +
+                        (flags.length > 1 || flagGlyph ? engravingDefaults.beamThickness : 0));
+                    context.fillText(down ? "\uE4A1" : "\uE4A0", bottomX, accentHeight);
+                }
             }
-            // context.fillRect(group.flags[0].beat * spacing, targetHeight, 0.5, 0.5)
+
+            if (flags.length > 1) { // beam
+                context.fillRect(beamLeft, targetHeight, beamRight - beamLeft, -beamHeight);
+                let beamY = targetHeight - dir * (engravingDefaults.beamSpacing);
+                let duration = 0.25;
+                // depth 1 = 16th, depth 2 = 32nd
+                for (let depth = 1; depth <= 2; depth++) {
+                    let added = false;
+                    let beamStart = 0;
+                    let beamCount = 0;
+                    for (let i = 0; i < flags.length; i++) {
+                        const flag = flags[i];
+                        if (flag.duration! <= duration || flag.duration! == duration * 1.5) {
+                            if (beamCount == 0) beamStart = flag.flagLeft;
+                            beamCount += 1;
+                        } else {
+                            // there's a note that is not part of the current beam, so we have to end it
+                            if (beamCount > 0) {
+                                var end = beamCount == 1 ? (beamStart + flag.flagLeft + engravingDefaults.stemThickness) / 2 : flags[i - 1].flagLeft;
+
+                                context.fillRect(beamStart, beamY, end - beamStart, beamHeight);
+                                added = true;
+                                beamCount = 0;
+                            }
+                        }
+                    }
+                    // we finished going through the notes and there is an active beam
+                    if (beamCount > 0) {
+                        if (beamCount == 1) {
+                            const a = beamStart - spacing * duration * 0.5
+                            context.fillRect(a, beamY, beamStart - a, beamHeight);
+                            added = true;
+                        }
+                        else {
+                            var end = flags[flags.length - 1].flagLeft;
+                            context.fillRect(beamStart, beamY, beamStart - end, beamHeight);
+                            added = true;
+                        }
+                    }
+                    if (!added) break; // if we didn't add any beams, there won't be any more
+                    duration *= 0.5;
+                    beamY += dir * -(engravingDefaults.beamSpacing + engravingDefaults.beamThickness);
+                }
+            }
         }
         this.first = false;
     }
@@ -120,7 +218,7 @@ function addNote(noteGroup: NoteGroup, note: Note) {
             noteGroup.highestNote = note.noteMapping[0]
     }
     if (!lastFlag || lastFlag.beat !== note.time) {
-        noteGroup.flags.push({ beat: note.time, notes: [note] })
+        noteGroup.flags.push({ beat: note.time, notes: [note] } as Flag)
     } else {
         lastFlag.notes.push(note);
     }
@@ -137,4 +235,5 @@ interface Flag {
     notes: Note[]
     beat: number
     duration?: number
+    flagLeft: number
 }

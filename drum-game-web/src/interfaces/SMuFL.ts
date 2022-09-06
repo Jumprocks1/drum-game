@@ -11,6 +11,7 @@ interface AnchorInfo {
     stemUpSE: [number, number]
     stemDownNW: [number, number]
     stemDownSW: [number, number]
+    stemUpNW: [number, number]
 }
 
 interface EngravingDefaults {

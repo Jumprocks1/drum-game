@@ -26,7 +26,7 @@ export default class NotationDisplay extends Component {
     CanvasLoaded = false;
 
     StaffHeight = 100; // in real display pixels. This is what is used to set all scaling factors
-    static readonly StaffPadding = 1; // fraction of staff height, applied to top and bottom (total padding is this * 2)
+    static readonly StaffPadding = 1.5; // fraction of staff height, applied to top and bottom (total padding is this * 2)
 
     InitCanvas() {
         this.InitContext();

@@ -87,16 +87,28 @@ export function RemoveListener<K extends keyof EventMap>(type: K, handler: (ev: 
     }
 }
 
-export function StartDrag(down: MouseEvent, onMove: (e: MouseEvent) => void, onRelease?: (e: MouseEvent) => void) {
+export function StartDrag(down: MouseEvent, onMove: (e: MouseEvent) => void, onRelease?: (e: MouseEvent) => void,
+    minimumDelta = 0, onClick?: (e: MouseEvent) => void) {
     down.preventDefault();
+    down.stopPropagation();
     let button = down.button;
+    const delta2 = minimumDelta * minimumDelta;
 
     function move(e: MouseEvent) {
+        if (minimumDelta > 0) {
+            const x = e.clientX - down.clientX;
+            const y = e.clientY - down.clientY;
+            if (x * x + y * y < delta2) return;
+            minimumDelta = 0; // after breaking the threshold, we remove it
+        }
         onMove(e);
     }
     function release(e: MouseEvent) {
         if (e.button !== button) return;
-        onRelease?.(e);
+
+        if (minimumDelta > 0) onClick?.(e);
+        else onRelease?.(e);
+
         window.removeEventListener("mousemove", move);
         window.removeEventListener("mouseup", release);
     }

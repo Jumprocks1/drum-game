@@ -149,7 +149,7 @@ export default class NotationDisplay extends Component {
         </div>
 
         this.HTMLElement.onmousedown = e => {
-            if (e.button !== 1) return;
+            if (e.button !== 1 && e.button !== 0) return;
             const track = this.Track;
             const wasPlaying = track.Playing;
             track.Playing = false;

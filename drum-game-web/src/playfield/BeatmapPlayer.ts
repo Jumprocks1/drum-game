@@ -4,45 +4,19 @@ import MapSelectorPage from "../pages/MapSelectorPage";
 import NotationDisplay from "./notation/NotationDisplay";
 import Beatmap from "../utils/Beatmap";
 import Router from "../framework/Router";
+import ClockTrack from "./ClockTrack";
 
 export default class BeatmapPlayer extends NoDOMComponent {
     BJson: BJson
     Beatmap: Beatmap
 
-    Duration = Number.POSITIVE_INFINITY;
-
-    private startTime = new Date().getTime();
-    Playing = false;
-    private lastUpdate = this.startTime;
-    private _currentTime = 0;
-    private _currentBeat = 0;
-
-    get CurrentBeat() {
-        return this._currentBeat;
-    }
-
-    get CurrentTime() {
-        return this._currentTime
-    }
-
-    set CurrentTime(value: number) {
-        this._currentTime = value;
-        this._currentBeat = this.Beatmap.MsToBeat(this._currentTime);
-    }
-
-    Update() {
-        if (this.Playing)
-            this.CurrentTime += (new Date().getTime() - this.lastUpdate)
-        this.lastUpdate = new Date().getTime();
-    }
-
+    Track: ClockTrack
 
     constructor(map: BJson) {
         super();
         this.BJson = map;
         this.Beatmap = new Beatmap(map);
-        this.Duration = this.Beatmap.BeatToMs(this.Beatmap.Length);
-        this.CurrentTime = -(map.leadIn ?? 0);
+        this.Track = new ClockTrack(this.Beatmap);
     }
 
     AfterParent() {
@@ -60,7 +34,7 @@ export default class BeatmapPlayer extends NoDOMComponent {
         if (e.key === "Escape") {
             this.FindParent(Router).NavigateTo(MapSelectorPage);
         } else if (e.key === " ") {
-            this.Playing = !this.Playing
+            this.Track.Playing = !this.Track.Playing
         }
         return true;
     }

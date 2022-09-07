@@ -10,6 +10,7 @@ import RenderGroup from "./RenderGroup";
 
 export default class NotationDisplay extends Component {
     Player: BeatmapPlayer
+    get Track() { return this.Player.Track; }
     Beatmap: Beatmap
 
     Spacing = 5
@@ -43,7 +44,7 @@ export default class NotationDisplay extends Component {
 
         this.Context.scale(this.StaffHeight / 4, this.StaffHeight / 4)
 
-        const currentBeat = this.Player.CurrentBeat;
+        const currentBeat = this.Track.CurrentBeat;
 
         this.Context.translate(-currentBeat * this.Spacing, 0);
     }
@@ -74,7 +75,7 @@ export default class NotationDisplay extends Component {
 
     Render = () => {
         if (!this.CanvasLoaded) return;
-        this.Player.Update();
+        this.Track.Update();
         this.Timeline.Update();
 
         this.CheckSize(true);
@@ -93,7 +94,7 @@ export default class NotationDisplay extends Component {
         for (let i = 0; i < 5; i++) // idk if we need to clip this before drawing
             this.Context.fillRect(0, i - lineThickness / 2, this.Beatmap.Length * this.Spacing, lineThickness);
 
-        const visbileStart = this.Player.CurrentBeat; // we will need to subtract the beat inset here
+        const visbileStart = this.Track.CurrentBeat; // we will need to subtract the beat inset here
         const visibleBeats = w / scale / this.Spacing;
         // in beats, we have to overdraw since some notes will render past their normal "bounds"
         // there are extreme cases with MeasureChanges that can cause a lot of overdraw. 1 beat should be enough
@@ -149,16 +150,16 @@ export default class NotationDisplay extends Component {
 
         this.HTMLElement.onmousedown = e => {
             if (e.button !== 1) return;
-            const player = this.Player;
-            const wasPlaying = player.Playing;
-            player.Playing = false;
+            const track = this.Track;
+            const wasPlaying = track.Playing;
+            track.Playing = false;
             const gripPoint = e.clientX;
-            const startTime = player.CurrentTime;
+            const startTime = track.CurrentTime;
             StartDrag(e, e => {
                 const d = e.clientX - gripPoint;
-                player.CurrentTime = this.Beatmap.BeatToMs(this.Beatmap.MsToBeat(startTime) - d * 4 / this.Spacing / this.StaffHeight)
+                track.CurrentTime = this.Beatmap.BeatToMs(this.Beatmap.MsToBeat(startTime) - d * 4 / this.Spacing / this.StaffHeight)
             }, () => {
-                if (wasPlaying) player.Playing = true;
+                if (wasPlaying) track.Playing = true;
             });
         }
 

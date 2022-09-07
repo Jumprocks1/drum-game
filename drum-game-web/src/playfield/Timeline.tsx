@@ -2,10 +2,11 @@ import Component from "../framework/Component";
 import { StartDrag } from "../framework/Framework";
 import { Clamp, FormatTime } from "../utils/Util";
 import BeatmapPlayer from "./BeatmapPlayer";
+import Track from "./Track";
 
 export default class Timeline extends Component {
 
-    Player?: BeatmapPlayer;
+    Track?: Track;
 
     Timer = <div className="timer" />;
     Thumb = <div className="thumb" />
@@ -14,17 +15,16 @@ export default class Timeline extends Component {
     </div>
 
     Update() {
-        const time = this.Player!.CurrentTime;
-        const ratio = Math.max(Math.min(time / this.Player!.Duration, 1), 0);
-        this.Timer.textContent = `${FormatTime(time)} / ${FormatTime(this.Player!.Duration)}`;
+        const time = this.Track!.CurrentTime;
+        const ratio = this.Track!.RatioAt(time)
+        this.Timer.textContent = `${FormatTime(time)} / ${FormatTime(this.Track!.Duration)}`;
         this.Thumb.style.left = ratio * 100 + "%"
     }
-
 
     AfterParent() {
         super.AfterParent();
 
-        this.Player = this.FindParent(BeatmapPlayer);
+        this.Track = this.FindParent(BeatmapPlayer).Track;
 
         this.DOMNode = <div className="timeline">
             {this.Timer}
@@ -35,15 +35,15 @@ export default class Timeline extends Component {
 
         this.HTMLElement.onmousedown = e => {
             if (e.button !== 0) return;
-            const player = this.Player!;
-            const wasPlaying = player.Playing;
-            player.Playing = false;
+            const track = this.Track!;
+            const wasPlaying = track.Playing;
+            track.Playing = false;
             StartDrag(e, e => {
                 const rect = this.Bar.getBoundingClientRect();
                 const x = Clamp((e.clientX - rect.left) / rect.width, 0, 1);
-                player.CurrentTime = x * player.Duration;
+                track.SeekToRatio(x)
             }, () => {
-                if (wasPlaying) player.Playing = true;
+                if (wasPlaying) track.Playing = true;
             });
         }
     }

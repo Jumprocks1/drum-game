@@ -36,6 +36,8 @@ export default class NotationDisplay extends Component {
 
     Transform() {
         this.Context.resetTransform();
+        const pixelRatio = window.devicePixelRatio;
+        this.Context.scale(pixelRatio, pixelRatio);
         // offset down to allow stems to go above the staff without clipping
         this.Context.translate(0, this.StaffHeight * NotationDisplay.StaffPadding);
 
@@ -47,12 +49,15 @@ export default class NotationDisplay extends Component {
     }
 
     CheckSize(reinit: boolean) {
-        const targetHeight = this.StaffHeight * (1 + NotationDisplay.StaffPadding * 2);
-        // const pixelRatio = window.devicePixelRatio;
-        if (this.Canvas.width !== this.Canvas.clientWidth || this.Canvas.height !== targetHeight) {
-            this.Canvas.style.height = targetHeight + "px";
+        const pixelRatio = window.devicePixelRatio;
+        const targetHeightBase = this.StaffHeight * (1 + NotationDisplay.StaffPadding * 2);
+        const targetHeight = targetHeightBase * pixelRatio;
+        const targetWidth = this.Canvas.clientWidth * pixelRatio;
+
+        if (this.Canvas.width !== targetWidth || this.Canvas.height !== targetHeight) {
+            this.Canvas.style.height = targetHeightBase + "px";
             this.Canvas.height = targetHeight;
-            this.Canvas.width = this.Canvas.clientWidth;
+            this.Canvas.width = targetWidth;
             if (reinit) this.InitContext(); // changing size resets all Context parameters
         }
     }
@@ -75,7 +80,7 @@ export default class NotationDisplay extends Component {
         this.CheckSize(true);
 
         const w = this.Canvas.width;
-        const scale = this.StaffHeight / 4;
+        const scale = this.StaffHeight / 4 * window.devicePixelRatio;
 
         this.Context.clearRect(0, 0, w, this.Canvas.height);
 
@@ -95,7 +100,7 @@ export default class NotationDisplay extends Component {
         const overdraw = 1;
 
         const firstGroup = Math.max(0, Math.floor((visbileStart - overdraw) / 4));
-        const lastGroup = Math.floor((visbileStart + visibleBeats + overdraw) / 4) + 1;
+        const lastGroup = Math.min(Math.floor((visbileStart + visibleBeats + overdraw) / 4) + 1, this.RenderGroups.length - 1);
         // console.log(firstGroup + " : " + lastGroup)
         for (let i = firstGroup; i < lastGroup; i++)
             this.RenderGroups[i].Render(this, this.Context);

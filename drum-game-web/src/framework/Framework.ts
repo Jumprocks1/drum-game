@@ -2,8 +2,10 @@ import Component from "./Component";
 import { createElement } from "./createElement";
 
 type EventMap = {
-    newframe: undefined,
+    newframe: number,
     keydown: WindowEventMap["keydown"]
+    resize: WindowEventMap["resize"]
+    wheel: WindowEventMap["wheel"]
 }
 
 const eventListeners: {
@@ -15,35 +17,18 @@ const registeredListeners: Partial<Record<keyof EventMap, boolean>> = {}
 function registerGlobalListener(type: keyof EventMap) {
     if (registeredListeners[type]) return;
     registeredListeners[type] = true;
-    if (type === "newframe") {
-        function callback() {
-            const listeners = eventListeners["newframe"];
-            if (listeners) {
-                for (let i = listeners.length - 1; i >= 0; i--)
-                    listeners[i](undefined)
-            }
-            if (registeredListeners["newframe"])
-                requestAnimationFrame(callback);
-        }
-        requestAnimationFrame(callback);
-    } else {
-        window.addEventListener(type, e => {
-            const listeners = eventListeners[type];
-            if (listeners) {
-                for (let i = listeners.length - 1; i >= 0; i--) {
-                    const l = listeners[i];
-                    if (l(e)) {
-                        return;
-                    }
+    if (type === "newframe") return;
+    window.addEventListener(type, e => {
+        const listeners = eventListeners[type];
+        if (listeners) {
+            for (let i = listeners.length - 1; i >= 0; i--) {
+                const l = listeners[i] as any;
+                if (l(e)) {
+                    return;
                 }
             }
-        });
-    }
-}
-
-function removeGlobalListener(type: keyof EventMap) {
-    if (type === "newframe")
-        registeredListeners[type] = false;
+        }
+    });
 }
 
 interface FrameworkConfig {
@@ -65,8 +50,24 @@ function loadConfig(config: Partial<FrameworkConfig>) {
 export function Start(root: new () => Component, config?: Partial<FrameworkConfig>) {
     if (config) loadConfig(config);
     window.createElement = createElement;
+
     const r = new root();
     r.Parent = r;
+
+    // there's very little reason to not just keep this registered the whole time, so we register it at the start
+    let lastTime = new Date().getTime();
+    function callback() {
+        const listeners = eventListeners["newframe"];
+        const newTime = new Date().getTime();
+        const dt = newTime - lastTime;
+        if (listeners) {
+            for (let i = listeners.length - 1; i >= 0; i--)
+                listeners[i](dt)
+        }
+        lastTime = newTime;
+        requestAnimationFrame(callback);
+    }
+    requestAnimationFrame(callback);
 }
 
 export function RegisterListener<K extends keyof EventMap>(type: K, handler: (ev: EventMap[K]) => boolean | void) {
@@ -83,7 +84,6 @@ export function RemoveListener<K extends keyof EventMap>(type: K, handler: (ev: 
     if (arr) {
         const i = arr.indexOf(handler);
         if (i !== -1) arr.splice(i, 1);
-        if (arr.length === 0) removeGlobalListener(type);
     }
 }
 

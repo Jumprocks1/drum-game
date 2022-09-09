@@ -58,11 +58,20 @@ export default class VirtualizedContainer<T> extends Component {
     }
 
     Update() {
+        const parentHeight = this.HTMLElement.parentElement!.clientHeight;
+        const itemHeight = this.ItemHeight;
+        let computedHeight = this.Items.length * this.ItemHeight
+        if (this.TotalHeight !== computedHeight) {
+            this.TotalHeight = computedHeight;
+            this.InnerContainer.style.height = computedHeight + "px";
+        }
+
+
         const visibleStart = this.HTMLElement.scrollTop;
         const visibleEnd = visibleStart + this.HTMLElement.clientHeight;
 
-        const renderStart = Math.max(0, Math.floor(visibleStart / this.ItemHeight));
-        const renderEnd = Math.min(this.Items.length, Math.ceil(visibleEnd / this.ItemHeight)) // exclusive
+        const renderStart = Math.max(0, Math.floor(visibleStart / itemHeight));
+        const renderEnd = Math.min(this.Items.length, Math.ceil(visibleEnd / itemHeight)) // exclusive
 
         const pendingFree = this.Active; // tentatively free all active renderers
         let newActive = new Set<Renderer<T>>();
@@ -70,7 +79,7 @@ export default class VirtualizedContainer<T> extends Component {
             const e = this.Items[i];
             const active = this.ActiveMap.get(e);
             if (active) {
-                active.HTMLElement.style.top = i * this.ItemHeight + "px";
+                active.HTMLElement.style.top = i * itemHeight + "px";
                 newActive.add(active);
                 pendingFree.delete(active);
             }
@@ -85,7 +94,7 @@ export default class VirtualizedContainer<T> extends Component {
             const e = this.Items[i];
             if (!this.ActiveMap.get(e)) {
                 const renderer = this.Render(e);
-                renderer.HTMLElement.style.top = i * this.ItemHeight + "px";
+                renderer.HTMLElement.style.top = i * itemHeight + "px";
                 this.ActiveMap.set(e, renderer);
                 this.Add(renderer);
                 newActive.add(renderer);
@@ -95,13 +104,12 @@ export default class VirtualizedContainer<T> extends Component {
         this.Active = newActive;
     }
 
+    OnPageResize = () => {
+        this.Update();
+    }
+
     SetItems(items: T[]) {
         this.Items = items;
-        this.TotalHeight = items.length * this.ItemHeight;
-        this.InnerContainer.style.height = this.TotalHeight + "px";
-
-        if (this.Alive) {
-            this.Update();
-        }
+        if (this.Alive) this.Update();
     }
 }

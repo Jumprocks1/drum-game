@@ -1,6 +1,6 @@
+import MapVirtualizedContainer from "../selector/MapVirtualizedContainer";
 import PageComponent from "../framework/PageComponent";
 import Router from "../framework/Router";
-import VirtualizedContainer from "../framework/VirtualizedContainer";
 import GlobalData from "../GlobalData";
 import { CacheMap } from "../interfaces/Cache";
 import BeatmapCard from "../selector/BeatmapCard";
@@ -13,8 +13,7 @@ export default class MapSelectorPage extends PageComponent {
     AfterParent() {
         super.AfterParent();
 
-        const selector = new VirtualizedContainer(BeatmapCard, 106);
-        selector.HTMLElement.classList.add("map-selector")
+        const selector = new MapVirtualizedContainer(BeatmapCard, 106);
 
         this.Add(selector);
 

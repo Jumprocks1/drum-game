@@ -1,6 +1,7 @@
 import Component from "../framework/Component";
 import { CacheMap } from "../interfaces/Cache";
 import MapSelectorPage from "../pages/MapSelectorPage";
+import MapVirtualizedContainer from "./MapVirtualizedContainer";
 
 
 export default class BeatmapCard extends Component {
@@ -13,6 +14,22 @@ export default class BeatmapCard extends Component {
     BottomLine = <div className="bottom-line" />
     MappedBy = <span />
     Difficulty = <span />
+    Card = <div>
+        {this.Title}
+        {this.Artist}
+        {this.BottomLine}
+    </div>
+
+
+    private _selected = false;
+    set Selected(value: boolean) {
+        if (this._selected === value) return;
+        this._selected = value;
+        if (value)
+            this.Card.classList.add("active")
+        else
+            this.Card.classList.remove("active")
+    }
 
     SetContent(map: CacheMap) {
         this.Map = map
@@ -32,16 +49,13 @@ export default class BeatmapCard extends Component {
         this.BottomLine.appendChild(this.Difficulty);
         this.BottomLine.appendChild(this.MappedBy);
 
-        const card = <div>
-            {this.Title}
-            {this.Artist}
-            {this.BottomLine}
-        </div>;
-        card.onclick = () => {
-            this.FindParent(MapSelectorPage).LoadMap(this.Map);
+        this.Card.onclick = () => {
+            const container = this.FindParent(MapVirtualizedContainer);
+            if (container.SelectedMap === this.Map) this.FindParent(MapSelectorPage).LoadMap(this.Map);
+            else (container.Select(this.Map))
         }
         this.HTMLElement = <div className="beatmap-card-wrapper">
-            {card}
+            {this.Card}
         </div>
 
         this.SetContent(map);

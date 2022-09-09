@@ -63,7 +63,7 @@
 }
 
 .virtualized-container.map-selector {
-    overflow-y: scroll;
+    overflow: hidden;
     height: 100%;
     position: relative;
 }

@@ -25,6 +25,7 @@ export default class Component {
     }
 
     OnKeyDown?: (event: KeyboardEvent) => boolean | void;
+    OnPageResize?: (event: UIEvent) => boolean | void;
 
     Clear() {
         while (this.Children.length > 0)
@@ -41,11 +42,15 @@ export default class Component {
         // everything in here should also be handled in AfterRemove
         if (this.OnKeyDown)
             RegisterListener("keydown", this.OnKeyDown);
+        if (this.OnPageResize)
+            RegisterListener("resize", this.OnPageResize);
     }
 
     AfterRemove() {
         if (this.OnKeyDown)
             RemoveListener("keydown", this.OnKeyDown);
+        if (this.OnPageResize)
+            RemoveListener("resize", this.OnPageResize);
     }
 
     AfterDOM() { }

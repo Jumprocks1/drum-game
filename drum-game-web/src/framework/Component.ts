@@ -48,6 +48,8 @@ export default class Component {
             RemoveListener("keydown", this.OnKeyDown);
     }
 
+    AfterDOM() { }
+
     Add(component: Component | HTMLElement) {
         if (!(component instanceof Component)) {
             let c = new Component();
@@ -58,8 +60,10 @@ export default class Component {
         this.Children.push(component);
         component.Parent = this;
         component.AfterParent(); // we call AfterParent before checking DOMNode since AfterParent might assign the DOMNode
-        if (component.DOMNode && component.DOMNode !== this.InnerNode) // for NoDOMComponents, these will be equal
+        if (component.DOMNode && component.DOMNode !== this.InnerNode) { // for NoDOMComponents, these will be equal
             this.InnerNode?.appendChild(component.DOMNode);
+            component.AfterDOM();
+        }
         return component;
     }
 

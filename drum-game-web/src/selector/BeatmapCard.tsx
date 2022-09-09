@@ -4,33 +4,46 @@ import MapSelectorPage from "../pages/MapSelectorPage";
 
 
 export default class BeatmapCard extends Component {
-    Map: CacheMap
+    Map!: CacheMap;
+
+    get CurrentItem() { return this.Map; }
+
+    Title = <div className="title" />
+    Artist = <div className="artist" />
+    BottomLine = <div className="bottom-line" />
+    MappedBy = <span />
+    Difficulty = <span />
+
+    SetContent(map: CacheMap) {
+        this.Map = map
+
+        this.Title.textContent = map.Title;
+        this.Artist.textContent = map.Artist;
+
+        this.MappedBy.textContent = map.Mapper ? ` mapped by ${map.Mapper}` : "";
+        this.Difficulty.textContent = map.Difficulty ? map.DifficultyString! : "";
+        this.Difficulty.className = "difficulty-" + map.Difficulty;
+    }
 
 
     constructor(map: CacheMap) {
         super();
 
-        this.Map = map
+        this.BottomLine.appendChild(this.Difficulty);
+        this.BottomLine.appendChild(this.MappedBy);
 
-        const bottomLine = <div className="bottom-line" />;
-        if (map.Difficulty !== undefined) {
-            const diff = <span>{map.DifficultyString}</span>
-            diff.classList.add("difficulty-" + map.Difficulty);
-            bottomLine.appendChild(diff)
-        }
-
-        if (map.Mapper) {
-            bottomLine.appendChild(<span> mapped by {map.Mapper}</span>)
-        }
-
-        this.HTMLElement = <div className="beatmap-card">
-            <div className="title">{map.Title}</div>
-            <div className="artist">{map.Artist}</div>
-            {bottomLine}
+        const card = <div>
+            {this.Title}
+            {this.Artist}
+            {this.BottomLine}
         </div>;
-
-        this.HTMLElement.onclick = () => {
+        card.onclick = () => {
             this.FindParent(MapSelectorPage).LoadMap(this.Map);
         }
+        this.HTMLElement = <div className="beatmap-card-wrapper">
+            {card}
+        </div>
+
+        this.SetContent(map);
     }
 }

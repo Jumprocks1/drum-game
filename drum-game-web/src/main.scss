@@ -62,29 +62,29 @@
 
 }
 
-
-#map-selector {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
+.virtualized-container.map-selector {
     overflow-y: scroll;
     height: 100%;
+    position: relative;
 }
 
-.beatmap-card {
+.beatmap-card-wrapper {
+    padding: $s*1.5 $s2;
+    position: absolute;
+    right: 0;
+}
+
+.beatmap-card-wrapper>div {
     cursor: pointer;
     background: $DarkBackground;
     padding: $s 0 $s $s3;
-
-    margin: $s*1.5 0;
-    margin-right: $s2;
 
     border-radius: $s;
     box-shadow: 0 0 $s2 $LightBorder,
         0 0 $s2 $LightBorder,
         0 0 $s3 $LightBorder;
 
-    flex: 0 0 90px;
+    height: 94px;
 
     width: 600px;
 

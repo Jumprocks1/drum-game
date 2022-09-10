@@ -1,17 +1,19 @@
 import Component from "../framework/Component";
 import { RegisterListener, RemoveListener } from "../framework/Framework";
 import { CacheMap } from "../interfaces/Cache";
-import { Clamp, ExpLerp } from "../utils/Util";
+import { Clamp, ExpLerp, Filter } from "../utils/Util";
 import BeatmapCard from "./BeatmapCard";
+import Search from "./Search";
 
 
 const circleY = 800;
 const circleX = 350;
 
-export default class MapVirtualizedContainer extends Component { // could merge this back with VirtualizedContainer eventually
+export default class MapCarousel extends Component { // could merge this back with VirtualizedContainer eventually
 
     ItemHeight: number
     Items: CacheMap[] = [];
+    FilteredMaps: CacheMap[] = []
 
     TotalHeight: number = 0;
 
@@ -39,6 +41,8 @@ export default class MapVirtualizedContainer extends Component { // could merge 
     CurrentScroll: number = 0; // this is like scrollTop
     UserTargetScroll: number = 0;
 
+    Search = new Search();
+
     Render(item: CacheMap) {
         if (this.Free.length > 0) {
             const pop = this.Free.pop()!;
@@ -52,7 +56,14 @@ export default class MapVirtualizedContainer extends Component { // could merge 
         super();
         this.Renderer = renderer;
         this.ItemHeight = itemHeight;
-        this.HTMLElement = <div className="virtualized-container map-selector" />
+        this.HTMLElement = <div className="map-selector" />
+        this.Search.OnChange = this.OnSearch;
+
+        this.Add(this.Search);
+    }
+
+    OnSearch(value: string) {
+        this.FilteredMaps = Filter(value, this.Items);
     }
 
     AfterRemove() {
@@ -169,6 +180,7 @@ export default class MapVirtualizedContainer extends Component { // could merge 
 
     SetItems(items: CacheMap[]) {
         this.Items = items;
+        this.OnSearch(this.Search.Value);
         if (this.Alive) this.Update();
     }
 }

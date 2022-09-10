@@ -1,4 +1,4 @@
-import MapVirtualizedContainer from "../selector/MapVirtualizedContainer";
+import MapCarousel from "../selector/MapCarousel";
 import PageComponent from "../framework/PageComponent";
 import Router from "../framework/Router";
 import GlobalData from "../GlobalData";
@@ -13,13 +13,13 @@ export default class MapSelectorPage extends PageComponent {
     AfterParent() {
         super.AfterParent();
 
-        const selector = new MapVirtualizedContainer(BeatmapCard, 106);
+        const carousel = new MapCarousel(BeatmapCard, 106);
 
-        this.Add(selector);
+        this.Add(carousel);
 
         GlobalData.LoadMapList().then(maps => {
             if (!this.Alive) return;
-            selector.SetItems(Object.values(maps.Maps));
+            carousel.SetItems(Object.values(maps.Maps));
         })
     }
 

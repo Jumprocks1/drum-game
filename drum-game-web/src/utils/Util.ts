@@ -1,3 +1,5 @@
+import { CacheMap } from "../interfaces/Cache";
+
 export function FormatTime(ms: number) {
     const t = ms > 0 ? Math.floor(ms / 1000) : 0;
     const d = Math.floor(t / 60);
@@ -23,4 +25,8 @@ export function ExpLerp(current: number, target: number, pow: number, dt: number
     }
 
     return current;
+}
+
+export function Filter(search: string, maps: CacheMap[]) {
+    return maps;
 }

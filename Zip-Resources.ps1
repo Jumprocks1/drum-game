@@ -10,10 +10,23 @@ Write-Host "Output: $outputPath" -ForegroundColor Cyan
 
 [System.Collections.ArrayList]$targetFiles = @()
 
-foreach ($f in Get-ChildItem "$resources/Fonts" -File) {
-    $targetFiles.Add($f.FullName) > $null
+$globs = @(
+    "sh_Shaders/*",
+    "soundfonts/*",
+    "soundfonts/licenses/*/*",
+    "fonts/*",
+    "fonts/Noto/*"
+)
+
+foreach ($glob in $globs) {
+    foreach ($f in Get-ChildItem "$resources/$glob" -File) {
+        $targetFiles.Add($f.FullName) > $null
+    }
 }
-$targetFiles.Add(Resolve-Path "resources/sh_Shaders/sh_ErrorGraph.fs") > $null
+
+$targetFiles
+
+exit
 
 $includeAudioArtists = "Dare I Dream","Resisting the Silence"
 $includeAudio = ,"BRS.bjson"
@@ -26,6 +39,7 @@ $files = Get-ChildItem $maps -File *.bjson
 foreach ($f in $files) {
     $parsed = Get-Content $f | ConvertFrom-Json
     if (($parsed.mapper -eq $null) -or ($parsed.mapper.Contains("(WIP)"))) {continue;}
+    if (($parsed.tags -ne $null) -and ($parsed.tags.contains("dtx"))) {continue;}
 
     $targetFiles.Add($f.FullName) > $null
 

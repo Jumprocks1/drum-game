@@ -5,3 +5,5 @@
 - Canvas proxy for caching all canvas calls
     - Could also convert these calls into WebGL geometry
     - Need FPS meter to measure this
+- Add option to download .bjson from web view
+- Have notices that the web client is WIP, and recommend the desktop client

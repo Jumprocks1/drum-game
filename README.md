@@ -11,7 +11,7 @@ This project is still in early development. Most of the features are geared towa
 ## Running Drum Game
 To start, download the latest [release](https://github.com/Jumprocks1/drum-game/releases). Follow the instructions on [release v0.1.1](https://github.com/Jumprocks1/drum-game/releases/tag/v0.1.1) if you need help getting the game started. If you have any trouble, please [submit an issue](https://github.com/Jumprocks1/drum-game/issues/new).
 
-You will also need a copy of the `resources` folder, which for now you can obtain from [release v0.1.1](https://github.com/Jumprocks1/drum-game/releases/tag/v0.1.1).
+You will also need a copy of the `resources` folder, which for now you can obtain from [release v0.2.0](https://github.com/Jumprocks1/drum-game/releases/tag/v0.2.0).
 
 The `resources` folder contains all beatmaps and audio files used by Drum Game. For the most part, releases will be separate from the `resources` folder, meaning you can update the game without updating `resources` (and vice-versa).
 
@@ -22,7 +22,7 @@ If you are interested in getting Drum Game on one of these platforms, please [cr
 
 ## Tutorial
 - Most things can be learned and accessed through the use of the command palette. To start, just press <kbd>F1</kbd> or <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd> and begin searching.
-- An easy way to learn some of the hotkeys is with the keyboard view, this can be access with <kbd>Shift</kbd>+<kbd>F1</kbd> by default.
+- An easy way to learn some of the hotkeys is with the keyboard view, this can be accessed with <kbd>Shift</kbd>+<kbd>F1</kbd> by default.
 - There are some useful keybinds for `osu-framework` [here](https://github.com/ppy/osu-framework/wiki/Framework-Key-Bindings).
     - Most of these are not listed under the command palette since the bindings are not controlled by Drum Game directly.
 

@@ -12,7 +12,7 @@ Write-Host "Output: $outputPath" -ForegroundColor Cyan
 
 $globs = @(
     "sh_Shaders/*",
-    "soundfonts/*",
+    "soundfonts/GeneralUser*",
     "soundfonts/licenses/*/*",
     "fonts/*",
     "fonts/Noto/*"

@@ -5,6 +5,8 @@ It is built using [osu!framework](https://github.com/ppy/osu-framework) with a l
 
 You can see the game in action on my [YouTube channel](https://www.youtube.com/playlist?list=PLBsK4hG6ZcIgSahbTFiFBoQb39ITodnFM).
 
+Learn more on [Discord](https://discord.gg/RTc3xDKabU) (this is still very new/WIP, don't hesitate to write a message!)
+
 ## Status
 This project is still in early development. Most of the features are geared towards making the game work specifically for me as the developer. It is intended to work for all configurations, but due to lack of testing, many configurations may not function right away.
 

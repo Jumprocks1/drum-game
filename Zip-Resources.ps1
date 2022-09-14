@@ -12,7 +12,7 @@ Write-Host "Output: $outputPath" -ForegroundColor Cyan
 
 $globs = @(
     "sh_Shaders/*",
-    "soundfonts/GeneralUser*",
+    "soundfonts/*-drums.sf2",
     "soundfonts/licenses/*/*",
     "fonts/*",
     "fonts/Noto/*"
@@ -23,10 +23,6 @@ foreach ($glob in $globs) {
         $targetFiles.Add($f.FullName) > $null
     }
 }
-
-$targetFiles
-
-exit
 
 $includeAudioArtists = "Dare I Dream","Resisting the Silence"
 $includeAudio = ,"BRS.bjson"

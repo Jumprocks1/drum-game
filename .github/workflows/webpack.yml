@@ -5,7 +5,7 @@ on:
     branches:
     - main
     paths:
-    - drum-game-web
+    - drum-game-web/**
   workflow_dispatch:
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages

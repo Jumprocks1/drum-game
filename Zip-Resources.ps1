@@ -15,7 +15,9 @@ $globs = @(
     "soundfonts/*-drums.sf2",
     "soundfonts/licenses/*/*",
     "fonts/*",
-    "fonts/Noto/*"
+    "fonts/Noto/*",
+    "repositories/*",
+    "repositories/cache/*"
 )
 
 foreach ($glob in $globs) {

@@ -23,6 +23,9 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     
     steps:
       - uses: actions/checkout@v3
@@ -56,16 +59,9 @@ jobs:
         uses: actions/upload-pages-artifact@v1
         with:
           path: 'drum-game-web/dist'
-  
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
 
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    
-    steps:
+          
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v1
+  

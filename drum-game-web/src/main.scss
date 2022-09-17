@@ -130,3 +130,10 @@ $card-width: 600px;
         position: absolute;
     }
 }
+
+.wip {
+    text-align: right;
+    opacity: 0.5;
+    font-size: 0.8em;
+    padding: $s;
+}

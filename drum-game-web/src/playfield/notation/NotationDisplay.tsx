@@ -146,6 +146,8 @@ export default class NotationDisplay extends Component {
             <div>{this.Beatmap.BJson.difficulty}</div>
             {this.Canvas}
             <div className="spacer" />
+            <div className="wip">Drum Game Web is still a work in progress.<br />
+                For the full experience, <a href="https://github.com/Jumprocks1/drum-game/releases">download the desktop version</a>.</div>
         </div>
 
         this.HTMLElement.onmousedown = e => {

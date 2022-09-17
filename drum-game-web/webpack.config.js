@@ -39,7 +39,7 @@ module.exports = function (env, argv) {
         output: {
             filename: 'main.js',
             path: path.resolve(__dirname, 'dist'),
-            publicPath: prod ? "/drum-game" : "/"
+            publicPath: prod ? "/drum-game/" : "/"
         },
         plugins: [new HtmlWebpackPlugin({
             hash: prod,

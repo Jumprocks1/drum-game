@@ -118,3 +118,32 @@ export function StartDrag(down: MouseEvent, onMove: (e: MouseEvent) => void, onR
 
     move(down);
 }
+
+function touchHandler(event: TouchEvent) {
+    const touch = event.changedTouches[0];
+    let type;
+    switch (event.type) {
+        case "touchstart": type = "mousedown"; break;
+        case "touchmove": type = "mousemove"; break;
+        case "touchend": type = "mouseup"; break;
+        default: return;
+    }
+
+    const simulatedEvent = new MouseEvent(type, {
+        bubbles: true, cancelable: true, view: window,
+        screenX: touch.screenX,
+        screenY: touch.screenY,
+        clientX: touch.clientX,
+        clientY: touch.clientY
+    });
+
+    touch.target.dispatchEvent(simulatedEvent);
+    event.preventDefault();
+}
+
+export function BindTouchEvents(element: HTMLElement) {
+    element.ontouchstart = touchHandler;
+    element.ontouchmove = touchHandler;
+    element.ontouchend = touchHandler;
+    element.ontouchcancel = touchHandler;
+}

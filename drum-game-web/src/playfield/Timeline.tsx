@@ -1,5 +1,5 @@
 import Component from "../framework/Component";
-import { StartDrag } from "../framework/Framework";
+import { BindTouchEvents, StartDrag } from "../framework/Framework";
 import { Clamp, FormatTime } from "../utils/Util";
 import BeatmapPlayer from "./BeatmapPlayer";
 import Track from "./Track";
@@ -32,6 +32,8 @@ export default class Timeline extends Component {
                 {this.Bar}
             </div>
         </div>
+
+        BindTouchEvents(this.HTMLElement);
 
         this.HTMLElement.onmousedown = e => {
             if (e.button !== 0) return;

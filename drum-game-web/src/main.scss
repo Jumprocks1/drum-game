@@ -136,4 +136,8 @@ $card-width: 600px;
     opacity: 0.5;
     font-size: 0.8em;
     padding: $s;
+
+    @include xs {
+        font-size: 0.6em;
+    }
 }

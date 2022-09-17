@@ -93,3 +93,9 @@ input {
 .spacer {
     flex-grow: 1;
 }
+
+@mixin xs() {
+    @media screen and (max-width: 599px) {
+        @content;
+    }
+}

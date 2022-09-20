@@ -1,6 +1,8 @@
 # Drum Game
 A rhythm game for electronic drums that is meant to be used as a practice and performance tool.
 
+You can download the latest release [here](https://github.com/Jumprocks1/drum-game/releases).
+
 It is built using [osu!framework](https://github.com/ppy/osu-framework) with a lot of it's design inspired by [osu!](https://github.com/ppy/osu). There are also many features/hotkeys based on [VS Code](https://github.com/microsoft/vscode) and [mpv](https://github.com/mpv-player/mpv).
 
 You can see the game in action on my [YouTube channel](https://www.youtube.com/playlist?list=PLBsK4hG6ZcIgSahbTFiFBoQb39ITodnFM).

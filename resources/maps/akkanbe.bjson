@@ -9,16 +9,16 @@
   "bpm": 240.0,
   "measureConfig": [
     {
-      "time": 408.0,
+      "time": 508.0,
       "beats": 5.0
     },
     {
-      "time": 413.0,
+      "time": 513.0,
       "beats": 4.0
     }
   ],
   "title": "あっかんべ",
-  "artist": "猫又おかゆ",
+  "artist": "猫又おかゆ x DECO*27",
   "mapper": "Jumprocks",
   "difficulty": "Insane",
   "tags": "nekomata okayu akkanbe",
@@ -771,6 +771,10 @@
       "channel": "snare"
     },
     {
+      "time": 174.5,
+      "channel": "hihat"
+    },
+    {
       "time": 175.0,
       "channel": "hihat"
     },
@@ -800,6 +804,10 @@
     },
     {
       "time": 181.0,
+      "channel": "hihat"
+    },
+    {
+      "time": 181.5,
       "channel": "hihat"
     },
     {
@@ -1589,7 +1597,7 @@
     },
     {
       "time": 270.25,
-      "channel": "snare"
+      "channel": "high-tom"
     },
     {
       "time": 270.5,

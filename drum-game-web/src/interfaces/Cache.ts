@@ -8,8 +8,10 @@ export interface CacheMap {
     Title: string
     Artist: string
     Mapper?: string
-    Difficulty?: number
+    Difficulty: number
     DifficultyString?: string
+    FilterString?: string
+    Tags?: string
     WriteTime: number
     Audio: string
     FileName: string

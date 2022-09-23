@@ -28,5 +28,16 @@ export function ExpLerp(current: number, target: number, pow: number, dt: number
 }
 
 export function Filter(search: string, maps: CacheMap[]) {
-    return maps;
+    const query = search.toLowerCase().split(" ").filter(e => e.length > 0);
+    if (maps.length > 0 && maps[0].FilterString === undefined) {
+        for (const map of maps) {
+            if (map.FilterString === undefined)
+                map.FilterString = `${map.Title ?? ""} ${map.Artist ?? ""} ${map.Mapper ?? ""} ${map.DifficultyString ?? ""} ${map.Tags ?? ""}`.toLowerCase();
+        }
+    }
+    let res = maps;
+    for (const s of query) {
+        res = res.filter(e => e.FilterString!.includes(s));
+    }
+    return res;
 }

@@ -38,6 +38,7 @@ foreach ($f in $files) {
     $parsed = Get-Content $f | ConvertFrom-Json
     if (($parsed.mapper -eq $null) -or ($parsed.mapper.Contains("(WIP)"))) {continue;}
     if (($parsed.tags -ne $null) -and ($parsed.tags.contains("dtx"))) {continue;}
+    if (($parsed.tags -ne $null) -and ($parsed.tags.contains("taiko"))) {continue;}
 
     $targetFiles.Add($f.FullName) > $null
 

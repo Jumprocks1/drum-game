@@ -13,7 +13,7 @@ class GlobalData {
 
     GlobalCache: { [K in keyof CacheDef]?: Promise<CacheDef[K]> } = {}
 
-    LoadCacheItem<K extends keyof CacheDef>(key: K, url: string) {
+    private LoadCacheItem<K extends keyof CacheDef>(key: K, url: string) {
         if (!this.GlobalCache[key]) {
             // @ts-ignore
             this.GlobalCache[key] = fetchEndpoint<CacheDef[K]>(url).then(r => {
@@ -25,11 +25,15 @@ class GlobalData {
     }
 
     async LoadMapList() {
+        const loaded = "mapList" in this.GlobalCache;
         const r = await this.LoadCacheItem("mapList", "/maps.json");
-        const maps = r.Maps;
-        for (const key in maps) {
-            const map = maps[key];
-            map.FileName = key;
+        if (!loaded) { // just do some basic post processing here
+            const maps = r.Maps;
+            for (const key in maps) {
+                const map = maps[key];
+                map.FileName = key;
+                map.Id ??= key;
+            }
         }
         return r;
     }

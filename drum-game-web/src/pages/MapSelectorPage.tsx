@@ -28,8 +28,8 @@ export default class MapSelectorPage extends PageComponent {
         this.ChildrenAfterRemove();
     }
 
-    LoadMap(map: CacheMap) {
-        if (!this.Alive) return;
+    LoadMap(map: CacheMap | undefined) {
+        if (!map || !this.Alive) return;
         GlobalData.LoadBravura(); // preload
         const ext = ".bjson";
         const target = map.FileName.endsWith(ext) ? map.FileName.substring(0, map.FileName.length - ext.length) : map.FileName

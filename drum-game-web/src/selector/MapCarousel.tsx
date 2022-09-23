@@ -1,9 +1,16 @@
 import Component from "../framework/Component";
 import { RegisterListener, RemoveListener } from "../framework/Framework";
 import { CacheMap } from "../interfaces/Cache";
+import MapSelectorPage from "../pages/MapSelectorPage";
 import { Clamp, ExpLerp, Filter } from "../utils/Util";
 import BeatmapCard from "./BeatmapCard";
 import Search from "./Search";
+
+// stored globally so we can restore it later
+const CarouselState: { search: string, map: string | undefined } = {
+    search: "",
+    map: undefined
+}
 
 
 const circleY = 800;
@@ -24,7 +31,7 @@ export default class MapCarousel extends Component { // could merge this back wi
     Active: Set<BeatmapCard> = new Set();
     ActiveMap: Map<CacheMap, BeatmapCard> = new Map();
 
-    private _selectedIndex: number = 0;
+    private _selectedIndex: number = Number.NaN;
 
     Dragging = false;
 
@@ -32,17 +39,18 @@ export default class MapCarousel extends Component { // could merge this back wi
     set SelectedIndex(value: number) {
         this.TargetScroll = value * this.ItemHeight;
         this._selectedIndex = Clamp(value, 0, this.FilteredMaps.length - 1);
+        CarouselState.map = this.FilteredMaps[this._selectedIndex]?.Id
     }
-    get SelectedMap() { return this.FilteredMaps[this._selectedIndex] }
+    get SelectedMap(): CacheMap | undefined { return this.FilteredMaps[this._selectedIndex] }
 
     get SelectedMapPosition() { return this._selectedIndex * this.ItemHeight; }
 
     TargetScroll: number = 0;
     CurrentScroll: number = 0; // this is like scrollTop
     UserTargetScroll: number = 0;
-    LoadedScroll: number = Number.NaN;
+    _loadedScroll: number = Number.NaN;
 
-    Search = new Search();
+    Search = new Search(CarouselState.search);
 
     Render(item: CacheMap) {
         if (this.Free.length > 0) {
@@ -64,11 +72,15 @@ export default class MapCarousel extends Component { // could merge this back wi
     }
 
     OnSearch = (value: string) => {
+        CarouselState.search = value;
         const selected = this.SelectedMap;
         this.FilteredMaps = Filter(value, this.Items);
         this.Search.UpdateNumbers(this.FilteredMaps.length, this.Items.length);
         let newIndex = -1;
-        if (selected)
+        const target = CarouselState.map;
+        if (target)
+            newIndex = this.FilteredMaps.findIndex(e => e.Id === target);
+        if (newIndex === -1 && selected)
             newIndex = this.FilteredMaps.indexOf(selected);
         if (newIndex === -1)
             newIndex = Math.floor(Math.random() * this.FilteredMaps.length);
@@ -77,8 +89,8 @@ export default class MapCarousel extends Component { // could merge this back wi
     }
 
     HardPull(index: number) {
-        this._selectedIndex = index;
-        this.CurrentScroll = this.TargetScroll = this.SelectedMapPosition;
+        this.SelectedIndex = index;
+        this.CurrentScroll = this.SelectedMapPosition;
     }
 
     AfterRemove() {
@@ -101,7 +113,7 @@ export default class MapCarousel extends Component { // could merge this back wi
         }
         const newScroll = ExpLerp(this.CurrentScroll, this.TargetScroll, 0.99, dt, 0.02)
         this.CurrentScroll = newScroll;
-        if (this.CurrentScroll === this.LoadedScroll) return;
+        if (this.CurrentScroll === this._loadedScroll) return;
         this.Update();
     }
 
@@ -110,7 +122,9 @@ export default class MapCarousel extends Component { // could merge this back wi
     }
 
     OnKeyDown = (e: KeyboardEvent) => {
-        if (e.key === "Home" && e.ctrlKey)
+        if (e.key === "Enter")
+            this.FindParent(MapSelectorPage).LoadMap(this.SelectedMap)
+        else if (e.key === "Home" && e.ctrlKey)
             this.SelectedIndex = 0;
         else if (e.key === "End" && e.ctrlKey)
             this.SelectedIndex = this.FilteredMaps.length - 1;
@@ -133,7 +147,7 @@ export default class MapCarousel extends Component { // could merge this back wi
     }
 
     Update() {
-        this.LoadedScroll = this.CurrentScroll;
+        this._loadedScroll = this.CurrentScroll;
         const clientHeight = this.HTMLElement.clientHeight;
         const itemHeight = this.ItemHeight;
         const scroll = this.CurrentScroll;

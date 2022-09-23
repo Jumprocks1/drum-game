@@ -9,13 +9,14 @@ export default class Search extends Component {
     MapCount = <div id="map-count"></div>
 
 
-    constructor() {
+    constructor(value?: string) {
         super();
         this.UpdateNumbers(0, 0)
         this.HTMLElement = <div className="search">
             {this.Input}
             {this.MapCount}
         </div>
+        if (value) this.Input.value = value;
         this.Input.onblur = () => {
             setTimeout(() => this.Input.focus()); // focusing right away seems to break chrome a bit
         }

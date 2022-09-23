@@ -7,7 +7,7 @@ export function FormatTime(ms: number) {
     return `${d}:${s >= 10 ? s : "0" + s}`;
 }
 
-export function Clamp(n: number, min: number, max: number) { return Math.min(Math.max(n, min), max); }
+export function Clamp(n: number, min: number, max: number) { return Math.max(Math.min(n, max), min); }
 
 
 export function ExpLerp(current: number, target: number, pow: number, dt: number, linearStep = 0) {

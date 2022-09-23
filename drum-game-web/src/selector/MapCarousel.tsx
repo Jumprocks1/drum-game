@@ -2,7 +2,7 @@ import Component from "../framework/Component";
 import { RegisterListener, RemoveListener } from "../framework/Framework";
 import { CacheMap } from "../interfaces/Cache";
 import MapSelectorPage from "../pages/MapSelectorPage";
-import { Clamp, ExpLerp, Filter } from "../utils/Util";
+import { Clamp, EnsureParent, ExpLerp, Filter } from "../utils/Util";
 import BeatmapCard from "./BeatmapCard";
 import Search from "./Search";
 
@@ -78,7 +78,7 @@ export default class MapCarousel extends Component { // could merge this back wi
         this.Search.UpdateNumbers(this.FilteredMaps.length, this.Items.length);
         let newIndex = -1;
         const target = CarouselState.map;
-        if (target)
+        if (Number.isNaN(this.SelectedIndex) && target)
             newIndex = this.FilteredMaps.findIndex(e => e.Id === target);
         if (newIndex === -1 && selected)
             newIndex = this.FilteredMaps.indexOf(selected);
@@ -204,7 +204,11 @@ export default class MapCarousel extends Component { // could merge this back wi
         }
 
         this.Active = newActive;
+
+        EnsureParent(this.HTMLElement, this.NoMaps, this.FilteredMaps.length === 0)
     }
+
+    NoMaps = <div id="no-maps">No maps found</div>
 
     OnPageResize = () => {
         this.Update();

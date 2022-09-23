@@ -41,3 +41,11 @@ export function Filter(search: string, maps: CacheMap[]) {
     }
     return res;
 }
+
+export function EnsureParent(parent: Node, child: Node, setParent: boolean = true) {
+    if (setParent) {
+        if (child.parentNode !== parent) parent.appendChild(child);
+    } else {
+        if (child.parentNode === parent) parent.removeChild(child)
+    }
+}

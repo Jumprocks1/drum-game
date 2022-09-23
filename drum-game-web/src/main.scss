@@ -97,6 +97,14 @@ $card-width: 600px;
     position: absolute;
     width: $card-width + $s*4;
     right: 0;
+
+    >#no-maps {
+        text-align: center;
+        translate: 0 -50%;
+        position: relative;
+        top: 50%;
+        font-size: 1.5em;
+    }
 }
 
 .beatmap-card-wrapper {

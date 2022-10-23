@@ -3,6 +3,7 @@
   "annotations": [],
   "relativeVolume": 0.3,
   "audio": "audio/01.リベリオン.mp3",
+  "image": "images/ab67616d00001e026260cea60fcc0e4c9f29764c.jfif",
   "id": "1c51639e-5e56-4f91-a143-85c133d9e144",
   "offset": 392.68,
   "leadIn": 0.0,
@@ -11,7 +12,7 @@
   "artist": "Ado",
   "mapper": "Jumprocks",
   "difficulty": "Hard",
-  "tags": "rebellion",
+  "tags": "rebellion dtx-level-72",
   "creationTimeUtc": "2022-09-22T03:14:56.4430726Z",
   "notes": [
     {
@@ -1036,11 +1037,7 @@
     },
     {
       "time": 73.0,
-      "channel": "hihat"
-    },
-    {
-      "time": 73.5,
-      "channel": "hihat"
+      "channel": "open-hihat"
     },
     {
       "time": 73.5,
@@ -1048,7 +1045,8 @@
     },
     {
       "time": 73.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 74.0,
@@ -1787,7 +1785,8 @@
     },
     {
       "time": 141.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 142.0,
@@ -1815,7 +1814,8 @@
     },
     {
       "time": 143.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 144.0,
@@ -1843,7 +1843,8 @@
     },
     {
       "time": 145.5,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 145.5,
@@ -6326,7 +6327,8 @@
     },
     {
       "time": 517.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 518.0,

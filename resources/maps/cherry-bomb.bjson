@@ -22,6 +22,10 @@
       "channel": "crash"
     },
     {
+      "time": 4.0,
+      "channel": "hihat-pedal"
+    },
+    {
       "time": 5.0,
       "channel": "snare"
     },
@@ -56,6 +60,10 @@
     {
       "time": 7.0,
       "channel": "low-tom"
+    },
+    {
+      "time": 7.0,
+      "channel": "hihat-pedal"
     },
     {
       "time": 7.5,
@@ -115,6 +123,10 @@
       "channel": "low-tom"
     },
     {
+      "time": 11.0,
+      "channel": "hihat-pedal"
+    },
+    {
       "time": 11.5,
       "channel": "hihat-pedal"
     },
@@ -172,6 +184,10 @@
       "channel": "low-tom"
     },
     {
+      "time": 15.0,
+      "channel": "hihat-pedal"
+    },
+    {
       "time": 15.5,
       "channel": "hihat-pedal"
     },
@@ -226,6 +242,10 @@
     },
     {
       "time": 19.0,
+      "channel": "hihat-pedal"
+    },
+    {
+      "time": 19.0,
       "channel": "low-tom"
     },
     {
@@ -244,6 +264,10 @@
     {
       "time": 20.0,
       "channel": "crash"
+    },
+    {
+      "time": 20.0,
+      "channel": "hihat-pedal"
     },
     {
       "time": 21.0,
@@ -280,6 +304,10 @@
     {
       "time": 23.0,
       "channel": "low-tom"
+    },
+    {
+      "time": 23.0,
+      "channel": "hihat-pedal"
     },
     {
       "time": 23.5,
@@ -333,6 +361,10 @@
     {
       "time": 27.0,
       "channel": "snare"
+    },
+    {
+      "time": 27.0,
+      "channel": "hihat-pedal"
     },
     {
       "time": 27.0,
@@ -390,6 +422,10 @@
     {
       "time": 31.0,
       "channel": "snare"
+    },
+    {
+      "time": 31.0,
+      "channel": "hihat-pedal"
     },
     {
       "time": 31.0,

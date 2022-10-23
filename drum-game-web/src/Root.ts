@@ -18,12 +18,17 @@ const pages: PageType[] = [
 export default class Root extends Component {
     constructor() {
         super();
+        const meta = [
+            ["og:title", "Drum Game Test Title"],
+            ["og:description", "Test description"],
+            ["og:image", "https://m.media-amazon.com/images/I/81m81sm7O7L._SS500_.jpg"],
+        ]
 
-        const meta = document.getElementsByTagName("meta");
         for (const e of meta) {
-            if (e.content === "Drum Game Test") {
-                e.content = "Drum Game Test 2"
-            }
+            const m = document.createElement("meta");
+            m.setAttribute("property", e[0]);
+            m.setAttribute("content", e[1]);
+            document.head.appendChild(m)
         }
 
         this.DOMNode = document.getElementById("root")!;

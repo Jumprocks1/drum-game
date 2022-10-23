@@ -18,13 +18,11 @@ const circleX = 350;
 
 export default class MapCarousel extends Component { // could merge this back with VirtualizedContainer eventually
 
-    ItemHeight: number
+    ItemHeight: number = 106
     Items: CacheMap[] = [];
     FilteredMaps: CacheMap[] = []
 
     TotalHeight: number = 0;
-
-    Renderer: new (item: CacheMap) => BeatmapCard;
 
     Free: BeatmapCard[] = [];
 
@@ -58,13 +56,11 @@ export default class MapCarousel extends Component { // could merge this back wi
             pop.SetContent(item);
             return pop;
         }
-        return new this.Renderer(item);
+        return new BeatmapCard(item);
     }
 
-    constructor(renderer: new (item: CacheMap) => BeatmapCard, itemHeight: number) {
+    constructor() {
         super();
-        this.Renderer = renderer;
-        this.ItemHeight = itemHeight;
         this.HTMLElement = <div className="map-selector" />
         this.Search.OnChange = this.OnSearch;
 
@@ -145,6 +141,9 @@ export default class MapCarousel extends Component { // could merge this back wi
     Select(e: CacheMap) {
         this.SelectedIndex = this.FilteredMaps.indexOf(e);
     }
+    HardSelect(e: CacheMap) {
+        this.HardPull(this.FilteredMaps.indexOf(e));
+    }
 
     Update() {
         this._loadedScroll = this.CurrentScroll;
@@ -208,14 +207,15 @@ export default class MapCarousel extends Component { // could merge this back wi
         EnsureParent(this.HTMLElement, this.NoMaps, this.FilteredMaps.length === 0)
     }
 
-    NoMaps = <div id="no-maps">No maps found</div>
+    NoMaps = <div id="no-maps">Loading...</div>
 
     OnPageResize = () => {
         this.Update();
     }
 
     SetItems(items: CacheMap[]) {
-        this.Items = items.sort((a, b) => a.Difficulty - b.Difficulty);
+        this.NoMaps.textContent = "No maps found";
+        this.Items = items;
         this.OnSearch(this.Search.Value);
         if (this.Alive) this.Update();
     }

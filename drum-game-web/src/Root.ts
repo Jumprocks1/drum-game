@@ -5,12 +5,14 @@ import WebSocketPage from "./pages/WebSocketPage";
 import MapSelectorPage from "./pages/MapSelectorPage";
 import TestPage from "./pages/TestPage";
 import BeatmapPlayerPage from "./pages/BeatmapPlayerPage";
+import DtxPage from "./pages/DtxPage";
 
 const pages: PageType[] = [
     TestPage,
     WebSocketPage,
     BeatmapPlayerPage,
-    MapSelectorPage
+    DtxPage,
+    MapSelectorPage,
 ]
 
 export default class Root extends Component {

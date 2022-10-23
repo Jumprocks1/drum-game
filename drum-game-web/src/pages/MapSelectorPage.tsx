@@ -3,7 +3,6 @@ import PageComponent from "../framework/PageComponent";
 import Router from "../framework/Router";
 import GlobalData from "../GlobalData";
 import { CacheMap } from "../interfaces/Cache";
-import BeatmapCard from "../selector/BeatmapCard";
 import BeatmapPlayerPage from "./BeatmapPlayerPage";
 
 export default class MapSelectorPage extends PageComponent {
@@ -13,13 +12,13 @@ export default class MapSelectorPage extends PageComponent {
     AfterParent() {
         super.AfterParent();
 
-        const carousel = new MapCarousel(BeatmapCard, 106);
+        const carousel = new MapCarousel();
 
         this.Add(carousel);
 
         GlobalData.LoadMapList().then(maps => {
             if (!this.Alive) return;
-            carousel.SetItems(Object.values(maps.Maps));
+            carousel.SetItems(Object.values(maps.Maps).sort((a, b) => a.Difficulty - b.Difficulty));
         })
     }
 

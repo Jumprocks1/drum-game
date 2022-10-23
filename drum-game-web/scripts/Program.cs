@@ -45,6 +45,18 @@ public class BeatmapMetadata
         return res;
     }
 }
+public class DtxMaps
+{
+    public class DtxMap
+    {
+        public string Filename;
+        public string Url;
+        public string Image;
+        public double BPM;
+        public double[] Difficulties;
+    }
+    public List<DtxMap> Maps;
+}
 public static class Program
 {
     public static void Main()
@@ -72,5 +84,30 @@ public static class Program
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping // allow Japanese UTF8 characters
         }));
+
+
+        // TODO make a new json file for this that we can use to render the map list
+        var dtx = JsonSerializer.Deserialize<DtxMaps>(File.ReadAllText("../src/dtx.json"), new JsonSerializerOptions
+        {
+            IncludeFields = true,
+            PropertyNameCaseInsensitive = true
+        });
+
+        var index = File.ReadAllText("../dist/404.html");
+        var repl = @"<meta charset=""utf-8""/>";
+
+        foreach (var map in dtx.Maps)
+        {
+            var metadata = dict[map.Filename];
+            var extraTags = $@"
+<meta property=""og:title"" content=""{metadata.Artist} - {metadata.Title}"" />
+<meta property=""og:description"" content=""{map.BPM} BPM - {string.Join(" / ", map.Difficulties.Select(e => $"{e:0.00}"))}"" />
+<meta property=""og:image"" content=""{map.Image}"" />
+            ";
+            var mapHtml = index.Replace(repl, repl + extraTags);
+            var dir = Path.Join("../dist/", "dtx", map.Url);
+            Directory.CreateDirectory(dir);
+            File.WriteAllText(Path.Join(dir, "index.html"), mapHtml);
+        }
     }
 }

@@ -1,5 +1,5 @@
 import Component from "../framework/Component";
-import { RegisterListener, RemoveListener, StartDrag } from "../framework/Framework";
+import { BindTouchEvents, RegisterListener, RemoveListener, StartDrag } from "../framework/Framework";
 import { CacheMap } from "../interfaces/Cache";
 import MapSelectorPage from "../pages/MapSelectorPage";
 import { Clamp, EnsureParent, ExpLerp, Filter } from "../utils/Util";
@@ -82,6 +82,7 @@ export default class MapCarousel extends Component { // could merge this back wi
                 }
             });
         }
+        BindTouchEvents(this.HTMLElement)
 
         this.Search.OnChange = this.OnSearch;
 

@@ -7,7 +7,7 @@ export default class DtxPreview extends Component {
     Image = <img /> as HTMLImageElement
     Title = <h3 />
     Description = <h5 />
-    Download = <a href="https://jumprocks1.github.io/drum-game" target="_blank" rel="noreferrer noopener">Download</a>
+    Download = <a target="_blank" rel="noreferrer noopener">Download</a> as HTMLAnchorElement
     Date = <span />
     DownloadLine = <div>
         {this.Download} - {this.Date}
@@ -31,6 +31,7 @@ export default class DtxPreview extends Component {
         this.Title.textContent = `${map.Artist} - ${map.Title}`;
         this.Description.textContent = `${map.BpmString} BPM - ${map.DifficultyString}`;
         this.Date.textContent = map.Date ?? "";
+        this.Download.href = map.DownloadUrl ?? "";
         const fileLink = map.FileName.substring(0, map.FileName.lastIndexOf("."));
         (this.Preview.Component as RouteLink).Parameters = [fileLink]
     }

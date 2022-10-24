@@ -19,6 +19,7 @@ public class BeatmapMetadata
     public string Tags;
     public long WriteTime;
     public string ImageUrl;
+    public string DownloadUrl;
     public string BpmString;
     public string Date;
     public static BeatmapMetadata From(FileInfo fileInfo)
@@ -53,7 +54,7 @@ public class DtxMaps
     public class DtxMap
     {
         public string Filename;
-        public string Url;
+        public string DownloadUrl;
         public string Image;
         public string Date;
         public double BPM;
@@ -113,6 +114,7 @@ public static class Program
             dtxMaps[map.Filename] = metadata;
             metadata.BpmString = map.BPM.ToString();
             metadata.ImageUrl = map.Image;
+            metadata.DownloadUrl = map.DownloadUrl;
             metadata.Date = map.Date;
             var diffString = string.Join(" / ", map.Difficulties.Select(e => $"{e:0.00}"));
             metadata.DifficultyString = diffString;

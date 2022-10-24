@@ -12,6 +12,7 @@ export interface CacheMap {
     DifficultyString?: string
     BpmString?: string
     ImageUrl?: string
+    DownloadUrl?: string
     Date?: string
     FilterString?: string
     Tags?: string

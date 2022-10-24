@@ -32,6 +32,6 @@ export default class MapSelectorPage extends PageComponent {
         GlobalData.LoadBravura(); // preload
         const ext = ".bjson";
         const target = map.FileName.endsWith(ext) ? map.FileName.substring(0, map.FileName.length - ext.length) : map.FileName
-        this.FindParent(Router).NavigateTo(BeatmapPlayerPage, target) // this will kill us
+        this.FindParent(Router).NavigateTo({ page: BeatmapPlayerPage, parameters: [target] }) // this will kill us
     }
 }

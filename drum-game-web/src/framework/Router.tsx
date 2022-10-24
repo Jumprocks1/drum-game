@@ -18,9 +18,18 @@ function buildRegex(route: string) {
 
 export let GlobalRouter: Router | undefined = undefined;
 
+export interface RouterState {
+    page: PageType
+    parameters?: string[]
+    data?: any
+}
+
 export default class Router extends NoDOMComponent {
 
     Pages: PageType[];
+    State: RouterState | undefined
+
+    History: RouterState[] = []
 
     constructor(pages: PageType[]) {
         super();
@@ -42,38 +51,50 @@ export default class Router extends NoDOMComponent {
         window.removeEventListener("popstate", this.OnHistoryChange);
     }
 
-    static BuildRoute(page: PageType, ...parameters: string[]) {
+    static BuildRoute(state: RouterState) {
         // @ts-ignore page.Route will always exists when RouteUrl does not
-        let target: string = page.RouteUrl ?? page.Route;
+        let target: string = state.page.RouteUrl ?? state.page.Route;
         if (!target.startsWith("/")) target = "/" + target;
-        for (let i = 0; i < parameters.length; i++)
-            target = target.replace("$" + i, parameters[i]);
+        if (state.parameters)
+            for (let i = 0; i < state.parameters.length; i++)
+                target = target.replace("$" + i, state.parameters[i]);
         if (FrameworkConfig.baseName)
             target = FrameworkConfig.baseName + target;
         return target;
     }
 
-    SetRoute(page: PageType, ...parameters: string[]) { // this does not trigger a navigate
-        // @ts-ignore page.Route will always exists when RouteUrl does not
-        let target: string = Router.BuildRoute(page, ...parameters);
-        history.pushState(undefined, "", target);
+    // this does not trigger a page load
+    // it also doesn't push the current history
+    ReplaceRoute(state: RouterState) {
+        history.replaceState(state.data, "", Router.BuildRoute(state));
+        this.State = state;
     }
 
-    NavigateTo(page: PageType, ...parameters: string[]) {
-        this.SetRoute(page, ...parameters);
-        this.LoadPage(page, parameters);
+    NavigateTo(state: RouterState) { // this sets the route and loads the page
+        history.pushState(state.data, "", Router.BuildRoute(state));
+        if (this.State) this.History.push(this.State);
+        this.LoadPage(state); // this will set this.State for us
     }
 
-    LoadPage(page: PageType, parameters?: RouteParameters) {
-        if (this.CurrentPage === page && !parameters) return;
+    NavigateBack(fallbackState?: RouterState) {
+        if (this.History.length === 0) {
+            if (fallbackState)
+                this.NavigateTo(fallbackState);
+        } else {
+            this.History.pop();
+            history.back();
+        }
+    }
+
+    LoadPage(state: RouterState) {
+        const page = state.page;
+        if (this.State?.page === page && state.parameters === this.State.parameters) return;
+        this.State = state;
         this.Clear();
         const newPage = new page();
-        if (parameters) newPage.LoadRoute(parameters);
+        if (state.parameters) newPage.LoadRoute(state.parameters);
         this.Add(newPage);
-        this.CurrentPage = page;
     }
-
-    CurrentPage: PageType | undefined;
 
     private UpdateRouting() {
         let route = window.location.pathname
@@ -87,7 +108,7 @@ export default class Router extends NoDOMComponent {
             const regex = page.RouteRegex ??= buildRegex(page.Route)
             const res = route.match(regex);
             if (res) {
-                this.LoadPage(page, res.slice(1));
+                this.LoadPage({ page, parameters: res.slice(1) });
                 return;
             }
         }

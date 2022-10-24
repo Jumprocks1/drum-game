@@ -33,7 +33,7 @@ export default class DtxPage extends PageComponent {
                 if (newUrl !== this.MapUrl) {
                     const router = this.FindParent(Router);
                     this.MapUrl = newUrl;
-                    router.SetRoute(DtxPage, this.MapUrl)
+                    router.ReplaceRoute({ page: DtxPage, parameters: [this.MapUrl] })
                 }
             }
         }

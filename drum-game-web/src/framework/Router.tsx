@@ -5,7 +5,7 @@ import PageComponent from "./PageComponent";
 export type PageType = (new () => PageComponent) & (
     | { Route: string; RouteUrl?: string, RouteRegex?: RegExp }
     | { RouteUrl: string, RouteRegex: RegExp }
-)
+) & { PageId?: string }
 
 export type RouteParameters = string[]
 

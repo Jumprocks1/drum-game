@@ -9,6 +9,7 @@ import DtxPreview from "../dtx/DtxPreview";
 export default class DtxPage extends PageComponent {
     static Route = "dtx/$0|dtx/?"
     static RouteUrl = "dtx/$0"
+    static PageId = "dtx-page"
 
 
     MapUrl: string | undefined;

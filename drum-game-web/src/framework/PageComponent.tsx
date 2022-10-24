@@ -1,6 +1,4 @@
-import { KebabCase } from "../utils/Util";
 import Component from "./Component";
-import NoDOMComponent from "./NoDOMComponent";
 import { RouteParameters } from "./Router";
 
 /**
@@ -14,7 +12,8 @@ import { RouteParameters } from "./Router";
  */
 export default abstract class PageComponent extends Component {
     PageId(): string | undefined {
-        return KebabCase(this.constructor.name)
+        // return KebabCase(this.constructor.name) // this doesn't work with webpack
+        return (this.constructor as any).PageId
     }
 
     constructor() {

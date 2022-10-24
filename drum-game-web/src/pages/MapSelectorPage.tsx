@@ -8,6 +8,7 @@ import BeatmapPlayerPage from "./BeatmapPlayerPage";
 export default class MapSelectorPage extends PageComponent {
     static Route = ".*"
     static RouteUrl = ""
+    static PageId = "map-selector-page"
 
     AfterParent() {
         super.AfterParent();

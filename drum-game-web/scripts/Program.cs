@@ -69,8 +69,10 @@ public static class Program
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping // allow Japanese UTF8 characters
     };
-    public static void Main()
+    public static bool Deploy;
+    public static void Main(string[] args)
     {
+        Deploy = args.Length > 0 && args[0] == "deploy";
         if (!Directory.Exists("../dist/maps"))
         {
             var outputDir = Directory.CreateDirectory("../dist/maps");
@@ -114,15 +116,18 @@ public static class Program
             metadata.Date = map.Date;
             var diffString = string.Join(" / ", map.Difficulties.Select(e => $"{e:0.00}"));
             metadata.DifficultyString = diffString;
-            var extraTags = $@"
+            if (Deploy)
+            {
+                var extraTags = $@"
 <meta property=""og:title"" content=""{metadata.Artist} - {metadata.Title}"" />
 <meta property=""og:description"" content=""{map.BPM} BPM - {diffString}"" />
 <meta property=""og:image"" content=""{map.Image}"" />
             ";
-            var mapHtml = index.Replace(repl, repl + extraTags);
-            var dir = Path.Join("../dist/", "dtx", map.Url);
-            Directory.CreateDirectory(dir);
-            File.WriteAllText(Path.Join(dir, "index.html"), mapHtml);
+                var mapHtml = index.Replace(repl, repl + extraTags);
+                var dir = Path.Join("../dist/", "dtx", Path.GetFileNameWithoutExtension(map.Filename));
+                Directory.CreateDirectory(dir);
+                File.WriteAllText(Path.Join(dir, "index.html"), mapHtml);
+            }
         }
         File.WriteAllText("../dist/dtx-maps.json", JsonSerializer.Serialize(new
         {

@@ -16,12 +16,15 @@ function buildRegex(route: string) {
     return new RegExp("^" + route + "$")
 }
 
+export let GlobalRouter: Router | undefined = undefined;
+
 export default class Router extends NoDOMComponent {
 
     Pages: PageType[];
 
     constructor(pages: PageType[]) {
         super();
+        GlobalRouter = this;
         this.Pages = pages;
     }
 
@@ -39,7 +42,7 @@ export default class Router extends NoDOMComponent {
         window.removeEventListener("popstate", this.OnHistoryChange);
     }
 
-    NavigateTo(page: PageType, ...parameters: string[]) {
+    static BuildRoute(page: PageType, ...parameters: string[]) {
         // @ts-ignore page.Route will always exists when RouteUrl does not
         let target: string = page.RouteUrl ?? page.Route;
         if (!target.startsWith("/")) target = "/" + target;
@@ -47,7 +50,17 @@ export default class Router extends NoDOMComponent {
             target = target.replace("$" + i, parameters[i]);
         if (FrameworkConfig.baseName)
             target = FrameworkConfig.baseName + target;
+        return target;
+    }
+
+    SetRoute(page: PageType, ...parameters: string[]) { // this does not trigger a navigate
+        // @ts-ignore page.Route will always exists when RouteUrl does not
+        let target: string = Router.BuildRoute(page, ...parameters);
         history.pushState(undefined, "", target);
+    }
+
+    NavigateTo(page: PageType, ...parameters: string[]) {
+        this.SetRoute(page, ...parameters);
         this.LoadPage(page, parameters);
     }
 

@@ -1,9 +1,8 @@
 import PageComponent from "../framework/PageComponent";
-import { RouteParameters } from "../framework/Router";
+import Router, { RouteParameters } from "../framework/Router";
 import GlobalData from "../GlobalData";
 import MapCarousel from "../selector/MapCarousel";
 
-import dtxMaps from "../dtx.json"
 import { CacheMap } from "../interfaces/Cache";
 import DtxPreview from "../dtx/DtxPreview";
 
@@ -18,29 +17,37 @@ export default class DtxPage extends PageComponent {
         this.MapUrl = parameters[0]
     }
 
+    UrlForFile(filename: string) {
+        return filename.substring(0, filename.lastIndexOf("."))
+    }
+
     AfterParent() {
         super.AfterParent();
         const carousel = new MapCarousel();
 
         const preview = new DtxPreview();
-        carousel.OnMapChange = e => preview.SetMap(e);
+        carousel.OnMapChange = e => {
+            preview.SetMap(e);
+            if (this.MapUrl) { // if we have a map in the URL, we make sure to keep updating the URL
+                const newUrl = this.UrlForFile(e.FileName);
+                if (newUrl !== this.MapUrl) {
+                    const router = this.FindParent(Router);
+                    this.MapUrl = newUrl;
+                    router.SetRoute(DtxPage, this.MapUrl)
+                }
+            }
+        }
 
 
         this.Add(preview);
         this.Add(carousel);
 
-        // TODO we should automatically build a dtx.json that we grab here
-        // It can have all the converted DTX metadata (with levels and names)
-        GlobalData.LoadMapList().then(maps => {
+        GlobalData.DtxMapList().then(maps => {
             if (!this.Alive) return;
-            const cacheMaps = maps.Maps;
-            const o: CacheMap[] = []
-            let target: CacheMap | undefined = undefined;
-            for (const e of dtxMaps.maps) {
-                const cacheMap = cacheMaps[e.filename];
-                cacheMap.DtxInfo = e;
-                if (e.url == this.MapUrl) target = cacheMap;
-                o.push(cacheMap);
+            const o: CacheMap[] = Object.values(maps.Maps);
+            let target: CacheMap | undefined = o[0];
+            if (this.MapUrl) {
+                target = maps.Maps[this.MapUrl] ?? maps.Maps[this.MapUrl + ".bjson"]
             }
             carousel.SetItems(o);
             if (target !== undefined)

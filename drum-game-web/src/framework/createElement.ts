@@ -1,3 +1,4 @@
+import Component from "./Component";
 
 type FC = (props: Record<string, any>) => JSX.Element
 
@@ -21,7 +22,13 @@ export function createElement(element: string | FC,
             }
         }
     } else {
-        el = element(properties ?? {});
+        if (element.prototype instanceof Component) {
+            // TODO this is pretty sketchy
+            const component: Component = new (element as any)(properties ?? {});
+            el = component.HTMLElement
+        } else {
+            el = element(properties ?? {});
+        }
     }
 
     for (let i = 0; i < children.length; i++) {

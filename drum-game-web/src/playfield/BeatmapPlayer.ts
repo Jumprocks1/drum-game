@@ -32,7 +32,7 @@ export default class BeatmapPlayer extends NoDOMComponent {
 
     OnKeyDown = (e: KeyboardEvent) => {
         if (e.key === "Escape") {
-            this.FindParent(Router).NavigateTo(MapSelectorPage);
+            this.FindParent(Router).NavigateTo(MapSelectorPage); // TODO we need to be able to tell this where to go
         } else if (e.key === " ") {
             this.Track.Playing = !this.Track.Playing
         }

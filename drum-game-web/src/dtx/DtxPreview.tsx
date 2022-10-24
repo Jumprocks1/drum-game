@@ -1,5 +1,7 @@
 import Component from "../framework/Component";
+import { RouteLink } from "../framework/RouteButton";
 import { CacheMap } from "../interfaces/Cache";
+import BeatmapPlayerPage from "../pages/BeatmapPlayerPage";
 
 export default class DtxPreview extends Component {
     Image = <img /> as HTMLImageElement
@@ -10,6 +12,7 @@ export default class DtxPreview extends Component {
     DownloadLine = <div>
         {this.Download} - {this.Date}
     </div>
+    Preview = <RouteLink page={BeatmapPlayerPage}>Preview Sheet Music</RouteLink>
 
 
     constructor() {
@@ -19,6 +22,7 @@ export default class DtxPreview extends Component {
             {this.Title}
             {this.Description}
             {this.DownloadLine}
+            {this.Preview}
         </div>
     }
 
@@ -27,5 +31,7 @@ export default class DtxPreview extends Component {
         this.Title.textContent = `${map.Artist} - ${map.Title}`;
         this.Description.textContent = `${map.BpmString} BPM - ${map.DifficultyString}`;
         this.Date.textContent = map.Date ?? "";
+        const fileLink = map.FileName.substring(0, map.FileName.lastIndexOf("."));
+        (this.Preview.Component as RouteLink).Parameters = [fileLink]
     }
 }

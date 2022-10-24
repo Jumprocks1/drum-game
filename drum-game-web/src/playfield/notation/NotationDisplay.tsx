@@ -141,9 +141,7 @@ export default class NotationDisplay extends Component {
         })
 
         this.HTMLElement = <div className="notation-display">
-            <div>{this.Beatmap.BJson.title}</div>
-            <div>{this.Beatmap.BJson.mapper}</div>
-            <div>{this.Beatmap.BJson.difficulty}</div>
+            <div>{this.Beatmap.BJson.artist} - {this.Beatmap.BJson.title}</div>
             {this.Canvas}
             <div className="spacer" />
             <div className="wip">Drum Game Web is still a work in progress.<br />

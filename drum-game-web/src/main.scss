@@ -91,12 +91,17 @@
 
 $card-width: 600px;
 
-.map-selector {
+#map-selector-page {
+    display: flex;
+    justify-content: flex-end;
+}
+
+#map-selector {
     overflow: hidden;
     height: 100%;
-    position: absolute;
     width: $card-width + $s*4;
     right: 0;
+    position: relative;
 
     >#no-maps {
         text-align: center;
@@ -165,5 +170,13 @@ $card-width: 600px;
 
     @include xs {
         font-size: 0.6em;
+    }
+}
+
+#dtx-page {
+    display: flex;
+
+    #map-preview {
+        flex: 1;
     }
 }

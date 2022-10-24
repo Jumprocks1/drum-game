@@ -5,6 +5,7 @@ import MapCarousel from "../selector/MapCarousel";
 
 import dtxMaps from "../dtx.json"
 import { CacheMap } from "../interfaces/Cache";
+import DtxPreview from "../dtx/DtxPreview";
 
 export default class DtxPage extends PageComponent {
     static Route = "dtx/$0|dtx/?"
@@ -21,6 +22,11 @@ export default class DtxPage extends PageComponent {
         super.AfterParent();
         const carousel = new MapCarousel();
 
+        const preview = new DtxPreview();
+        carousel.OnMapChange = e => preview.SetMap(e);
+
+
+        this.Add(preview);
         this.Add(carousel);
 
         // TODO we should automatically build a dtx.json that we grab here
@@ -32,6 +38,7 @@ export default class DtxPage extends PageComponent {
             let target: CacheMap | undefined = undefined;
             for (const e of dtxMaps.maps) {
                 const cacheMap = cacheMaps[e.filename];
+                cacheMap.DtxInfo = e;
                 if (e.url == this.MapUrl) target = cacheMap;
                 o.push(cacheMap);
             }

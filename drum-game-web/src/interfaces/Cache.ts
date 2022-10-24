@@ -15,4 +15,5 @@ export interface CacheMap {
     WriteTime: number
     Audio: string
     FileName: string
+    DtxInfo?: any
 }

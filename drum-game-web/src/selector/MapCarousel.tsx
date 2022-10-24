@@ -33,11 +33,14 @@ export default class MapCarousel extends Component { // could merge this back wi
 
     Dragging = false;
 
+    OnMapChange = (map: CacheMap) => { }
+
     get SelectedIndex() { return this._selectedIndex; }
     set SelectedIndex(value: number) {
         this.TargetScroll = value * this.ItemHeight;
         this._selectedIndex = Clamp(value, 0, this.FilteredMaps.length - 1);
         CarouselState.map = this.FilteredMaps[this._selectedIndex]?.Id
+        this.OnMapChange(this.FilteredMaps[this._selectedIndex])
     }
     get SelectedMap(): CacheMap | undefined { return this.FilteredMaps[this._selectedIndex] }
 
@@ -61,7 +64,7 @@ export default class MapCarousel extends Component { // could merge this back wi
 
     constructor() {
         super();
-        this.HTMLElement = <div className="map-selector" />
+        this.HTMLElement = <div id="map-selector" />
         this.Search.OnChange = this.OnSearch;
 
         this.Add(this.Search);

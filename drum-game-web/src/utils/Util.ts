@@ -49,3 +49,13 @@ export function EnsureParent(parent: Node, child: Node, setParent: boolean = tru
         if (child.parentNode === parent) parent.removeChild(child)
     }
 }
+
+export function KebabCase(s: string) {
+    let o = "";
+    for (let i = 0; i < s.length; i++) {
+        const lower = s[i].toLowerCase();
+        if (lower === s[i] || i === 0) o += lower;
+        else o += "-" + lower
+    }
+    return o;
+}

@@ -13,11 +13,13 @@ export default class BeatmapCard extends Component {
     Artist = <div className="artist" />
     BottomLine = <div className="bottom-line" />
     MappedBy = <span />
+    Date = <span className="date" />
     Difficulty = <span />
     Card = <div>
         {this.Title}
         {this.Artist}
         {this.BottomLine}
+        {this.Date}
     </div>
 
 
@@ -36,6 +38,7 @@ export default class BeatmapCard extends Component {
 
         this.Title.textContent = map.Title;
         this.Artist.textContent = map.Artist;
+        this.Date.textContent = map.Date ?? "";
 
         this.MappedBy.textContent = map.Mapper ? ` mapped by ${map.Mapper}` : "";
         this.Difficulty.textContent = map.Difficulty ? map.DifficultyString! : "";

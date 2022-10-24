@@ -18,6 +18,9 @@ public class BeatmapMetadata
     public string DifficultyString; // this is the name displayed on the map selection screen
     public string Tags;
     public long WriteTime;
+    public string ImageUrl;
+    public string BpmString;
+    public string Date;
     public static BeatmapMetadata From(FileInfo fileInfo)
     {
         var res = JsonSerializer.Deserialize<BeatmapMetadata>(File.ReadAllText(fileInfo.FullName),
@@ -52,6 +55,7 @@ public class DtxMaps
         public string Filename;
         public string Url;
         public string Image;
+        public string Date;
         public double BPM;
         public double[] Difficulties;
     }
@@ -59,6 +63,12 @@ public class DtxMaps
 }
 public static class Program
 {
+    static JsonSerializerOptions WriteOptions => new JsonSerializerOptions
+    {
+        IncludeFields = true,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping // allow Japanese UTF8 characters
+    };
     public static void Main()
     {
         if (!Directory.Exists("../dist/maps"))
@@ -78,15 +88,12 @@ public static class Program
             Maps = dict
         };
 
-        File.WriteAllText("../dist/maps.json", JsonSerializer.Serialize(res, new JsonSerializerOptions
-        {
-            IncludeFields = true,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping // allow Japanese UTF8 characters
-        }));
+        File.WriteAllText("../dist/maps.json", JsonSerializer.Serialize(res, WriteOptions));
+        BuildDtxList(dict);
+    }
 
-
-        // TODO make a new json file for this that we can use to render the map list
+    static void BuildDtxList(Dictionary<string, BeatmapMetadata> drumGame) // Warning: This method mutates metadata
+    {
         var dtx = JsonSerializer.Deserialize<DtxMaps>(File.ReadAllText("../src/dtx.json"), new JsonSerializerOptions
         {
             IncludeFields = true,
@@ -96,12 +103,20 @@ public static class Program
         var index = File.ReadAllText("../dist/404.html");
         var repl = @"<meta charset=""utf-8""/>";
 
+        var dtxMaps = new Dictionary<string, BeatmapMetadata>();
+
         foreach (var map in dtx.Maps)
         {
-            var metadata = dict[map.Filename];
+            var metadata = drumGame[map.Filename];
+            dtxMaps[map.Filename] = metadata;
+            metadata.BpmString = map.BPM.ToString();
+            metadata.ImageUrl = map.Image;
+            metadata.Date = map.Date;
+            var diffString = string.Join(" / ", map.Difficulties.Select(e => $"{e:0.00}"));
+            metadata.DifficultyString = diffString;
             var extraTags = $@"
 <meta property=""og:title"" content=""{metadata.Artist} - {metadata.Title}"" />
-<meta property=""og:description"" content=""{map.BPM} BPM - {string.Join(" / ", map.Difficulties.Select(e => $"{e:0.00}"))}"" />
+<meta property=""og:description"" content=""{map.BPM} BPM - {diffString}"" />
 <meta property=""og:image"" content=""{map.Image}"" />
             ";
             var mapHtml = index.Replace(repl, repl + extraTags);
@@ -109,5 +124,10 @@ public static class Program
             Directory.CreateDirectory(dir);
             File.WriteAllText(Path.Join(dir, "index.html"), mapHtml);
         }
+        File.WriteAllText("../dist/dtx-maps.json", JsonSerializer.Serialize(new
+        {
+            Version = 3,
+            Maps = dtxMaps
+        }, WriteOptions));
     }
 }

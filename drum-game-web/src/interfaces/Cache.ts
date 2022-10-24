@@ -10,10 +10,12 @@ export interface CacheMap {
     Mapper?: string
     Difficulty: number
     DifficultyString?: string
+    BpmString?: string
+    ImageUrl?: string
+    Date?: string
     FilterString?: string
     Tags?: string
     WriteTime: number
     Audio: string
     FileName: string
-    DtxInfo?: any
 }

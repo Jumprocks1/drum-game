@@ -114,6 +114,8 @@ $card-width: 600px;
 
 .beatmap-card-wrapper {
     padding: $s*1.5 $s2;
+    max-width: 100%;
+    width: $card-width + $s2 * 2;
     position: absolute;
     right: 0;
 }
@@ -129,8 +131,6 @@ $card-width: 600px;
         0 0 $s3 $LightBorder;
 
     height: 94px;
-
-    width: $card-width;
 
     &:hover {
         background: mix($DarkBackground, $DarkActiveBackground);
@@ -157,8 +157,15 @@ $card-width: 600px;
     }
 
     .bottom-line {
-        top: $title-height + $FontSize * 0.9;
+        bottom: $s2;
         position: absolute;
+
+    }
+
+    .date {
+        position: absolute;
+        bottom: $s2;
+        right: $s2;
     }
 }
 
@@ -176,7 +183,32 @@ $card-width: 600px;
 #dtx-page {
     display: flex;
 
+    @include sm {
+        flex-direction: column;
+
+        img {
+            max-height: 20vh;
+        }
+
+        #map-selector {
+            width: 100%;
+        }
+    }
+
     #map-preview {
         flex: 1;
+        padding: 10px;
+
+        @include xs {
+            font-size: 0.75em; // help prevent title becoming 2 lines
+        }
+
+        h3 {
+            line-height: 1.5em; // prevent height from changing based on the text content
+        }
+
+        img {
+            max-width: 300px;
+        }
     }
 }

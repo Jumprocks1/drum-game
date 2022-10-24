@@ -28,7 +28,8 @@ $Normal: LightBlue;
 $Easy: LimeGreen;
 $DarkRed: Maroon;
 $DarkGreen: DarkGreen;
-$DarkBlue: rgb(70, 110, 160, 255);
+$DarkBlue: rgb(70, 110, 160);
+$Blue: rgb(36, 114, 200);
 $FontSize: 28px;
 $s: 4px;
 $s2: $s*2;
@@ -54,6 +55,10 @@ body {
     font-size: $FontSize;
     font-family: 'Roboto', sans-serif;
     overflow-x: hidden;
+}
+
+a {
+    color: lighten($Blue, 20%);
 }
 
 input {
@@ -97,6 +102,12 @@ input {
 
 @mixin xs() {
     @media screen and (max-width: 599px) {
+        @content;
+    }
+}
+
+@mixin sm() {
+    @media screen and (max-width: 899px) {
         @content;
     }
 }

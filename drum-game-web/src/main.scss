@@ -66,6 +66,7 @@
     right: 0;
     z-index: 10;
     width: 100%;
+    max-width: 700px;
     background: fade-out($DarkActiveBackground, 0.18);
     color: white;
 
@@ -93,13 +94,16 @@ $card-width: 600px;
 
 #map-selector-page {
     display: flex;
-    justify-content: flex-end;
+
+    #map-selector {
+        flex: 1;
+    }
 }
 
 #map-selector {
     overflow: hidden;
     height: 100%;
-    width: $card-width + $s*4;
+    flex-basis: $card-width + $s*4;
     right: 0;
     position: relative;
 
@@ -208,6 +212,7 @@ $card-width: 600px;
         }
 
         img {
+            height: 300px;
             max-width: 300px;
         }
     }

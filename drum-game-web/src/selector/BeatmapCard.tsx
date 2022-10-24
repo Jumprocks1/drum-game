@@ -45,6 +45,12 @@ export default class BeatmapCard extends Component {
         this.Difficulty.className = "difficulty-" + map.Difficulty;
     }
 
+    Click() {
+        const container = this.FindParent(MapCarousel);
+        if (container.SelectedMap === this.Map) this.TryFindParent(MapSelectorPage)?.LoadMap(this.Map);
+        else (container.Select(this.Map))
+    }
+
 
     constructor(map: CacheMap) {
         super();
@@ -52,14 +58,10 @@ export default class BeatmapCard extends Component {
         this.BottomLine.appendChild(this.Difficulty);
         this.BottomLine.appendChild(this.MappedBy);
 
-        this.Card.onclick = () => {
-            const container = this.FindParent(MapCarousel);
-            if (container.SelectedMap === this.Map) this.FindParent(MapSelectorPage).LoadMap(this.Map);
-            else (container.Select(this.Map))
-        }
         this.HTMLElement = <div className="beatmap-card-wrapper">
             {this.Card}
         </div>
+        this.HTMLElement.Component = this; // little sketchy
 
         this.SetContent(map);
     }

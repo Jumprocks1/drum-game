@@ -105,13 +105,18 @@ export default class Component {
     }
 
     FindParent<T extends abstract new (...args: any) => any>(type: T) {
+        const res = this.TryFindParent(type);
+        if (!res) throw new Error(`Parent of type ${type.name} not found`);
+        return res;
+    }
+    TryFindParent<T extends abstract new (...args: any) => any>(type: T) {
         let target = this.Parent;
         while (target !== undefined) {
             if (target instanceof type) return target as InstanceType<T>;
             if (target.Parent === target) break;
             target = target.Parent
         }
-        throw new Error(`Parent of type ${type.name} not found`);
+        return undefined;
     }
 
     FindChild<T extends abstract new (...args: any) => any>(type: T) {

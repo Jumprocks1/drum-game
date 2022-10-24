@@ -1,5 +1,5 @@
 import Component from "../framework/Component";
-import { RegisterListener, RemoveListener } from "../framework/Framework";
+import { RegisterListener, RemoveListener, StartDrag } from "../framework/Framework";
 import { CacheMap } from "../interfaces/Cache";
 import MapSelectorPage from "../pages/MapSelectorPage";
 import { Clamp, EnsureParent, ExpLerp, Filter } from "../utils/Util";
@@ -37,7 +37,8 @@ export default class MapCarousel extends Component { // could merge this back wi
 
     get SelectedIndex() { return this._selectedIndex; }
     set SelectedIndex(value: number) {
-        this.TargetScroll = value * this.ItemHeight;
+        if (!this.Dragging)
+            this.TargetScroll = value * this.ItemHeight;
         this._selectedIndex = Clamp(value, 0, this.FilteredMaps.length - 1);
         CarouselState.map = this.FilteredMaps[this._selectedIndex]?.Id
         this.OnMapChange(this.FilteredMaps[this._selectedIndex])
@@ -48,7 +49,6 @@ export default class MapCarousel extends Component { // could merge this back wi
 
     TargetScroll: number = 0;
     CurrentScroll: number = 0; // this is like scrollTop
-    UserTargetScroll: number = 0;
     _loadedScroll: number = Number.NaN;
 
     Search = new Search(CarouselState.search);
@@ -65,6 +65,24 @@ export default class MapCarousel extends Component { // could merge this back wi
     constructor() {
         super();
         this.HTMLElement = <div id="map-selector" />
+        this.HTMLElement.onmousedown = e => {
+            if (e.button !== 1 && e.button !== 0) return;
+            const gripPoint = e.clientY;
+            const initialScroll = this.CurrentScroll;
+            StartDrag(e, e => {
+                this.Dragging = true;
+                const d = e.clientY - gripPoint;
+                this.TargetScroll = initialScroll - d;
+            }, () => {
+                this.Dragging = false;
+            }, 20, e => {
+                const card = (e.target as HTMLElement).closest(".beatmap-card-wrapper");
+                if (card) {
+                    (card as any).Component.Click();
+                }
+            });
+        }
+
         this.Search.OnChange = this.OnSearch;
 
         this.Add(this.Search);
@@ -94,6 +112,7 @@ export default class MapCarousel extends Component { // could merge this back wi
 
     AfterRemove() {
         super.AfterRemove()
+        this.Search.AfterRemove();
         RemoveListener("newframe", this.UpdateScroll)
         RemoveListener("wheel", this.OnWheel);
     }
@@ -109,6 +128,8 @@ export default class MapCarousel extends Component { // could merge this back wi
         if (!this.Dragging) {
             // pulls the target to the nearest card
             this.TargetScroll = ExpLerp(this.TargetScroll, this.SelectedMapPosition, 0.99, dt, 0.01);
+        } else {
+            this.SelectedIndex = Math.round(this.TargetScroll / this.ItemHeight);
         }
         const newScroll = ExpLerp(this.CurrentScroll, this.TargetScroll, 0.99, dt, 0.02)
         this.CurrentScroll = newScroll;
@@ -128,9 +149,9 @@ export default class MapCarousel extends Component { // could merge this back wi
         else if (e.key === "End" && e.ctrlKey)
             this.SelectedIndex = this.FilteredMaps.length - 1;
         else if (e.key === "PageUp")
-            this.SelectedIndex -= Math.round(this.HTMLElement.clientHeight / this.ItemHeight);
+            this.SelectedIndex -= Math.round(this.HTMLElement.clientHeight / this.ItemHeight / 2);
         else if (e.key === "PageDown")
-            this.SelectedIndex += Math.round(this.HTMLElement.clientHeight / this.ItemHeight);
+            this.SelectedIndex += Math.round(this.HTMLElement.clientHeight / this.ItemHeight / 2);
         else if (e.key === "ArrowDown")
             this.SelectedIndex += 1;
         else if (e.key === "ArrowUp")

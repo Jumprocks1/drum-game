@@ -17,18 +17,21 @@ export default class Search extends Component {
             {this.MapCount}
         </div>
         if (value) this.Input.value = value;
-        this.Input.onblur = () => {
-            setTimeout(() => this.Input.focus()); // focusing right away seems to break chrome a bit
-        }
         this.Input.oninput = (e) => {
             this.OnChange?.(this.Input.value)
         }
-        // we aren't actually in the DOM at this point unfortunately, we just have a DOM parent
-        // just wait for rendering to finish, then we can focus
-        setTimeout(() => this.Input.focus());
     }
 
     OnChange?: (value: string) => void
+
+    OnKeyDown = (e: KeyboardEvent) => {
+        if (e.key.length === 1) {
+            if (!document.activeElement || document.activeElement === document.body) {
+                this.Input.focus();
+                return true;
+            }
+        }
+    }
 
     get Value() { return this.Input.value; }
 }

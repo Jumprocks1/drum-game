@@ -27,12 +27,17 @@ export default class DtxPreview extends Component {
     }
 
     SetMap(map: CacheMap) {
-        this.Image.src = map.ImageUrl ?? "";
-        this.Title.textContent = `${map.Artist} - ${map.Title}`;
-        this.Description.textContent = `${map.BpmString} BPM - ${map.DifficultyString}`;
-        this.Date.textContent = map.Date ?? "";
-        this.Download.href = map.DownloadUrl ?? "";
-        const fileLink = map.FileName.substring(0, map.FileName.lastIndexOf("."));
-        (this.Preview.Component as RouteLink).Parameters = [fileLink]
+        if (!map) {
+            this.HTMLElement.style.visibility = "hidden";
+        } else {
+            this.HTMLElement.style.visibility = "unset";
+            this.Image.src = map.ImageUrl ?? "";
+            this.Title.textContent = `${map.Artist} - ${map.Title}`;
+            this.Description.textContent = `${map.BpmString} BPM - ${map.DifficultyString}`;
+            this.Date.textContent = map.Date ?? "";
+            this.Download.href = map.DownloadUrl ?? "";
+            const fileLink = map.FileName.substring(0, map.FileName.lastIndexOf("."));
+            (this.Preview.Component as RouteLink).Parameters = [fileLink]
+        }
     }
 }

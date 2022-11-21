@@ -1,6 +1,6 @@
 import Component from "../framework/Component";
 import { RouteLink } from "../framework/RouteButton";
-import { CacheMap } from "../interfaces/Cache";
+import { CacheMap, CacheMapLink } from "../interfaces/Cache";
 import BeatmapPlayerPage from "../pages/BeatmapPlayerPage";
 
 export default class DtxPreview extends Component {
@@ -36,8 +36,7 @@ export default class DtxPreview extends Component {
             this.Description.textContent = `${map.BPM} BPM - ${map.DifficultyString}`;
             this.Date.textContent = map.Date ?? "";
             this.Download.href = map.DownloadUrl ?? "";
-            const fileLink = map.FileName.substring(0, map.FileName.lastIndexOf("."));
-            (this.Preview.Component as RouteLink).Parameters = [fileLink]
+            (this.Preview.Component as RouteLink).Parameters = [CacheMapLink(map)]
         }
     }
 }

@@ -20,3 +20,7 @@ export interface CacheMap {
     Audio: string
     FileName: string
 }
+
+export function CacheMapLink(map: CacheMap) {
+    return map.FileName.substring(0, map.FileName.lastIndexOf("."));
+}

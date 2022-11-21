@@ -46,9 +46,9 @@ export default class BeatmapCard extends Component {
     }
 
     Click() {
-        const container = this.FindParent(MapCarousel);
-        if (container.SelectedMap === this.Map) this.TryFindParent(MapSelectorPage)?.LoadMap(this.Map);
-        else (container.Select(this.Map))
+        const carousel = this.FindParent(MapCarousel);
+        if (carousel.SelectedMap === this.Map && carousel.OpenOnCardClick) carousel.OpenMap(this.Map);
+        else (carousel.Select(this.Map))
     }
 
 

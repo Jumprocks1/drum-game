@@ -1,10 +1,10 @@
 import PageComponent from "../framework/PageComponent";
-import Router, { RouteParameters } from "../framework/Router";
+import Router, { GlobalRouter, RouteParameters } from "../framework/Router";
 import GlobalData from "../GlobalData";
 import MapCarousel, { CarouselState } from "../selector/MapCarousel";
-
-import { CacheMap } from "../interfaces/Cache";
+import { CacheMap, CacheMapLink } from "../interfaces/Cache";
 import DtxPreview from "../dtx/DtxPreview";
+import BeatmapPlayerPage from "./BeatmapPlayerPage";
 
 export default class DtxPage extends PageComponent {
     static Route = "dtx/$0|dtx/?"
@@ -18,8 +18,9 @@ export default class DtxPage extends PageComponent {
         this.MapUrl = parameters[0]
     }
 
-    UrlForFile(filename: string) {
-        return filename.substring(0, filename.lastIndexOf("."))
+    LoadMap(map: CacheMap | undefined) {
+        if (!map) return;
+        GlobalRouter?.NavigateTo({ page: BeatmapPlayerPage, parameters: [CacheMapLink(map)] });
     }
 
     AfterParent() {
@@ -30,7 +31,7 @@ export default class DtxPage extends PageComponent {
         carousel.OnMapChange = e => {
             preview.SetMap(e);
             if (this.MapUrl) { // if we have a map in the URL, we make sure to keep updating the URL
-                const newUrl = this.UrlForFile(e.FileName);
+                const newUrl = CacheMapLink(e);
                 if (newUrl !== this.MapUrl) {
                     const router = this.FindParent(Router);
                     this.MapUrl = newUrl;
@@ -38,6 +39,8 @@ export default class DtxPage extends PageComponent {
                 }
             }
         }
+        carousel.OpenOnCardClick = false;
+        carousel.OnMapOpen = this.LoadMap;
 
 
         this.Add(preview);

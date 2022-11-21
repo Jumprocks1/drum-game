@@ -24,6 +24,8 @@ export default class MapCarousel extends Component { // could merge this back wi
 
     TotalHeight: number = 0;
 
+    OpenOnCardClick = true;
+
     Free: BeatmapCard[] = [];
 
     Active: Set<BeatmapCard> = new Set();
@@ -34,6 +36,9 @@ export default class MapCarousel extends Component { // could merge this back wi
     Dragging = false;
 
     OnMapChange = (map: CacheMap) => { }
+    OnMapOpen = (map: CacheMap) => {
+        this.FindParent(MapSelectorPage).LoadMap(map)
+    }
 
     get SelectedIndex() { return this._selectedIndex; }
     set SelectedIndex(value: number) {
@@ -150,9 +155,14 @@ export default class MapCarousel extends Component { // could merge this back wi
         this.SelectedIndex += Math.sign(e.deltaY)
     }
 
+    OpenMap(map: CacheMap | undefined) {
+        if (!map) return;
+        this.OnMapOpen(map);
+    }
+
     OnKeyDown = (e: KeyboardEvent) => {
         if (e.key === "Enter")
-            this.FindParent(MapSelectorPage).LoadMap(this.SelectedMap)
+            this.OpenMap(this.SelectedMap)
         else if (e.key === "Home" && e.ctrlKey)
             this.SelectedIndex = 0;
         else if (e.key === "End" && e.ctrlKey)

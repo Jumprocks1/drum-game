@@ -20,12 +20,17 @@ export default class Search extends Component {
         this.Input.oninput = (e) => {
             this.OnChange?.(this.Input.value)
         }
+        this.Input.onmousedown = (e) => {
+            this.Input.focus();
+            e.stopPropagation();
+        }
     }
 
     OnChange?: (value: string) => void
 
     OnKeyDown = (e: KeyboardEvent) => {
-        if (e.key.length === 1) {
+        if (e.ctrlKey) return;
+        if (e.key.length === 1 || e.key === "Backspace") {
             if (!document.activeElement || document.activeElement === document.body) {
                 this.Input.focus();
                 return true;

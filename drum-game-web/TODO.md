@@ -7,3 +7,7 @@
     - Need FPS meter to measure this
 - Add option to download .bjson from web view
 - Have notices that the web client is WIP, and recommend the desktop client
+
+# DTX stuff
+- Automatically grab difficulty names from maps folder instead of using dtx.json
+    - We do this when exporting to DTX anyways

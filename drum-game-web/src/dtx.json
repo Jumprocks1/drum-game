@@ -1,10 +1,28 @@
 {
   "maps": [
     {
+      "filename": "monochrome.bjson",
+      "image": "https://m.media-amazon.com/images/I/61J2x5qz1lL._SS500_.jpg",
+      "downloadUrl": "https://cdn.discordapp.com/attachments/427808796694413312/1042996541771751496/BABYMETAL_-_Monochrome.zip",
+      "difficulties": [
+        7.1,
+        8.3
+      ],
+      "date": "2022-11-17"
+    },
+    {
+      "filename": "from-under-cover.bjson",
+      "image": "https://bsaber.com/wp-content/uploads/2018/07/82bb2740991e94a92a5b8521db8342b0.jpeg",
+      "downloadUrl": "https://cdn.discordapp.com/attachments/427808796694413312/1042663643113857144/Foreground_Eclipse_-_From_Under_Cover.zip",
+      "difficulties": [
+        7.9
+      ],
+      "date": "2022-11-16"
+    },
+    {
       "filename": "divine-attack-shingeki-.bjson",
       "image": "https://m.media-amazon.com/images/I/81m81sm7O7L._SS500_.jpg",
       "downloadUrl": "https://cdn.discordapp.com/attachments/427808796694413312/1033804709716299836/BABYMETAL_-_Divine_Attack_-_Shingeki_-.zip",
-      "bpm": 180,
       "difficulties": [
         7.3,
         8.1
@@ -15,7 +33,6 @@
       "filename": "rebellion.bjson",
       "image": "https://m.media-amazon.com/images/I/81zPgzpOOfL._SS500_.jpg",
       "downloadUrl": "https://cdn.discordapp.com/attachments/427808796694413312/1032693606160543845/Ado_-_Rebellion.zip",
-      "bpm": 178,
       "difficulties": [
         7.2
       ],

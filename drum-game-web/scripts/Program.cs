@@ -6,6 +6,21 @@ using System.Text.Json.Serialization;
 
 namespace Build;
 
+public class BpmJsonConverter : JsonConverter<double>
+{
+    public override double Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType == JsonTokenType.Number) return reader.GetDouble();
+        else
+        {
+            var node = JsonNode.Parse(ref reader);
+            var array = node.AsArray().First()["bpm"];
+            return (double)array;
+        }
+    }
+
+    public override void Write(Utf8JsonWriter writer, double value, JsonSerializerOptions options) => writer.WriteNumberValue(value);
+}
 
 public class BeatmapMetadata
 {
@@ -20,8 +35,9 @@ public class BeatmapMetadata
     public long WriteTime;
     public string ImageUrl;
     public string DownloadUrl;
-    public string BpmString;
     public string Date;
+    [JsonConverter(typeof(BpmJsonConverter))]
+    public double BPM;
     public static BeatmapMetadata From(FileInfo fileInfo)
     {
         var res = JsonSerializer.Deserialize<BeatmapMetadata>(File.ReadAllText(fileInfo.FullName),
@@ -112,7 +128,8 @@ public static class Program
         {
             var metadata = drumGame[map.Filename];
             dtxMaps[map.Filename] = metadata;
-            metadata.BpmString = map.BPM.ToString();
+            if (map.BPM != 0)
+                metadata.BPM = map.BPM;
             metadata.ImageUrl = map.Image;
             metadata.DownloadUrl = map.DownloadUrl;
             metadata.Date = map.Date;

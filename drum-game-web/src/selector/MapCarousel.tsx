@@ -65,7 +65,7 @@ export default class MapCarousel extends Component { // could merge this back wi
     constructor() {
         super();
         this.HTMLElement = <div id="map-selector" />
-        this.HTMLElement.onmousedown = e => {
+        this.HTMLElement.onmousedown = e => { // TODO this makes it so you can't search on mobile D:
             if (e.button !== 1 && e.button !== 0) return;
             const gripPoint = e.clientY;
             const initialScroll = this.CurrentScroll;

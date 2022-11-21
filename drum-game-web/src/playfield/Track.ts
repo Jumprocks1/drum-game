@@ -31,4 +31,6 @@ export default abstract class Track {
     constructor(beatmap: Beatmap) {
         this.Beatmap = beatmap;
     }
+
+    Dispose() { }
 }

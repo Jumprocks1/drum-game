@@ -60,4 +60,8 @@ export default class YouTubeTrack extends Track {
     get CurrentTime() {
         return this._currentTime
     }
+
+    Dispose() {
+        this.YouTube.AfterRemove();
+    }
 }

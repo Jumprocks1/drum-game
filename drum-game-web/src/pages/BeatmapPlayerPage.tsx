@@ -27,7 +27,7 @@ export default class BeatmapPlayerPage extends PageComponent {
             // this is just to make sure that users aren't confused if they see a page with no notes on it
             const firstHitObject = player.Beatmap.HitObjects[0];
             if (firstHitObject) {
-                player.Track.CurrentBeat = firstHitObject.time - 2;
+                player.Track.CurrentBeat = firstHitObject.time;
             }
         })()
         this.Add(Loading(loading));

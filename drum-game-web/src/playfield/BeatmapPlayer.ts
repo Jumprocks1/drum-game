@@ -14,11 +14,13 @@ export default class BeatmapPlayer extends NoDOMComponent {
 
     Track: Track
 
+    AllowYouTube = true;
+
     constructor(map: BJson) {
         super();
         this.BJson = map;
         this.Beatmap = new Beatmap(map);
-        const youTubeId = this.Beatmap.BJson.youTubeID;
+        const youTubeId = this.AllowYouTube && this.Beatmap.BJson.youTubeID;
         if (youTubeId) {
             this.Track = new YouTubeTrack(this.Beatmap);
         } else {
@@ -35,6 +37,7 @@ export default class BeatmapPlayer extends NoDOMComponent {
     AfterRemove() {
         super.AfterRemove();
         this.FindChild(NotationDisplay).AfterRemove();
+        this.Track.Dispose();
     }
 
     OnKeyDown = (e: KeyboardEvent) => {

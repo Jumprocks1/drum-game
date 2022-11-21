@@ -23,12 +23,12 @@ export default class NotationDisplay extends Component {
 
     RenderGroups: RenderGroup[]
 
+    CursorInset = 4; // beats
+
     // @ts-ignore
     Font: SMuFL
 
     CanvasLoaded = false;
-
-    ShowYouTube = true;
 
     StaffHeight = 100; // in real display pixels. This is what is used to set all scaling factors
     static readonly StaffPadding = 1.5; // fraction of staff height, applied to top and bottom (total padding is this * 2)
@@ -50,7 +50,7 @@ export default class NotationDisplay extends Component {
 
         const currentBeat = this.Track.CurrentBeat;
 
-        this.Context.translate(-currentBeat * this.Spacing, 0);
+        this.Context.translate((this.CursorInset - currentBeat) * this.Spacing, 0);
     }
 
     CheckSize(reinit: boolean) {
@@ -98,7 +98,7 @@ export default class NotationDisplay extends Component {
         for (let i = 0; i < 5; i++) // idk if we need to clip this before drawing
             this.Context.fillRect(0, i - lineThickness / 2, this.Beatmap.Length * this.Spacing, lineThickness);
 
-        const visbileStart = this.Track.CurrentBeat; // we will need to subtract the beat inset here
+        const visbileStart = this.Track.CurrentBeat - this.CursorInset;
         const visibleBeats = w / scale / this.Spacing;
         // in beats, we have to overdraw since some notes will render past their normal "bounds"
         // there are extreme cases with MeasureChanges that can cause a lot of overdraw. 1 beat should be enough
@@ -110,13 +110,15 @@ export default class NotationDisplay extends Component {
         for (let i = firstGroup; i < lastGroup; i++)
             this.RenderGroups[i].Render(this, this.Context);
 
+        this.Context.fillStyle = "rgba(100, 149, 237, 0.5)"
+        this.Context.fillRect(this.Track.CurrentBeat * this.Spacing - 0.25, -2, 0.5, 8)
+
         this.Context.restore();
     }
 
     AfterRemove() {
         super.AfterRemove();
         RemoveListener("newframe", this.Render)
-        this.YouTube?.AfterRemove();
     }
 
     AfterParent() {
@@ -124,8 +126,6 @@ export default class NotationDisplay extends Component {
         RegisterListener("newframe", this.Render);
         this.Add(this.Timeline);
     }
-
-    YouTube: YouTube | undefined;
 
     constructor(player: BeatmapPlayer) {
         super();

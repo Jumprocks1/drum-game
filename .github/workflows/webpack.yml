@@ -50,7 +50,7 @@ jobs:
       - name: Get maps
         run: |
           cd drum-game-web/scripts
-          dotnet run
+          dotnet run deploy
           cd ../..
 
       - name: Setup Pages

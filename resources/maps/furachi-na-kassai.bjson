@@ -2,8 +2,8 @@
   "bookmarks": [],
   "annotations": [],
   "relativeVolume": 0.3,
-  "audio": "audio/01_04_不埒な喝采.m4a",
-  "offset": 1609.0,
+  "audio": "audio/01_04_不埒な喝采.ogg",
+  "offset": 1519.42,
   "leadIn": 0.0,
   "bpm": 158.0,
   "measureConfig": [
@@ -192,7 +192,7 @@
     },
     {
       "time": 13.5,
-      "channel": "open-hihat"
+      "channel": "hihat"
     },
     {
       "time": 14.0,
@@ -392,7 +392,7 @@
     },
     {
       "time": 29.5,
-      "channel": "open-hihat"
+      "channel": "hihat"
     },
     {
       "time": 30.0,
@@ -608,13 +608,11 @@
     },
     {
       "time": 47.0,
-      "channel": "hihat",
-      "modifier": "accent"
+      "channel": "hihat"
     },
     {
       "time": 47.5,
-      "channel": "hihat",
-      "modifier": "accent"
+      "channel": "hihat"
     },
     {
       "time": 48.0,
@@ -706,13 +704,11 @@
     },
     {
       "time": 55.0,
-      "channel": "hihat",
-      "modifier": "accent"
+      "channel": "hihat"
     },
     {
       "time": 55.5,
-      "channel": "hihat",
-      "modifier": "accent"
+      "channel": "hihat"
     },
     {
       "time": 56.0,
@@ -808,13 +804,11 @@
     },
     {
       "time": 63.0,
-      "channel": "hihat",
-      "modifier": "accent"
+      "channel": "hihat"
     },
     {
       "time": 63.5,
-      "channel": "hihat",
-      "modifier": "accent"
+      "channel": "hihat"
     },
     {
       "time": 64.0,
@@ -2278,10 +2272,6 @@
     },
     {
       "time": 174.5,
-      "channel": "hihat"
-    },
-    {
-      "time": 174.5,
       "channel": "high-tom"
     },
     {
@@ -2291,10 +2281,6 @@
     {
       "time": 175.0,
       "channel": "bass"
-    },
-    {
-      "time": 175.0,
-      "channel": "hihat"
     },
     {
       "time": 175.0,
@@ -3796,7 +3782,8 @@
     },
     {
       "time": 284.75,
-      "channel": "snare"
+      "channel": "snare",
+      "sticking": "left"
     },
     {
       "time": 285.0,
@@ -3812,7 +3799,8 @@
     },
     {
       "time": 285.5,
-      "channel": "snare"
+      "channel": "snare",
+      "sticking": "right"
     },
     {
       "time": 285.75,

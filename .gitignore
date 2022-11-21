@@ -17,6 +17,7 @@ resources/*
 !resources/Fonts
 
 !sheet-music
+sheet-music/Scores
 
 # Shader
 !resources/sh_Shaders
@@ -53,6 +54,8 @@ resources/maps/neurotica.bjson
 resources/maps/playing-god.bjson
 resources/maps/abc-import.bjson
 resources/maps/divine-attack-shingeki-hard.bjson
+resources/maps/monochrome-hard.bjson
+resources/maps/sweet-dreams-11t-dnb-mix-.bjson
 
 # Imported maps
 resources/maps/*.dtx.bjson

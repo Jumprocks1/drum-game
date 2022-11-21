@@ -1,4 +1,4 @@
-// converted from bjson-schema.json with https://transform.tools/json-schema-to-typescript
+// Initally converted from bjson-schema.json with https://transform.tools/json-schema-to-typescript
 
 export interface BJson {
     notes?: Note[]
@@ -52,6 +52,7 @@ export interface BJson {
      */
     audioHash?: string
     youTubeID?: string
+    youTubeOffset?: number
     ototoyAlbumID?: number
     amazonASIN?: string
     bandcampArtist?: string

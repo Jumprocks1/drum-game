@@ -55,7 +55,7 @@ export default class Component {
 
     AfterDOM() { }
 
-    Add(component: Component | HTMLElement) {
+    Add(component: Component | HTMLElement, insertIntoDom = true) {
         if (!(component instanceof Component)) {
             let c = new Component();
             c.DOMNode = component;
@@ -65,7 +65,7 @@ export default class Component {
         this.Children.push(component);
         component.Parent = this;
         component.AfterParent(); // we call AfterParent before checking DOMNode since AfterParent might assign the DOMNode
-        if (component.DOMNode && component.DOMNode !== this.InnerNode) { // for NoDOMComponents, these will be equal
+        if (insertIntoDom && component.DOMNode && component.DOMNode !== this.InnerNode) { // for NoDOMComponents, these will be equal
             this.InnerNode?.appendChild(component.DOMNode);
             component.AfterDOM();
         }

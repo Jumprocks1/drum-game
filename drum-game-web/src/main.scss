@@ -14,6 +14,21 @@
         width: 100%;
     }
 
+    #title {
+        white-space: nowrap;
+    }
+
+    #visualContainer {
+        display: flex;
+        flex-grow: 1;
+        position: relative;
+
+
+        #youtube-target {
+            height: 100%;
+        }
+    }
+
     .timeline {
         height: 50px;
         background: rgba(4, 4, 4, 0.9);
@@ -174,10 +189,12 @@ $card-width: 600px;
 }
 
 .wip {
-    text-align: right;
     opacity: 0.5;
     font-size: 0.8em;
     padding: $s;
+    position: absolute;
+    bottom: 0;
+    right: 0;
 
     @include xs {
         font-size: 0.6em;

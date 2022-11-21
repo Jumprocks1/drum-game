@@ -222,6 +222,9 @@
       "type": "string",
       "pattern": "^[0-9a-zA-Z_-]{11}$"
     },
+    "youTubeOffset": {
+      "type": "number"
+    },
     "ototoyAlbumID": {
       "type": "number"
     },

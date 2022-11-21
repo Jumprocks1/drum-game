@@ -177,8 +177,9 @@ export default class MapCarousel extends Component { // could merge this back wi
             this.SelectedIndex -= 1;
         else if (e.key === "F2")
             this.SelectedIndex = Math.floor(Math.random() * this.FilteredMaps.length);
-        else return;
+        else return false;
         e.preventDefault();
+        return true;
     }
 
     Select(e: CacheMap) {

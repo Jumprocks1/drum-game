@@ -7,7 +7,6 @@ export default class ClockTrack extends Track {
 
 
     private _currentTime = 0;
-    private _currentBeat = 0;
 
     constructor(beatmap: Beatmap) {
         super(beatmap);
@@ -25,14 +24,6 @@ export default class ClockTrack extends Track {
     set CurrentTime(value: number) {
         this._currentTime = value;
         this._currentBeat = this.Beatmap.MsToBeat(this._currentTime);
-    }
-
-    set CurrentBeat(value: number) {
-        this.CurrentTime = this.Beatmap.BeatToMs(value)
-    }
-
-    get CurrentBeat() {
-        return this._currentBeat;
     }
 
     get CurrentTime() {

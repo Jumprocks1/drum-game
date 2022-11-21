@@ -1,3 +1,4 @@
+import YouTube from "../../api/YouTube";
 import Component from "../../framework/Component";
 import { RegisterListener, RemoveListener, StartDrag } from "../../framework/Framework";
 import GlobalData from "../../GlobalData";
@@ -6,6 +7,7 @@ import Beatmap from "../../utils/Beatmap";
 import ChannelInfo from "../../utils/ChannelInfo";
 import BeatmapPlayer from "../BeatmapPlayer";
 import Timeline from "../Timeline";
+import YouTubeTrack from "../YouTubeTrack";
 import RenderGroup from "./RenderGroup";
 
 export default class NotationDisplay extends Component {
@@ -25,6 +27,8 @@ export default class NotationDisplay extends Component {
     Font: SMuFL
 
     CanvasLoaded = false;
+
+    ShowYouTube = true;
 
     StaffHeight = 100; // in real display pixels. This is what is used to set all scaling factors
     static readonly StaffPadding = 1.5; // fraction of staff height, applied to top and bottom (total padding is this * 2)
@@ -112,6 +116,7 @@ export default class NotationDisplay extends Component {
     AfterRemove() {
         super.AfterRemove();
         RemoveListener("newframe", this.Render)
+        this.YouTube?.AfterRemove();
     }
 
     AfterParent() {
@@ -119,6 +124,8 @@ export default class NotationDisplay extends Component {
         RegisterListener("newframe", this.Render);
         this.Add(this.Timeline);
     }
+
+    YouTube: YouTube | undefined;
 
     constructor(player: BeatmapPlayer) {
         super();
@@ -141,12 +148,19 @@ export default class NotationDisplay extends Component {
         })
 
         this.HTMLElement = <div className="notation-display">
-            <div>{this.Beatmap.BJson.artist} - {this.Beatmap.BJson.title}</div>
+            <div id="title">{this.Beatmap.BJson.artist} - {this.Beatmap.BJson.title}</div>
             {this.Canvas}
-            <div className="spacer" />
-            <div className="wip">Drum Game Web is still a work in progress.<br />
-                For the full experience, <a href="https://github.com/Jumprocks1/drum-game/releases">download the desktop version</a>.</div>
+            <div id="visualContainer">
+                <div className="wip">Drum Game Web is still a work in progress.<br />
+                    For the full experience, <a href="https://github.com/Jumprocks1/drum-game/releases">download the desktop version</a>.</div>
+            </div>
         </div>
+
+        if (this.Track instanceof YouTubeTrack) {
+            const youTube = this.Track.YouTube;
+            this.Add(youTube, false);
+            this.HTMLElement.querySelector("#visualContainer")?.appendChild(youTube.HTMLElement);
+        }
 
         this.HTMLElement.onmousedown = e => {
             if (e.button !== 1 && e.button !== 0) return;

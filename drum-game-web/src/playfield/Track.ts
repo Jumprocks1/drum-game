@@ -3,7 +3,15 @@ import Beatmap from "../utils/Beatmap";
 export default abstract class Track {
     abstract get CurrentTime(): number;
     abstract set CurrentTime(value: number);
-    abstract get CurrentBeat(): number;
+
+    protected _currentBeat = 0;
+
+    get CurrentBeat() {
+        return this._currentBeat;
+    }
+    set CurrentBeat(value: number) {
+        this.CurrentTime = this.Beatmap.BeatToMs(value)
+    }
 
     Beatmap: Beatmap;
     Duration: number = Number.MAX_VALUE;
@@ -17,6 +25,8 @@ export default abstract class Track {
     RatioAt(time: number) {
         return Math.max(Math.min((time + this.LeadIn) / (this.Duration + this.LeadIn), 1), 0)
     }
+
+    Update() { }
 
     constructor(beatmap: Beatmap) {
         this.Beatmap = beatmap;

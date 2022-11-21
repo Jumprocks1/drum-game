@@ -5,18 +5,25 @@ import NotationDisplay from "./notation/NotationDisplay";
 import Beatmap from "../utils/Beatmap";
 import Router from "../framework/Router";
 import ClockTrack from "./ClockTrack";
+import YouTubeTrack from "./YouTubeTrack";
+import Track from "./Track";
 
 export default class BeatmapPlayer extends NoDOMComponent {
     BJson: BJson
     Beatmap: Beatmap
 
-    Track: ClockTrack
+    Track: Track
 
     constructor(map: BJson) {
         super();
         this.BJson = map;
         this.Beatmap = new Beatmap(map);
-        this.Track = new ClockTrack(this.Beatmap);
+        const youTubeId = this.Beatmap.BJson.youTubeID;
+        if (youTubeId) {
+            this.Track = new YouTubeTrack(this.Beatmap);
+        } else {
+            this.Track = new ClockTrack(this.Beatmap);
+        }
     }
 
     AfterParent() {

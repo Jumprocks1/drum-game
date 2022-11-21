@@ -27,6 +27,10 @@ export default class ClockTrack extends Track {
         this._currentBeat = this.Beatmap.MsToBeat(this._currentTime);
     }
 
+    set CurrentBeat(value: number) {
+        this.CurrentTime = this.Beatmap.BeatToMs(value)
+    }
+
     get CurrentBeat() {
         return this._currentBeat;
     }

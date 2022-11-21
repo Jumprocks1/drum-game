@@ -20,7 +20,15 @@ export default class BeatmapPlayerPage extends PageComponent {
             const fullMap = await loadMap(this.Map!);
             if (!this.Alive) return;
             this.Clear();
-            this.Add(new BeatmapPlayer(fullMap))
+            const player = new BeatmapPlayer(fullMap);
+            this.Add(player)
+
+            // should only really do this if we are previewing the sheet music
+            // this is just to make sure that users aren't confused if they see a page with no notes on it
+            const firstHitObject = player.Beatmap.HitObjects[0];
+            if (firstHitObject) {
+                player.Track.CurrentBeat = firstHitObject.time - 2;
+            }
         })()
         this.Add(Loading(loading));
     }

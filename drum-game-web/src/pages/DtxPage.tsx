@@ -1,7 +1,7 @@
 import PageComponent from "../framework/PageComponent";
 import Router, { RouteParameters } from "../framework/Router";
 import GlobalData from "../GlobalData";
-import MapCarousel from "../selector/MapCarousel";
+import MapCarousel, { CarouselState } from "../selector/MapCarousel";
 
 import { CacheMap } from "../interfaces/Cache";
 import DtxPreview from "../dtx/DtxPreview";
@@ -46,7 +46,7 @@ export default class DtxPage extends PageComponent {
         GlobalData.DtxMapList().then(maps => {
             if (!this.Alive) return;
             const o: CacheMap[] = Object.values(maps.Maps);
-            let target: CacheMap | undefined = o[0];
+            let target: CacheMap | undefined = CarouselState.map === undefined ? o[0] : undefined;
             if (this.MapUrl) {
                 target = maps.Maps[this.MapUrl] ?? maps.Maps[this.MapUrl + ".bjson"]
             }

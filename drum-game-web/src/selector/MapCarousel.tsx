@@ -7,7 +7,7 @@ import BeatmapCard from "./BeatmapCard";
 import Search from "./Search";
 
 // stored globally so we can restore it later
-const CarouselState: { search: string, map: string | undefined } = {
+export const CarouselState: { search: string, map: string | undefined } = {
     search: "",
     map: undefined
 }

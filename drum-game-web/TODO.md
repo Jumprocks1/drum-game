@@ -9,5 +9,7 @@
 - Have notices that the web client is WIP, and recommend the desktop client
 
 # DTX stuff
+- YouTube audio
+- Pressing enter should load map on DTX view
 - Automatically grab difficulty names from maps folder instead of using dtx.json
     - We do this when exporting to DTX anyways

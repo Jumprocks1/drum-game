@@ -47,12 +47,9 @@ export default class DtxPage extends PageComponent {
             if (!this.Alive) return;
             const o: CacheMap[] = Object.values(maps.Maps);
             let target: CacheMap | undefined = CarouselState.map === undefined ? o[0] : undefined;
-            if (this.MapUrl) {
+            if (this.MapUrl)
                 target = maps.Maps[this.MapUrl] ?? maps.Maps[this.MapUrl + ".bjson"]
-            }
-            carousel.SetItems(o);
-            if (target !== undefined)
-                carousel.HardSelect(target)
+            carousel.SetItems(o, target);
         })
     }
 

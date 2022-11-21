@@ -89,17 +89,25 @@ export default class MapCarousel extends Component { // could merge this back wi
         this.Add(this.Search);
     }
 
-    OnSearch = (value: string) => {
+    OnSearch = (value: string, selected?: CacheMap) => {
         CarouselState.search = value;
-        const selected = this.SelectedMap;
+        selected ??= this.SelectedMap;
         this.FilteredMaps = Filter(value, this.Items);
         this.Search.UpdateNumbers(this.FilteredMaps.length, this.Items.length);
+
+        // New selection priority:
+        // 1. selected (method parameter)
+        // 2. this.SelectedMap before we update the filter
+        // 3. CarouselState.map
+        // 4. Random
+
+
         let newIndex = -1;
-        const target = CarouselState.map;
-        if (Number.isNaN(this.SelectedIndex) && target)
-            newIndex = this.FilteredMaps.findIndex(e => e.Id === target);
         if (newIndex === -1 && selected)
             newIndex = this.FilteredMaps.indexOf(selected);
+        const stateTarget = CarouselState.map;
+        if (newIndex === -1 && stateTarget)
+            newIndex = this.FilteredMaps.findIndex(e => e.Id === stateTarget);
         if (newIndex === -1)
             newIndex = Math.floor(Math.random() * this.FilteredMaps.length);
         this.HardPull(newIndex);
@@ -238,10 +246,10 @@ export default class MapCarousel extends Component { // could merge this back wi
         this.Update();
     }
 
-    SetItems(items: CacheMap[]) {
+    SetItems(items: CacheMap[], selected?: CacheMap) {
         this.NoMaps.textContent = "No maps found";
         this.Items = items;
-        this.OnSearch(this.Search.Value);
+        this.OnSearch(this.Search.Value, selected);
         if (this.Alive) this.Update();
     }
 }

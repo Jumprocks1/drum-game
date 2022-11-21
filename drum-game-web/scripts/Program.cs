@@ -139,7 +139,7 @@ public static class Program
             {
                 var extraTags = $@"
 <meta property=""og:title"" content=""{metadata.Artist} - {metadata.Title}"" />
-<meta property=""og:description"" content=""{map.BPM} BPM - {diffString}"" />
+<meta property=""og:description"" content=""{metadata.BPM} BPM - {diffString}"" />
 <meta property=""og:image"" content=""{map.Image}"" />
             ";
                 var mapHtml = index.Replace(repl, repl + extraTags);

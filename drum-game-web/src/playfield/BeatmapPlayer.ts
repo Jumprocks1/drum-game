@@ -22,6 +22,8 @@ export default class BeatmapPlayer extends NoDOMComponent {
         this.Beatmap = new Beatmap(map);
         const youTubeId = this.AllowYouTube && this.Beatmap.BJson.youTubeID;
         if (youTubeId) {
+            if (this.BJson.youTubeOffset)
+                this.BJson.offset += this.BJson.youTubeOffset;
             this.Track = new YouTubeTrack(this.Beatmap);
         } else {
             this.Track = new ClockTrack(this.Beatmap);

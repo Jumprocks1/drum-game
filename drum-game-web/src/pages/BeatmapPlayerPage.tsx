@@ -20,6 +20,7 @@ export default class BeatmapPlayerPage extends PageComponent {
             const fullMap = await loadMap(this.Map!);
             if (!this.Alive) return;
             this.Clear();
+            document.title = `${fullMap.artist} - ${fullMap.title}`
             const player = new BeatmapPlayer(fullMap);
             this.Add(player)
 

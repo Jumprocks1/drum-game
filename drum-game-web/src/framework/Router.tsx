@@ -5,7 +5,10 @@ import PageComponent from "./PageComponent";
 export type PageType = (new () => PageComponent) & (
     | { Route: string; RouteUrl?: string, RouteRegex?: RegExp }
     | { RouteUrl: string, RouteRegex: RegExp }
-) & { PageId?: string }
+) & {
+    PageId?: string
+    Title?: string | ((state: RouterState) => string)
+}
 
 export type RouteParameters = string[]
 
@@ -20,7 +23,7 @@ export let GlobalRouter: Router | undefined = undefined;
 
 export interface RouterState {
     page: PageType
-    parameters?: string[]
+    parameters?: RouteParameters
     data?: any
 }
 
@@ -30,6 +33,8 @@ export default class Router extends NoDOMComponent {
     State: RouterState | undefined
 
     History: RouterState[] = []
+
+    DefaultTitle?: string;
 
     constructor(pages: PageType[]) {
         super();
@@ -94,6 +99,10 @@ export default class Router extends NoDOMComponent {
         const newPage = new page();
         if (state.parameters) newPage.LoadRoute(state.parameters);
         this.Add(newPage);
+
+        const pageTitle = typeof page.Title === "function" ? page.Title(state) : page.Title;
+
+        document.title = pageTitle ?? this.DefaultTitle ?? "";
     }
 
     private UpdateRouting() {

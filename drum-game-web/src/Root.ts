@@ -20,6 +20,8 @@ export default class Root extends Component {
         super();
 
         this.DOMNode = document.getElementById("root")!;
-        this.Add(new Router(pages));
+        var router = new Router(pages);
+        router.DefaultTitle = "Drum Game Web"
+        this.Add(router);
     }
 }

@@ -10,6 +10,7 @@ export default class DtxPage extends PageComponent {
     static Route = "dtx/$0|dtx/?"
     static RouteUrl = "dtx/$0"
     static PageId = "dtx-page"
+    static Title = "DTX Maps"
 
 
     MapUrl: string | undefined;
@@ -30,6 +31,7 @@ export default class DtxPage extends PageComponent {
         const preview = new DtxPreview();
         carousel.OnMapChange = e => {
             preview.SetMap(e);
+            document.title = `${e.Artist} - ${e.Title}`
             if (this.MapUrl) { // if we have a map in the URL, we make sure to keep updating the URL
                 const newUrl = CacheMapLink(e);
                 if (newUrl !== this.MapUrl) {

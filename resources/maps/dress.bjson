@@ -3,6 +3,8 @@
   "annotations": [],
   "relativeVolume": 0.3,
   "audio": "audio/01.ドレス.mp3",
+  "image": "images/3e980e1228acca9a4c448abd0a6de8cb.jpg",
+  "imageUrl": "https://m.media-amazon.com/images/I/71G-cIEkoWL._SS400_.jpg",
   "id": "243c6564-45a1-4938-8052-0eeb7d16a728",
   "offset": 0.0,
   "leadIn": 0.0,
@@ -11,7 +13,8 @@
   "artist": "愛美 feat. DECO*27",
   "mapper": "Jumprocks",
   "difficulty": "Insane",
-  "tags": "dress aimi",
+  "tags": "dress aimi dtx-level-78",
+  "youTubeID": "IStOV6ZxlBU",
   "creationTimeUtc": "2022-10-29T16:35:34.6823141Z",
   "notes": [
     {
@@ -20,7 +23,8 @@
     },
     {
       "time": 6.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 6.5,
@@ -28,7 +32,8 @@
     },
     {
       "time": 6.5,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 7.5,
@@ -36,7 +41,8 @@
     },
     {
       "time": 7.5,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 8.0,
@@ -44,7 +50,8 @@
     },
     {
       "time": 8.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 9.0,
@@ -52,7 +59,8 @@
     },
     {
       "time": 9.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 9.5,
@@ -60,7 +68,8 @@
     },
     {
       "time": 9.5,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 11.5,
@@ -816,11 +825,13 @@
     },
     {
       "time": 73.0,
-      "channel": "china"
+      "channel": "china",
+      "modifier": "ghost"
     },
     {
       "time": 73.5,
-      "channel": "china"
+      "channel": "china",
+      "modifier": "ghost"
     },
     {
       "time": 74.0,
@@ -832,11 +843,13 @@
     },
     {
       "time": 74.0,
-      "channel": "china"
+      "channel": "china",
+      "modifier": "ghost"
     },
     {
       "time": 74.5,
-      "channel": "china"
+      "channel": "china",
+      "modifier": "ghost"
     },
     {
       "time": 75.0,
@@ -848,7 +861,8 @@
     },
     {
       "time": 75.0,
-      "channel": "china"
+      "channel": "china",
+      "modifier": "ghost"
     },
     {
       "time": 75.25,
@@ -3629,10 +3643,6 @@
     },
     {
       "time": 302.75,
-      "channel": "china"
-    },
-    {
-      "time": 303.0,
       "channel": "splash"
     },
     {

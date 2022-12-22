@@ -222,6 +222,11 @@
       "description": "The MD5 hash of the audio resource. Useful for restoring audio file if it is lost. Indicate other hashing algorithms with the {algorithm}:{hash} format.",
       "pattern": "^([^:]+:[a-fA-F0-9]+|[a-fA-F0-9]{32}|)$"
     },
+    "spotify": {
+      "type": "string",
+      "pattern": "",
+      "description": "Link to a Spotify resource (track, album, or artist). Can be in the following forms:\nspotify:track:TRACK_ID\nTRACK_ID\nspotify:album:ALBUM_ID\nspotify:artist:ARTIST_ID\nhttps://open.spotify.com/track/TRACK_ID"
+    },
     "youTubeID": {
       "type": "string",
       "pattern": "^[0-9a-zA-Z_-]{11}$"

@@ -3,6 +3,8 @@
   "annotations": [],
   "relativeVolume": 0.3,
   "audio": "audio/01_04_不埒な喝采.ogg",
+  "image": "images/6ef0065b20a218bf1369b0b94da8fc43.jpg",
+  "imageUrl": "https://m.media-amazon.com/images/I/71RV-eHtHPL._SS400_.jpg",
   "offset": 1519.42,
   "leadIn": 0.0,
   "bpm": 158.0,
@@ -16,10 +18,11 @@
       "beats": 4.0
     }
   ],
-  "title": "Furachi na Kassai",
-  "artist": "Police Piccadilly feat. KAFU",
+  "title": "不埒な喝采",
+  "artist": "ポリスピカデリー feat. KAFU",
   "mapper": "Jumprocks",
   "difficulty": "Hard",
+  "tags": "police piccadilly kafu furachi na kassai",
   "youTubeID": "m10mNB8L9Kw",
   "ototoyAlbumID": 1108320,
   "notes": [
@@ -4568,16 +4571,16 @@
       "channel": "hihat"
     },
     {
+      "time": 340.5,
+      "channel": "bass"
+    },
+    {
       "time": 340.75,
       "channel": "hihat"
     },
     {
       "time": 341.0,
       "channel": "hihat"
-    },
-    {
-      "time": 341.0,
-      "channel": "bass"
     },
     {
       "time": 341.5,

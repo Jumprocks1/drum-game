@@ -35,6 +35,7 @@ public class BeatmapMetadata
     public long WriteTime;
     public string ImageUrl;
     public string DownloadUrl;
+    public string SpotifyTrack;
     public string Date;
     [JsonConverter(typeof(BpmJsonConverter))]
     public double BPM;
@@ -71,9 +72,9 @@ public class DtxMaps
     {
         public string Filename;
         public string DownloadUrl;
-        public string Image;
         public string Date;
         public double BPM;
+        public string SpotifyTrack;
         public double[] Difficulties;
     }
     public List<DtxMap> Maps;
@@ -130,9 +131,10 @@ public static class Program
             dtxMaps[map.Filename] = metadata;
             if (map.BPM != 0)
                 metadata.BPM = map.BPM;
-            metadata.ImageUrl = map.Image;
             metadata.DownloadUrl = map.DownloadUrl;
+            metadata.SpotifyTrack = map.SpotifyTrack;
             metadata.Date = map.Date;
+            // TODO we shouldn't need to manually enter the difficulties
             var diffString = string.Join(" / ", map.Difficulties.Select(e => $"{e:0.00}"));
             metadata.DifficultyString = diffString;
             if (Deploy)
@@ -140,7 +142,7 @@ public static class Program
                 var extraTags = $@"
 <meta property=""og:title"" content=""{metadata.Artist} - {metadata.Title}"" />
 <meta property=""og:description"" content=""{metadata.BPM} BPM - {diffString}"" />
-<meta property=""og:image"" content=""{map.Image}"" />
+<meta property=""og:image"" content=""{metadata.ImageUrl}"" />
             ";
                 var mapHtml = index.Replace(repl, repl + extraTags);
                 var dir = Path.Join("../dist/", "dtx", Path.GetFileNameWithoutExtension(map.Filename));

@@ -143,6 +143,10 @@
       "type": "string",
       "description": "Image used as a background when showing this beatmap."
     },
+    "imageUrl": {
+      "type": "string",
+      "description": "Image url that can be used if the linked image file is missing. Image will be saved to the path in `image`. Recommended to set image to `MDF({imageUrl}).ext`."
+    },
     "video": {
       "type": "string"
     },
@@ -275,6 +279,11 @@
         }
       ]
     }
+  },
+  "dependencies": {
+    "imageUrl": [
+      "image"
+    ]
   },
   "additionalProperties": false,
   "$defs": {

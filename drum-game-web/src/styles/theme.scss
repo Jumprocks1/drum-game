@@ -57,8 +57,14 @@ body {
     overflow-x: hidden;
 }
 
-a {
+a,
+.clickable-text {
     color: lighten($Blue, 20%);
+}
+
+.clickable-text {
+    cursor: pointer;
+    text-decoration: underline;
 }
 
 input {

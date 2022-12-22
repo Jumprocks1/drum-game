@@ -25,6 +25,8 @@ export default class NotationDisplay extends Component {
 
     CursorInset = 4; // beats
 
+    DrawMeasureLines = true;
+
     // @ts-ignore
     Font: SMuFL
 
@@ -98,20 +100,33 @@ export default class NotationDisplay extends Component {
         for (let i = 0; i < 5; i++) // idk if we need to clip this before drawing
             this.Context.fillRect(0, i - lineThickness / 2, this.Beatmap.Length * this.Spacing, lineThickness);
 
-        const visbileStart = this.Track.CurrentBeat - this.CursorInset;
+        const visibleStart = this.Track.CurrentBeat - this.CursorInset;
         const visibleBeats = w / scale / this.Spacing;
         // in beats, we have to overdraw since some notes will render past their normal "bounds"
         // there are extreme cases with MeasureChanges that can cause a lot of overdraw. 1 beat should be enough
         const overdraw = 1;
 
-        const firstGroup = Math.max(0, Math.floor((visbileStart - overdraw) / 4));
-        const lastGroup = Math.min(Math.floor((visbileStart + visibleBeats + overdraw) / 4) + 1, this.RenderGroups.length - 1);
+        const overdrawStart = visibleStart - overdraw;
+        const overdrawEnd = visibleStart + visibleBeats + overdraw;
+
+        const firstGroup = Math.max(0, Math.floor((overdrawStart) / 4));
+        const lastGroup = Math.min(Math.floor(overdrawEnd / 4) + 1, this.RenderGroups.length - 1);
         // console.log(firstGroup + " : " + lastGroup)
         for (let i = firstGroup; i < lastGroup; i++)
             this.RenderGroups[i].Render(this, this.Context);
 
         this.Context.fillStyle = "rgba(100, 149, 237, 0.5)"
         this.Context.fillRect(this.Track.CurrentBeat * this.Spacing - 0.25, -2, 0.5, 8)
+
+        if (this.DrawMeasureLines) { // this only works for 4/4 maps
+            // draw measure lines
+            const firstMeasureLine = Math.max(0, Math.ceil(overdrawStart / 4));
+            const lastMeasureLineInclusive = Math.floor(overdrawEnd / 4);
+            this.Context.fillStyle = "rgba(70, 110, 160, 0.4)"
+            for (let i = firstMeasureLine; i <= lastMeasureLineInclusive; i++) {
+                this.Context.fillRect(i * 4 * this.Spacing - 0.25, -2, 0.5, 8)
+            }
+        }
 
         this.Context.restore();
     }

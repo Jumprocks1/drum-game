@@ -22,7 +22,7 @@ export default class ClockTrack extends Track {
     }
 
     set CurrentTime(value: number) {
-        this._currentTime = value;
+        this._currentTime = Math.max(-(this.Beatmap.BJson.leadIn ?? 0), value);
         this._currentBeat = this.Beatmap.MsToBeat(this._currentTime);
     }
 

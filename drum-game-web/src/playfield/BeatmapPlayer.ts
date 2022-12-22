@@ -47,6 +47,14 @@ export default class BeatmapPlayer extends NoDOMComponent {
             this.FindParent(Router).NavigateBack({ page: MapSelectorPage });
         } else if (e.key === " ") {
             this.Track.Playing = !this.Track.Playing
+        } else if (e.key === "ArrowRight") {
+            this.Track.CurrentBeat += 4;
+        } else if (e.key === "ArrowLeft") {
+            this.Track.CurrentBeat -= 4;
+        } else if (e.key === "ArrowUp") {
+            this.Track.CurrentBeat += 8;
+        } else if (e.key === "ArrowDown") {
+            this.Track.CurrentBeat -= 8;
         }
         return true;
     }

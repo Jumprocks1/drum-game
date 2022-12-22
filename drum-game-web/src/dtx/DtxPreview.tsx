@@ -13,24 +13,7 @@ export default class DtxPreview extends Component {
         {this.Download} - {this.Date}
     </div>
     Preview = <RouteLink page={BeatmapPlayerPage}>Preview Sheet Music</RouteLink>
-    SpotifyPreview = <div className="clickable-text" onclick={() => this.ShowSpotifyIframe()}>Show Spotify Preview</div>
-    SpotifyIframe?: HTMLIFrameElement;
-
-
-    ShowSpotifyIframe() {
-        if (!this.Map) return;
-        this.SpotifyPreview.style.display = "none";
-        this.SpotifyIframe = <iframe
-            src={`https://open.spotify.com/embed/track/${this.Map.SpotifyTrack}`}
-            className="spotify-preview"
-            style={{ borderRadius: "12px", display: "block" }}
-            width="500"
-            height="152" frameBorder="0"
-            // @ts-ignore
-            loading="lazy"
-        /> as HTMLIFrameElement
-        this.HTMLElement.appendChild(this.SpotifyIframe);
-    }
+    SpotifyPreview = <a className="clickable-text" target="_blank" rel="noreferrer noopener">Listen on Spotify</a> as HTMLAnchorElement
 
 
     constructor() {
@@ -60,12 +43,10 @@ export default class DtxPreview extends Component {
                 imageUrl = imageUrl.substring(0, imageUrl.length - check.length) + "_SS500_.jpg";
             }
 
-            if (this.SpotifyIframe) {
-                this.HTMLElement.removeChild(this.SpotifyIframe);
-                this.SpotifyIframe = undefined;
-            }
-
             this.SpotifyPreview.style.display = map.SpotifyTrack ? "block" : "none";
+            if (map.SpotifyTrack) {
+                this.SpotifyPreview.href = `https://open.spotify.com/track/${map.SpotifyTrack}`
+            }
             this.Image.src = imageUrl ?? "";
             this.Title.textContent = `${map.Artist} - ${map.Title}`;
             this.Description.textContent = `${map.BPM} BPM - ${map.DifficultyString}`;

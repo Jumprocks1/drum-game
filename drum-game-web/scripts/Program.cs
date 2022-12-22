@@ -35,7 +35,7 @@ public class BeatmapMetadata
     public long WriteTime;
     public string ImageUrl;
     public string DownloadUrl;
-    public string SpotifyTrack;
+    public string Spotify;
     public string Date;
     [JsonConverter(typeof(BpmJsonConverter))]
     public double BPM;
@@ -74,7 +74,6 @@ public class DtxMaps
         public string DownloadUrl;
         public string Date;
         public double BPM;
-        public string SpotifyTrack;
         public double[] Difficulties;
     }
     public List<DtxMap> Maps;
@@ -132,7 +131,6 @@ public static class Program
             if (map.BPM != 0)
                 metadata.BPM = map.BPM;
             metadata.DownloadUrl = map.DownloadUrl;
-            metadata.SpotifyTrack = map.SpotifyTrack;
             metadata.Date = map.Date;
             // TODO we shouldn't need to manually enter the difficulties
             var diffString = string.Join(" / ", map.Difficulties.Select(e => $"{e:0.00}"));

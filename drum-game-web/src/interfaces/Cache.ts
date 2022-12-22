@@ -10,7 +10,7 @@ export interface CacheMap {
     Mapper?: string
     Difficulty: number
     DifficultyString?: string
-    SpotifyTrack?: string
+    Spotify?: string
     BPM?: number
     ImageUrl?: string
     DownloadUrl?: string

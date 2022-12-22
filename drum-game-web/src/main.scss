@@ -219,6 +219,7 @@ $card-width: 600px;
     #map-preview {
         flex: 1;
         padding: 10px;
+        font-size: 1.1em;
 
         @include xs {
             font-size: 0.75em; // help prevent title becoming 2 lines

@@ -37,6 +37,7 @@ public class BeatmapMetadata
     public string DownloadUrl;
     public string Spotify;
     public string Date;
+    public string Audio;
     [JsonConverter(typeof(BpmJsonConverter))]
     public double BPM;
     public static BeatmapMetadata From(FileInfo fileInfo)
@@ -65,6 +66,7 @@ public class BeatmapMetadata
         res.WriteTime = fileInfo.LastWriteTimeUtc.Ticks;
         return res;
     }
+    public string[] SplitTags() => Tags?.Split(' ', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries) ?? new string[0];
 }
 public class DtxMaps
 {
@@ -74,7 +76,6 @@ public class DtxMaps
         public string DownloadUrl;
         public string Date;
         public double BPM;
-        public double[] Difficulties;
     }
     public List<DtxMap> Maps;
 }
@@ -111,6 +112,33 @@ public static class Program
         BuildDtxList(dict);
     }
 
+    public static List<(string, BeatmapMetadata)> GetMapSet(BeatmapMetadata beatmap, Dictionary<string, BeatmapMetadata> allMetadata)
+    {
+        // can speed this up with a group by method
+        var set = new List<(string, BeatmapMetadata)>();
+        foreach (var (file, metadata) in allMetadata)
+        {
+            if (metadata.Title == beatmap.Title && metadata.Artist == beatmap.Artist && metadata.Mapper == beatmap.Mapper
+                && metadata.Audio == beatmap.Audio)
+                set.Add((file, metadata));
+        }
+        return set;
+    }
+    static decimal GetDlevel(BeatmapMetadata beatmap) => GetDlevel(beatmap.SplitTags());
+    static decimal GetDlevel(string[] tags)
+    {
+        foreach (var tag in tags)
+            if (tag.StartsWith("dtx-level-"))
+            {
+                var s = tag.Substring(10);
+                var deci = decimal.Parse(s);
+                for (var i = 0; i < s.Length - 1; i++)
+                    deci /= 10;
+                return deci;
+            }
+        throw new Exception();
+    }
+
     static void BuildDtxList(Dictionary<string, BeatmapMetadata> drumGame) // Warning: This method mutates metadata
     {
         var dtx = JsonSerializer.Deserialize<DtxMaps>(File.ReadAllText("../src/dtx.json"), new JsonSerializerOptions
@@ -133,7 +161,12 @@ public static class Program
             metadata.DownloadUrl = map.DownloadUrl;
             metadata.Date = map.Date;
             // TODO we shouldn't need to manually enter the difficulties
-            var diffString = string.Join(" / ", map.Difficulties.Select(e => $"{e:0.00}"));
+
+
+            var set = GetMapSet(metadata, drumGame);
+            var difficulties = set.Select(e => GetDlevel(e.Item2)).OrderBy(e => e);
+
+            var diffString = string.Join(" / ", difficulties.Select(e => $"{e:0.00}"));
             metadata.DifficultyString = diffString;
             if (Deploy)
             {

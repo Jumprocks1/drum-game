@@ -1,61 +1,43 @@
 {
   "maps": [
     {
+      "filename": "honesty.bjson",
+      "downloadUrl": "https://cdn.discordapp.com/attachments/368232135108067329/1056968757479743518/GYZE_-_HONESTY.zip",
+      "date": "2022-12-26"
+    },
+    {
       "filename": "siren.bjson",
       "downloadUrl": "https://cdn.discordapp.com/attachments/368232135108067329/1055537525961261146/PassCode_-_SIREN.zip",
-      "difficulties": [
-        7.0
-      ],
       "date": "2022-12-22"
     },
     {
       "filename": "dark-hero.bjson",
       "downloadUrl": "https://cdn.discordapp.com/attachments/427808796694413312/1050842143389913219/Zsasz_-_Dark_Hero.zip",
-      "difficulties": [
-        7.9
-      ],
       "date": "2022-12-9"
     },
     {
       "filename": "punishment.bjson",
       "downloadUrl": "https://cdn.discordapp.com/attachments/427808796694413312/1047932704890572850/Kotone_-_PUNISHMENT.zip",
-      "difficulties": [
-        8.3
-      ],
       "date": "2022-12-1"
     },
     {
       "filename": "monochrome.bjson",
       "downloadUrl": "https://cdn.discordapp.com/attachments/427808796694413312/1042996541771751496/BABYMETAL_-_Monochrome.zip",
-      "difficulties": [
-        7.1,
-        8.3
-      ],
       "date": "2022-11-17"
     },
     {
       "filename": "from-under-cover.bjson",
       "downloadUrl": "https://cdn.discordapp.com/attachments/427808796694413312/1042663643113857144/Foreground_Eclipse_-_From_Under_Cover.zip",
-      "difficulties": [
-        7.9
-      ],
       "date": "2022-11-16"
     },
     {
       "filename": "divine-attack-shingeki-.bjson",
       "downloadUrl": "https://cdn.discordapp.com/attachments/427808796694413312/1033804709716299836/BABYMETAL_-_Divine_Attack_-_Shingeki_-.zip",
-      "difficulties": [
-        7.3,
-        8.1
-      ],
       "date": "2022-10-23"
     },
     {
       "filename": "rebellion.bjson",
       "downloadUrl": "https://cdn.discordapp.com/attachments/427808796694413312/1032693606160543845/Ado_-_Rebellion.zip",
-      "difficulties": [
-        7.2
-      ],
       "date": "2022-10-20"
     }
   ]

@@ -11,7 +11,7 @@ export interface CacheMap {
     Difficulty: number
     DifficultyString?: string
     Spotify?: string
-    BPM?: number
+    MedianBPM?: number
     ImageUrl?: string
     DownloadUrl?: string
     Date?: string

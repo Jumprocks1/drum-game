@@ -54,7 +54,7 @@ export default class DtxPreview extends Component {
             }
             this.Image.src = imageUrl ?? "";
             this.Title.textContent = `${map.Artist} - ${map.Title}`;
-            this.Description.textContent = `${map.BPM} BPM - ${map.DifficultyString}`;
+            this.Description.textContent = `${map.MedianBPM} BPM - ${map.DifficultyString}`;
             this.Date.textContent = map.Date ?? "";
             this.Download.href = map.DownloadUrl ?? "";
             (this.Preview.Component as RouteLink).Parameters = [CacheMapLink(map)]

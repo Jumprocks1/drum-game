@@ -38,8 +38,8 @@ public class BeatmapMetadata
     public string Spotify;
     public string Date;
     public string Audio;
-    [JsonConverter(typeof(BpmJsonConverter))]
-    public double BPM;
+    public double PlayableDuration;
+    public double MedianBPM;
     public static BeatmapMetadata From(FileInfo fileInfo)
     {
         var res = JsonSerializer.Deserialize<BeatmapMetadata>(File.ReadAllText(fileInfo.FullName),
@@ -75,7 +75,6 @@ public class DtxMaps
         public string Filename;
         public string DownloadUrl;
         public string Date;
-        public double BPM;
     }
     public List<DtxMap> Maps;
 }
@@ -156,8 +155,6 @@ public static class Program
         {
             var metadata = drumGame[map.Filename];
             dtxMaps[map.Filename] = metadata;
-            if (map.BPM != 0)
-                metadata.BPM = map.BPM;
             metadata.DownloadUrl = map.DownloadUrl;
             metadata.Date = map.Date;
             // TODO we shouldn't need to manually enter the difficulties
@@ -170,9 +167,10 @@ public static class Program
             metadata.DifficultyString = diffString;
             if (Deploy)
             {
+                var durationString = FormatTime(metadata.PlayableDuration);
                 var extraTags = $@"
 <meta property=""og:title"" content=""{metadata.Artist} - {metadata.Title}"" />
-<meta property=""og:description"" content=""{metadata.BPM} BPM - {diffString}"" />
+<meta property=""og:description"" content=""{metadata.MedianBPM} BPM - {diffString} - Length: {durationString}"" />
 <meta property=""og:image"" content=""{metadata.ImageUrl}"" />
             ";
                 var mapHtml = index.Replace(repl, repl + extraTags);
@@ -186,5 +184,11 @@ public static class Program
             Version = 3,
             Maps = dtxMaps
         }, WriteOptions));
+    }
+    public static string FormatTime(double ms)
+    {
+        var t = ms > 0 ? (int)ms / 1000 : 0;
+        var d = t / 60;
+        return $"{d}:{t - d * 60:00}";
     }
 }

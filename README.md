@@ -19,7 +19,7 @@ You will also need a copy of the `resources` folder, which for now you can obtai
 
 The `resources` folder contains all beatmaps and audio files used by Drum Game. For the most part, releases will be separate from the `resources` folder, meaning you can update the game without updating `resources` (and vice-versa).
 
-Currently I do not distribute most the mp3's required for playing the audio for beatmaps (meaning they have to be acquired elsewhere).  In the future I plan to enable a YouTube hook that lets you play without having any local audio files. If anyone knows legal ways of doing this type of thing, please let me know.
+Currently I do not distribute most of the mp3's required for playing the audio for beatmaps (meaning they have to be acquired elsewhere).  In the future I plan to enable a YouTube hook that lets you play without having any local audio files. If anyone knows legal ways of doing this type of thing, please let me know.
 
 ## Android/iOS
 If you are interested in getting Drum Game on one of these platforms, please [create an issue](https://github.com/Jumprocks1/drum-game/issues/new) and I will set up a build for that platform. The source code is already cross-platform, so it should just be a matter of building and testing.

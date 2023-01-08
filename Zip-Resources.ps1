@@ -11,13 +11,15 @@ Write-Host "Output: $outputPath" -ForegroundColor Cyan
 [System.Collections.ArrayList]$targetFiles = @()
 
 $globs = @(
-    "sh_Shaders/*",
-    "soundfonts/main.sf2",
-    "soundfonts/licenses/*/*",
+    "filters/*",
     "fonts/*",
     "fonts/Noto/*",
     "repositories/*",
-    "repositories/cache/*"
+    "repositories/cache/*",
+    "sh_Shaders/*",
+    "soundfonts/licenses/*/*",
+    "soundfonts/main.sf2",
+    "README.txt",
 )
 
 foreach ($glob in $globs) {

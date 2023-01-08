@@ -3,8 +3,8 @@
   "annotations": [],
   "relativeVolume": 0.3,
   "audio": "audio/01_04_不埒な喝采.ogg",
-  "image": "images/6ef0065b20a218bf1369b0b94da8fc43.jpg",
-  "imageUrl": "https://m.media-amazon.com/images/I/71RV-eHtHPL._SS400_.jpg",
+  "image": "images/f84d2b17258a340755ab17afc80b67b8.jpg",
+  "imageUrl": "https://img.youtube.com/vi/m10mNB8L9Kw/hq720.jpg",
   "offset": 1519.42,
   "leadIn": 0.0,
   "bpm": 158.0,
@@ -25,6 +25,8 @@
   "tags": "police piccadilly kafu furachi na kassai",
   "youTubeID": "m10mNB8L9Kw",
   "ototoyAlbumID": 1108320,
+  "playableDuration": 0.0,
+  "medianBPM": 0.0,
   "notes": [
     {
       "time": 0.0,
@@ -195,7 +197,7 @@
     },
     {
       "time": 13.5,
-      "channel": "hihat"
+      "channel": "open-hihat"
     },
     {
       "time": 14.0,
@@ -395,7 +397,7 @@
     },
     {
       "time": 29.5,
-      "channel": "hihat"
+      "channel": "open-hihat"
     },
     {
       "time": 30.0,
@@ -1406,6 +1408,10 @@
       "channel": "snare"
     },
     {
+      "time": 107.0,
+      "channel": "crash"
+    },
+    {
       "time": 107.5,
       "channel": "hihat"
     },
@@ -1426,6 +1432,10 @@
       "channel": "snare"
     },
     {
+      "time": 109.0,
+      "channel": "crash"
+    },
+    {
       "time": 109.5,
       "channel": "hihat"
     },
@@ -1440,6 +1450,10 @@
     {
       "time": 111.0,
       "channel": "bass"
+    },
+    {
+      "time": 111.0,
+      "channel": "crash"
     },
     {
       "time": 111.0,
@@ -1467,6 +1481,10 @@
     },
     {
       "time": 113.0,
+      "channel": "crash"
+    },
+    {
+      "time": 113.0,
       "channel": "snare"
     },
     {
@@ -1488,6 +1506,10 @@
     {
       "time": 115.0,
       "channel": "bass"
+    },
+    {
+      "time": 115.0,
+      "channel": "crash"
     },
     {
       "time": 115.0,
@@ -2063,7 +2085,7 @@
     },
     {
       "time": 160.0,
-      "channel": "hihat"
+      "channel": "hihat-pedal"
     },
     {
       "time": 160.5,

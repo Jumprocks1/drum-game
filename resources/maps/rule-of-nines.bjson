@@ -11,7 +11,7 @@
   "bpm": [
     {
       "time": 0.0,
-      "bpm": 230
+      "bpm": 230.0
     },
     {
       "time": 208.0,
@@ -19,7 +19,7 @@
     },
     {
       "time": 416.0,
-      "bpm": 230
+      "bpm": 230.0
     },
     {
       "time": 488.0,
@@ -40,6 +40,8 @@
   "difficulty": "Hard",
   "youTubeID": "K1Bzo6SdS3c",
   "amazonASIN": "B08SLX4KQ1",
+  "playableDuration": 201690.0,
+  "medianBPM": 234.0,
   "notes": [
     {
       "time": 16.0,

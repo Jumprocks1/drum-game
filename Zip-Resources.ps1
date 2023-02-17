@@ -19,7 +19,7 @@ $globs = @(
     "sh_Shaders/*",
     "soundfonts/licenses/*/*",
     "soundfonts/main.sf2",
-    "README.txt",
+    "README.txt"
 )
 
 foreach ($glob in $globs) {
@@ -38,7 +38,7 @@ $files = Get-ChildItem $maps -File *.bjson
 
 foreach ($f in $files) {
     $parsed = Get-Content $f | ConvertFrom-Json
-    if (($parsed.mapper -eq $null) -or ($parsed.mapper.Contains("(WIP)"))) {continue;}
+    if (($parsed.mapper -eq $null) -or ($parsed.mapper.Contains("(WIP)")) -or ($parsed.mapper.Contains("(TODO)"))) {continue;}
     if (($parsed.tags -ne $null) -and ($parsed.tags.contains("dtx-import"))) {continue;}
     if (($parsed.tags -ne $null) -and ($parsed.tags.contains("taiko"))) {continue;}
 

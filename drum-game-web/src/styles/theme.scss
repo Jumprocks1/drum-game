@@ -117,3 +117,17 @@ input {
         @content;
     }
 }
+
+#error-overlay {
+    position: fixed;
+    top: 0;
+    background-color: rgba(0, 0, 0, 0.85);
+    color: rgb(227, 96, 73);
+    font-family: Consolas, monospace;
+    font-size: 1.5rem;
+    white-space: pre;
+
+    >div.error-message {
+        margin: 1em;
+    }
+}

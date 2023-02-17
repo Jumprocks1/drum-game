@@ -19,3 +19,9 @@ declare function createElement<T extends (props: Record<string, any>) => JSX.Ele
 interface HTMLElement {
     Component?: import("./Component").default
 }
+
+
+declare module "*.frag" {
+    const value: string;
+    export = value;
+}

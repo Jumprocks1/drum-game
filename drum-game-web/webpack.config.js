@@ -30,7 +30,11 @@ module.exports = function (env, argv) {
                         },
                     ],
                 },
-                { test: /\.b?json$/, type: 'json' }
+                { test: /\.b?json$/, type: 'json' },
+                {
+                    test: /\.frag$/i,
+                    type: "asset/source"
+                }
             ],
         },
         resolve: {

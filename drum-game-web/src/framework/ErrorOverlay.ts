@@ -21,4 +21,5 @@ export function ErrorOverlay(error: ErrorMessage | string) {
     errorDiv.textContent = message;
     overlay.appendChild(errorDiv);
 
+    throw error;
 }

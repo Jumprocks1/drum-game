@@ -1,4 +1,5 @@
 import { ErrorOverlay } from "../../framework/ErrorOverlay";
+import { Point } from "../../utils/PathDrawer";
 import shaderSource from "./Shader.frag"
 
 type WebGL = WebGL2RenderingContext
@@ -31,6 +32,8 @@ export class LogoBackground {
 
     VertexBuffer: WebGLBuffer | null = null
     Program: WebGLProgram | null = null;
+
+    Points: Point[] | null = null;
 
     StartTime: number = Date.now() - Math.random() * 1000_000;
 
@@ -93,6 +96,16 @@ export class LogoBackground {
         }
 
         this.TimeUniform = gl.getUniformLocation(this.Program, "iTime");
+
+        const uPoints = gl.getUniformLocation(this.Program, "uPoints");
+        const points = this.Points!;
+        const floats = new Float32Array(points.length * 2);
+        for (let i = 0; i < points.length; i++) {
+            floats[i * 2] = points[i][0] / 100;
+            floats[i * 2 + 1] = -points[i][1] / 100;
+        }
+        gl.useProgram(this.Program);
+        gl.uniform2fv(uPoints, floats);
     }
 
     compileShader(source: string, type: GLenum) {

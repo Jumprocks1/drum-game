@@ -1,7 +1,7 @@
 import { RegisterListener, RemoveListener } from "../../framework/Framework";
 import PageComponent from "../../framework/PageComponent";
 import GlobalData from "../../GlobalData";
-import PathDrawer from "../../utils/PathDrawer";
+import PathDrawer, { IPathBuilder, PathBuilder } from "../../utils/PathDrawer";
 import { LogoBackground } from "./LogoBackground";
 import MapSelectorPage from "../MapSelectorPage";
 
@@ -110,25 +110,16 @@ export default class LogoPage extends PageComponent {
     GSeg = [15, 30, 20, 10, 15]
     GHeight = 60;
 
-    Draw() {
-        const context = this.Context;
-        const PathDrawer = this.PathDrawer;
-
-
+    BuildPath(builder: IPathBuilder) {
         const ang = this.MainAngle;
-        // return; 
-
-        context.strokeStyle = "#2472c8"
-        context.lineWidth = this.StrokeWidth;
-        context.beginPath();
 
         // D
-        PathDrawer.MoveTo([this.DPos[0], this.DPos[1]]);
-        PathDrawer.LineToRelative([0, -this.DHeight]);
+        builder.MoveTo([this.DPos[0], this.DPos[1]]);
+        builder.LineToRelative([0, -this.DHeight]);
         const dWidth = Math.sin(ang) / (Math.sin(Math.PI / 2 - ang) / (this.DHeight / 2));
-        PathDrawer.LineToRelative([dWidth, this.DHeight / 2])
-        const dRight = PathDrawer.X;
-        PathDrawer.LineToRelative([-dWidth, this.DHeight / 2])
+        builder.LineToRelative([dWidth, this.DHeight / 2])
+        const dRight = builder.X;
+        builder.LineToRelative([-dWidth, this.DHeight / 2])
 
         // G
         const ang1 = Math.PI / 2 - ang
@@ -136,55 +127,56 @@ export default class LogoPage extends PageComponent {
 
         const topLeft = [this.GPos[0] + angleSegmentLength * Math.cos(ang1), this.GPos[1] - this.GHeight]
 
-        PathDrawer.MoveTo([topLeft[0] + this.GSeg[0], topLeft[1]])
-        PathDrawer.LineToRelative([-this.GSeg[0], 0])
-        PathDrawer.LineToRelative([-angleSegmentLength * Math.cos(ang1), this.GHeight / 2 - this.GSeg[1] / 2])
-        PathDrawer.LineToRelative([0, this.GSeg[1]])
-        PathDrawer.LineToRelative([angleSegmentLength * Math.cos(ang1), this.GHeight / 2 - this.GSeg[1] / 2])
-        PathDrawer.LineToRelative([this.GSeg[0], 0])
-        PathDrawer.LineToRelative([Math.cos(ang1) * this.GSeg[2], -Math.sin(ang1) * this.GSeg[2]])
-        PathDrawer.LineToRelative([0, -this.GSeg[3]])
-        const gRight = PathDrawer.X;
-        PathDrawer.LineToRelative([-this.GSeg[4], 0])
+        builder.MoveTo([topLeft[0] + this.GSeg[0], topLeft[1]])
+        builder.LineToRelative([-this.GSeg[0], 0])
+        builder.LineToRelative([-angleSegmentLength * Math.cos(ang1), this.GHeight / 2 - this.GSeg[1] / 2])
+        builder.LineToRelative([0, this.GSeg[1]])
+        builder.LineToRelative([angleSegmentLength * Math.cos(ang1), this.GHeight / 2 - this.GSeg[1] / 2])
+        builder.LineToRelative([this.GSeg[0], 0])
+        builder.LineToRelative([Math.cos(ang1) * this.GSeg[2], -Math.sin(ang1) * this.GSeg[2]])
+        builder.LineToRelative([0, -this.GSeg[3]])
+        const gRight = builder.X;
+        builder.LineToRelative([-this.GSeg[4], 0])
 
-        context.stroke();
-        context.beginPath();
+        this.Context.stroke();
+        this.Context.beginPath();
 
         const smallSpacing = 8;
         const smallLetterHeight = 30;
 
         // RUM
-        context.lineWidth = this.SmallStrokeWidth;
+        this.Context.lineWidth = this.SmallStrokeWidth;
+
         let baseline = this.DPos[1] - 20;
         let top = baseline - smallLetterHeight;
 
         let left = dRight + smallSpacing;
-        PathDrawer.MoveTo([left, baseline])
-        PathDrawer.LineTo([left, top])
-        PathDrawer.LineToRelative([18, 0])
-        PathDrawer.LineToRelative([0, 12])
-        let right = PathDrawer.X;
-        PathDrawer.LineToRelative([-3, 3])
-        PathDrawer.LineTo([left, PathDrawer.Y])
-        PathDrawer.LineTo([right, PathDrawer.Y + 8])
-        PathDrawer.LineTo([PathDrawer.X, baseline])
+        builder.MoveTo([left, baseline])
+        builder.LineTo([left, top])
+        builder.LineToRelative([18, 0])
+        builder.LineToRelative([0, 12])
+        let right = builder.X;
+        builder.LineToRelative([-3, 3])
+        builder.LineTo([left, builder.Y])
+        builder.LineTo([right, builder.Y + 8])
+        builder.LineTo([builder.X, baseline])
 
-        left = PathDrawer.X + smallSpacing;
-        PathDrawer.MoveTo([left, top])
-        PathDrawer.LineTo([left, baseline])
-        PathDrawer.LineToRelative([17, 0])
-        PathDrawer.LineTo([PathDrawer.X, top])
+        left = builder.X + smallSpacing;
+        builder.MoveTo([left, top])
+        builder.LineTo([left, baseline])
+        builder.LineToRelative([17, 0])
+        builder.LineTo([builder.X, top])
 
 
-        left = PathDrawer.X + smallSpacing;
+        left = builder.X + smallSpacing;
         function M() {
-            PathDrawer.MoveTo([left, baseline])
-            PathDrawer.LineTo([left, top])
+            builder.MoveTo([left, baseline])
+            builder.LineTo([left, top])
             const mX = 9;
             const mY = 11;
-            PathDrawer.LineToRelative([mX, mY])
-            PathDrawer.LineToRelative([mX, -mY])
-            PathDrawer.LineTo([PathDrawer.X, baseline])
+            builder.LineToRelative([mX, mY])
+            builder.LineToRelative([mX, -mY])
+            builder.LineTo([builder.X, baseline])
         }
         M();
 
@@ -196,26 +188,38 @@ export default class LogoPage extends PageComponent {
         const aY = 19;
         // we draw the small segment of the A first so we can end on the far right
         const aWidthReduction = aX / smallLetterHeight * (smallLetterHeight - aY);
-        PathDrawer.MoveTo([left + aWidthReduction, top + aY])
-        PathDrawer.LineToRelative([aX * 2 - aWidthReduction * 2, 0])
+        builder.MoveTo([left + aWidthReduction, top + aY])
+        builder.LineToRelative([aX * 2 - aWidthReduction * 2, 0])
 
-        PathDrawer.MoveTo([left, baseline])
-        PathDrawer.LineTo([PathDrawer.X + aX, top])
-        PathDrawer.LineTo([PathDrawer.X + aX, baseline])
+        builder.MoveTo([left, baseline])
+        builder.LineTo([builder.X + aX, top])
+        builder.LineTo([builder.X + aX, baseline])
 
-        left = PathDrawer.X + smallSpacing - 2;
+        left = builder.X + smallSpacing - 2;
         M();
 
         // E
-        left = PathDrawer.X + smallSpacing;
+        left = builder.X + smallSpacing;
         const eWidth = 13;
         const eWidth2 = 7;
-        PathDrawer.MoveTo([left + eWidth, baseline])
-        PathDrawer.LineToRelative([-eWidth, 0])
-        PathDrawer.LineToRelative([0, -smallLetterHeight])
-        PathDrawer.LineToRelative([eWidth, 0])
-        PathDrawer.MoveTo([left, baseline - smallLetterHeight / 2])
-        PathDrawer.LineToRelative([eWidth2, 0])
+        builder.MoveTo([left + eWidth, baseline])
+        builder.LineToRelative([-eWidth, 0])
+        builder.LineToRelative([0, -smallLetterHeight])
+        builder.LineToRelative([eWidth, 0])
+        builder.MoveTo([left, baseline - smallLetterHeight / 2])
+        builder.LineToRelative([eWidth2, 0])
+    }
+
+    Draw() {
+        const context = this.Context;
+        const PathDrawer = this.PathDrawer;
+
+        context.strokeStyle = "#2472c8"
+        context.lineWidth = this.StrokeWidth;
+        context.beginPath();
+
+        // 
+
 
         context.stroke();
         // context.arc(50, 50, 20, 0, 3)
@@ -240,7 +244,11 @@ export default class LogoPage extends PageComponent {
 
         this.PathDrawer = new PathDrawer(this.Context);
 
+        const pathBuilder = new PathBuilder();
+        this.BuildPath(pathBuilder);
+
         this.LogoBackground = new LogoBackground();
+        this.LogoBackground.Points = pathBuilder.Points;
 
         this.HTMLElement = <div style={{ position: "relative" }}>
             {this.BackgroundCanvas}

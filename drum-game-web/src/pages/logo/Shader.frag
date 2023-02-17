@@ -1,6 +1,9 @@
 #version 300 es
 precision highp float;
 
+
+uniform vec2[100] uPoints;
+
 uniform float iTime;
 void mainImage(out vec4 fragColor);
 in vec2 uv;
@@ -68,10 +71,31 @@ vec3 hexBgColor() {
 }
 
 vec3 line() {
-    const vec2 a = vec2(0.,.5);
-    const vec2 b = vec2(0.,.5);
+    const float lineRadius = 0.03;
 
-    return vec3(0);
+    vec2 tangent = vec2(0.);    
+
+    float dist = 100.;
+
+    for(int i=0;i<uPoints.length();i+=2)
+    {
+        vec2 a = uPoints[i];
+        vec2 b = uPoints[i+1];
+        if (a == b) break;
+        vec2 dir = b - a;
+        float pos = clamp(dot(uv - a, dir) / dot(dir,dir),0.,1.0);
+        vec2 linePos = a + pos*dir;
+        float d = distance(linePos, uv) / lineRadius;
+        if (d < dist) {
+            dist = d;
+            tangent = normalize(uv - linePos);
+        }
+    }
+
+    if (dist > 1.)
+        return vec3(0.);
+
+    return vec3((tangent + 1.) / 2., 1. - dist);
 }
 
 void mainImage(out vec4 fragColor)
@@ -82,8 +106,8 @@ void mainImage(out vec4 fragColor)
     const float targetWidth = .012; // width of maxed out lighting in the border
     const float bleedAmount = 1.2;
 
-    // fragColor = vec4(line(),1.0);
-    // return;
+    fragColor = vec4(line(),1.0);
+    return;
 
     vec3 color = vec3(0.);
 

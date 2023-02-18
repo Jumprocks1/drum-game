@@ -13,10 +13,6 @@ export default class LogoPage extends PageComponent {
     static Route = "logo"
 
     Canvas: HTMLCanvasElement
-    Context: CanvasRenderingContext2D
-    PathDrawer: PathDrawer
-
-    BackgroundCanvas: HTMLCanvasElement
     LogoBackground: LogoBackground
 
     static targetSize = 800;
@@ -35,20 +31,6 @@ export default class LogoPage extends PageComponent {
         this.CanvasLoaded = true;
     }
 
-    Transform() {
-        this.Context.resetTransform();
-        const pixelRatio = window.devicePixelRatio;
-        this.Context.scale(pixelRatio, pixelRatio);
-
-        // goal is to transform to 200,200 with 0,0 in the center
-        const scale = LogoPage.targetSize / (LogoPage.renderRadius * 2);
-        this.Context.scale(scale, scale)
-
-        this.Context.translate(100, 100)
-
-        this.Context.scale(1, 1)
-    }
-
     CheckSize(reinit: boolean) {
         const pixelRatio = window.devicePixelRatio;
         const targetHeightBase = 800;
@@ -60,10 +42,6 @@ export default class LogoPage extends PageComponent {
             this.Canvas.height = targetHeight;
             this.Canvas.width = targetWidth;
 
-            this.BackgroundCanvas.style.height = targetHeightBase + "px";
-            this.BackgroundCanvas.height = targetHeight;
-            this.BackgroundCanvas.width = targetWidth;
-
             if (reinit) this.InitContext(); // changing size resets all Context parameters
         }
     }
@@ -72,11 +50,7 @@ export default class LogoPage extends PageComponent {
         console.log("initializing canvas context");
         this.CheckSize(false);
 
-        this.LogoBackground.Init(this.BackgroundCanvas.getContext("webgl2", { antialias: true }));
-
-        this.Context.lineWidth = this.StrokeWidth;
-        this.Context.lineCap = "round"
-        this.Context.lineJoin = "round"
+        this.LogoBackground.Init(this.Canvas.getContext("webgl2", { antialias: true }));
     }
 
     Render = () => {
@@ -84,16 +58,7 @@ export default class LogoPage extends PageComponent {
 
         this.CheckSize(true);
 
-        this.Context.clearRect(0, 0, this.Canvas.width, this.Canvas.height);
-
-        this.Context.save();
-
-        this.Transform();
-
         this.LogoBackground.Draw();
-        this.Draw();
-
-        this.Context.restore();
     }
 
     OuterRadius = 100;
@@ -101,12 +66,12 @@ export default class LogoPage extends PageComponent {
     StrokeWidth = 6
     SmallStrokeWidth = 4;
 
-    DPos = [-55, 20]
+    DPos = [-53, 20]
     DHeight = 90;
 
     MainAngle = rad(40)
 
-    GPos = [-44, 68] // bottom left (G doesn't actually touch this)
+    GPos = [-45, 67] // bottom left (G doesn't actually touch this)
     GSeg = [15, 30, 20, 10, 15]
     GHeight = 60;
 
@@ -138,23 +103,18 @@ export default class LogoPage extends PageComponent {
         const gRight = builder.X;
         builder.LineToRelative([-this.GSeg[4], 0])
 
-        this.Context.stroke();
-        this.Context.beginPath();
-
         const smallSpacing = 8;
-        const smallLetterHeight = 30;
+        const smallLetterHeight = 25;
 
         // RUM
-        this.Context.lineWidth = this.SmallStrokeWidth;
-
         let baseline = this.DPos[1] - 20;
         let top = baseline - smallLetterHeight;
 
         let left = dRight + smallSpacing;
         builder.MoveTo([left, baseline])
         builder.LineTo([left, top])
-        builder.LineToRelative([18, 0])
-        builder.LineToRelative([0, 12])
+        builder.LineToRelative([15, 0])
+        builder.LineToRelative([0, 8])
         let right = builder.X;
         builder.LineToRelative([-3, 3])
         builder.LineTo([left, builder.Y])
@@ -164,7 +124,7 @@ export default class LogoPage extends PageComponent {
         left = builder.X + smallSpacing;
         builder.MoveTo([left, top])
         builder.LineTo([left, baseline])
-        builder.LineToRelative([17, 0])
+        builder.LineToRelative([15, 0])
         builder.LineTo([builder.X, top])
 
 
@@ -172,7 +132,7 @@ export default class LogoPage extends PageComponent {
         function M() {
             builder.MoveTo([left, baseline])
             builder.LineTo([left, top])
-            const mX = 9;
+            const mX = 8.5;
             const mY = 11;
             builder.LineToRelative([mX, mY])
             builder.LineToRelative([mX, -mY])
@@ -185,7 +145,7 @@ export default class LogoPage extends PageComponent {
         baseline = this.GPos[1] - 7
         top = baseline - smallLetterHeight
         const aX = 10;
-        const aY = 19;
+        const aY = 18;
         // we draw the small segment of the A first so we can end on the far right
         const aWidthReduction = aX / smallLetterHeight * (smallLetterHeight - aY);
         builder.MoveTo([left + aWidthReduction, top + aY])
@@ -210,22 +170,6 @@ export default class LogoPage extends PageComponent {
         builder.LineToRelative([eWidth2, 0])
     }
 
-    Draw() {
-        const context = this.Context;
-        const PathDrawer = this.PathDrawer;
-
-        context.strokeStyle = "#2472c8"
-        context.lineWidth = this.StrokeWidth;
-        context.beginPath();
-
-        // 
-
-
-        context.stroke();
-        // context.arc(50, 50, 20, 0, 3)
-        // context.stroke();
-    }
-
     AfterRemove() {
         super.AfterRemove();
         RemoveListener("newframe", this.Render)
@@ -235,14 +179,7 @@ export default class LogoPage extends PageComponent {
     constructor() {
         super();
 
-        this.BackgroundCanvas = <canvas /> as HTMLCanvasElement
-        this.Canvas = <canvas style={{ position: "absolute", left: "0" }} /> as HTMLCanvasElement
-
-        const context = this.Canvas.getContext("2d");
-        if (!context) throw new Error("Failed to get canvas context");
-        this.Context = context;
-
-        this.PathDrawer = new PathDrawer(this.Context);
+        this.Canvas = <canvas /> as HTMLCanvasElement
 
         const pathBuilder = new PathBuilder();
         this.BuildPath(pathBuilder);
@@ -251,7 +188,6 @@ export default class LogoPage extends PageComponent {
         this.LogoBackground.Points = pathBuilder.Points;
 
         this.HTMLElement = <div style={{ position: "relative" }}>
-            {this.BackgroundCanvas}
             {this.Canvas}
         </div>
     }

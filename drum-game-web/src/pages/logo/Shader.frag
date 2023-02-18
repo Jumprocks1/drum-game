@@ -69,7 +69,7 @@ vec3 hexBgColor() {
     colorIndex = int(rand * colorLen);
     color += (colors[colorIndex] - colors[0])*0.6;
 
-    return color - 0.1;
+    return color - 0.12;
 }
 
 vec3 line(vec2 uv) {
@@ -93,7 +93,6 @@ vec3 line(vec2 uv) {
             tangent = normalize(uv - linePos);
         }
     }
-
     return vec3(tangent, 1. - dist);
 }
 
@@ -132,7 +131,7 @@ void mainImage(out vec4 fragColor)
     }
 
     float lightingDist = pow(abs(r - borderCenter), power);
-    float maxLighting = baseMaxLighting + growth * 1.0;
+    float maxLighting = baseMaxLighting + growth * 1.5;
 
     float lightMod = min(lightingPower / lightingDist, maxLighting);
     
@@ -141,7 +140,6 @@ void mainImage(out vec4 fragColor)
     float growthAngle = pi12 - growthTime;
         
     vec3 lineData = line(uv);
-    // lineData.z = 0.;
     if (lineData.z > 0.) {
         // it should be possible to do a ton of different shapes just by transforming lineData here
 

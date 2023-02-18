@@ -20,9 +20,13 @@ export default function (builder: PathBuilder) {
     builder.MoveTo(DPos);
     builder.LineToRelative(new Vector(0, -DHeight));
     const dWidth = Math.sin(ang) / (Math.sin(Math.PI / 2 - ang) / (DHeight / 2));
+    builder.ExtendCap();
     builder.LineToRelative([dWidth, DHeight / 2])
     const dRight = builder.X;
     builder.LineToRelative([-dWidth, DHeight / 2])
+    builder.ExtendCap();
+    builder.Cap(new Vector(0, -1))
+
 
     // G
     const ang1 = Math.PI / 2 - ang
@@ -30,6 +34,7 @@ export default function (builder: PathBuilder) {
 
     const topLeft = [GPos[0] + angleSegmentLength * Math.cos(ang1), GPos[1] - GHeight]
 
+    builder.PreCap()
     builder.MoveTo([topLeft[0] + GSeg[0], topLeft[1]])
     builder.LineToRelative([-GSeg[0], 0])
     builder.LineToRelative([-angleSegmentLength * Math.cos(ang1), GHeight / 2 - GSeg[1] / 2])
@@ -40,6 +45,7 @@ export default function (builder: PathBuilder) {
     builder.LineToRelative([0, -GSeg[3]])
     const gRight = builder.X;
     builder.LineToRelative([-GSeg[4], 0])
+    builder.Cap();
 
     const smallSpacing = 8;
     const smallLetterHeight = 25;
@@ -49,32 +55,40 @@ export default function (builder: PathBuilder) {
     let top = baseline - smallLetterHeight;
 
     let left = dRight + smallSpacing;
+
+    builder.PreCap()
     builder.MoveTo([left, baseline])
     builder.LineTo([left, top])
     builder.LineToRelative([15, 0])
-    builder.LineToRelative([0, 8])
+    builder.LineToRelative([0, 11])
     let right = builder.X;
-    builder.LineToRelative([-3, 3])
     builder.LineTo([left, builder.Y])
     builder.LineTo([right, builder.Y + 8])
     builder.LineTo([builder.X, baseline])
+    builder.Cap()
 
+    builder.PreCap()
     left = builder.X + smallSpacing;
     builder.MoveTo([left, top])
     builder.LineTo([left, baseline])
     builder.LineToRelative([15, 0])
     builder.LineTo([builder.X, top])
+    builder.Cap()
 
 
     left = builder.X + smallSpacing;
     function M() {
+        builder.PreCap()
         builder.MoveTo([left, baseline])
         builder.LineTo([left, top])
+        builder.ExtendCap();
         const mX = 8.5;
         const mY = 11;
         builder.LineToRelative([mX, mY])
         builder.LineToRelative([mX, -mY])
+        builder.ExtendCap();
         builder.LineTo([builder.X, baseline])
+        builder.Cap()
     }
     M();
 
@@ -89,21 +103,27 @@ export default function (builder: PathBuilder) {
     builder.MoveTo([left + aWidthReduction, top + aY])
     builder.LineToRelative([aX * 2 - aWidthReduction * 2, 0])
 
+    builder.PreCap();
     builder.MoveTo([left, baseline])
     builder.LineTo([builder.X + aX, top])
+    builder.ExtendCap()
     builder.LineTo([builder.X + aX, baseline])
+    builder.Cap();
 
     left = builder.X + smallSpacing - 2;
     M();
 
     // E
     left = builder.X + smallSpacing;
-    const eWidth = 13;
-    const eWidth2 = 7;
+    const eWidth = 12;
+    const eWidth2 = 8;
+    builder.PreCap();
     builder.MoveTo([left + eWidth, baseline])
     builder.LineToRelative([-eWidth, 0])
     builder.LineToRelative([0, -smallLetterHeight])
     builder.LineToRelative([eWidth, 0])
+    builder.Cap();
     builder.MoveTo([left, baseline - smallLetterHeight / 2])
     builder.LineToRelative([eWidth2, 0])
+    builder.Cap();
 }

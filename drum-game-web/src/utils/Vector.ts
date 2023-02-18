@@ -12,6 +12,9 @@ export default class Vector {
     mult(s: number) {
         return new Vector(this.X * s, this.Y * s)
     }
+    div(s: number) {
+        return new Vector(this.X / s, this.Y / s)
+    }
     sub(a: Vector) {
         return new Vector(this.X - a.X, this.Y - a.Y)
     }
@@ -24,5 +27,16 @@ export default class Vector {
     }
     neg() {
         return new Vector(-this.X, -this.Y);
+    }
+    cross(v: Vector) {
+        return this.X * v.Y - v.X * this.Y;
+    }
+    dot(v: Vector) {
+        return this.X * v.X + this.Y * v.Y;
+    }
+    dist(v: Vector) {
+        const dx = this.X - v.X;
+        const dy = this.Y - v.Y;
+        return Math.sqrt(dx * dx + dy * dy);
     }
 }

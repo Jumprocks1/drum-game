@@ -15,6 +15,8 @@ void main(void) {
 }
 
 const float tau = 3.1415926535*2.0;
+const float pi = 3.1415926535;
+const float pi12 = 3.1415926535 / 2.;
 
 const float root3 = 1.7320508;
 
@@ -92,10 +94,7 @@ vec3 line() {
         }
     }
 
-    if (dist > 1.)
-        return vec3(0.);
-
-    return vec3((tangent + 1.) / 2., 1. - dist);
+    return vec3(tangent, 1. - dist);
 }
 
 void mainImage(out vec4 fragColor)
@@ -106,9 +105,6 @@ void mainImage(out vec4 fragColor)
     const float targetWidth = .012; // width of maxed out lighting in the border
     const float bleedAmount = 1.2;
 
-    fragColor = vec4(line(),1.0);
-    return;
-
     vec3 color = vec3(0.);
 
     float r = length(uv);
@@ -118,33 +114,70 @@ void mainImage(out vec4 fragColor)
     // we divide by `r` so that the growth is more spread out in the center
     float growthPortion = 0.2 / pow(r / borderCenter, 3.); // proportion of half the circle, 1 => half the circle is modified
 
-    float growth = max((sin(ang + iTime * 1.) - 1.0) / growthPortion + 1.0, 0.0);
+    float growthTime = iTime * 0.5;
 
-    
+    float growth = max((sin(ang + growthTime) - 1.0) / growthPortion + 1.0, 0.0);
+
+    // growth = 0.;
+   
     const float power = 1. / bleedAmount;
     const float baseLightingPower = pow(targetWidth, power) * baseMaxLighting;
     
-    float lightingPower = baseLightingPower + growth * 0.02;
+    float lightingPower = baseLightingPower + growth * 0.03;
 
-
-    const float outerDecay = 10.; // helps prevent the cutoff on canvas borders
-    const float outerDecayStart = borderCenter;
-    lightingPower *= clamp(outerDecay + 1. - r / outerDecayStart * outerDecay, 0., 1.0);
-
+    {
+        const float outerDecay = 10.; // helps prevent the cutoff on canvas borders
+        const float outerDecayStart = borderCenter;
+        lightingPower *= clamp(outerDecay + 1. - r / outerDecayStart * outerDecay, 0., 1.0);
+    }
 
     float lightingDist = pow(abs(r - borderCenter), power);
     float maxLighting = baseMaxLighting + growth * 1.0;
 
     float lightMod = min(lightingPower / lightingDist, maxLighting);
-
+    
     color += blue * lightMod;
+        
+    vec3 lineData = line();
+    // lineData.z = 0.;
+    if (lineData.z > 0.) {
+        // it should be possible to do a ton of different shapes just by transforming lineData here
 
-    if (r < borderCenter) {
-        // color = hexBgColor();
-        color += hexBgColor() * min(maxLighting - lightMod, 1.);
+        // triangle, nice but I think circular will be better
+        vec2 dir = -lineData.xy;
+
+        // roughly circular, looks bad on angles/corners, we don't want this
+        // vec2 dir = -lineData.xy * (1.- lineData.z);
+
+        // flat top/trapezoid, kinda bad because the tip reflects no light
+        // vec2 dir = -lineData.xy;
+        // if (lineData.z > 0.66) {
+        //     dir = vec2(0.);
+        // }
+
+
+        vec2 lightDir = normalize(-uv);
+
+        float lightPower = 0.5; // global light power, regardless of distance
+
+        lightPower += 2. * (1. - length(dir)) * baseLightingPower; // top down light
+        lightPower += max(dot(dir, lightDir),0.) * baseLightingPower / lightingDist * 1.; // distance based with normals
+
+        float growthAngle = pi12 - growthTime;
+        vec2 lightPos = borderCenter * vec2(cos(growthAngle),sin(growthAngle));
+
+        float growthLightDist = pow(distance(uv, lightPos), power);
+
+        lightPower += 1. * max(0., dot(normalize(uv - lightPos), dir.xy)) / growthLightDist;
+        lightPower += 0.1 / growthLightDist;
+
+        color += blue * lightPower;
+    } else {
+        if (r < borderCenter) {
+            color += hexBgColor() * min(maxLighting - lightMod, 1.);
+        }
+        color += blue / (-lineData.z + 0.2) * 0.3;
     }
-
-    // TODO fix external lighting, not sure why no work, might be because of the border center being wrong
 
     fragColor = vec4(color, 1.);
 }

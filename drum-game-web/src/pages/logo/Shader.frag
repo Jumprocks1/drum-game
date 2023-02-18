@@ -69,10 +69,10 @@ vec3 hexBgColor() {
     colorIndex = int(rand * colorLen);
     color += (colors[colorIndex] - colors[0])*0.6;
 
-    return color;
+    return color - 0.1;
 }
 
-vec3 line() {
+vec3 line(vec2 uv) {
     const float lineRadius = 0.03;
 
     vec2 tangent = vec2(0.);    
@@ -137,8 +137,10 @@ void mainImage(out vec4 fragColor)
     float lightMod = min(lightingPower / lightingDist, maxLighting);
     
     color += blue * lightMod;
+
+    float growthAngle = pi12 - growthTime;
         
-    vec3 lineData = line();
+    vec3 lineData = line(uv);
     // lineData.z = 0.;
     if (lineData.z > 0.) {
         // it should be possible to do a ton of different shapes just by transforming lineData here
@@ -160,10 +162,8 @@ void mainImage(out vec4 fragColor)
 
         float lightPower = 0.5; // global light power, regardless of distance
 
-        lightPower += 2. * (1. - length(dir)) * baseLightingPower; // top down light
         lightPower += max(dot(dir, lightDir),0.) * baseLightingPower / lightingDist * 1.; // distance based with normals
 
-        float growthAngle = pi12 - growthTime;
         vec2 lightPos = borderCenter * vec2(cos(growthAngle),sin(growthAngle));
 
         float growthLightDist = pow(distance(uv, lightPos), power);
@@ -176,8 +176,12 @@ void mainImage(out vec4 fragColor)
         if (r < borderCenter) {
             color += hexBgColor() * min(maxLighting - lightMod, 1.);
         }
-        color += blue / (-lineData.z + 0.2) * 0.3;
+        
+        // shadow if we want it
+        float line2 = -min(line(uv + vec2(cos(growthAngle), sin(growthAngle))* 0.02).z,0.); // this number is the distance to edge
+        color -= 0.1 * max(1.-line2, 0.);
     }
+
 
     fragColor = vec4(color, 1.);
 }

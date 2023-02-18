@@ -1,11 +1,12 @@
 import { PathBuilder } from "../../utils/PathBuilder";
+import Vector from "../../utils/Vector";
 
 function rad(deg: number) {
     return deg / 180 * Math.PI;
 }
 
 export default function (builder: PathBuilder) {
-    const DPos = [-53, 20];
+    const DPos = new Vector(-53, 20);
     const DHeight = 90;
 
     const ang = rad(40);
@@ -16,8 +17,8 @@ export default function (builder: PathBuilder) {
 
 
     // D
-    builder.MoveTo([DPos[0], DPos[1]]);
-    builder.LineToRelative([0, -DHeight]);
+    builder.MoveTo(DPos);
+    builder.LineToRelative(new Vector(0, -DHeight));
     const dWidth = Math.sin(ang) / (Math.sin(Math.PI / 2 - ang) / (DHeight / 2));
     builder.LineToRelative([dWidth, DHeight / 2])
     const dRight = builder.X;
@@ -44,7 +45,7 @@ export default function (builder: PathBuilder) {
     const smallLetterHeight = 25;
 
     // RUM
-    let baseline = DPos[1] - 20;
+    let baseline = DPos.Y - 20;
     let top = baseline - smallLetterHeight;
 
     let left = dRight + smallSpacing;

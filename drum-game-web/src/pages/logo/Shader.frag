@@ -2,8 +2,6 @@
 precision highp float;
 
 
-uniform vec2[100] uPoints;
-
 uniform float iTime;
 void mainImage(out vec4 fragColor);
 in vec3 vPos;
@@ -73,30 +71,6 @@ vec3 hexBgColor() {
     color += (colors[colorIndex] - colors[0])*0.6;
 
     return color - 0.12;
-}
-
-vec3 line(vec2 uv) {
-    const float lineRadius = 0.03;
-
-    vec2 tangent = vec2(0.);    
-
-    float dist = 100.;
-
-    for(int i=0;i<uPoints.length();i+=2)
-    {
-        vec2 a = uPoints[i];
-        vec2 b = uPoints[i+1];
-        if (a == b) break;
-        vec2 dir = b - a;
-        float pos = clamp(dot(uv - a, dir) / dot(dir,dir),0.,1.0);
-        vec2 linePos = a + pos*dir;
-        float d = distance(linePos, uv) / lineRadius;
-        if (d < dist) {
-            dist = d;
-            tangent = normalize(uv - linePos);
-        }
-    }
-    return vec3(tangent, 1. - dist);
 }
 
 void mainImage(out vec4 fragColor)

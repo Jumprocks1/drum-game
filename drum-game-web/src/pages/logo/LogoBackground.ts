@@ -1,5 +1,5 @@
 import { ErrorOverlay } from "../../framework/ErrorOverlay";
-import { Point } from "../../utils/PathDrawer";
+import { Point } from "../../utils/PathBuilder";
 import shaderSource from "./Shader.frag"
 
 type WebGL = WebGL2RenderingContext

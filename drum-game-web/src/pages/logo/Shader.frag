@@ -6,7 +6,8 @@ uniform vec2[100] uPoints;
 
 uniform float iTime;
 void mainImage(out vec4 fragColor);
-in vec2 uv;
+in vec3 vPos;
+in vec2 vNormal;
 out vec4 oFragColor;
 void main(void) {
     vec4 fragColor;
@@ -49,6 +50,8 @@ vec2 getHex(vec2 p)
 }
 
 vec3 hexBgColor() {
+    vec2 uv = vPos.xy;
+
     vec3 color = vec3(0.);
 
     vec2 coord = getHex(uv*10.0 + iTime * vec2(0.5,2.0) + sin(iTime) * 0.3);
@@ -98,6 +101,7 @@ vec3 line(vec2 uv) {
 
 void mainImage(out vec4 fragColor)
 {
+    vec2 uv = vPos.xy;
     const float borderCenter = 0.95;
 
     const float baseMaxLighting = 1.7;
@@ -139,8 +143,8 @@ void mainImage(out vec4 fragColor)
 
     float growthAngle = pi12 - growthTime;
         
-    vec3 lineData = line(uv);
-    if (lineData.z > 0.) {
+    if (vPos.z >= 0.) {
+        vec3 lineData = vec3(vNormal.xy, vPos.z);
         // it should be possible to do a ton of different shapes just by transforming lineData here
 
         // triangle, nice but I think circular will be better
@@ -176,8 +180,8 @@ void mainImage(out vec4 fragColor)
         }
         
         // shadow if we want it
-        float line2 = -min(line(uv + vec2(cos(growthAngle), sin(growthAngle))* 0.02).z,0.); // this number is the distance to edge
-        color -= 0.1 * max(1.-line2, 0.);
+        // float line2 = -min(line(uv + vec2(cos(growthAngle), sin(growthAngle))* 0.02).z,0.); // this number is the distance to edge
+        // color -= 0.1 * max(1.-line2, 0.);
     }
 
 

@@ -5,10 +5,6 @@ function rad(deg: number) {
 }
 
 export default function (builder: PathBuilder) {
-
-    const StrokeWidth = 6;
-    const SmallStrokeWidth = 4;
-
     const DPos = [-53, 20];
     const DHeight = 90;
 

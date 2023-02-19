@@ -3,6 +3,7 @@ precision highp float;
 
 
 uniform float iTime;
+uniform sampler2D shadowTexture;
 void mainImage(out vec4 fragColor);
 in vec3 vPos;
 in vec2 vNormal;
@@ -139,12 +140,10 @@ void mainImage(out vec4 fragColor)
     } else {
         if (r < borderCenter) {
             color += hexBgColor() * min(maxLighting - lightMod, 1.);
+
+            vec2 shadowOffset = vec2(cos(growthAngle), sin(growthAngle)) * 0.05;
+            color *= 1. - (texture(shadowTexture, (uv + shadowOffset + 1.) / 2.).rgb);
         }
-        
-        // TODO readd shadow
-        // shadow if we want it
-        // float line2 = -min(line(uv + vec2(cos(growthAngle), sin(growthAngle))* 0.02).z,0.); // this number is the distance to edge
-        // color -= 0.1 * max(1.-line2, 0.);
     }
 
 

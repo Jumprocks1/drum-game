@@ -1,4 +1,6 @@
 import { ErrorOverlay } from "../../framework/ErrorOverlay";
+import { Blur } from "../../utils/blur/Blur";
+import { CompileShader, ShaderProgram } from "../../utils/GL";
 import { Mesh } from "./LineMesh";
 import shaderSource from "./Shader.frag"
 
@@ -75,7 +77,17 @@ export class LogoRenderer {
         gl.clearColor(0.0, 0.0, 0.0, 1.0); // Clear to black, fully opaque
         gl.clearDepth(-1.);
 
+        gl.bindTexture(gl.TEXTURE_2D, Blur(gl, () => this.ShadowDraw()));
+
         this.InitProgram();
+    }
+
+    ShadowDraw() {
+        const gl = this.GL;
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.PositionBuffer);
+        gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(0);
+        gl.drawArrays(gl.TRIANGLES, 0, this.PositionCount);
     }
 
     public Draw() {
@@ -106,35 +118,10 @@ export class LogoRenderer {
 
         if (this.Program) return;
 
-        const vertex = this.compileShader(vertexShaderSource, this.GL.VERTEX_SHADER);
-        const frag = this.compileShader(shaderSource, this.GL.FRAGMENT_SHADER);
-
-
-        this.Program = this.GL.createProgram()!;
-        gl.attachShader(this.Program, vertex);
-        gl.attachShader(this.Program, frag);
-        gl.linkProgram(this.Program);
-
-        if (!gl.getProgramParameter(this.Program, gl.LINK_STATUS)) {
-            ErrorOverlay(
-                `Unable to initialize the shader program: ${gl.getProgramInfoLog(
-                    this.Program
-                )}`
-            );
-        }
+        const vertex = CompileShader(gl, vertexShaderSource, this.GL.VERTEX_SHADER);
+        const frag = CompileShader(gl, shaderSource, this.GL.FRAGMENT_SHADER);
+        this.Program = ShaderProgram(gl, vertex, frag);
 
         this.TimeUniform = gl.getUniformLocation(this.Program, "iTime");
-    }
-
-    compileShader(source: string, type: GLenum) {
-        const shader = this.GL.createShader(type)!;
-        this.GL.shaderSource(shader, source);
-        this.GL.compileShader(shader);
-
-        if (!this.GL.getShaderParameter(shader, this.GL.COMPILE_STATUS)) {
-            const info = this.GL.getShaderInfoLog(shader);
-            ErrorOverlay(`Could not compile ${type === this.GL.VERTEX_SHADER ? "vertex" : "frag"} WebGL program.\n${info}`);
-        }
-        return shader;
     }
 }

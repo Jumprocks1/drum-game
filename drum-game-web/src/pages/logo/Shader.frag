@@ -100,7 +100,7 @@ void mainImage(out vec4 fragColor)
     const float power = 1. / bleedAmount;
     const float baseLightingPower = pow(targetWidth, power) * baseMaxLighting;
     
-    float lightingPower = baseLightingPower + growth * 0.03;
+    float lightingPower = baseLightingPower + growth * 0.05;
 
     {
         const float outerDecay = 10.; // helps prevent the cutoff on canvas borders
@@ -109,7 +109,7 @@ void mainImage(out vec4 fragColor)
     }
 
     float lightingDist = pow(abs(r - borderCenter), power);
-    float maxLighting = baseMaxLighting + growth * 1.5;
+    float maxLighting = baseMaxLighting + growth * 2.;
 
     float lightMod = min(lightingPower / lightingDist, maxLighting);
     
@@ -118,22 +118,10 @@ void mainImage(out vec4 fragColor)
     float growthAngle = pi12 - growthTime;
         
     if (vPos.z >= 0.) {
+        // should maybe add a global top light so that even without the growth light we can still see normals
+
         vec3 lineData = vec3(vNormal.xy, vPos.z);
-        // it should be possible to do a ton of different shapes just by transforming lineData here
-
-        // triangle, nice but I think circular will be better
         vec2 dir = -lineData.xy;
-
-        // roughly circular, looks bad on angles/corners, we don't want this
-        // vec2 dir = -lineData.xy * (1.- lineData.z);
-
-        // flat top/trapezoid, kinda bad because the tip reflects no light
-        // vec2 dir = -lineData.xy;
-        // if (lineData.z > 0.66) {
-        //     dir = vec2(0.);
-        // }
-
-
         vec2 lightDir = normalize(-uv);
 
         float lightPower = 0.5; // global light power, regardless of distance
@@ -145,7 +133,7 @@ void mainImage(out vec4 fragColor)
         float growthLightDist = pow(distance(uv, lightPos), power);
 
         lightPower += 1. * max(0., dot(normalize(uv - lightPos), dir.xy)) / growthLightDist;
-        lightPower += 0.1 / growthLightDist;
+        lightPower += 0.1 / growthLightDist; // distance based, ignores normals
 
         color += blue * lightPower;
     } else {
@@ -153,6 +141,7 @@ void mainImage(out vec4 fragColor)
             color += hexBgColor() * min(maxLighting - lightMod, 1.);
         }
         
+        // TODO readd shadow
         // shadow if we want it
         // float line2 = -min(line(uv + vec2(cos(growthAngle), sin(growthAngle))* 0.02).z,0.); // this number is the distance to edge
         // color -= 0.1 * max(1.-line2, 0.);

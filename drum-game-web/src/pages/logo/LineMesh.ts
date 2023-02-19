@@ -3,6 +3,7 @@ import Vector from "../../utils/Vector";
 export interface LinePoint {
     vector: Vector;
     cap?: CapType;
+    radius?: number
 }
 
 export interface Mesh {
@@ -124,8 +125,14 @@ export default function LineMesh(points: LinePoint[], radius: number): Mesh {
     }
 
     for (let i = 0; i < points.length; i += 2) {
-        const a = points[i].vector;
-        const b = points[i + 1].vector;
+        const p1 = points[i];
+        const a = p1.vector;
+        if (p1.radius)
+            radius = p1.radius
+        const p2 = points[i + 1];
+        // if (p2.radius)
+        //     radius = p2.radius
+        const b = p2.vector;
         const dir = b.sub(a).norm();
         const left = new Vector(dir.Y, -dir.X);
         const right = left.neg();
@@ -145,11 +152,11 @@ export default function LineMesh(points: LinePoint[], radius: number): Mesh {
         pushVertex(b, 1, right);
         pushVertex(a, 1, right);
 
-        const aCap = points[i].cap;
+        const aCap = p1.cap;
         if (aCap) {
             cap(a, dir.neg(), aCap);
         }
-        const bCap = points[i + 1].cap;
+        const bCap = p2.cap;
         if (bCap) {
             cap(b, dir, bCap);
         }

@@ -63,10 +63,12 @@ function NewG(builder: PathBuilder, pos: Vector, height: number) {
 
 export function FullLogoPath(builder: PathBuilder) {
     const capSize = 70;
-    const dPos = new Vector(-72, 20)
+    const dPos = new Vector(-70, 20)
+    builder.RadiusOverride = 4.5;
     const dTip = D(builder, dPos, capSize);
     const dRight = dTip.X;
     const gBottomRight = NewG(builder, dTip, capSize);
+    builder.RadiusOverride = 2.6;
 
     const smallSpacing = 8;
     const smallLetterHeight = 20;

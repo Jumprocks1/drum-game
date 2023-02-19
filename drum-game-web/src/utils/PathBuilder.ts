@@ -6,6 +6,8 @@ export class PathBuilder {
 
     public CurrentPoint: Vector = new Vector()
 
+    RadiusOverride?: number;
+
     Connected = false;
     private preCap?: CapType;
     private nextCap?: Partial<CapTypeObject>;
@@ -56,6 +58,7 @@ export class PathBuilder {
             this.applyCapToLastPoint({ vector: v.sub(this.CurrentPoint).norm() })
         }
         this.Points.push({ vector: this.CurrentPoint })
+        if (this.RadiusOverride) this.LastPoint.radius = this.RadiusOverride;
         if (this.preCap) {
             this.LastPoint.cap = this.preCap;
             this.preCap = undefined;

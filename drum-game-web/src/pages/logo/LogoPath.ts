@@ -52,39 +52,40 @@ function NewG(builder: PathBuilder, pos: Vector, height: number) {
     builder.Cap2();
     builder.LineToRelative(new Vector(seg[2]))
     builder.Cap2();
+    const gBottomRight = builder.CurrentPoint;
     builder.LineToRelative(angleDir.neg().mult(seg[3]))
     builder.ExtendCap(0.26)
-    const gRight = builder.X;
     builder.LineToRelative(new Vector(-seg[4]))
     builder.Cap();
 
-    return gRight;
+    return gBottomRight;
 }
 
 export function FullLogoPath(builder: PathBuilder) {
-
-
-    const dTip = D(builder, new Vector(-53, 20), 90);
+    const capSize = 70;
+    const dPos = new Vector(-72, 20)
+    const dTip = D(builder, dPos, capSize);
     const dRight = dTip.X;
-    const gRight = NewG(builder, new Vector(-18, 7), 1);
+    const gBottomRight = NewG(builder, dTip, capSize);
 
     const smallSpacing = 8;
-    const smallLetterHeight = 25;
+    const smallLetterHeight = 20;
 
     // RUM
-    let baseline = 0;
+    let baseline = dPos.Y - capSize + smallLetterHeight + 5;
     let top = baseline - smallLetterHeight;
 
-    let left = dRight + smallSpacing;
+    let left = dRight + 5;
 
     builder.PreCap()
     builder.MoveTo([left, baseline])
     builder.LineTo([left, top])
+    builder.Cap2()
     builder.LineToRelative([15, 0])
     builder.LineToRelative([0, 11])
     let right = builder.X;
     builder.LineTo([left, builder.Y])
-    builder.LineTo([right, builder.Y + 8])
+    builder.LineTo([right, builder.Y + 7])
     builder.LineTo([builder.X, baseline])
     builder.Cap()
 
@@ -102,36 +103,39 @@ export function FullLogoPath(builder: PathBuilder) {
         builder.PreCap()
         builder.MoveTo([left, baseline])
         builder.LineTo([left, top])
-        builder.ExtendCap();
+        builder.ExtendCap(0.6);
         const mX = 8.5;
         const mY = 11;
         builder.LineToRelative([mX, mY])
         builder.LineToRelative([mX, -mY])
-        builder.ExtendCap();
+        builder.ExtendCap(0.6);
         builder.LineTo([builder.X, baseline])
         builder.Cap()
     }
     M();
 
     // A
-    left = gRight + 6;
-    baseline = 60
+    left = gBottomRight.X + 5;
+    baseline = dTip.Y + smallLetterHeight + 5
+
     top = baseline - smallLetterHeight
-    const aX = 10;
-    const aY = 18;
+
+    // const aX = smallLetterHeight * Math.tan(ang);
+    const aX = smallLetterHeight * 0.45;
+    const aY = smallLetterHeight * 0.8;
     // we draw the small segment of the A first so we can end on the far right
     const aWidthReduction = aX / smallLetterHeight * (smallLetterHeight - aY);
     builder.MoveTo([left + aWidthReduction, top + aY])
     builder.LineToRelative([aX * 2 - aWidthReduction * 2, 0])
 
     builder.PreCap();
-    builder.MoveTo([left, baseline])
+    builder.MoveTo(new Vector(left, baseline))
     builder.LineTo([builder.X + aX, top])
     builder.ExtendCap()
     builder.LineTo([builder.X + aX, baseline])
     builder.Cap();
 
-    left = builder.X + smallSpacing - 2;
+    left = builder.X + smallSpacing;
     M();
 
     // E
@@ -141,7 +145,9 @@ export function FullLogoPath(builder: PathBuilder) {
     builder.PreCap();
     builder.MoveTo([left + eWidth, baseline])
     builder.LineToRelative([-eWidth, 0])
+    builder.Cap2();
     builder.LineToRelative([0, -smallLetterHeight])
+    builder.Cap2();
     builder.LineToRelative([eWidth, 0])
     builder.Cap();
     builder.MoveTo([left, baseline - smallLetterHeight / 2])

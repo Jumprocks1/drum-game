@@ -78,7 +78,7 @@ export default class LogoPage extends PageComponent {
 
         this.Renderer = new LogoRenderer();
 
-        if (this.Type === "full") {
+        if (this.Type === "full" || true) {
             FullLogoPath(pathBuilder);
             this.Renderer.Mesh = LineMesh(pathBuilder.Points, 3);
         } else {

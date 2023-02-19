@@ -28,6 +28,12 @@ export default class Vector {
     neg() {
         return new Vector(-this.X, -this.Y);
     }
+    negX() {
+        return new Vector(-this.X, this.Y);
+    }
+    negY() {
+        return new Vector(this.X, -this.Y);
+    }
     cross(v: Vector) {
         return this.X * v.Y - v.X * this.Y;
     }

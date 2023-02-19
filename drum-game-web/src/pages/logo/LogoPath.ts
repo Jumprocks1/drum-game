@@ -20,26 +20,32 @@ function D(builder: PathBuilder, pos: Vector, height: number) {
     return dRight;
 }
 
-function G(builder: PathBuilder, pos: Vector, height: number) {
-    const GSeg = [15, 30, 20, 10, 15];
+function G(builder: PathBuilder, pos: Vector, scale: number) {
+    const seg = [
+        15 * scale,
+        20 * scale, // left angled segment, used 2 times
+        30 * scale, // left straight side
+        15 * scale, // flat bottom
+        15 * scale, // right angled segment
+        10 * scale,
+        15 * scale
+    ];
 
     // G
-    const ang1 = Math.PI / 2 - ang
-    const angleSegmentLength = (height - GSeg[1]) / 2 / Math.sin(ang1)
-
-    const topLeft = [pos.X + angleSegmentLength * Math.cos(ang1), pos.Y - height]
+    const angleDir = new Vector(-Math.sin(ang), Math.cos(ang))
+    const angleSeg = angleDir.mult(seg[1])
 
     builder.PreCap()
-    builder.MoveTo([topLeft[0] + GSeg[0], topLeft[1]])
-    builder.LineToRelative([-GSeg[0], 0])
-    builder.LineToRelative([-angleSegmentLength * Math.cos(ang1), height / 2 - GSeg[1] / 2])
-    builder.LineToRelative([0, GSeg[1]])
-    builder.LineToRelative([angleSegmentLength * Math.cos(ang1), height / 2 - GSeg[1] / 2])
-    builder.LineToRelative([GSeg[0], 0])
-    builder.LineToRelative([Math.cos(ang1) * GSeg[2], -Math.sin(ang1) * GSeg[2]])
-    builder.LineToRelative([0, -GSeg[3]])
+    builder.MoveTo(pos)
+    builder.LineToRelative(new Vector(-seg[0]))
+    builder.LineToRelative(angleSeg)
+    builder.LineToRelative(new Vector(0, seg[2]))
+    builder.LineToRelative(angleSeg.negX())
+    builder.LineToRelative(new Vector(seg[3]))
+    builder.LineToRelative(angleDir.neg().mult(seg[4]))
+    builder.LineToRelative(new Vector(0, -seg[5]))
     const gRight = builder.X;
-    builder.LineToRelative([-GSeg[4], 0])
+    builder.LineToRelative(new Vector(-seg[6]))
     builder.Cap();
 
     return gRight;
@@ -49,7 +55,7 @@ export function FullLogoPath(builder: PathBuilder) {
 
 
     const dRight = D(builder, new Vector(-53, 20), 90);
-    const gRight = G(builder, new Vector(-45, 67), 60);
+    const gRight = G(builder, new Vector(-18, 7), 1);
 
     const smallSpacing = 8;
     const smallLetterHeight = 25;
@@ -97,7 +103,7 @@ export function FullLogoPath(builder: PathBuilder) {
     M();
 
     // A
-    left = gRight + 5;
+    left = gRight + 6;
     baseline = 60
     top = baseline - smallLetterHeight
     const aX = 10;
@@ -134,7 +140,7 @@ export function FullLogoPath(builder: PathBuilder) {
 
 export function DGLogoPath(builder: PathBuilder) {
     // D
-    D(builder, new Vector(-50, 20), 110);
+    D(builder, new Vector(-40, 34), 110);
 
-    G(builder, new Vector(-45, 67), 100);
+    G(builder, new Vector(30, -3), 1.3);
 }

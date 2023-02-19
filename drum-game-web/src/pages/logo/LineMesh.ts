@@ -1,20 +1,24 @@
 import Vector from "../../utils/Vector";
 
-export interface MeshPoint {
+export interface LinePoint {
     vector: Vector;
     cap?: CapType;
 }
 
+export interface Mesh {
+    positions: Float32Array,
+    normals: Float32Array,
+    VertexCount: number
+}
+
 export type CapType = true | Vector | { vector: Vector, extend: number }
 
-export default function LineMesh(points: MeshPoint[]): { positions: Float32Array, normals: Float32Array, VertexCount: number } {
+export default function LineMesh(points: LinePoint[], radius: number): Mesh {
 
     const positions: number[] = []; // using arrays like this is probably not ideal
     const normals: number[] = [];
 
     let v = 0;
-
-    const radius = 3;
 
     function pushVertex(pos: Vector, height: number, normal: Vector) {
         positions.push(pos.X / 100);

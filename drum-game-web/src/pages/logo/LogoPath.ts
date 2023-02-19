@@ -4,42 +4,37 @@ import Vector from "../../utils/Vector";
 function rad(deg: number) {
     return deg / 180 * Math.PI;
 }
+const ang = rad(40);
 
-export default function (builder: PathBuilder) {
-    const DPos = new Vector(-53, 20);
-    const DHeight = 90;
-
-    const ang = rad(40);
-
-    const GPos = [-45, 67]; // bottom left (G doesn't actually touch this)
-    const GSeg = [15, 30, 20, 10, 15];
-    const GHeight = 60;
-
-
-    // D
-    builder.MoveTo(DPos);
-    builder.LineToRelative(new Vector(0, -DHeight));
-    const dWidth = Math.sin(ang) / (Math.sin(Math.PI / 2 - ang) / (DHeight / 2));
+function D(builder: PathBuilder, pos: Vector, height: number) {
+    builder.MoveTo(pos);
+    builder.LineToRelative(new Vector(0, -height));
+    const dWidth = Math.sin(ang) / (Math.sin(Math.PI / 2 - ang) / (height / 2));
     builder.ExtendCap();
-    builder.LineToRelative([dWidth, DHeight / 2])
+    builder.LineToRelative([dWidth, height / 2])
     const dRight = builder.X;
-    builder.LineToRelative([-dWidth, DHeight / 2])
+    builder.LineToRelative([-dWidth, height / 2])
     builder.ExtendCap();
     builder.Cap(new Vector(0, -1))
 
+    return dRight;
+}
+
+function G(builder: PathBuilder, pos: Vector, height: number) {
+    const GSeg = [15, 30, 20, 10, 15];
 
     // G
     const ang1 = Math.PI / 2 - ang
-    const angleSegmentLength = (GHeight - GSeg[1]) / 2 / Math.sin(ang1)
+    const angleSegmentLength = (height - GSeg[1]) / 2 / Math.sin(ang1)
 
-    const topLeft = [GPos[0] + angleSegmentLength * Math.cos(ang1), GPos[1] - GHeight]
+    const topLeft = [pos.X + angleSegmentLength * Math.cos(ang1), pos.Y - height]
 
     builder.PreCap()
     builder.MoveTo([topLeft[0] + GSeg[0], topLeft[1]])
     builder.LineToRelative([-GSeg[0], 0])
-    builder.LineToRelative([-angleSegmentLength * Math.cos(ang1), GHeight / 2 - GSeg[1] / 2])
+    builder.LineToRelative([-angleSegmentLength * Math.cos(ang1), height / 2 - GSeg[1] / 2])
     builder.LineToRelative([0, GSeg[1]])
-    builder.LineToRelative([angleSegmentLength * Math.cos(ang1), GHeight / 2 - GSeg[1] / 2])
+    builder.LineToRelative([angleSegmentLength * Math.cos(ang1), height / 2 - GSeg[1] / 2])
     builder.LineToRelative([GSeg[0], 0])
     builder.LineToRelative([Math.cos(ang1) * GSeg[2], -Math.sin(ang1) * GSeg[2]])
     builder.LineToRelative([0, -GSeg[3]])
@@ -47,11 +42,20 @@ export default function (builder: PathBuilder) {
     builder.LineToRelative([-GSeg[4], 0])
     builder.Cap();
 
+    return gRight;
+}
+
+export function FullLogoPath(builder: PathBuilder) {
+
+
+    const dRight = D(builder, new Vector(-53, 20), 90);
+    const gRight = G(builder, new Vector(-45, 67), 60);
+
     const smallSpacing = 8;
     const smallLetterHeight = 25;
 
     // RUM
-    let baseline = DPos.Y - 20;
+    let baseline = 0;
     let top = baseline - smallLetterHeight;
 
     let left = dRight + smallSpacing;
@@ -94,7 +98,7 @@ export default function (builder: PathBuilder) {
 
     // A
     left = gRight + 5;
-    baseline = GPos[1] - 7
+    baseline = 60
     top = baseline - smallLetterHeight
     const aX = 10;
     const aY = 18;
@@ -126,4 +130,11 @@ export default function (builder: PathBuilder) {
     builder.MoveTo([left, baseline - smallLetterHeight / 2])
     builder.LineToRelative([eWidth2, 0])
     builder.Cap();
+}
+
+export function DGLogoPath(builder: PathBuilder) {
+    // D
+    D(builder, new Vector(-50, 20), 110);
+
+    G(builder, new Vector(-45, 67), 100);
 }

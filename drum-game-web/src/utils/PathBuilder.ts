@@ -1,11 +1,8 @@
-import { CapType, MeshPoint } from "../pages/logo/LineMesh";
+import { CapType, LinePoint } from "../pages/logo/LineMesh";
 import Vector from "./Vector";
 
 export class PathBuilder {
-    public Points: MeshPoint[] = []
-
-    constructor() {
-    }
+    public Points: LinePoint[] = []
 
     public CurrentPoint: Vector = new Vector()
 

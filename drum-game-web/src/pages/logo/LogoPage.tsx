@@ -2,18 +2,23 @@ import { RegisterListener, RemoveListener } from "../../framework/Framework";
 import PageComponent from "../../framework/PageComponent";
 import GlobalData from "../../GlobalData";
 import { PathBuilder } from "../../utils/PathBuilder";
-import { LogoBackground } from "./LogoBackground";
+import { LogoRenderer } from "./LogoRenderer";
 import MapSelectorPage from "../MapSelectorPage";
-import LogoPath from "./LogoPath";
+import { DGLogoPath, FullLogoPath } from "./LogoPath";
+import LineMesh from "./LineMesh";
+
+type LogoType = "full" | "initials"
 
 export default class LogoPage extends PageComponent {
     static Route = "logo"
 
     Canvas: HTMLCanvasElement
-    LogoBackground: LogoBackground
+    Renderer: LogoRenderer
 
     static targetSize = 800;
     static renderRadius = 100;
+
+    Type: LogoType = "initials"
 
     CanvasLoaded = false;
 
@@ -47,7 +52,7 @@ export default class LogoPage extends PageComponent {
         console.log("initializing canvas context");
         this.CheckSize(false);
 
-        this.LogoBackground.Init(this.Canvas.getContext("webgl2", { antialias: true }));
+        this.Renderer.Init(this.Canvas.getContext("webgl2", { antialias: true }));
     }
 
     Render = () => {
@@ -55,7 +60,7 @@ export default class LogoPage extends PageComponent {
 
         this.CheckSize(true);
 
-        this.LogoBackground.Draw();
+        this.Renderer.Draw();
     }
 
     AfterRemove() {
@@ -71,10 +76,15 @@ export default class LogoPage extends PageComponent {
 
         const pathBuilder = new PathBuilder();
 
-        LogoPath(pathBuilder);
+        this.Renderer = new LogoRenderer();
 
-        this.LogoBackground = new LogoBackground();
-        this.LogoBackground.Points = pathBuilder.Points;
+        if (this.Type === "full" || true) {
+            FullLogoPath(pathBuilder);
+            this.Renderer.Mesh = LineMesh(pathBuilder.Points, 3);
+        } else {
+            DGLogoPath(pathBuilder);
+            this.Renderer.Mesh = LineMesh(pathBuilder.Points, 6);
+        }
 
         this.HTMLElement = <div style={{ position: "relative" }}>
             {this.Canvas}

@@ -1,6 +1,5 @@
 import { ErrorOverlay } from "../../framework/ErrorOverlay";
-import Vector from "../../utils/Vector";
-import LineMesh, { MeshPoint } from "./LineMesh";
+import { Mesh } from "./LineMesh";
 import shaderSource from "./Shader.frag"
 
 type WebGL = WebGL2RenderingContext
@@ -20,7 +19,7 @@ void main() {
 `;
 
 
-export class LogoBackground {
+export class LogoRenderer {
 
     get GL() {
         if (this._gl == null) throw "Failed to create WebGL context";
@@ -35,7 +34,7 @@ export class LogoBackground {
     Program: WebGLProgram | null = null;
     PositionCount = 4;
 
-    Points: MeshPoint[] | null = null;
+    Mesh: Mesh | null = null;
 
 
     StartTime: number = Date.now() - Math.random() * 1000_000;
@@ -43,10 +42,11 @@ export class LogoBackground {
     Init(gl: WebGL | null) {
         if (gl == null) throw "Failed to create WebGL context";
 
+        const mesh = this.Mesh!;
+
         gl.enable(gl.DEPTH_TEST);
         gl.depthFunc(gl.GEQUAL);
 
-        const res = LineMesh(this.Points!);
         this._gl = gl;
         // only need to call this on resize
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
@@ -56,21 +56,21 @@ export class LogoBackground {
         this.PositionBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, this.PositionBuffer);
         const positions = [1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, -1.0, -1.0, -1.0, 1.0, -1.0, 1.0, -1.0, -1.0, -1.0, -1.0, -1.0];
-        const positionData = new Float32Array(positions.length + res.positions.length);
+        const positionData = new Float32Array(positions.length + mesh.positions.length);
         positionData.set(positions);
-        positionData.set(res.positions, positions.length);
+        positionData.set(mesh.positions, positions.length);
         gl.bufferData(gl.ARRAY_BUFFER, positionData, gl.STATIC_DRAW);
 
 
         this.NormalBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, this.NormalBuffer);
         const normals = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
-        const normalData = new Float32Array(positions.length + res.normals.length);
+        const normalData = new Float32Array(positions.length + mesh.normals.length);
         normalData.set(normals);
-        normalData.set(res.normals, normals.length);
+        normalData.set(mesh.normals, normals.length);
         gl.bufferData(gl.ARRAY_BUFFER, normalData, gl.STATIC_DRAW);
 
-        this.PositionCount = 6 + res.VertexCount;
+        this.PositionCount = 6 + mesh.VertexCount;
 
         gl.clearColor(0.0, 0.0, 0.0, 1.0); // Clear to black, fully opaque
         gl.clearDepth(-1.);

@@ -4,48 +4,58 @@ import Vector from "../../utils/Vector";
 function rad(deg: number) {
     return deg / 180 * Math.PI;
 }
-const ang = rad(40);
+const ang = rad(30);
 
 function D(builder: PathBuilder, pos: Vector, height: number) {
     builder.MoveTo(pos);
     builder.LineToRelative(new Vector(0, -height));
-    const dWidth = Math.sin(ang) / (Math.sin(Math.PI / 2 - ang) / (height / 2));
-    builder.ExtendCap();
-    builder.LineToRelative([dWidth, height / 2])
-    const dRight = builder.X;
-    builder.LineToRelative([-dWidth, height / 2])
-    builder.ExtendCap();
+    builder.Cap2();
+    const flatWidth = height * 0.45;
+    const dAngWidth = Math.sin(ang) / (Math.sin(Math.PI / 2 - ang) / (height / 2));
+    builder.LineToRelative(new Vector(flatWidth))
+    builder.Cap2();
+    builder.LineToRelative([dAngWidth, height / 2])
+    builder.Cap2();
+    const tip = builder.CurrentPoint;
+    builder.LineToRelative([-dAngWidth, height / 2])
+    builder.Cap2();
+    builder.LineToRelative(new Vector(-flatWidth))
+    builder.Cap2();
     builder.Cap(new Vector(0, -1))
 
-    return dRight;
+    return tip;
 }
 
-function G(builder: PathBuilder, pos: Vector, scale: number) {
+function NewG(builder: PathBuilder, pos: Vector, height: number) {
     const seg = [
-        15 * scale,
-        20 * scale, // left angled segment, used 2 times
-        30 * scale, // left straight side
-        15 * scale, // flat bottom
-        15 * scale, // right angled segment
-        10 * scale,
-        15 * scale
+        25, // flat top
+        30, // left angled segment, used 2 times
+        25, // flat bottom
+        30, // right angled segment
+        23
     ];
+
+    const scale = height / (seg[1] * 2 * Math.cos(ang))
+    for (let i = 0; i < seg.length; i++) seg[i] *= scale;
 
     // G
     const angleDir = new Vector(-Math.sin(ang), Math.cos(ang))
     const angleSeg = angleDir.mult(seg[1])
 
     builder.PreCap()
-    builder.MoveTo(pos)
+    builder.MoveTo(pos.add(new Vector(seg[0])))
     builder.LineToRelative(new Vector(-seg[0]))
+    builder.Cap2();
     builder.LineToRelative(angleSeg)
-    builder.LineToRelative(new Vector(0, seg[2]))
+    builder.Cap2();
     builder.LineToRelative(angleSeg.negX())
-    builder.LineToRelative(new Vector(seg[3]))
-    builder.LineToRelative(angleDir.neg().mult(seg[4]))
-    builder.LineToRelative(new Vector(0, -seg[5]))
+    builder.Cap2();
+    builder.LineToRelative(new Vector(seg[2]))
+    builder.Cap2();
+    builder.LineToRelative(angleDir.neg().mult(seg[3]))
+    builder.ExtendCap(0.26)
     const gRight = builder.X;
-    builder.LineToRelative(new Vector(-seg[6]))
+    builder.LineToRelative(new Vector(-seg[4]))
     builder.Cap();
 
     return gRight;
@@ -54,8 +64,9 @@ function G(builder: PathBuilder, pos: Vector, scale: number) {
 export function FullLogoPath(builder: PathBuilder) {
 
 
-    const dRight = D(builder, new Vector(-53, 20), 90);
-    const gRight = G(builder, new Vector(-18, 7), 1);
+    const dTip = D(builder, new Vector(-53, 20), 90);
+    const dRight = dTip.X;
+    const gRight = NewG(builder, new Vector(-18, 7), 1);
 
     const smallSpacing = 8;
     const smallLetterHeight = 25;
@@ -140,7 +151,6 @@ export function FullLogoPath(builder: PathBuilder) {
 
 export function DGLogoPath(builder: PathBuilder) {
     // D
-    D(builder, new Vector(-40, 34), 110);
-
-    G(builder, new Vector(30, -3), 1.3);
+    const dTip = D(builder, new Vector(-50, 20), 80);
+    NewG(builder, dTip, 80);
 }

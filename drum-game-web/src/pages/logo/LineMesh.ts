@@ -11,7 +11,9 @@ export interface Mesh {
     VertexCount: number
 }
 
-export type CapType = true | Vector | { vector: Vector, extend: number }
+export type CapTypeObject = { vector: Vector, extend?: number, type?: "2part" };
+
+export type CapType = "end" | CapTypeObject
 
 export default function LineMesh(points: LinePoint[], radius: number): Mesh {
 
@@ -33,8 +35,7 @@ export default function LineMesh(points: LinePoint[], radius: number): Mesh {
         const left = new Vector(dir.Y, -dir.X);
         const right = new Vector(-dir.Y, dir.X);
         const leftR = left.mult(radius);
-        if (cap === true) {
-
+        if (cap === "end") {
             pushVertex(p, 1, left);
             pushVertex(p.add(leftR), 0, left);
             pushVertex(p.add(leftR).add(dir.mult(radius)), 0, left);
@@ -46,7 +47,32 @@ export default function LineMesh(points: LinePoint[], radius: number): Mesh {
             pushVertex(p, 1, dir);
             pushVertex(p.add(leftR).add(dir.mult(radius)), 0, dir);
             pushVertex(p.sub(leftR).add(dir.mult(radius)), 0, dir);
-        } else if ("extend" in cap) {
+        } else if (cap.type === "2part") {
+            const v = cap.vector;
+
+            const cross = dir.cross(v);
+            const sign = Math.sign(cross); // this tells us if we are making a left or right turn
+
+            const side = left.mult(sign);
+            const side2 = new Vector(v.Y, -v.X).mult(sign);
+
+            const a = p.add(leftR.mult(sign));
+            const b = p.add(side2.mult(radius));
+
+            const sum = dir.add(v);
+            // I would love to fix this so it doesn't have the condition
+            const extension = Math.abs(sum.X) > Math.abs(sum.Y) ? (b.X - a.X) / sum.X : (b.Y - a.Y) / sum.Y
+
+            const c = a.add(dir.mult(extension))
+
+            pushVertex(p, 1, side);
+            pushVertex(c, 0, side);
+            pushVertex(a, 0, side);
+
+            pushVertex(p, 1, side2);
+            pushVertex(c, 0, side2);
+            pushVertex(b, 0, side2);
+        } else if (cap.extend) {
             const v = cap.vector;
             const extension = cap.extend * radius;
             // I couldn't figure out a perfect extension calculation, not sure what it should be
@@ -72,6 +98,11 @@ export default function LineMesh(points: LinePoint[], radius: number): Mesh {
             pushVertex(aFar, 0, norm);
             pushVertex(bFar, 0, norm);
 
+            // console.log({
+            //     angle: bFar.sub(p).ang(aFar.sub(p)) / Math.PI * 180,
+            //     angle2: aFar.sub(p).ang(dir) / Math.PI * 180
+            // })
+
             pushVertex(p, 1, side);
             pushVertex(aFar, 0, side);
             pushVertex(a, 0, side);
@@ -80,13 +111,14 @@ export default function LineMesh(points: LinePoint[], radius: number): Mesh {
             pushVertex(bFar, 0, side2);
             pushVertex(b, 0, side2);
         } else {
-            const norm = dir.sub(cap).norm();
-            const cross = dir.cross(cap);
+            const v = cap.vector;
+            const norm = dir.sub(v).norm();
+            const cross = dir.cross(v);
             const sign = Math.sign(cross); // this tells us if we are making a left or right turn
 
             pushVertex(p, 1, norm);
             pushVertex(p.add(leftR.mult(sign)), 0, norm);
-            const left2 = new Vector(cap.Y, -cap.X)
+            const left2 = new Vector(v.Y, -v.X)
             pushVertex(p.add(left2.mult(radius * sign)), 0, norm);
         }
     }

@@ -45,4 +45,7 @@ export default class Vector {
         const dy = this.Y - v.Y;
         return Math.sqrt(dx * dx + dy * dy);
     }
+    ang(v: Vector) {
+        return Math.acos(this.dot(v) / (this.length() * v.length()))
+    }
 }

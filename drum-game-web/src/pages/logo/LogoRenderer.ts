@@ -1,8 +1,10 @@
 import { ErrorOverlay } from "../../framework/ErrorOverlay";
 import { Blur } from "../../utils/blur/Blur";
-import { CompileShader, ShaderProgram } from "../../utils/GL";
+import { FrameBufferTexture, ShaderProgram } from "../../utils/GL";
 import { Mesh } from "./LineMesh";
 import shaderSource from "./Shader.frag"
+import lineShaderSource from "./LineShader.frag"
+import distortionSource from "./DistortionShader.frag"
 
 type WebGL = WebGL2RenderingContext
 
@@ -19,6 +21,23 @@ void main() {
     vNormal = normal;
 }
 `;
+const mainVertexShader = `#version 300 es
+in vec2 position;
+out highp vec2 uv;
+void main() {
+    gl_Position = vec4(position,0.,1.0);
+    uv = position;
+}
+`;
+const distortionVertex = `#version 300 es
+in vec2 position;
+out highp vec2 uv;
+
+void main() {
+    gl_Position = vec4(position,0.0,1.0);
+    uv = (position + 1.) / 2.;
+}
+`;
 
 
 export class LogoRenderer {
@@ -31,9 +50,20 @@ export class LogoRenderer {
     _gl: WebGL | null = null;
 
 
+    QuadBuffer: WebGLBuffer | null = null
+
     PositionBuffer: WebGLBuffer | null = null
     NormalBuffer: WebGLBuffer | null = null
+
     Program: WebGLProgram | null = null;
+    DistortionProgram: WebGLProgram | null = null;
+
+    Framebuffer: WebGLFramebuffer | null = null;
+    FramebufferTexture: WebGLTexture | null = null;
+
+    LineTexture: WebGLTexture | null = null;
+
+    BlurTexture: WebGLTexture | null = null;
     PositionCount = 4;
 
     Mesh: Mesh | null = null;
@@ -57,71 +87,107 @@ export class LogoRenderer {
 
         this.PositionBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, this.PositionBuffer);
-        const positions = [1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, -1.0, -1.0, -1.0, 1.0, -1.0, 1.0, -1.0, -1.0, -1.0, -1.0, -1.0];
-        const positionData = new Float32Array(positions.length + mesh.positions.length);
-        positionData.set(positions);
-        positionData.set(mesh.positions, positions.length);
-        gl.bufferData(gl.ARRAY_BUFFER, positionData, gl.STATIC_DRAW);
+        gl.bufferData(gl.ARRAY_BUFFER, mesh.positions, gl.STATIC_DRAW);
 
 
         this.NormalBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, this.NormalBuffer);
-        const normals = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
-        const normalData = new Float32Array(positions.length + mesh.normals.length);
-        normalData.set(normals);
-        normalData.set(mesh.normals, normals.length);
-        gl.bufferData(gl.ARRAY_BUFFER, normalData, gl.STATIC_DRAW);
+        gl.bufferData(gl.ARRAY_BUFFER, mesh.normals, gl.STATIC_DRAW);
 
-        this.PositionCount = 6 + mesh.VertexCount;
+        this.QuadBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.QuadBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
 
         gl.clearColor(0.0, 0.0, 0.0, 1.0); // Clear to black, fully opaque
         gl.clearDepth(-1.);
 
-        gl.bindTexture(gl.TEXTURE_2D, Blur(gl, () => this.ShadowDraw()));
+        this.Framebuffer = gl.createFramebuffer();
+        this.FramebufferTexture = FrameBufferTexture(gl);
 
-        this.InitProgram();
+
+        this.Program = ShaderProgram(gl, mainVertexShader, shaderSource);
+        this.DistortionProgram = ShaderProgram(gl, distortionVertex, distortionSource);
+
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.Framebuffer);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.FramebufferTexture, 0);
+
+        gl.bindTexture(gl.TEXTURE_2D, null);
+
+
+
+        const shadow = gl.getUniformLocation(this.Program, "shadowTexture");
+        gl.useProgram(this.Program);
+        gl.uniform1i(shadow, 1);
+        this.TimeUniform = gl.getUniformLocation(this.Program, "iTime");
+        this.DistortionTimeUniform = gl.getUniformLocation(this.DistortionProgram, "iTime");
+
+
+        this.DrawMesh();
+
+        this.BlurTexture = Blur(gl, this.LineTexture!);
+
+        this.PrepareForDrawLoop();
     }
 
-    ShadowDraw() {
+    PrepareForDrawLoop() {
+        // these settings should be permanent - they should not change at all inside Draw()
         const gl = this.GL;
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.PositionBuffer);
-        gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
-        gl.enableVertexAttribArray(0);
-        gl.drawArrays(gl.TRIANGLES, 0, this.PositionCount);
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.useProgram(this.Program);
+
+        gl.bindTexture(gl.TEXTURE_2D, this.LineTexture);
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, this.BlurTexture);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.QuadBuffer);
+        gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
     }
 
     public Draw() {
         const gl = this.GL;
-
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        gl.clear(gl.DEPTH_BUFFER_BIT);
 
         // Tell WebGL to use our program when drawing
-        gl.useProgram(this.Program);
+        gl.uniform1f(this.TimeUniform, (Date.now() - this.StartTime) / 1000);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    }
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.PositionBuffer);
+    DrawMesh() {
+        const mesh = this.Mesh!;
+        const gl = this.GL;
+
+        const program = ShaderProgram(gl, vertexShaderSource, lineShaderSource);
+        gl.useProgram(program);
+
+        const position = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, position);
+        gl.bufferData(gl.ARRAY_BUFFER, mesh.positions, gl.STATIC_DRAW);
         gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.NormalBuffer);
+        const normal = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, normal);
+        gl.bufferData(gl.ARRAY_BUFFER, mesh.normals, gl.STATIC_DRAW);
         gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(1);
 
-        gl.uniform1f(this.TimeUniform, (Date.now() - this.StartTime) / 1000);
+        this.LineTexture = FrameBufferTexture(gl);
 
-        gl.drawArrays(gl.TRIANGLES, 0, this.PositionCount);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.Framebuffer);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.LineTexture, 0);
+
+        const depthBuffer = gl.createRenderbuffer();
+        gl.bindRenderbuffer(gl.RENDERBUFFER, depthBuffer);
+        gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, gl.canvas.width, gl.canvas.height);
+        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depthBuffer);
+
+        gl.clear(gl.DEPTH_BUFFER_BIT);
+
+        gl.drawArrays(gl.TRIANGLES, 0, mesh.VertexCount);
     }
 
     TimeUniform: WebGLUniformLocation | null = null;
-
-    InitProgram() {
-        const gl = this.GL;
-
-        if (this.Program) return;
-
-        const vertex = CompileShader(gl, vertexShaderSource, this.GL.VERTEX_SHADER);
-        const frag = CompileShader(gl, shaderSource, this.GL.FRAGMENT_SHADER);
-        this.Program = ShaderProgram(gl, vertex, frag);
-
-        this.TimeUniform = gl.getUniformLocation(this.Program, "iTime");
-    }
+    DistortionTimeUniform: WebGLUniformLocation | null = null;
 }

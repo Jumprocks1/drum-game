@@ -3,10 +3,11 @@ precision highp float;
 
 
 uniform float iTime;
+uniform sampler2D lineTexture;
 uniform sampler2D shadowTexture;
+
 void mainImage(out vec4 fragColor);
-in vec3 vPos;
-in vec2 vNormal;
+in vec2 uv;
 out vec4 oFragColor;
 void main(void) {
     vec4 fragColor;
@@ -49,8 +50,6 @@ vec2 getHex(vec2 p)
 }
 
 vec3 hexBgColor() {
-    vec2 uv = vPos.xy;
-
     vec3 color = vec3(0.);
 
     vec2 coord = getHex(uv*10.0 + iTime * vec2(0.5,2.0) + sin(iTime) * 0.3);
@@ -76,7 +75,6 @@ vec3 hexBgColor() {
 
 void mainImage(out vec4 fragColor)
 {
-    vec2 uv = vPos.xy;
     const float borderCenter = 0.95;
 
     const float baseMaxLighting = 1.7;
@@ -117,11 +115,12 @@ void mainImage(out vec4 fragColor)
     color += blue * lightMod;
 
     float growthAngle = pi12 - growthTime;
-        
-    if (vPos.z >= 0.) {
-        // should maybe add a global top light so that even without the growth light we can still see normals
+    
+    vec3 lineData = texture(lineTexture, (uv + 1.) / 2.).xyz;
+    if (lineData.z > 0.) {
+        // should maybe add a global north light so that even without the growth light we can still see normals
 
-        vec3 lineData = vec3(vNormal.xy, vPos.z);
+        lineData.xy = lineData.xy * 2. - 1.;
         vec2 dir = -lineData.xy;
         vec2 lightDir = normalize(-uv);
 

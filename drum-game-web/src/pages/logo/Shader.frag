@@ -7,7 +7,7 @@ uniform sampler2D lineTexture;
 uniform sampler2D shadowTexture;
 
 void mainImage(out vec4 fragColor);
-in vec2 uv;
+in vec2 vUv;
 out vec4 oFragColor;
 void main(void) {
     vec4 fragColor;
@@ -49,7 +49,7 @@ vec2 getHex(vec2 p)
     return vec2(q,r);
 }
 
-vec3 hexBgColor() {
+vec3 hexBgColor(vec2 uv) {
     vec3 color = vec3(0.);
 
     vec2 coord = getHex(uv*10.0 + iTime * vec2(0.5,2.0) + sin(iTime) * 0.3);
@@ -75,6 +75,10 @@ vec3 hexBgColor() {
 
 void mainImage(out vec4 fragColor)
 {
+    float t = iTime + vUv.x * 2.;
+    float distortion = sin(t * tau);
+    vec2 uv = vUv + vec2(0.,distortion* 0.01);
+
     const float borderCenter = 0.95;
 
     const float baseMaxLighting = 1.7;
@@ -138,7 +142,7 @@ void mainImage(out vec4 fragColor)
         color += blue * lightPower;
     } else {
         if (r < borderCenter) {
-            color += hexBgColor() * min(maxLighting - lightMod, 1.);
+            color += hexBgColor(uv) * min(maxLighting - lightMod, 1.);
 
             vec2 shadowOffset = vec2(cos(growthAngle), sin(growthAngle)) * 0.05;
             color *= 1. - (texture(shadowTexture, (uv + shadowOffset + 1.) / 2.).rgb);

@@ -26,7 +26,7 @@ export default function LineMesh(points: LinePoint[], radius: number): Mesh {
     function pushVertex(pos: Vector, height: number, normal: Vector) {
         positions.push(pos.X / 100);
         positions.push(-pos.Y / 100);
-        positions.push(height);
+        positions.push(-height); // we use negative height since in OpenGL negative depth means closer to camera (ie. higher)
         normals.push(normal.X);
         normals.push(-normal.Y);
         v += 1;

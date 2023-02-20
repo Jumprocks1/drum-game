@@ -14,3 +14,8 @@
 - Pressing enter should load map on DTX view
 - Automatically grab difficulty names from maps folder instead of using dtx.json
     - We do this when exporting to DTX anyways
+
+
+# Logo
+- Add little notes/beats on the outside in a cool rhythm
+- When the glow ring hits the beats, have it bounce a little

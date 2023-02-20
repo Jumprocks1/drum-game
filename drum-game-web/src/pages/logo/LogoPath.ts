@@ -5,13 +5,14 @@ function rad(deg: number) {
     return deg / 180 * Math.PI;
 }
 const ang = rad(30);
+const largeFlatWidth = 0.481125;
 
 function D(builder: PathBuilder, pos: Vector, height: number) {
     builder.MoveTo(pos);
     builder.LineToRelative(new Vector(0, -height));
     builder.Cap2();
-    const flatWidth = height * 0.45;
-    const dAngWidth = Math.sin(ang) / (Math.sin(Math.PI / 2 - ang) / (height / 2));
+    const flatWidth = height * largeFlatWidth;
+    const dAngWidth = Math.tan(ang) * height / 2;
     builder.LineToRelative(new Vector(flatWidth))
     builder.Cap2();
     builder.LineToRelative([dAngWidth, height / 2])
@@ -158,7 +159,11 @@ export function FullLogoPath(builder: PathBuilder) {
 }
 
 export function DGLogoPath(builder: PathBuilder) {
+    const height = 80;
+    const flatWidth = height * largeFlatWidth
+    const x = -flatWidth - Math.tan(ang) * height / 4;
+
     // D
-    const dTip = D(builder, new Vector(-50, 20), 80);
-    NewG(builder, dTip, 80);
+    const dTip = D(builder, new Vector(x, height / 4), height);
+    NewG(builder, dTip, height);
 }

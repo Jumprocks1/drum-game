@@ -73,11 +73,22 @@ vec3 hexBgColor(vec2 uv) {
     return color - 0.12;
 }
 
+vec2 radial_distort(vec2 uv) { // this is a fun one
+    float t = iTime + length(uv) * 1.;
+    float distortion = sin(t * tau) * 0.1; // can make this higher for more fun
+    uv += normalize(uv) * distortion;
+    return uv;
+}
+vec2 distort(vec2 uv) {
+    float t = iTime + uv.x * 2.;
+    float distortion = sin(t * tau) * 0.01;
+    uv += vec2(0.,1.) * distortion;
+    return uv;
+}
+
 void mainImage(out vec4 fragColor)
 {
-    float t = iTime + vUv.x * 2.;
-    float distortion = sin(t * tau);
-    vec2 uv = vUv + vec2(0.,distortion* 0.01);
+    vec2 uv = vUv;//distort(vUv);
 
     const float borderCenter = 0.95;
 

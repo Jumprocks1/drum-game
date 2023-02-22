@@ -3,7 +3,6 @@ import { Blur } from "../../utils/blur/Blur";
 import { FrameBufferTexture, ShaderProgram } from "../../utils/GL";
 import { Mesh } from "./LineMesh";
 import shaderSource from "./Shader.frag"
-import lineShaderSource from "./LineShader.frag"
 
 type WebGL = WebGL2RenderingContext
 
@@ -20,6 +19,17 @@ void main() {
     vNormal = normal;
 }
 `;
+const lineFragShader = `#version 300 es
+precision highp float;
+
+in vec3 vPos;
+in vec2 vNormal;
+out vec4 fragColor;
+
+void main(void) {
+    fragColor = vec4(vNormal.xy / 2. + 0.5, 1.-vPos.z, 1.0);
+}
+`
 const mainVertexShader = `#version 300 es
 in vec2 position;
 out highp vec2 vUv;
@@ -110,7 +120,7 @@ export class LogoRenderer {
 
         const framebuffer = gl.createFramebuffer();
 
-        const program = ShaderProgram(gl, lineVertexShader, lineShaderSource);
+        const program = ShaderProgram(gl, lineVertexShader, lineFragShader);
         gl.useProgram(program);
 
         const position = gl.createBuffer();

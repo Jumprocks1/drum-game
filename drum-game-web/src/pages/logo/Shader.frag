@@ -77,7 +77,15 @@ vec2 radial_distort(vec2 uv) { // this is a fun one
     float t = iTime + length(uv) * 1.;
     float distortion = sin(t * tau) * 0.1; // can make this higher for more fun
     uv += normalize(uv) * distortion;
+    // abs(sin(t)) has a nice rhythm
     return uv;
+}
+vec2 radial_distort2(vec2 uv) { // this doesn't distort as much in the center
+    float t = iTime + length(uv) * 0.5;
+    float distortion = sin(t * tau) * 0.1; // can make this higher for more fun
+    uv *= 1. + distortion;
+    // abs(sin(t)) has a nice rhythm
+    return clamp(uv, -1., 1.);
 }
 vec2 distort(vec2 uv) {
     float t = iTime + uv.x * 2.;
@@ -85,10 +93,10 @@ vec2 distort(vec2 uv) {
     uv += vec2(0.,1.) * distortion;
     return uv;
 }
-
 void mainImage(out vec4 fragColor)
 {
-    vec2 uv = vUv;//distort(vUv);
+    // vec2 uv = vUv;
+    vec2 uv = radial_distort2(vUv);
 
     const float borderCenter = 0.95;
 

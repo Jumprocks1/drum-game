@@ -31,8 +31,8 @@ export default class DtxPage extends PageComponent {
         const preview = new DtxPreview();
         carousel.OnMapChange = e => {
             preview.SetMap(e);
-            document.title = `${e.Artist} - ${e.Title}`
-            if (this.MapUrl) { // if we have a map in the URL, we make sure to keep updating the URL
+            document.title = e ? `${e.Artist} - ${e.Title}` : "No maps found"
+            if (this.MapUrl && e) { // if we have a map in the URL, we make sure to keep updating the URL
                 const newUrl = CacheMapLink(e);
                 if (newUrl !== this.MapUrl) {
                     const router = this.FindParent(Router);

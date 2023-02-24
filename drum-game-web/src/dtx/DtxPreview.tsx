@@ -33,7 +33,7 @@ export default class DtxPreview extends Component {
     }
     Map?: CacheMap;
 
-    SetMap(map: CacheMap) {
+    SetMap(map: CacheMap | undefined) {
         this.Map = map;
         if (!map) {
             this.HTMLElement.style.visibility = "hidden";

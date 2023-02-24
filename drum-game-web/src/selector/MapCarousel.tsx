@@ -35,7 +35,7 @@ export default class MapCarousel extends Component { // could merge this back wi
 
     Dragging = false;
 
-    OnMapChange = (map: CacheMap) => { }
+    OnMapChange = (map: CacheMap | undefined) => { }
     OnMapOpen = (map: CacheMap) => {
         this.FindParent(MapSelectorPage).LoadMap(map)
     }

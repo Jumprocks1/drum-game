@@ -6,13 +6,15 @@
   "image": "images/75c0489f13de0a221ee43a84a6f51f81.jpg",
   "imageUrl": "https://m.media-amazon.com/images/I/61PA5HeznIL._SS400_.jpg",
   "id": "fdbc94c1-cc50-487e-9c3e-0f8b3474e2b4",
-  "offset": 1207.86,
+  "offset": 1202.69,
   "leadIn": 0.0,
   "bpm": 173.0,
   "title": "Omega Rhythm",
   "artist": "UPLIFT SPICE",
   "mapper": "Jumprocks",
   "difficulty": "Hard",
+  "tags": "dtx-level-73",
+  "previewTime": 99700.0,
   "youTubeID": "0rVqj8PGTXA",
   "amazonASIN": "B075GXY29G",
   "playableDuration": 176098.0,
@@ -2292,7 +2294,8 @@
     },
     {
       "time": 128.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 128.5,
@@ -2376,7 +2379,8 @@
     },
     {
       "time": 134.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 134.5,
@@ -2760,7 +2764,8 @@
     },
     {
       "time": 160.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 160.5,
@@ -2844,7 +2849,8 @@
     },
     {
       "time": 166.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 166.5,
@@ -3076,6 +3082,10 @@
     },
     {
       "time": 181.0,
+      "channel": "hihat"
+    },
+    {
+      "time": 181.25,
       "channel": "hihat"
     },
     {
@@ -4722,7 +4732,8 @@
     },
     {
       "time": 276.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 276.5,
@@ -4806,7 +4817,8 @@
     },
     {
       "time": 282.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 282.5,
@@ -5190,7 +5202,8 @@
     },
     {
       "time": 308.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 308.5,
@@ -5274,7 +5287,8 @@
     },
     {
       "time": 314.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 314.5,
@@ -5510,7 +5524,8 @@
     },
     {
       "time": 328.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 329.0,
@@ -5678,7 +5693,8 @@
     },
     {
       "time": 344.0,
-      "channel": "crash"
+      "channel": "crash",
+      "modifier": "accent"
     },
     {
       "time": 345.0,
@@ -5874,7 +5890,8 @@
     },
     {
       "time": 360.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 360.0,
@@ -6118,7 +6135,7 @@
     },
     {
       "time": 383.0,
-      "channel": "crash"
+      "channel": "china"
     },
     {
       "time": 384.0,
@@ -6126,7 +6143,8 @@
     },
     {
       "time": 384.0,
-      "channel": "crash"
+      "channel": "crash",
+      "modifier": "accent"
     },
     {
       "time": 385.0,
@@ -6566,7 +6584,8 @@
     },
     {
       "time": 440.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 440.5,
@@ -6650,7 +6669,8 @@
     },
     {
       "time": 446.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 446.5,
@@ -7046,7 +7066,8 @@
     },
     {
       "time": 472.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 472.5,
@@ -7130,7 +7151,8 @@
     },
     {
       "time": 478.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 478.5,

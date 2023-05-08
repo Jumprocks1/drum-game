@@ -89,6 +89,7 @@ public static class Program
     public static bool Deploy;
     public static void Main(string[] args)
     {
+        Console.WriteLine("Building map info");
         Deploy = args.Length > 0 && args[0] == "deploy";
         if (!Directory.Exists("../dist/maps"))
         {
@@ -117,7 +118,7 @@ public static class Program
         var set = new List<(string, BeatmapMetadata)>();
         foreach (var (file, metadata) in allMetadata)
         {
-            if (metadata.Title == beatmap.Title && metadata.Artist == beatmap.Artist && metadata.Mapper == beatmap.Mapper
+            if (metadata.Artist == beatmap.Artist && metadata.Mapper == beatmap.Mapper
                 && metadata.Audio == beatmap.Audio)
                 set.Add((file, metadata));
         }
@@ -157,8 +158,6 @@ public static class Program
             dtxMaps[map.Filename] = metadata;
             metadata.DownloadUrl = map.DownloadUrl;
             metadata.Date = map.Date;
-            // TODO we shouldn't need to manually enter the difficulties
-
 
             var set = GetMapSet(metadata, drumGame);
             var difficulties = set.Select(e => GetDlevel(e.Item2)).OrderBy(e => e);

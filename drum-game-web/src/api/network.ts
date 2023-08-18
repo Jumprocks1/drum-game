@@ -11,11 +11,16 @@ export interface FetchConfig {
     body?: any
 }
 
+export function buildUrl(url: string) {
+    if (url.startsWith("/") && FrameworkConfig.baseName)
+        url = FrameworkConfig.baseName + url;
+    return url;
+}
+
 export async function fetchEndpoint<T = {}>(endpoint: string,
     { method = "get", body }: FetchConfig = {}) {
 
-    if (endpoint.startsWith("/") && FrameworkConfig.baseName)
-        endpoint = FrameworkConfig.baseName + endpoint;
+    endpoint = buildUrl(endpoint)
 
     const headers = new Headers();
     const init: RequestInit = { headers, method }

@@ -1,3 +1,4 @@
+import { buildUrl } from "../api/network";
 import { getUrl } from "../api/spotify";
 import Component from "../framework/Component";
 import { RouteLink } from "../framework/RouteButton";
@@ -68,7 +69,7 @@ export default class MapPreview extends Component {
             if (!download) {
                 let fileName = map.FileName;
                 if (!fileName.endsWith(".bjson")) fileName += ".bjson"
-                download = `/maps/${fileName}`
+                download = buildUrl(`/maps/${fileName}`)
             }
 
             this.Download.href = download ?? "";

@@ -26,6 +26,8 @@ export function createElement(element: string | FC,
             // TODO this is pretty sketchy
             const component: Component = new (element as any)(properties ?? {});
             el = component.HTMLElement
+        } else if (element === createFragment) {
+            el = createFragment();
         } else {
             el = element(properties ?? {});
         }
@@ -42,4 +44,8 @@ export function createElement(element: string | FC,
         }
     }
     return el;
+}
+
+export function createFragment(...children: any[]) {
+    return document.createDocumentFragment() as any as HTMLElement; // technically should be Node
 }

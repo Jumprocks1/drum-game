@@ -8,6 +8,7 @@
         "sourceMap": true,
         "jsx": "react",
         "jsxFactory": "createElement",
+        "jsxFragmentFactory": "createFragment",
         "strict": true,
         "resolveJsonModule": true,
         "allowSyntheticDefaultImports": true

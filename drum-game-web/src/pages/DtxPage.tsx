@@ -3,8 +3,8 @@ import Router, { GlobalRouter, RouteParameters } from "../framework/Router";
 import GlobalData from "../GlobalData";
 import MapCarousel, { CarouselState } from "../selector/MapCarousel";
 import { CacheMap, CacheMapLink } from "../interfaces/Cache";
-import DtxPreview from "../dtx/DtxPreview";
 import BeatmapPlayerPage from "./BeatmapPlayerPage";
+import MapPreview from "../components/MapPreview";
 
 export default class DtxPage extends PageComponent {
     static Route = "dtx/$0|dtx/?"
@@ -28,7 +28,7 @@ export default class DtxPage extends PageComponent {
         super.AfterParent();
         const carousel = new MapCarousel();
 
-        const preview = new DtxPreview();
+        const preview = new MapPreview(true);
         carousel.OnMapChange = e => {
             preview.SetMap(e);
             document.title = e ? `${e.Artist} - ${e.Title}` : "No maps found"

@@ -107,14 +107,6 @@
 
 $card-width: 600px;
 
-#map-selector-page {
-    display: flex;
-
-    #map-selector {
-        flex: 1;
-    }
-}
-
 #map-selector {
     overflow: hidden;
     height: 100%;
@@ -201,7 +193,8 @@ $card-width: 600px;
     }
 }
 
-#dtx-page {
+#dtx-page,
+#map-selector-page {
     display: flex;
 
     @include sm {

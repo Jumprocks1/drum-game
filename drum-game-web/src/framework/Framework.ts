@@ -1,5 +1,5 @@
 import Component from "./Component";
-import { createElement } from "./createElement";
+import { createElement, createFragment } from "./createElement";
 
 type EventMap = {
     newframe: number,
@@ -50,6 +50,7 @@ function loadConfig(config: Partial<FrameworkConfig>) {
 export function Start(root: new () => Component, config?: Partial<FrameworkConfig>) {
     if (config) loadConfig(config);
     window.createElement = createElement;
+    window.createFragment = createFragment;
 
     const r = new root();
     r.Parent = r;

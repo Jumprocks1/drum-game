@@ -1,9 +1,10 @@
-import MapCarousel from "../selector/MapCarousel";
+import MapCarousel, { CarouselState } from "../selector/MapCarousel";
 import PageComponent from "../framework/PageComponent";
 import Router from "../framework/Router";
 import GlobalData from "../GlobalData";
 import { CacheMap } from "../interfaces/Cache";
 import BeatmapPlayerPage from "./BeatmapPlayerPage";
+import MapPreview from "../components/MapPreview";
 
 export default class MapSelectorPage extends PageComponent {
     static Route = ".*"
@@ -15,11 +16,18 @@ export default class MapSelectorPage extends PageComponent {
 
         const carousel = new MapCarousel();
 
+        const preview = new MapPreview();
+        carousel.OnMapChange = e => {
+            preview.SetMap(e);
+        }
+
+        this.Add(preview);
         this.Add(carousel);
 
         GlobalData.LoadMapList().then(maps => {
             if (!this.Alive) return;
-            carousel.SetItems(Object.values(maps.Maps).sort((a, b) => a.Difficulty - b.Difficulty));
+            const o: CacheMap[] = Object.values(maps.Maps);
+            carousel.SetItems(o.sort((a, b) => a.Difficulty - b.Difficulty));
         })
     }
 

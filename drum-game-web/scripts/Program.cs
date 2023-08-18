@@ -33,6 +33,7 @@ public class BeatmapMetadata
     public string DifficultyString; // this is the name displayed on the map selection screen
     public string Tags;
     public long WriteTime;
+    public DateTime? CreationTimeUtc;
     public string ImageUrl;
     public string DownloadUrl;
     public string Spotify;

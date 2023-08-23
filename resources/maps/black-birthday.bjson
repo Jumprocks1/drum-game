@@ -5215,11 +5215,13 @@
     },
     {
       "time": 574.0,
-      "channel": "snare"
+      "channel": "snare",
+      "sticking": "right"
     },
     {
       "time": 574.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 574.5,

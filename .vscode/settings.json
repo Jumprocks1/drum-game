@@ -12,5 +12,6 @@
             ],
             "url": "./bjson-schema.json"
         }
-    ]
+    ],
+    "dotnet.defaultSolution": "disable"
 }

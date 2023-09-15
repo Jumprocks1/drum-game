@@ -220,7 +220,7 @@ $card-width: 600px;
 
         h3 {
             line-height: 1.5em; // prevent height from changing based on the text content
-            white-space: nowrap;
+            word-break: keep-all; // prevent breaking between Japanese characters
         }
 
         img {

@@ -139,6 +139,9 @@
     "audio": {
       "type": "string"
     },
+    "drumOnlyAudio": {
+      "type": "string"
+    },
     "image": {
       "type": "string",
       "description": "Image used as a background when showing this beatmap."

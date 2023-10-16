@@ -95,8 +95,8 @@ vec2 distort(vec2 uv) {
 }
 void mainImage(out vec4 fragColor)
 {
-    // vec2 uv = vUv;
-    vec2 uv = radial_distort2(vUv);
+    // vec2 uv = radial_distort2(vUv);
+    vec2 uv = vUv;
 
     const float borderCenter = 0.95;
 
@@ -114,6 +114,7 @@ void mainImage(out vec4 fragColor)
     float growthPortion = 0.2 / pow(r / borderCenter, 3.); // proportion of half the circle, 1 => half the circle is modified
 
     float growthTime = iTime * 0.5;
+    // float growthTime = -pi/4.;
 
     float growth = max((sin(ang + growthTime) - 1.0) / growthPortion + 1.0, 0.0);
 
@@ -134,8 +135,6 @@ void mainImage(out vec4 fragColor)
     float maxLighting = baseMaxLighting + growth * 2.;
 
     float lightMod = min(lightingPower / lightingDist, maxLighting);
-    
-    color += blue * lightMod;
 
     float growthAngle = pi12 - growthTime;
     
@@ -161,13 +160,23 @@ void mainImage(out vec4 fragColor)
         color += blue * lightPower;
     } else {
         if (r < borderCenter) {
-            color += hexBgColor(uv) * min(maxLighting - lightMod, 1.);
+            float backgroundBlend = min((maxLighting - lightMod) / maxLighting * 1.1, 1.);
+            color += hexBgColor(uv) *backgroundBlend;
 
             vec2 shadowOffset = vec2(cos(growthAngle), sin(growthAngle)) * 0.05;
             color *= 1. - (texture(shadowTexture, (uv + shadowOffset + 1.) / 2.).rgb);
         }
     }
 
+    color += blue * lightMod;
 
-    fragColor = vec4(color, 1.);
+    float alpha = 1.;
+    if (r >= borderCenter) {
+        color = clamp(color, 0., 1.);
+        float m = max(color.x, max(color.y, color.z));
+        alpha = m;
+        color /= m;
+    }
+
+    fragColor = vec4(color, alpha);
 }

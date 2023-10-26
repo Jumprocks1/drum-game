@@ -14,9 +14,6 @@ export default class Logo extends Component {
     Canvas: HTMLCanvasElement
     Renderer: LogoRenderer
 
-    static targetSize = 800;
-    static renderRadius = 100;
-
     Type: LogoType = "initials"
 
     CanvasLoaded = false;
@@ -59,7 +56,9 @@ export default class Logo extends Component {
         console.log("initializing canvas context");
         this.CheckSize(false);
 
-        this.Renderer.Init(this.Canvas.getContext("webgl2", { antialias: true }));
+        // this.HTMLElement.style.background = "white";
+
+        this.Renderer.Init(this.Canvas.getContext("webgl2", { premultipliedAlpha: false }));
     }
 
     Render = () => {

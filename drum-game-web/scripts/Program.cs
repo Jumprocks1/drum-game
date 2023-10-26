@@ -3,6 +3,7 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+using System.Web;
 
 namespace Build;
 
@@ -168,8 +169,10 @@ public static class Program
             if (Deploy)
             {
                 var durationString = FormatTime(metadata.PlayableDuration);
+                var artist = HttpUtility.HtmlEncode(metadata.Artist);
+                var title = HttpUtility.HtmlEncode(metadata.Title);
                 var extraTags = $@"
-<meta property=""og:title"" content=""{metadata.Artist} - {metadata.Title}"" />
+<meta property=""og:title"" content=""{artist} - {title}"" />
 <meta property=""og:description"" content=""{metadata.MedianBPM} BPM - {diffString} - Length: {durationString}"" />
 <meta property=""og:image"" content=""{metadata.ImageUrl}"" />
             ";

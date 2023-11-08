@@ -38,7 +38,7 @@ $headers["Content-Type"] = "b2/x-auto"
 $headers["X-Bz-Content-Sha1"] = $sha1
 
 $uploadRes = irm -Uri $uploadUrl -Headers $headers -SkipHeaderValidation -Method Post -InFile $target
-$uploadedFilename = [uri]::EscapeUriString($uploadRes.fileName.replace(" ","+"))
+$uploadedFilename = [uri]::EscapeUriString($uploadRes.fileName)
 
 $downloadUrlBase = $auth.apiInfo.storageApi.downloadUrl
 $downloadUrl = "$downloadUrlBase/file/$bucketName/$uploadedFilename"

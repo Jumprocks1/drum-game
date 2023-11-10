@@ -1,10 +1,18 @@
 param(
-    [Parameter(Mandatory)][string]$target
+    [Parameter(Mandatory)][string]$BjsonName
 )
 $ErrorActionPreference = "Stop"
 
 $authUrl = "https://api.backblazeb2.com/b2api/v3/b2_authorize_account"
 $key = Get-Content backblaze-b2.key
+
+if (!$BjsonName.EndsWith(".bjson")) {
+    $BjsonName += ".bjson"
+}
+
+$bjsonNameLeaf = Split-Path $BjsonName -LeafBase
+$exportFolder = "../DrumGame/resources/dtx-exports/$bjsonNameLeaf-dtx"
+$zipTarget = (ls $exportFolder *.zip | sort LastWriteTime | select -last 1).FullName
 
 $encodedCreds = [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes($key))
 
@@ -19,25 +27,22 @@ $apiUrl = $auth.apiInfo.storageApi.apiUrl
 $headers.Authorization = $auth.authorizationToken
 
 $bucketName = $auth.apiInfo.storageApi.bucketName
-$body = @{
-    accountId = $auth.accountId;
-    bucketId = $auth.apiInfo.storageApi.bucketId
-}
+$body = @{bucketId = $auth.apiInfo.storageApi.bucketId}
 
 $url = "$apiUrl/b2api/v3/b2_get_upload_url"
 $res = irm -Uri $url -Headers $headers -Body $body -SkipHeaderValidation
 $uploadUrl = $res.uploadUrl
 $uploadAuthToken = $res.authorizationToken
 
-$sha1 = (Get-FileHash -Algorithm SHA1 $target).Hash
+$sha1 = (Get-FileHash -Algorithm SHA1 $zipTarget).Hash
 
 $headers.Authorization = $uploadAuthToken
-$filenameLeaf = Split-Path $target -Leaf
+$filenameLeaf = Split-Path $zipTarget -Leaf
 $headers["X-Bz-File-Name"] = [uri]::EscapeUriString($filenameLeaf)
 $headers["Content-Type"] = "b2/x-auto"
 $headers["X-Bz-Content-Sha1"] = $sha1
 
-$uploadRes = irm -Uri $uploadUrl -Headers $headers -SkipHeaderValidation -Method Post -InFile $target
+$uploadRes = irm -Uri $uploadUrl -Headers $headers -SkipHeaderValidation -Method Post -InFile $zipTarget
 $uploadedFilename = [uri]::EscapeUriString($uploadRes.fileName)
 
 $downloadUrlBase = $auth.apiInfo.storageApi.downloadUrl
@@ -46,7 +51,7 @@ $downloadUrl = "$downloadUrlBase/file/$bucketName/$uploadedFilename"
 $dtxJsonPath = "src/dtx.json"
 $dtxJson = Get-Content -Raw $dtxJsonPath | ConvertFrom-Json
 $dtxJson.maps = @(@{
-    filename = $targetBjson;
+    filename = $BjsonName;
     downloadUrl = $downloadUrl;
     date = get-date -Format "yyyy-M-d";
 }) + $dtxJson.maps

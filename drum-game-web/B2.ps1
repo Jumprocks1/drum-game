@@ -3,6 +3,9 @@ param(
 )
 $ErrorActionPreference = "Stop"
 
+# Note, this does work for uploading updates to maps, just make sure to adjust dtx.json as necessary.
+# It adds a second entry at the top for the new file.
+
 $authUrl = "https://api.backblazeb2.com/b2api/v3/b2_authorize_account"
 $key = Get-Content backblaze-b2.key
 

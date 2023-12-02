@@ -67,6 +67,7 @@ resources/maps/loli-kami-requiem.bjson
 # Imported maps
 resources/maps/*.dtx.bjson
 resources/maps/*-dtx.bjson
+resources/maps/*-taiko.bjson
 
 # Global ignores
 .cache.json

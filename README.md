@@ -1,5 +1,5 @@
 # Drum Game
-A rhythm game for electronic drums that is meant to be used as a practice and performance tool.
+An open-source rhythm game for electronic drums that is meant to be used as a practice and performance tool.
 
 You can download the latest release [here](https://github.com/Jumprocks1/drum-game/releases).
 
@@ -7,7 +7,9 @@ It is built using [osu!framework](https://github.com/ppy/osu-framework) with a l
 
 You can see the game in action on my [YouTube channel](https://www.youtube.com/playlist?list=PLBsK4hG6ZcIgSahbTFiFBoQb39ITodnFM).
 
-Learn more on [Discord](https://discord.gg/RTc3xDKabU) - it's a small community, feel free to write a message!
+Learn more on [Discord](https://discord.gg/RTc3xDKabU)
+
+[![Discord](https://img.shields.io/discord/1019266871888973976.svg?logo=discord&logoColor=white&labelColor=7289DA&label=Discord&color=17cf48)](https://discord.gg/RTc3xDKabU)
 
 ## Status
 This project is still in early development. Most of the features are geared towards making the game work specifically for me as the developer. It is intended to work for all configurations, but due to lack of testing, many configurations may not function right away.

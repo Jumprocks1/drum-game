@@ -4,7 +4,7 @@ This folder contains the source for the primary desktop application for Drum Gam
 
 ## Running From Source
 On Windows, you can run `Start.ps1`. If it complains about missing `osu.Framework`, then you will need to checkout the correct version of the framework.
-As of 12-12-2023, version 2022.1110.0 from NuGet will also work. To switch to the NuGet version, simple toggle the comments in `DrumGame.Game/DrumGame.Game.csproj` so that the NuGet version is referenced.
+As of 12-12-2023, version [2022.1110.0](https://www.nuget.org/packages/ppy.osu.Framework/2022.1110.0) from NuGet will also work. To switch to the NuGet version, toggle the comments in `DrumGame.Game/DrumGame.Game.csproj` so that the NuGet version is referenced instead.
 
 ## Contributing
 Currently there's not much set up for other contributors. I personally use the VSCode C# extension with C# Dev Kit disabled. The "Dev Kit" includes AI and closed source components that I don't use. I have a better experience with `"dotnet.server.useOmnisharp": true` set, but the default language server should also be fine.

@@ -1,0 +1,184 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
+
+namespace DrumGame.Game.IO.Midi;
+
+public class MidiTrack : MidiFile.Chunk
+{
+    public List<Event> events;
+    public static MidiTrack Read(MidiReader reader, int length)
+    {
+        var events = new List<Event>();
+        var end = reader.BaseStream.Position + length;
+        byte? previousEventType = null;
+        while (reader.BaseStream.Position < end)
+        {
+            var e = Event.Read(reader, ref previousEventType);
+            if (e != null)
+            {
+                events.Add(e);
+            }
+        }
+        return new MidiTrack
+        {
+            events = events
+        };
+    }
+
+    public class TempoEvent : Event
+    {
+        public int MicrosecondsPerQuarterNote;
+        public double BPM()
+        {
+            var bpm = 6e7 / MicrosecondsPerQuarterNote;
+            var round = Math.Round(bpm, 3);
+            if (round == Math.Round(bpm, 0))
+            {
+                return round;
+            }
+            return bpm;
+        }
+    }
+    public class TimingEvent : Event
+    {
+        public int Numerator;
+        public int Denominator;
+    }
+    public class MidiEvent : Event
+    {
+        public byte type;
+        public byte channel;
+        public byte parameter1;
+        public byte parameter2;
+    }
+
+    public abstract class Event
+    {
+        public static int outputCount = 0;
+        public static HashSet<int> midiEvents = new HashSet<int>();
+        public int delta;
+        public static Event Read(MidiReader reader, ref byte? previousEventType)
+        {
+            var delta = reader.ReadVInt32();
+            var eventType = reader.ReadByte();
+            if (eventType <= 127)
+            {
+                if (previousEventType.HasValue)
+                {
+                    eventType = previousEventType.Value;
+                    reader.BaseStream.Seek(-1, SeekOrigin.Current);
+                }
+                else
+                {
+                    throw new Exception("MIDI missing event type");
+                }
+            }
+            previousEventType = eventType;
+            if (eventType == 0xF0 || eventType == 0xF7)
+            {
+                var length = reader.ReadVInt32();
+                reader.BaseStream.Seek(length, SeekOrigin.Current);
+                Console.WriteLine($"MIDI message {eventType:x} length {length}");
+            }
+            else if (eventType == 0xFF) // meta-event
+            {
+                var type = reader.ReadByte();
+                var length = reader.ReadVInt32();
+                if (delta > 0 && (type != 47 && type != 88))
+                {
+                    // throw new NotImplementedException("Meta event delta");
+                    Console.WriteLine($"meta event delta {type}");
+                }
+                if (type == 84 && length == 5)
+                {
+                    var bytes = reader.ReadBytes(5);
+                    var hours = bytes[0] & 0x1F;
+                    var frB = (bytes[0] & 0x60) >> 5;
+                    if ((hours | bytes[1] | bytes[2] | bytes[3] | bytes[4]) > 0)
+                    {
+                        // throw new NotImplementedException("Unknown SMPTE Offset");
+                    }
+                }
+                else if (type == 81 && length == 3)
+                {
+                    var micro = (reader.ReadByte() << 16) + reader.ReadUInt16();
+                    var e = new TempoEvent
+                    {
+                        delta = delta,
+                        MicrosecondsPerQuarterNote = micro
+                    };
+                    Console.WriteLine($"BPM: {e.BPM()}");
+                    return e;
+                }
+                else if (type == 33 && length == 1)
+                {
+                    // supposed to specify the MIDI port number https://www.mixagesoftware.com/en/midikit/help/HTML/meta_events.html
+                    reader.ReadByte();
+                }
+                else if (type == 88 && length == 4)
+                {
+                    var num = reader.ReadByte();
+                    var denom = 1 << reader.ReadByte();
+                    var metro = reader.ReadByte();
+                    var n32 = reader.ReadByte();
+                    if (metro != 24) throw new Exception("Memtronome not 24");
+                    if (n32 != 8) throw new Exception("32nd note not 8");
+                    var e = new TimingEvent
+                    {
+                        delta = delta,
+                        Numerator = num,
+                        Denominator = denom
+                    };
+                    // Console.WriteLine($"Time signature: {num} {denom}");
+                    return e;
+                }
+                else if (type == 89 && length == 2)
+                {
+                    Console.WriteLine($"Key signature: {reader.ReadByte()} {reader.ReadByte()}");
+                }
+                else if (type == 47 && length == 0) // end of track
+                {
+                }
+                else if (type == 3)
+                {
+                    Console.WriteLine($"Copyright: {Encoding.ASCII.GetString(reader.ReadBytes(length))}");
+                }
+                else if (type == 4)
+                {
+                    Console.WriteLine($"Instrument: {Encoding.ASCII.GetString(reader.ReadBytes(length))}");
+                }
+                else
+                {
+                    throw new NotImplementedException($"Unknown meta-event {type} length {length}");
+                }
+            }
+            else // midi event
+            {
+                var midiEventType = (byte)(eventType >> 4);
+                var midiChannel = (byte)(eventType & 0xF);
+                var parameter1 = reader.ReadByte();
+                var hasP2 = midiEventType switch
+                {
+                    8 => true,
+                    9 => true,
+                    0xB => true,
+                    0xC => false,
+                    _ => throw new Exception($"Unknown MIDI event {midiEventType}")
+                };
+                var parameter2 = hasP2 ? reader.ReadByte() : (byte)0;
+                return new MidiEvent
+                {
+                    channel = midiChannel,
+                    type = midiEventType,
+                    delta = delta,
+                    parameter1 = parameter1,
+                    parameter2 = parameter2,
+                };
+            }
+            return null;
+        }
+    }
+}
+

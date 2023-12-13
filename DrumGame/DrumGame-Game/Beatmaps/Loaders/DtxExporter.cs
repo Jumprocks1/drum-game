@@ -1,0 +1,747 @@
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.IO.Compression;
+using System.Linq;
+using System.Text;
+using DrumGame.Game.API;
+using DrumGame.Game.Beatmaps.Data;
+using DrumGame.Game.Browsers;
+using DrumGame.Game.Channels;
+using DrumGame.Game.Commands;
+using DrumGame.Game.Interfaces;
+using DrumGame.Game.IO;
+using DrumGame.Game.Media;
+using DrumGame.Game.Modals;
+using DrumGame.Game.Stores;
+using DrumGame.Game.Timing;
+using DrumGame.Game.Utils;
+using Newtonsoft.Json;
+using osu.Framework.Audio.Track;
+using osu.Framework.Logging;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Jpeg;
+using SixLabors.ImageSharp.Processing;
+
+namespace DrumGame.Game.Beatmaps.Loaders;
+
+public class DtxExporter
+{
+    public static double ExportOffset => -DtxLoader.ImportOffset;
+    static string Base36Key = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    MapStorage MapStorage => Util.DrumGame.MapStorage;
+    static string base36(int i) => new(new char[] { Base36Key[i / 36], Base36Key[i % 36] });
+    record WavChipKey(DrumChannel Channel, NoteModifiers VelocityModifier, NoteModifiers Sticking, double VolumeMultiplier)
+    {
+        public byte ComputedVelocity
+        {
+            get
+            {
+                var v = HitObjectData.ComputeVelocity(VelocityModifier);
+                if (VolumeMultiplier != 1)
+                    v = (byte)Math.Clamp(Math.Floor(v * VolumeMultiplier), 0, 127);
+                return v;
+            }
+        }
+    }
+    record WavChip
+    {
+        public string Id;
+        public byte Note;
+        public double VelocityMultiplier => Key.VolumeMultiplier;
+        public string Filename;
+        public double Volume = 100;
+        public double Pan = 0;
+        public bool BGM;
+        public NoteModifiers Sticking => Key.Sticking;
+        public NoteModifiers Velocity => Key.VelocityModifier;
+        public WavChipKey Key;
+        public void WriteTo(DtxWriter writer)
+        {
+            writer.WriteLine($"#WAV{Id}: {Filename}");
+            // if velocity goes over 127, we could apply the overflow  to the volume
+            var outputVolume = Math.Round(Math.Clamp(Volume, 0, 100));
+            // var outputVolume = Math.Round(Math.Clamp(Volume * VelocityMultiplier, 0, 100));
+
+            if (Note == 36)
+                // prevent bass from being too loud
+                // I heard it clipping on some other people's setups
+                outputVolume = Math.Min(outputVolume, 85);
+
+            if (outputVolume != 100)
+                writer.WriteLine($"#VOLUME{Id}: {outputVolume}");
+
+            var width = 100;
+            if (Velocity.HasFlag(NoteModifiers.Ghost) || Velocity.HasFlag(NoteModifiers.Roll))
+                width = writer.Exporter.Config.GhostNoteWidth;
+            if (width != 100)
+                writer.WriteLine($"#SIZE{Id}: {width}");
+
+            var correctedPan = Pan;
+            if (Sticking == NoteModifiers.Right)
+                correctedPan = Math.Abs(Pan);
+            if (Sticking == NoteModifiers.Left)
+                correctedPan = -Math.Abs(Pan);
+            var outputPan = Math.Round(correctedPan);
+            if (outputPan != 0)
+                writer.WriteLine($"#PAN{Id}: {outputPan}");
+            if (BGM)
+                writer.WriteLine($"#BGMWAV: {Id}");
+        }
+    }
+    List<WavChip> Samples = new();
+    Dictionary<WavChipKey, WavChip> SampleMap = new();
+    BookmarkVolumeEvent[] VolumeEvents;
+    double BgmEncodingOffset; // if 0, no need to do anything. Should always be positive
+    public enum OutputFormat
+    {
+        Folder, // default
+        Zip, // this also updates the folder before zipping
+        SevenZip
+    }
+    public enum SampleMethod
+    {
+        // for now we will use ffmpeg command line pipes
+        // if ffmpeg is not found, change method to empty files
+        SoundFontEncodingMissing,
+        EmptyFiles,
+        Ignore,
+    }
+    public class ExportConfig
+    {
+        public OutputFormat OutputFormat;
+        public SampleMethod SampleMethod;
+        public bool OpenAfterExport = true;
+        public bool ExportAllDifficulties;
+        public string ExportName;
+        public double RollDivisor;
+        public int GhostNoteWidth = 100;
+        public bool EncodeOffset;
+    }
+
+    class DtxWriter : StreamWriter
+    {
+        public readonly DtxExporter Exporter;
+        public DtxWriter(Stream stream, DtxExporter exporter) : base(stream, encoding: Encoding.GetEncoding(932))
+        {
+            Exporter = exporter;
+        }
+
+        public void WriteMetadata(string key, string value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return;
+            WriteLine($"#{key}: {value}");
+        }
+    }
+
+    static NoteModifiers StereoSticking(HitObject ho)
+    {
+        // only these cymbals have stereo sticking. A right stick on the hi-hat will still be panned left
+        if (ho.Channel == DrumChannel.Crash || ho.Channel == DrumChannel.China || ho.Channel == DrumChannel.Splash)
+        {
+            var stick = ho.Modifiers & NoteModifiers.LeftRight;
+            if (stick != NoteModifiers.None) return stick;
+            if (ho.Channel == DrumChannel.Crash) return NoteModifiers.Right;
+            return NoteModifiers.Left;
+        }
+        return NoteModifiers.None;
+    }
+
+    WavChipKey SampleKey(HitObject ho) =>
+        new(ho.Channel, ho.Data.VelocityModifiers, StereoSticking(ho), CurrentBeatmap.GetVolumeMultiplier(VolumeEvents, ho));
+
+    class BgmObject : ITickTime
+    {
+        public int Time { get; set; }
+    }
+
+    string DtxChannel(ITickTime ev)
+    {
+        if (ev is HitObject ho)
+        {
+            return ho.Channel switch
+            {
+                DrumChannel.OpenHiHat => "18",
+                DrumChannel.ClosedHiHat => "11",
+                DrumChannel.Ride => "19",
+                DrumChannel.RideBell => "19",
+                DrumChannel.Snare => "12",
+                DrumChannel.SideStick => "12",
+                DrumChannel.SmallTom => "14",
+                DrumChannel.MediumTom => "15",
+                DrumChannel.LargeTom => "17",
+                DrumChannel.BassDrum => ho.Modifiers.HasFlag(NoteModifiers.Left) ? "1C" : "13",
+                DrumChannel.HiHatPedal => "1B",
+                // This lets us use sticking modifiers in Drum Game to set the cymbal channel
+                DrumChannel.Crash or DrumChannel.Splash or DrumChannel.China => StereoSticking(ho) == NoteModifiers.Left ? "1A" : "16",
+                DrumChannel.Rim => "12", // snare for now, should probably be able to set this
+                _ => throw new NotSupportedException()
+            };
+        }
+        else if (ev is TempoChange)
+            return "08";
+        else if (ev is BgmObject)
+            return "01";
+        else throw new NotImplementedException();
+    }
+
+    string ImageOutput;
+    void WriteDtx(Beatmap beatmap, Stream stream)
+    {
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+        using var writer = new DtxWriter(stream, this);
+
+        var tempoChanges = new List<TempoChange>(beatmap.TempoChanges);
+        Beatmap.AddExtraDefault(tempoChanges);
+        var startingTempo = tempoChanges[0];
+        tempoChanges.RemoveAt(0); // don't need to write first tempo change
+        var measureChanges = new List<MeasureChange>(beatmap.MeasureChanges);
+        Beatmap.AddExtraDefault(measureChanges);
+        var startingMeasureChange = measureChanges[0];
+
+
+        writer.WriteLine($"; Created by Drum Game [{Util.VersionString}]");
+        writer.WriteLine($"; https://github.com/Jumprocks1/drum-game");
+        writer.WriteLine();
+        writer.WriteMetadata("TITLE", beatmap.Title);
+        writer.WriteMetadata("ARTIST", beatmap.Artist);
+        if (!string.IsNullOrWhiteSpace(beatmap.Mapper))
+            writer.WriteMetadata("COMMENT", $"Chart by {beatmap.Mapper}");
+        writer.WriteMetadata("PREVIEW", "pre.ogg");
+        if (!string.IsNullOrWhiteSpace(beatmap.Image))
+        {
+            var fullPath = beatmap.FullAssetPath(beatmap.Image);
+            var outputExtension = Path.GetExtension(beatmap.Image);
+            if (string.IsNullOrWhiteSpace(outputExtension) || outputExtension == ".jfif")
+                outputExtension = ".jpg";
+            ImageOutput = "pre" + outputExtension;
+            if (File.Exists(fullPath))
+            {
+                if (!Output.Exists(ImageOutput))
+                {
+                    using var os = Output.OpenCreate(ImageOutput);
+
+                    var squareImage = true;
+
+                    using (var file = File.OpenRead(fullPath))
+                    using (var image = Image.Load(file, out var format))
+                    {
+                        var size = image.Size();
+                        squareImage = size.Width == size.Height;
+                        if (!squareImage)
+                        {
+                            Logger.Log($"Squaring image, old size: {size}");
+                            var side = Math.Min(size.Width, size.Height);
+                            image.Mutate(e => e.Crop(new Rectangle((image.Width - side) / 2, (image.Height - side) / 2, side, side)));
+                            if (format.Name == "Webp")
+                                format = JpegFormat.Instance;
+                            image.Save(os, format);
+                        }
+                    }
+                    if (squareImage)
+                        os.Write(File.ReadAllBytes(fullPath));
+                }
+            }
+            writer.WriteMetadata("PREIMAGE", ImageOutput);
+        }
+        writer.WriteMetadata("BPM", startingTempo.HumanBPM.ToString());
+        writer.WriteMetadata("DLEVEL", beatmap.GetDtxLevel() ?? "50");
+        writer.WriteLine();
+
+        var bpmChips = new Dictionary<int, string>();
+        string DtxChip(ITickTime ev)
+        {
+            if (ev is TempoChange tc)
+                return bpmChips[tc.MicrosecondsPerQuarterNote];
+            if (ev is HitObject ho)
+                return GetChip(SampleKey(ho)).Id;
+            if (ev is BgmObject) return BgmChip.Id;
+            throw new NotImplementedException();
+        }
+
+        var bodyBuilder = new StringBuilder();
+
+        foreach (var tc in tempoChanges)
+        {
+            if (!bpmChips.ContainsKey(tc.MicrosecondsPerQuarterNote))
+            {
+                var newChip = base36(bpmChips.Count + 1);
+                bpmChips[tc.MicrosecondsPerQuarterNote] = newChip;
+                bodyBuilder.AppendLine($"#BPM{newChip}: {tc.HumanBPM}");
+            }
+        }
+        bodyBuilder.AppendLine();
+
+        var startingTicksPerMeasure = (int)Math.Round(startingMeasureChange.Beats * beatmap.TickRate);
+
+        var bgmStartTick = beatmap.TickFromBeatSlow(-(beatmap.StartOffset + ExportOffset) * 1_000 / startingTempo.MicrosecondsPerQuarterNote);
+        var bufferMeasures = 0;
+        var minimumBufferTicks = beatmap.TickRate / 2; // there must be at least 1 half note before BGM start
+        if (bgmStartTick <= minimumBufferTicks) // starting near 0 is bad, Idk why
+            bufferMeasures = (startingTicksPerMeasure - bgmStartTick + minimumBufferTicks) / startingTicksPerMeasure;
+
+        if (Config.EncodeOffset)
+        {
+            bgmStartTick = -bufferMeasures * startingTicksPerMeasure;
+            // note, MillisecondsFromTick already adds StartOffset
+            BgmEncodingOffset = -(beatmap.MillisecondsFromTick(bgmStartTick) + ExportOffset);
+        }
+
+
+        var hitObjects = new List<HitObject>();
+
+        foreach (var ho in beatmap.HitObjects)
+        {
+            // this upgrades accented crashes to turn into L+R crash and china
+            // we don't normally do this in drum game because the notes would overlap
+            // TODO this probably has a bug where if we don't use the China at all,
+            //    there will be no wav sample for it later
+            if (ho.Channel == DrumChannel.Crash && ho.Modifiers == NoteModifiers.Accented)
+            {
+                hitObjects.Add(ho.With(NoteModifiers.None));
+                hitObjects.Add(new HitObject(ho.Time, new HitObjectData(DrumChannel.China)));
+            }
+            else if (ho is RollHitObject roll)
+            {
+                var forceStick = ho.Sticking;
+                var ticksPerHit = (int)(beatmap.TickRate / Config.RollDivisor);
+                var count = roll.Duration / ticksPerHit;
+                var startTime = beatmap.MillisecondsFromTick(ho.Time);
+                for (var i = 0; i < count; i++)
+                {
+                    var tickTime = ho.Time + i * ticksPerHit;
+                    var sticking = forceStick == NoteModifiers.None ?
+                        (i & 1) == 0 ? NoteModifiers.Right : NoteModifiers.Left
+                        : forceStick;
+                    hitObjects.Add(new HitObject(tickTime, new HitObjectData(ho.Channel, ho.Data.Modifiers | sticking | NoteModifiers.Roll)));
+                }
+            }
+            else
+            {
+                hitObjects.Add(ho);
+            }
+        }
+
+        IEnumerable<ITickTime> events = hitObjects;
+        events = events.Append(new BgmObject { Time = bgmStartTick });
+        events = events.Concat(tempoChanges);
+        events = events.Concat(beatmap.MeasureChanges);
+        // events are ordered in reverse, so MeasureChanges are inserted first in the DTX file (based on measure)
+        var eventQueue = events.OrderByDescending(e => e.Time).ToList();
+
+
+
+        while (eventQueue.TryPop(out var ev))
+        {
+            var measure = beatmap.MeasureFromTickNegative(ev.Time);
+            var outputMeasure = measure + bufferMeasures;
+            if (ev is MeasureChange mc)
+            {
+                if (mc.Time == 0) outputMeasure = 0;
+                writer.WriteLine($"#{outputMeasure:000}02: {mc.Beats / 4}");
+                continue;
+            }
+            var measureStart = beatmap.TickFromMeasureNegative(measure);
+            var measureEnd = beatmap.TickFromMeasureNegative(measure + 1);
+            var channel = DtxChannel(ev);
+            bodyBuilder.Append($"#{outputMeasure:000}{channel}: ");
+            if (ev is BgmObject)
+            {
+                // get the offset within ~1ms
+                var accuracy = 1000 / (startingMeasureChange.Beats * startingTempo.MicrosecondsPerQuarterNote);
+                var fraction = Util.ToFraction((double)(ev.Time - measureStart) / startingTicksPerMeasure, accuracy);
+                for (var i = 0; i < fraction.Item2; i++)
+                    bodyBuilder.Append(i == fraction.Item1 ? "01" : "00");
+            }
+            else
+            {
+                var channelHits = new List<(int, string)> { (ev.Time - measureStart, DtxChip(ev)) };
+                var gcd = Util.GCD(measureEnd - measureStart, ev.Time - measureStart);
+                for (var i = eventQueue.Count - 1; i >= 0; i--)
+                {
+                    var e = eventQueue[i];
+                    if (e.Time >= measureEnd) break;
+                    if (DtxChannel(e) == channel)
+                    {
+                        eventQueue.RemoveAt(i);
+                        channelHits.Add((e.Time - measureStart, DtxChip(e)));
+                        gcd = Util.GCD(e.Time - measureStart, gcd);
+                    }
+                }
+
+                var t = 0;
+                for (var i = 0; i < channelHits.Count; i++)
+                {
+                    var targetT = channelHits[i].Item1 / gcd;
+                    if (t > targetT) throw new Exception($"2 notes on the same channel at measure {measure}");
+                    while (targetT != t)
+                    {
+                        bodyBuilder.Append("00");
+                        t += 1;
+                    }
+                    bodyBuilder.Append(channelHits[i].Item2);
+                    t += 1;
+                }
+                var length = (measureEnd - measureStart) / gcd;
+                while (t < length)
+                {
+                    bodyBuilder.Append("00");
+                    t += 1;
+                }
+            }
+            bodyBuilder.AppendLine();
+        }
+
+        MakeSamples(); // this will load the pan/volume for our samples :)
+        foreach (var sample in Samples)
+            sample.WriteTo(writer);
+        writer.WriteLine();
+
+        writer.Write(bodyBuilder);
+    }
+    class SampleInfo
+    {
+        public double Volume;
+        public double Pan;
+    }
+
+    HashSet<string> ArchivedFiles = new();
+
+    void Archive(string file) // adds to (and opens if needed) an output zip file
+    {
+        if (Config.OutputFormat == OutputFormat.Zip)
+        {
+            if (ArchivedFiles.Add(file) && Output.Exists(file))
+            {
+                using var zipStream = OutputArchive.CreateEntry(Config.ExportName + "/" + file).Open();
+                using var fileStream = Output.Open(file);
+                fileStream.CopyTo(zipStream);
+            }
+        }
+    }
+
+
+    ZipArchive _outputArchive;
+    ZipArchive OutputArchive
+    {
+        get
+        {
+            if (_outputArchive == null)
+            {
+                var zipFolderName = Config.ExportName ?? $"{TargetBeatmap.Artist} - {TargetBeatmap.Title}";
+                var zipName = zipFolderName + ".zip";
+                var file = Output.OpenCreate(zipName);
+                _outputArchive = new ZipArchive(file, ZipArchiveMode.Create);
+            }
+            return _outputArchive;
+        }
+    }
+
+    public void ExportSingleMap(Beatmap beatmap)
+    {
+        this.CurrentBeatmap = beatmap;
+
+        VolumeEvents = BookmarkEvent.CreateList(CurrentBeatmap).OfType<BookmarkVolumeEvent>().AsArray();
+        var dtxOutputName = GetDtxFileName(CurrentBeatmap) + ".dtx";
+        MakeBgmChip();
+        WriteDtx(CurrentBeatmap, Output.OpenCreate(dtxOutputName));
+        EncodeBgmAndPreview();
+
+        if (Config.OutputFormat == OutputFormat.Zip)
+        {
+            try
+            {
+                Archive(dtxOutputName);
+                // we don't archive bgm.ogg since it's in Samples
+                Archive("pre.ogg");
+                Archive(ImageOutput);
+                foreach (var filename in Samples.Select(e => e.Filename))
+                    Archive(filename); // this removes duplicates, so don't have to worry about L/R crashes being written twice
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e, "Failed to write to zip");
+                Util.Palette.ShowMessage("Failed to write to zip file");
+            }
+        }
+    }
+
+    WavChip GetChip(WavChipKey key)
+    {
+        if (SampleMap.TryGetValue(key, out var k)) return k;
+
+        var midi = key.Channel.MidiNote();
+        var computedVelocity = key.ComputedVelocity;
+        var chip = new WavChip
+        {
+            Id = base36(Samples.Count + 1),
+            Note = midi,
+            Filename = $"{key.Channel}_{midi}_{computedVelocity}.ogg",
+            Key = key
+        };
+        Samples.Add(chip);
+        SampleMap[key] = chip;
+        return chip;
+    }
+
+    WavChip BgmChip;
+
+    void MakeBgmChip()
+    {
+        if (BgmChip != null) return;
+        Samples.Add(BgmChip = new WavChip
+        {
+            Id = base36(Samples.Count + 1),
+            Filename = "bgm.ogg",
+            Volume = CurrentBeatmap.CurrentRelativeVolume / 0.3 * 45,
+            Key = new(DrumChannel.None, NoteModifiers.None, NoteModifiers.None, 1.0),
+            BGM = true
+        });
+    }
+
+    void EncodeBgmAndPreview()
+    {
+        var bgmPath = Output.BuildPath("bgm.ogg");
+        if (!File.Exists(bgmPath))
+        {
+            // TODO this will allow opus ogg, which I think is okay
+            if (Path.GetExtension(CurrentBeatmap.Audio) == ".ogg" && BgmEncodingOffset == 0)
+                File.Copy(CurrentBeatmap.FullAudioPath(), bgmPath);
+            else
+            {
+                var process = new FFmpegProcess("converting bgm");
+                process.AddInput(CurrentBeatmap.FullAudioPath());
+                process.OffsetMs(BgmEncodingOffset);
+                process.Vorbis(q: 6);
+                process.SimpleAudio();
+                process.AddOutput(bgmPath);
+                process.Run();
+            }
+        }
+
+        var previewPath = Output.BuildPath("pre.ogg");
+        if (!File.Exists(previewPath))
+        {
+            var previewTime = CurrentBeatmap.PreviewTime ?? -1;
+            var targetTime = previewTime;
+            if (previewTime < 0)
+            {
+                using var track = Util.Resources.GetTrack(CurrentBeatmap.FullAudioPath()) as TrackBass;
+                if (track != null)
+                {
+                    if (track.Length == 0) track.Seek(track.CurrentTime);
+                    targetTime = PreviewLoader.DefaultPreviewTime * track.Length;
+                }
+            }
+            var process = new FFmpegProcess("creating preview");
+            process.AddArguments("-ss", (Math.Max(0, targetTime) / 1000).ToString(), "-t", "15");
+            process.AddInput(CurrentBeatmap.FullAudioPath());
+            var mult = Math.Clamp(BgmChip.Volume / 100, 0, 1);
+            if (mult != 1)
+                process.AddArguments("-af", $"volume={mult}, afade=t=out:st=12:d=3");
+            else
+                process.AddArguments("-af", "afade=t=out:st=12:d=3");
+            process.Vorbis();
+            process.SimpleAudio();
+            process.AddOutput(previewPath);
+            process.Run();
+        }
+    }
+
+    void MakeSamples()
+    {
+        using var renderer = BassUtil.HasMidi ? new SoundFontRenderer("soundfonts/main.sf2") : null;
+        var chipInfoFile = Output.BuildPath("samples.json");
+        Dictionary<string, SampleInfo> chipInfo;
+        if (File.Exists(chipInfoFile))
+            chipInfo = JsonConvert.DeserializeObject<Dictionary<string, SampleInfo>>(File.ReadAllText(chipInfoFile));
+        else
+            chipInfo = new();
+
+        var hitSampleChips = new List<WavChip>();
+        foreach (var sample in Samples)
+        {
+            var key = sample.Key;
+            if (key.Channel == DrumChannel.None) continue; // skip bgm
+            hitSampleChips.Add(sample);
+            if (chipInfo.TryGetValue(sample.Filename, out var v))
+            {
+                sample.Pan = v.Pan;
+                sample.Volume = v.Volume;
+            }
+            var midi = key.Channel.MidiNote();
+            var computedVelocity = key.ComputedVelocity;
+            var outputPath = Output.BuildPath(sample.Filename);
+            renderer?.Render(outputPath, midi, computedVelocity);
+        }
+        var result = renderer.WaitForResult();
+        for (var i = 0; i < result.Count; i++)
+        {
+            var r = result[i];
+            if (r.Rendered)
+            {
+                var chip = hitSampleChips[i];
+                chip.Volume = 100 / r.Boost;
+                chip.Pan = r.Pan;
+                chipInfo[chip.Filename] = new SampleInfo { Volume = chip.Volume, Pan = chip.Pan };
+            }
+            else
+            {
+                var chip = hitSampleChips[i];
+                chip.Volume = chipInfo[chip.Filename].Volume;
+                chip.Pan = chipInfo[chip.Filename].Pan;
+            }
+        }
+
+        var boost = 3.8d; // this is just what I decided on
+        foreach (var sample in hitSampleChips) sample.Volume *= boost;
+        File.WriteAllText(chipInfoFile, JsonConvert.SerializeObject(chipInfo));
+    }
+
+    void MakeSetDef(List<(string, BeatmapMetadata)> set)
+    {
+        const string setFile = "SET.def";
+        {
+            var orderedSet = set.OrderBy(e => Beatmap.GetDtxLevel(e.Item2.SplitTags()) ?? "50");
+            using var stream = Output.OpenCreate(setFile);
+            using var writer = new StreamWriter(stream, Encoding.Unicode);
+            writer.WriteLine("#TITLE " + set[0].Item2.Title);
+            writer.WriteLine();
+            var i = 1;
+            foreach (var diff in orderedSet)
+            {
+                var filename = GetDtxFileName(diff.Item2.SplitTags());
+                writer.WriteLine($"#L{i}LABEL {GetDtxDiffName(filename)}");
+                writer.WriteLine($"#L{i}FILE {filename}.dtx");
+                writer.WriteLine();
+                i += 1;
+            }
+        }
+        Archive(setFile);
+    }
+
+    void Export()
+    {
+        var set = MapStorage.GetMapSet(TargetBeatmap);
+        var commonString = GetCommonString(set.Select(e => Path.GetFileNameWithoutExtension(e.Item1)).ToList());
+
+        var basename = Util.Resources.GetAbsolutePath(Path.Join("dtx-exports", commonString + "-dtx"));
+        Output = new FileProvider(Directory.CreateDirectory(basename));
+
+        if (!Config.ExportAllDifficulties)
+            set.Clear();
+
+        if (set.Count > 1)
+            MakeSetDef(set);
+
+        var exports = new List<(BeatmapMetadata, Beatmap)>();
+        exports.Add((null, TargetBeatmap));
+        foreach (var (_, map) in set)
+        {
+            if (map.Id != TargetBeatmap.Id)
+                exports.Add((map, null));
+        }
+
+        foreach (var (metadata, map) in exports)
+        {
+            var beatmap = map ?? Util.MapStorage.LoadMap(metadata);
+            ExportSingleMap(beatmap);
+        }
+
+        if (_outputArchive != null)
+        {
+            _outputArchive.Dispose();
+            _outputArchive = null;
+        }
+
+
+        if (Config.OpenAfterExport)
+            Util.Host.OpenFileExternally(Output.Folder);
+    }
+
+    readonly Beatmap TargetBeatmap;
+    Beatmap CurrentBeatmap; // current beatmap we are trying to export, useful so we don't have to pass the parameter around
+    readonly ExportConfig Config;
+    FileProvider Output;
+    DtxExporter(Beatmap beatmap, ExportConfig config)
+    {
+        TargetBeatmap = beatmap;
+        Config = config;
+    }
+    public static void Export(Beatmap beatmap, ExportConfig config)
+    {
+        var exporter = new DtxExporter(beatmap, config);
+        exporter.Export();
+    }
+    public static bool Export(CommandContext context, Beatmap beatmap)
+    {
+        var fields = new FieldBuilder()
+            .Add(new BoolFieldConfig { Label = "Build Zip" })
+            .Add(new BoolFieldConfig { Label = "Export All Difficulties", DefaultValue = true })
+            .Add(new StringFieldConfig { Label = "Ghost Note Width", DefaultValue = "80" })
+            // TODO zip name can't have certain charcters in it (`:\/`)
+            .Add(new StringFieldConfig { Label = "Zip Name", DefaultValue = $"{beatmap.Artist} - {beatmap.Title}" })
+            .Add(new BoolFieldConfig { Label = "Encode Offset", DefaultValue = true, Key = nameof(ExportConfig.EncodeOffset) });
+
+        var hasRolls = beatmap.HitObjects.Any(e => e.Roll);
+        if (hasRolls)
+            fields.Add(new StringFieldConfig { Label = "Roll Divisor", DefaultValue = "4", Key = "rollDivisor" });
+
+        context.Palette.Request(new Modals.RequestConfig
+        {
+            Title = "Export to DTX",
+            CommitText = "Export",
+            Fields = fields.Build(),
+            OnCommit = e =>
+            {
+                var buildZip = e.GetValue<bool>(0);
+                var config = new ExportConfig();
+                if (buildZip)
+                    config.OutputFormat = OutputFormat.Zip;
+                config.ExportAllDifficulties = e.GetValue<bool>(1);
+                config.GhostNoteWidth = int.Parse(e.GetValue<string>(2));
+                config.ExportName = e.GetValue<string>(3);
+                config.EncodeOffset = e.GetValue<bool>(nameof(ExportConfig.EncodeOffset));
+                if (hasRolls)
+                    config.RollDivisor = double.TryParse(e.GetValue<string>("rollDivisor"), out var o) ? o : 4;
+                Export(beatmap, config);
+            }
+        });
+        return true;
+    }
+
+    static string GetDtxFileName(Beatmap beatmap) => GetDtxFileName(beatmap.SplitTags());
+    static string GetDtxFileName(string[] tags)
+    {
+        foreach (var tag in tags)
+            if (tag.StartsWith("dtx-name-"))
+                return tag[9..];
+        return "mstr";
+    }
+    static string GetDtxDiffName(string filename) => filename switch
+    {
+        "bsc" => "BASIC",
+        "adv" => "ADVANCED",
+        "ext" => "EXTREME",
+        _ => "MASTER"
+    };
+    static string GetCommonString(List<string> s)
+    {
+        var first = s[0];
+        var best = first.Length;
+        for (var i = 1; i < s.Count; i++)
+        {
+            var e = s[i];
+            var newBest = 0;
+            while (newBest < best && newBest < e.Length)
+            {
+                if (e[newBest] != first[newBest]) break;
+                newBest += 1;
+            }
+            best = newBest;
+        }
+        return first[..best];
+    }
+}
+

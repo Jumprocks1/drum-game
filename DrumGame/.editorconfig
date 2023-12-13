@@ -1,0 +1,15 @@
+root = true
+
+[*.cs]
+dotnet_diagnostic.IDE0044.severity = none
+dotnet_diagnostic.IDE1006.severity = none
+dotnet_diagnostic.IDE0028.severity = none # doesn't work yet, but I like it
+dotnet_diagnostic.IDE0300.severity = none # this one doesn't work yet, but I really like it! Please enable once it works.
+dotnet_diagnostic.IDE0290.severity = none # seems cool but doesn't work yet
+dotnet_diagnostic.IDE0051.severity = none # this one declares `load` as unused unfortunately
+dotnet_diagnostic.CA1822.severity = none # we have lots of instance methods that are essentially static CommandHandlers
+dotnet_diagnostic.CA1816.severity = none # don't use finalizers
+
+csharp_style_var_for_built_in_types = true:suggestion
+csharp_style_var_when_type_is_apparent = true:suggestion
+csharp_style_var_elsewhere = true:suggestion

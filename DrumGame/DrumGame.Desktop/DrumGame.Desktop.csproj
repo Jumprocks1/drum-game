@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup Label="Project">
+    <TargetFramework>net7.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>DrumGame</AssemblyName>
+    <ApplicationIcon>game.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Version>0.0.0</Version>
+    <FileVersion>0.0.0</FileVersion>
+    <DisableWinExeOutputInference>true</DisableWinExeOutputInference>
+    <EnablePreviewFeatures>True</EnablePreviewFeatures>
+    <ResourceLanguages>en</ResourceLanguages>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+  </PropertyGroup>
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\DrumGame-Game\DrumGame.Game.csproj" />
+  </ItemGroup>
+  <ItemGroup Label="Package References">
+    <PackageReference Include="DiscordRichPresence" Version="1.0.175" />
+  </ItemGroup>
+  <ItemGroup Label="Resources">
+    <EmbeddedResource Include="game.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <PublishReadyToRunExclude Include="osuTK.dll" />
+  </ItemGroup>
+</Project>

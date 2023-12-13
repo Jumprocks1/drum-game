@@ -29,6 +29,4 @@ If you are interested in getting Drum Game on one of these platforms, please [cr
 - An easy way to learn some of the hotkeys is with the keyboard view, this can be accessed with <kbd>Shift</kbd>+<kbd>F1</kbd> by default.
 
 ## Contributing
-Currently the source code for the desktop version of Drum Game is in a private repository. To contribute to the desktop version, please submit an [issue](https://github.com/Jumprocks1/drum-game/issues). The web version is available publicly in this repository. It can be built using `webpack` and ran locally using `webpack serve`.
-
-In the future I plan to make the full game open source (probably under GPLv3) so that others can more easily provide suggestions and contributions.
+The source for the desktop game is located in the `DrumGame` folder. See [README.md](DrumGame/README.md) for more details. Feel free to open issues/pull requests as needed.

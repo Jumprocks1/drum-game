@@ -14,7 +14,7 @@ if (!$BjsonName.EndsWith(".bjson")) {
 }
 
 $bjsonNameLeaf = Split-Path $BjsonName -LeafBase
-$exportFolder = "../DrumGame/resources/dtx-exports/$bjsonNameLeaf-dtx"
+$exportFolder = "../drum-game-private/resources/dtx-exports/$bjsonNameLeaf-dtx"
 $zipTarget = (ls $exportFolder *.zip | sort LastWriteTime | select -last 1).FullName
 
 $encodedCreds = [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes($key))

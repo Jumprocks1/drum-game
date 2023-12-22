@@ -72,5 +72,8 @@ public static class SettingsList
         new BooleanSettingInfo("Play Samples From MIDI", config.GetBindable<bool>(DrumGameSetting.PlaySamplesFromMidi)) {
             Tooltip = "With this enabled, the current soundfont file (located at resources/soundfonts/main.sf2) will play a sample whenever a MIDI event is recieved."
         },
+        new BooleanSettingInfo("Discord Rich Presence", config.GetBindable<bool>(DrumGameSetting.DiscordRichPresence)) {
+            Tooltip = "When enabled, the game will attempt to connect to the DiscordRPC API."
+        },
     };
 }

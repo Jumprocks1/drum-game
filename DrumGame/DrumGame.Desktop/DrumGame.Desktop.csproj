@@ -16,7 +16,7 @@
     <ProjectReference Include="..\DrumGame-Game\DrumGame.Game.csproj" />
   </ItemGroup>
   <ItemGroup Label="Package References">
-    <PackageReference Include="DiscordRichPresence" Version="1.0.175" />
+    <PackageReference Include="DiscordRichPresence" Version="1.2.1.24" />
   </ItemGroup>
   <ItemGroup Label="Resources">
     <EmbeddedResource Include="game.ico" />

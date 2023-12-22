@@ -12,6 +12,8 @@ internal class DrumGameDesktop : DrumGameGame
     {
         base.LoadComplete();
         richPresence = new DiscordRichPresence();
+        LocalConfig.DiscordRichPresence
+            .BindValueChanged(e => richPresence.SetConnected(e.NewValue), true);
     }
 
     public override void SetHost(GameHost host)

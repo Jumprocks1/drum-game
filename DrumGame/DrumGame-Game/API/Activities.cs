@@ -23,15 +23,7 @@ public class PlayingBeatmap : UserActivity
         "Editing beatmap";
     public readonly BeatmapPlayer Player;
     public Beatmap Beatmap => Player.Beatmap;
-    public override string Details
-    {
-        get
-        {
-            var mapper = Beatmap.Mapper;
-            var m = !string.IsNullOrWhiteSpace(mapper) ? $" mapped by {mapper}" : string.Empty;
-            return $"{Beatmap.Artist} - {Beatmap.Title}{m}";
-        }
-    }
+    public override string Details => $"{Beatmap.Artist} - {Beatmap.Title}";
 }
 public enum StaticActivityType
 {

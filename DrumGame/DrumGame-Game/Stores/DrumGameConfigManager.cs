@@ -35,6 +35,7 @@ public class DrumGameConfigManager : IniConfigManager<DrumGameSetting>
     public Bindable<string> FFmpegLocation;
     public Bindable<double> CursorInset;
     public Bindable<bool> PlaySamplesFromMidi;
+    public Bindable<bool> DiscordRichPresence;
     public Bindable<(byte, byte)> HiHatRange;
     public ParsableBindable<KeyboardMapping> KeyboardMapping;
     public Bindable<DisplayPreference> DisplayMode;
@@ -81,6 +82,7 @@ public class DrumGameConfigManager : IniConfigManager<DrumGameSetting>
         PlaySamplesFromMidi = SetDefault(DrumGameSetting.PlaySamplesFromMidi, false);
         SetDefault<string>(DrumGameSetting.MinimumDtxLevel, null);
         AddBindable(DrumGameSetting.MapLibraries, MapLibraries = new BindableJson<MapLibraries>());
+        DiscordRichPresence = SetDefault<bool>(DrumGameSetting.DiscordRichPresence, false);
     }
 
     protected override void PerformLoad()
@@ -160,6 +162,7 @@ public enum DrumGameSetting
     PreferVorbisAudio,
     Skin,
     MinimumDtxLevel,
-    MapLibraries
+    MapLibraries,
+    DiscordRichPresence
 }
 

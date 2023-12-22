@@ -187,8 +187,6 @@ public enum Command
     LoadYouTubeAudio,
     FixAudio,
     NewMapFromYouTube,
-    ConnectToDiscord,
-    DisconnectDiscord,
     SearchSpotifyForMap,
     OpenExternally,
     ToggleDrumChannel,
@@ -523,8 +521,6 @@ public static class CommandList
         controller.RegisterCommand(Command.LoadYouTubeAudio, "Load YouTube Audio");
         controller.RegisterCommand(Command.FixAudio);
         controller.RegisterCommand(Command.NewMapFromYouTube);
-        controller.RegisterCommand(Command.ConnectToDiscord);
-        controller.RegisterCommand(Command.DisconnectDiscord);
         controller.RegisterCommand(Command.SearchSpotifyForMap);
         controller.RegisterCommand(Command.OpenExternally, new KeyCombo(ModifierKey.CtrlShiftAlt, InputKey.R));
         controller.RegisterCommand(Command.EditKeybind, new KeyCombo(ModifierKey.Ctrl, InputKey.Enter));

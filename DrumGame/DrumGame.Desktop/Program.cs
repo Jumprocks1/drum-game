@@ -13,6 +13,7 @@ public static class Program
 {
     static LogLevel LogLevel = LogLevel.Important;
     static bool AntiAliasing = true;
+    public static bool Discord { get; private set; } = true;
     static bool Sync;
     static List<string> OpenFiles;
     [STAThread]
@@ -54,6 +55,7 @@ public static class Program
             }
             else if (arg == "--verbose") LogLevel = (LogLevel)Math.Max(0, (int)LogLevel - 1);
             else if (arg == "--no-aa") AntiAliasing = false;
+            else if (arg == "--no-discord") Discord = false;
             else if (arg == "--sync") Sync = true;
             else if (!arg.StartsWith("-")) (OpenFiles ??= new()).Add(arg);
             else if (arg == "--wait-for-debugger") Util.WaitForDebugger();
@@ -62,7 +64,7 @@ public static class Program
         return exit;
     }
 
-    public static void LogHook(LogEntry e)
+    static void LogHook(LogEntry e)
     {
         // mostly copied from Logger.cs
         var logOutput = e.Message;

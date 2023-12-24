@@ -60,6 +60,11 @@ export default class MapPreview extends Component {
             if (spotifyUrl) {
                 this.SpotifyPreview.href = spotifyUrl;
             }
+            if (this.Image.src) {
+                // blank out image whie loading
+                // without this, it will display the previous image while it loads the next one
+                this.Image.src = ""
+            }
             this.Image.src = imageUrl ?? "";
             this.Title.textContent = `${map.Artist} - ${map.Title}`;
             this.Description.textContent = `${map.MedianBPM} BPM - ${map.DifficultyString}`;

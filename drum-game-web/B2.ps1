@@ -59,3 +59,5 @@ $dtxJson.maps = @(@{
     date = get-date -Format "yyyy-M-d";
 }) + $dtxJson.maps
 $dtxJson | ConvertTo-Json -depth 10 | Out-File $dtxJsonPath -NoNewLine
+
+git add $dtxJsonPath ../resources/maps/$BjsonName

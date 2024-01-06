@@ -60,4 +60,6 @@ $dtxJson.maps = @(@{
 }) + $dtxJson.maps
 $dtxJson | ConvertTo-Json -depth 10 | Out-File $dtxJsonPath -NoNewLine
 
+# force git to recheck the file
+git rm --cached ../resources/maps/$BjsonName
 git add $dtxJsonPath ../resources/maps/$BjsonName

@@ -47,6 +47,8 @@ public class BeatmapMetadata
     public string Id;
     public const int Version = 4;
     public string Title;
+    public string RomanTitle;
+    public string RomanArtist;
     public string Artist;
     public string Mapper;
     public string Folder;
@@ -69,7 +71,7 @@ public class BeatmapMetadata
     [JsonIgnore] public bool RatingLoaded => Rating != int.MinValue;
     // note, you can't search based on Difficulty right now
     // if we want to do that, we should create a BeatmapDifficulty => string mapping
-    public string FilterString() => $"{Title} {Artist} {Mapper} {DifficultyString} {Tags}";
+    public string FilterString() => $"{Title} {Artist} {Mapper} {DifficultyString} {Tags} {RomanTitle} {RomanArtist}";
     public BeatmapMetadata() { } // used by Newtonsoft
     public void Update(Beatmap beatmap, long writeTime)
     {
@@ -78,6 +80,8 @@ public class BeatmapMetadata
         Artist = beatmap.Artist;
         Mapper = beatmap.Mapper;
         Audio = beatmap.Audio;
+        RomanTitle = beatmap.RomanTitle;
+        RomanArtist = beatmap.RomanArtist;
         WriteTime = writeTime;
         DifficultyString = beatmap.DifficultyName ?? beatmap.Difficulty;
         Difficulty = beatmap.Difficulty switch

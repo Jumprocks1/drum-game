@@ -32,7 +32,7 @@ export function Filter(search: string, maps: CacheMap[]) {
     if (maps.length > 0 && maps[0].FilterString === undefined) {
         for (const map of maps) {
             if (map.FilterString === undefined)
-                map.FilterString = `${map.Title ?? ""} ${map.Artist ?? ""} ${map.Mapper ?? ""} ${map.DifficultyString ?? ""} ${map.Tags ?? ""}`.toLowerCase();
+                map.FilterString = `${map.Title ?? ""} ${map.Artist ?? ""} ${map.Mapper ?? ""} ${map.DifficultyString ?? ""} ${map.Tags ?? ""} ${map.RomanTitle ?? ""} ${map.RomanArtist ?? ""}`.toLowerCase();
         }
     }
     let res = maps;

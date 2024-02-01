@@ -21,7 +21,9 @@ public static class MetadataEditor
         "Artist",
         "Mapper",
         "Difficulty",
-        "Tags"
+        "Tags",
+        "RomanTitle",
+        "RomanArtist"
     };
 
 

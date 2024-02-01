@@ -17,6 +17,8 @@ export interface CacheMap {
     Date?: string
     FilterString?: string
     Tags?: string
+    RomanTitle?: string
+    RomanArtist?: string
     WriteTime: number
     Audio: string
     FileName: string

@@ -148,7 +148,11 @@ public abstract class BJson
     public JToken BPM { get; set; }
     public JToken MeasureConfig { get; set; }
     public string Title { get; set; }
+    public string RomanTitle { get; set; } // typically romaji
+    public string GetRomanTitle() => RomanTitle ?? Title;
     public string Artist { get; set; }
+    public string RomanArtist { get; set; } // typically romaji
+    public string GetRomanArtist() => RomanArtist ?? Artist;
     public string Mapper { get; set; }
     public string Difficulty { get; set; }
     public string DifficultyName { get; set; }

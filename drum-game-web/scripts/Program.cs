@@ -33,6 +33,8 @@ public class BeatmapMetadata
     public string DifficultyName; // this is the custom name of the difficulty (if it exists)
     public string DifficultyString; // this is the name displayed on the map selection screen
     public string Tags;
+    public string RomanTitle;
+    public string RomanArtist;
     public long WriteTime;
     public DateTime? CreationTimeUtc;
     public string ImageUrl;

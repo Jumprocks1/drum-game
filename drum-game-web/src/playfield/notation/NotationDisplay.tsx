@@ -110,7 +110,7 @@ export default class NotationDisplay extends Component {
         const overdrawEnd = visibleStart + visibleBeats + overdraw;
 
         const firstGroup = Math.max(0, Math.floor((overdrawStart) / 4));
-        const lastGroup = Math.min(Math.floor(overdrawEnd / 4) + 1, this.RenderGroups.length - 1);
+        const lastGroup = Math.min(Math.floor(overdrawEnd / 4) + 1, this.RenderGroups.length);
         // console.log(firstGroup + " : " + lastGroup)
         for (let i = firstGroup; i < lastGroup; i++)
             this.RenderGroups[i].Render(this, this.Context);

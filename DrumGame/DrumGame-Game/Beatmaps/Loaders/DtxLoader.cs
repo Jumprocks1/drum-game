@@ -165,6 +165,7 @@ public partial class DtxLoader
             o.MapSourceUrl = Context.Url;
 
         var bpmLookups = new Dictionary<int, Tempo>();
+        var finalMeasure = 0; // used to calculate duration metadata
 
         // we have to do 2 passes in case the measure length changes out of order
         var secondPass = new List<(int measure, string channel, string value)>();
@@ -219,15 +220,23 @@ public partial class DtxLoader
             else if (code.StartsWith("BPM"))
             {
                 var rem = code[3..];
-                var tempo = new Tempo { BPM = double.Parse(value) };
-                if (rem.Length == 0) o.TempoChanges.Add(new TempoChange(0, tempo));
+                var parsed = double.Parse(value);
+                var tempo = new Tempo { BPM = parsed };
+                if (rem.Length == 0)
+                {
+                    o.TempoChanges.Add(new TempoChange(0, tempo));
+                    o.MedianBPM = parsed;
+                }
                 else bpmLookups[base36(rem)] = tempo;
             }
             else if (char.IsDigit(code[0]) && code.Length == 5)
             {
                 var measure = int.Parse(code[0..3]);
+                if (measure > finalMeasure) finalMeasure = measure;
                 var channel = code[3..];
-                if (Config.MetadataOnly && channel != "01") // we only care about 01 since it's used for BGM
+                // we only care about 01 for BGM, 02 for measure length, and 08 for tempo changes
+                // we want the tempo/length changes so we can compute the map duration metadata
+                if (Config.MetadataOnly && channel != "01" && channel != "02" && channel != "08")
                     continue;
                 var channelInt = hex(channel);
                 // https://github.com/limyz/DTXmaniaNX/blob/master/DTXMania/Code/Score%2CSong/EChannel.cs
@@ -360,6 +369,11 @@ public partial class DtxLoader
             o.RemoveDuplicates(); // this cleans up a bunch of stuff with the HitObjects
             o.RemoveExtras<TempoChange>();
             o.RemoveExtras<MeasureChange>();
+        }
+        else
+        {
+            // normally calculated with o.ComputeStats, but that's too intense
+            o.PlayableDuration = o.MillisecondsFromTick(o.TickFromMeasure(finalMeasure));
         }
 
         if (Config.MountOnly) // if we are mounting, we will not be calling prepare for save, so we have to handle audio here

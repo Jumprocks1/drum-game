@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace DrumGame.Game.Utils;
 
-public struct FilterFieldInfo
+public struct FilterFieldInfo<T> where T : ISearchable<T>
 {
     public string Name;
     public string MarkupDescription;
@@ -15,17 +15,49 @@ public struct FilterFieldInfo
         Name = name;
         MarkupDescription = description;
     }
-    public static implicit operator FilterFieldInfo(string name) => new(name, null);
+    public FilterAccessor Accessor;
+    public static implicit operator FilterFieldInfo<T>(string name) => new(name, null);
+    public FilterAccessor GetAccessor()
+    {
+        if (Name == null) return null;
+        return Accessor ??= T.GetAccessor(this) ?? GetDefaultAccessor(Name);
+    }
+    public static FilterAccessor GetDefaultAccessor(string name)
+    {
+        var field = typeof(T).GetField(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase);
+        if (field != null)
+        {
+            var parameter = Expression.Parameter(typeof(T));
+            var exp = Expression.Lambda(Expression.Field(parameter, field), parameter);
+            return new FilterAccessor(exp);
+        }
+        var prop = typeof(T).GetProperty(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase);
+        if (prop != null)
+        {
+            var parameter = Expression.Parameter(typeof(T));
+            var exp = Expression.Lambda(Expression.Property(parameter, prop), parameter);
+            return new FilterAccessor(exp);
+        }
+        return null;
+    }
 }
 
 public interface ISearchable<T> where T : ISearchable<T>
 {
-    public static abstract FilterFieldInfo[] Fields { get; }
-    public static abstract void LoadField(string fieldName);
-    public static abstract FilterAccessor GetAccessor(string fieldName);
+    public static abstract FilterFieldInfo<T>[] Fields { get; }
+    public static virtual void LoadField(FilterFieldInfo<T> field) { }
+    // prefer field.GetAccessor where possible, this should only show 1 reference
+    public static virtual FilterAccessor GetAccessor(FilterFieldInfo<T> field) => null;
     public string FilterString { get; }
-    public static virtual IEnumerable<T> ApplyFilter(IEnumerable<T> exp, FilterOperator<T> op, FilterAccessor accessor, string value)
-        => op.Apply(exp, accessor, value);
+    public static virtual IEnumerable<T> ApplyFilter(IEnumerable<T> exp, FilterOperator<T> op, FilterFieldInfo<T> field, string value)
+        => ApplyFilterBase(exp, op, field, value);
+    // can't call static base virtual methods, so we use this instead
+    public static IEnumerable<T> ApplyFilterBase(IEnumerable<T> exp, FilterOperator<T> op, FilterFieldInfo<T> field, string value)
+    {
+        var accessor = field.GetAccessor();
+        if (accessor == null) return Enumerable.Empty<T>();
+        return op.Apply(exp, accessor, value);
+    }
 }
 
 public class FilterAccessor
@@ -39,7 +71,6 @@ public class FilterAccessor
         Delegate = del;
     }
     public FilterAccessor(LambdaExpression exp) : this(exp.Compile()) { }
-    public object Id; // optional, just for helping with special cases
 }
 public abstract class FilterOperator<T> where T : ISearchable<T>
 {
@@ -48,24 +79,6 @@ public abstract class FilterOperator<T> where T : ISearchable<T>
 }
 public static class GenericFilterer<T> where T : ISearchable<T>
 {
-    public static FilterAccessor DefaultGetAccessor(string fieldName)
-    {
-        var field = typeof(T).GetField(fieldName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase);
-        if (field != null)
-        {
-            var parameter = Expression.Parameter(typeof(T));
-            var exp = Expression.Lambda(Expression.Field(parameter, field), parameter);
-            return new FilterAccessor(exp);
-        }
-        var prop = typeof(T).GetProperty(fieldName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase);
-        if (prop != null)
-        {
-            var parameter = Expression.Parameter(typeof(T));
-            var exp = Expression.Lambda(Expression.Property(parameter, prop), parameter);
-            return new FilterAccessor(exp);
-        }
-        return null;
-    }
     class SortOp : FilterOperator<T>
     {
         readonly bool desc;
@@ -216,9 +229,9 @@ public static class GenericFilterer<T> where T : ISearchable<T>
         new SortOp("^", false),
     ];
 
-    static FilterFieldInfo[] Fields = T.Fields;
+    static FilterFieldInfo<T>[] Fields = T.Fields;
 
-    public static FilterFieldInfo LookupField(string field)
+    public static FilterFieldInfo<T> LookupField(string field)
     {
         foreach (var s in Fields)
             if (field == s.Name) return s;
@@ -226,18 +239,7 @@ public static class GenericFilterer<T> where T : ISearchable<T>
             if (s.Name.StartsWith(field)) return s;
         foreach (var s in Fields)
             if (s.Name.Contains(field)) return s;
-        return null;
-    }
-
-    static Dictionary<string, FilterAccessor> Accessors = new();
-
-    static FilterAccessor GetAccessor(string fieldName)
-    {
-        if (fieldName == null) return null;
-        if (Accessors.TryGetValue(fieldName, out var a)) return a;
-        a = T.GetAccessor(fieldName) ?? DefaultGetAccessor(fieldName);
-        Accessors[fieldName] = a;
-        return a;
+        return new FilterFieldInfo<T>(null);
     }
 
     // this used to be the old filter method before we added `|` splitting
@@ -270,17 +272,9 @@ public static class GenericFilterer<T> where T : ISearchable<T>
                 var value = s[(opIndex + op.Identifier.Length)..];
                 if (!string.IsNullOrWhiteSpace(value) || op is SortOp)
                 {
-                    var correctedName = LookupField(fieldName).Name;
-                    var accessor = GetAccessor(correctedName);
-                    if (accessor == null)
-                    {
-                        res = Enumerable.Empty<T>();
-                    }
-                    else
-                    {
-                        T.LoadField(correctedName);
-                        res = T.ApplyFilter(res, op, accessor, value);
-                    }
+                    var field = LookupField(fieldName);
+                    T.LoadField(field);
+                    res = T.ApplyFilter(res, op, field, value);
                 }
             }
         }

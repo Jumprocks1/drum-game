@@ -81,13 +81,21 @@ public class JsonRepositoryBeatmap : ISearchable<JsonRepositoryBeatmap>
 
     [JsonIgnore] public bool Downloaded => DownloadedCache.Contains(this);
 
-    public static FilterFieldInfo[] Fields { get; } = [
+    public static FilterFieldInfo<JsonRepositoryBeatmap>[] Fields { get; } = [
         "title", "artist", "mapper", "comments", "url",
         new("downloaded", "Example: <code>downloaded=0</> - only show maps that are not yet marked as downloaded."),
-        "downloadurl", "index", "publishedon", "updatedon"
+        "downloadurl", "index", "publishedon", "updatedon", "random"
     ];
 
-    public static void LoadField(string field) { }
-
-    public static FilterAccessor GetAccessor(string field) => null;
+    public static IEnumerable<JsonRepositoryBeatmap> ApplyFilter(IEnumerable<JsonRepositoryBeatmap> exp, FilterOperator<JsonRepositoryBeatmap> op,
+        FilterFieldInfo<JsonRepositoryBeatmap> fieldInfo, string value)
+    {
+        if (fieldInfo.Name == "random")
+        {
+            if (op.Identifier == "^" || op.Identifier == "^^")
+                return exp.Shuffled();
+            return exp;
+        }
+        return ISearchable<JsonRepositoryBeatmap>.ApplyFilterBase(exp, op, fieldInfo, value);
+    }
 }

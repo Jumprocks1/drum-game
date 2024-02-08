@@ -13,11 +13,11 @@ namespace DrumGame.Game.Browsers.BeatmapSelection;
 // records do not provide stable hash functions
 public class BeatmapSelectorMap : ISearchable<BeatmapSelectorMap>
 {
-    public string Filename;
+    public string MapStoragePath;
     public int Position; // stores the current position in FilterMaps (-1 if not in the current filter)
-    public BeatmapSelectorMap(string name)
+    public BeatmapSelectorMap(string mapStoragePath)
     {
-        Filename = name;
+        MapStoragePath = mapStoragePath;
     }
     public string FilterString { get; set; }
     public BeatmapMetadata Metadata;
@@ -34,15 +34,15 @@ public class BeatmapSelectorMap : ISearchable<BeatmapSelectorMap>
         if (assetPath == null) return null;
         if (Path.DirectorySeparatorChar == '/' && assetPath.Contains('\\'))
             assetPath = assetPath.Replace('\\', '/');
-        return Util.SafeFullPath(assetPath, Path.GetDirectoryName(Util.MapStorage.GetFullPath(Filename)));
+        return Util.SafeFullPath(assetPath, Path.GetDirectoryName(Util.MapStorage.GetFullPath(MapStoragePath)));
     }
     public void LoadFilter()
     {
-        Metadata = Util.DrumGame.MapStorage.GetMetadata(Filename);
+        Metadata = Util.DrumGame.MapStorage.GetMetadata(MapStoragePath);
         FilterString = Metadata.FilterString();
     }
 
-    public static FilterFieldInfo[] Fields { get; } = [
+    public static FilterFieldInfo<BeatmapSelectorMap>[] Fields { get; } = [
         new("title", "Filters by song title\nExamples:\n<code>title=unravel</>\n<code>title^</> - sorts by title"),
         new("artist", "Filters by song artist\nExample: <code>artist=babymetal</>"),
         new("mapper", "Filters by map author\nExample: <code>mapper=jumprocks</>"),
@@ -61,12 +61,14 @@ public class BeatmapSelectorMap : ISearchable<BeatmapSelectorMap>
         new("collection", "Filters based on if a map is in a collection.\nTo see the available collections, click the collections dropdown at the top of the map selector.\n"
         + "Examples:\n<code>col!=fav</> - excludes maps in the favorites collection."),
         new("folder", "Filters by the folder a map was loaded from. Only set for maps outside of the main library."),
-        new("imageurl", "Example:<code>imageurl=i.scdn.co</>"),
+        new("imageurl", "Example: <code>imageurl=i.scdn.co</>"),
         new("image"),
+        new("random", "Example: <code>random^</> - sorts maps in a random order")
     ];
-    public static IEnumerable<BeatmapSelectorMap> ApplyFilter(IEnumerable<BeatmapSelectorMap> exp, FilterOperator<BeatmapSelectorMap> op, FilterAccessor accessor, string value)
+    public static IEnumerable<BeatmapSelectorMap> ApplyFilter(IEnumerable<BeatmapSelectorMap> exp, FilterOperator<BeatmapSelectorMap> op,
+        FilterFieldInfo<BeatmapSelectorMap> fieldInfo, string value)
     {
-        if (typeof(Collection).Equals(accessor.Id))
+        if (fieldInfo.Name == "collection")
         {
             var storage = Util.DrumGame.CollectionStorage;
             var collection = storage.GetCollectionByQuery(value);
@@ -83,48 +85,45 @@ public class BeatmapSelectorMap : ISearchable<BeatmapSelectorMap>
                     return collection.Apply(exp, storage);
             }
         }
-        else
+        else if (fieldInfo.Name == "random")
         {
-            return op.Apply(exp, accessor, value);
+            if (op.Identifier == "^" || op.Identifier == "^^")
+                return exp.Shuffled();
+            return exp;
         }
+        return ISearchable<BeatmapSelectorMap>.ApplyFilterBase(exp, op, fieldInfo, value);
     }
-    public static void LoadField(string field)
+    public static void LoadField(FilterFieldInfo<BeatmapSelectorMap> field)
     {
-        if (field == "playtime") Util.MapStorage.LoadPlayTimes();
-        else if (field == "audio") Util.MapStorage.LoadAudioFiles();
-        else if (field == "rating") Util.MapStorage.LoadRatings().Wait();
+        var name = field.Name;
+        if (name == "playtime") Util.MapStorage.LoadPlayTimes();
+        else if (name == "audio") Util.MapStorage.LoadAudioFiles();
+        else if (name == "rating") Util.MapStorage.LoadRatings().Wait();
     }
 
-    public static FilterAccessor GetAccessor(string fieldName)
+    public static FilterAccessor GetAccessor(FilterFieldInfo<BeatmapSelectorMap> fieldInfo)
     {
-        if (fieldName == "collection") // collection query is handled specially by `ApplyFilter` method
+        var fieldName = fieldInfo.Name;
+        if (fieldName == "audio") fieldName = nameof(BeatmapMetadata.HasAudio);
+
+        var field = typeof(BeatmapMetadata).GetField(fieldName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase);
+        if (field != null)
         {
-            return new FilterAccessor((Delegate)null)
+            var parameter = Expression.Parameter(typeof(BeatmapSelectorMap));
+            var metadata = Expression.Field(parameter, "Metadata");
+            var exp = Expression.Lambda(Expression.Field(metadata, field), parameter);
+            var acc = new FilterAccessor(exp)
             {
-                Id = typeof(Collection)
+                Time = field.Name.Contains("Time")
             };
-        }
-        else
-        {
-            if (fieldName == "audio") fieldName = nameof(BeatmapMetadata.HasAudio);
 
-            var field = typeof(BeatmapMetadata).GetField(fieldName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase);
-            if (field != null)
+            if (fieldName == "difficulty")
             {
-                var parameter = Expression.Parameter(typeof(BeatmapSelectorMap));
-                var metadata = Expression.Field(parameter, "Metadata");
-                var exp = Expression.Lambda(Expression.Field(metadata, field), parameter);
-                var acc = new FilterAccessor(exp);
-                acc.Time = field.Name.Contains("Time");
-
-                if (fieldName == "difficulty")
-                {
-                    acc.EnumStringAccessor = GetAccessor(nameof(BeatmapMetadata.DifficultyString));
-                }
-
-                return acc;
+                acc.EnumStringAccessor = FilterFieldInfo<BeatmapSelectorMap>.GetDefaultAccessor(nameof(BeatmapMetadata.DifficultyString));
             }
-            return null;
+
+            return acc;
         }
+        return null;
     }
 }

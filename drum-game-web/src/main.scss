@@ -170,6 +170,7 @@ $card-indent: $card-height + $s2;
         height: $card-height;
         left: 0;
         top: 0;
+        object-fit: cover;
     }
 
     white-space: nowrap;

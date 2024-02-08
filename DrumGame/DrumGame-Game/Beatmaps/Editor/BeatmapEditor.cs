@@ -557,16 +557,7 @@ public partial class BeatmapEditor : BeatmapPlayer
     public void Save()
     {
         Beatmap.Export();
-        try
-        {
-            var o = Beatmap.SaveToDisk(MapStorage);
-            Display.LogEvent($"Saved to {o}");
-            MarkSaveHistory();
-        }
-        catch (UserException e)
-        {
-            Util.Palette.ShowMessage(e.Message);
-        }
+        Beatmap.TrySaveToDisk(MapStorage, this);
     }
     [CommandHandler] public bool ImportMidi(CommandContext context) => OpenFile(context);
 }

@@ -243,12 +243,12 @@ public class BeatmapCarousel : CompositeDrawable
             for (var i = 0; i < FilteredMaps.Count; i++)
             {
                 var map = FilteredMaps[i];
-                if (map.Filename == e || map.Filename == withExtension)
+                if (map.MapStoragePath == e || map.MapStoragePath == withExtension)
                 {
                     target = i;
                     break;
                 }
-                if (map.Filename.StartsWith(e, StringComparison.OrdinalIgnoreCase)) target = i;
+                if (map.MapStoragePath.StartsWith(e, StringComparison.OrdinalIgnoreCase)) target = i;
             }
             if (target != -1) CarouselTarget = target * ItemSize;
         }, "Jumping to Map", "Filename");
@@ -258,7 +258,7 @@ public class BeatmapCarousel : CompositeDrawable
     {
         for (var i = 0; i < FilteredMaps.Count; i++)
         {
-            if (FilteredMaps[i].Filename == filename)
+            if (FilteredMaps[i].MapStoragePath == filename)
             {
                 CarouselTarget = i * ItemSize;
                 return;

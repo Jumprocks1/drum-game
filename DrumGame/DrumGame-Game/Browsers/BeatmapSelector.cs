@@ -114,7 +114,7 @@ public partial class BeatmapSelector : CompositeDrawable
     }
     // This ref is super sketchy but I kinda like it
     // All it lets us do is pass in null for the state and still have it work
-    // If we pass null into the state above then it will be sad
+    // If we pass null into the state above then it will be sad without the ref
     // Could probably just use a static default selector state for null but this is fun too
     public BeatmapSelector(Action<string> onSelect, ref BeatmapSelectorState state) : this(onSelect, state ??= new BeatmapSelectorState()) { }
     BeatmapCarousel Carousel;
@@ -175,7 +175,7 @@ public partial class BeatmapSelector : CompositeDrawable
             "<brightOrange>Listen Mode</>\nPlays the song and scrolls the sheet music. Disables scoring."),
             new(BeatmapOpenMode.Record,"Record", DrumColors.DarkBlue,
             "<brightBlue>Record Mode</>\nSimilar to edit mode, but also records audio from an active recording device.\nUseful for making videos without external software.\n"+
-            $"You can record a replay to a video file with {IHasCommand.GetMarkupTooltip(Command.RecordVideo)}. Require FFmpeg.") {
+            $"You can record a replay to a video file with {IHasCommand.GetMarkupTooltipIgnoreUnbound(Command.RecordVideo)}. Requires FFmpeg.") {
                 FontScale = 0.9f
             },
         }, State)
@@ -208,7 +208,7 @@ public partial class BeatmapSelector : CompositeDrawable
 
         AddInternal(DetailContainer = new());
         // this updates TargetMap, so we have to take care to call it after DetailContainer is constructed
-        if (State.Filename != null) State.SelectedIndex = FilteredMaps.FindIndex(e => e.Filename == State.Filename);
+        if (State.Filename != null) State.SelectedIndex = FilteredMaps.FindIndex(e => e.MapStoragePath == State.Filename);
 
         AddInternal(new Box
         {
@@ -303,7 +303,7 @@ public partial class BeatmapSelector : CompositeDrawable
     {
         if (map == null) return;
         State.Autoplay = autoplay;
-        OnSelect(State.Filename = map.Filename);
+        OnSelect(State.Filename = map.MapStoragePath);
     }
     public void EditMap(BeatmapSelectorMap map)
     {
@@ -396,14 +396,14 @@ public partial class BeatmapSelector : CompositeDrawable
     public void Refresh(string targetName, bool skipWriteTimes = false)
     {
         if (IsDisposed) return;
-        targetName ??= TargetMap?.Filename;
+        targetName ??= TargetMap?.MapStoragePath;
         if (!skipWriteTimes) MapStorage.CheckWriteTimes();
         LoadAllMaps();
         FilteredMaps = null;
         filterLoaded = false;
         loadedCollection = null;
         // we have to choose a new target since the old BeatmapSelectorMap references are discarded
-        UpdateFilter(targetName != null ? Maps.FirstOrDefault(e => e.Filename == targetName) : null);
+        UpdateFilter(targetName != null ? Maps.FirstOrDefault(e => e.MapStoragePath == targetName) : null);
         DetailContainer.PreviewLoader.RetryAudio();
     }
 
@@ -434,24 +434,6 @@ public partial class BeatmapSelector : CompositeDrawable
                 Name = $"Syncing {e}"
             });
         }, "Syncing Maps", description: target);
-        return true;
-    }
-
-    [CommandHandler]
-    public bool UpdateMap(CommandContext context)
-    {
-        var target = TargetMap?.Filename;
-        if (target == null) return false;
-        var sync = SSHSync.From(context);
-        if (sync == null) return false;
-        BackgroundTask.Enqueue(new BackgroundTask(_ =>
-        {
-            sync.CopyToLocal("maps", target);
-            Schedule(Refresh);
-        })
-        {
-            Name = $"Updating {target}"
-        });
         return true;
     }
 
@@ -539,15 +521,15 @@ public partial class BeatmapSelector : CompositeDrawable
     public bool DeleteMap(CommandContext context)
     {
         var targetMap = GetTargetMap(context);
-        var target = targetMap?.Filename;
+        var target = targetMap?.MapStoragePath;
         if (target == null) return false;
         Util.Palette.Push(new DeleteRequest(target, e =>
         {
             string newTarget = null;
 
             var i = State.SelectedIndex + 1;
-            if (FilteredMaps.Count > i) newTarget = FilteredMaps[i].Filename;
-            else if (FilteredMaps.Count > 1) newTarget = FilteredMaps[^2].Filename; // we just deleted the last file, so jump to 2nd to last
+            if (FilteredMaps.Count > i) newTarget = FilteredMaps[i].MapStoragePath;
+            else if (FilteredMaps.Count > 1) newTarget = FilteredMaps[^2].MapStoragePath; // we just deleted the last file, so jump to 2nd to last
 
             if (e == DeleteOption.Delete)
                 MapStorage.Delete(target);
@@ -666,7 +648,7 @@ public partial class BeatmapSelector : CompositeDrawable
             return;
         }
 
-        var beatmap = MapStorage.DeserializeMap(map.Filename);
+        var beatmap = MapStorage.DeserializeMap(map.MapStoragePath);
         mutate(beatmap);
         beatmap.SaveToDisk(MapStorage);
         DetailContainer.ReloadTarget(beatmap);
@@ -687,7 +669,7 @@ public partial class BeatmapSelector : CompositeDrawable
             context.GetString(e =>
             {
                 TryLoadLink(target, e);
-            }, $"Add Link to {target.Metadata?.Title ?? target.Filename}", "URL", description: "Paste an Amazon or YouTube URL");
+            }, $"Add Link to {target.Metadata?.Title ?? target.MapStoragePath}", "URL", description: "Paste an Amazon or YouTube URL");
             return true;
         }
         return false;
@@ -789,7 +771,7 @@ public partial class BeatmapSelector : CompositeDrawable
         if (target == null) return false;
         // if we can't edit, we still want to display, just disable saving
         var canEdit = MapStorage.CanEdit(target);
-        var beatmap = MapStorage.DeserializeMap(target.Filename, skipNotes: !canEdit); // we need the full deserialize so we can re-save it
+        var beatmap = MapStorage.DeserializeMap(target.MapStoragePath, skipNotes: !canEdit); // we need the full deserialize so we can re-save it
         return context.Palette.Push(MetadataEditor.Build(beatmap, null, onCommit: req =>
         {
             beatmap.SaveToDisk(MapStorage);
@@ -841,7 +823,7 @@ public partial class BeatmapSelector : CompositeDrawable
             {
                 foreach (var map in targets)
                 {
-                    var beatmap = MapStorage.DeserializeMap(map.Filename); // we need the full deserialize so we can re-save it
+                    var beatmap = MapStorage.DeserializeMap(map.MapStoragePath); // we need the full deserialize so we can re-save it
                     beatmap.Mapper = newMapper;
                     beatmap.SaveToDisk(MapStorage);
                     if (filterLoaded) map.LoadFilter(); // update filter string
@@ -863,7 +845,7 @@ public partial class BeatmapSelector : CompositeDrawable
                 {
                     if (MapStorage.CanEdit(map))
                     {
-                        var beatmap = MapStorage.DeserializeMap(map.Filename); // we need the full deserialize so we can re-save it
+                        var beatmap = MapStorage.DeserializeMap(map.MapStoragePath); // we need the full deserialize so we can re-save it
                         beatmap.AddTags(tag);
                         beatmap.SaveToDisk(MapStorage);
                         if (filterLoaded) map.LoadFilter(); // update filter string
@@ -879,7 +861,7 @@ public partial class BeatmapSelector : CompositeDrawable
     public bool ExportToDtx(CommandContext context)
     {
         if (TargetMap == null) return false;
-        return DtxExporter.Export(context, MapStorage.LoadMap(TargetMap.Filename));
+        return DtxExporter.Export(context, MapStorage.LoadMap(TargetMap.MapStoragePath));
     }
 
 
@@ -908,7 +890,7 @@ public partial class BeatmapSelector : CompositeDrawable
     {
         var targetMap = GetTargetMap(context);
         if (targetMap == null) return false;
-        Util.RevealInFileExplorer(MapStorage.GetFullPath(targetMap.Filename));
+        Util.RevealInFileExplorer(MapStorage.GetFullPath(targetMap.MapStoragePath));
         return true;
     }
     [CommandHandler]
@@ -942,7 +924,7 @@ public partial class BeatmapSelector : CompositeDrawable
     {
         var targetMap = GetTargetMap(context);
         if (targetMap == null) return false;
-        var beatmap = MapStorage.DeserializeMap(targetMap.Filename, skipNotes: true);
+        var beatmap = MapStorage.DeserializeMap(targetMap.MapStoragePath, skipNotes: true);
         YouTubeDL.TryFixAudio(beatmap, _ => Util.ActivateCommandUpdateThread(Command.Refresh));
         return true;
     }

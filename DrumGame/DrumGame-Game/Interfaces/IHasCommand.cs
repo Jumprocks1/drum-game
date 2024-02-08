@@ -15,6 +15,7 @@ public interface IHasCommand : IHasCommandInfo
 
     public static bool HasHotkey(Command command) => Util.CommandController[command].Bindings.Count > 0;
     public static string GetMarkupTooltip(Command command) => GetMarkupTooltip(Util.CommandController[command]);
+    public static string GetMarkupTooltipIgnoreUnbound(Command command) => GetMarkupTooltipIgnoreUnbound(Util.CommandController[command]);
     public static string GetMarkupHotkeyBase(Command command) => GetMarkupHotkeyBase(Util.CommandController[command]);
     public static string GetMarkupHotkeyString(Command command) => GetMarkupHotkeyString(Util.CommandController[command]);
 }
@@ -27,6 +28,12 @@ public interface IHasCommandInfo : IHasMarkupTooltip
 
     public static string GetMarkupTooltip(CommandInfo commandInfo)
         => commandInfo == null ? null : GetMarkupTooltip(commandInfo.Name, GetMarkupHotkeyString(commandInfo), commandInfo.HelperMarkup);
+    public static string GetMarkupTooltipIgnoreUnbound(CommandInfo commandInfo)
+    {
+        if (commandInfo == null) return null;
+        var hotkeyText = GetMarkupHotkeyBase(commandInfo);
+        return GetMarkupTooltip(commandInfo.Name, hotkeyText == null ? null : $"({hotkeyText})");
+    }
     public static string GetMarkupTooltip(string name, string hotkeyMarkup, string helperMarkup = null)
     {
         var s = $"<command>{name}</> {hotkeyMarkup}";

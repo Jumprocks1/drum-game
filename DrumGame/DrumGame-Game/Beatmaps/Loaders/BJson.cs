@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using DrumGame.Game.Channels;
@@ -77,23 +78,26 @@ public class BJsonSource
         return Util.SafeFullPath(asset, Directory);
     }
     public string Directory { get; set; } // this is the location where the BJson was loaded from. Useful for relative Audio/Midi paths
-    string _filename;
-    public string Filename
+    string _absolutePath;
+    public string AbsolutePath // make sure to also set MapStoragePath
     {
-        get => _filename; set
+        get => _absolutePath; set
         {
-            _filename = value;
+            _absolutePath = value;
             Directory = Path.GetDirectoryName(value);
         }
     }
     public string MapStoragePath;
     public readonly string OriginalAbsolutePath;
-    public string FilenameNoExt => Path.GetFileNameWithoutExtension(Filename);
+    public string FilenameNoExt => Path.GetFileNameWithoutExtension(AbsolutePath);
+    public string FilenameWithExt => Path.GetFileName(AbsolutePath);
     public BJsonSource(string absolutePath)
     {
-        Filename = OriginalAbsolutePath = absolutePath;
+        AbsolutePath = OriginalAbsolutePath = absolutePath;
     }
-    public string AbsolutePath => Filename;
+    public string Filename => AbsolutePath; // avoid using this, we should remove once we get to 0 references
+    public string Extension => Path.GetExtension(AbsolutePath);
+    public bool BJson => AbsolutePath.EndsWith(".bjson", true, CultureInfo.InvariantCulture);
 }
 public class Bookmark : IBeatTime
 {

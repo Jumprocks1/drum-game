@@ -9,6 +9,7 @@ using DrumGame.Game.Midi;
 using DrumGame.Game.Modals;
 using DrumGame.Game.Stores;
 using DrumGame.Game.Stores.Repositories;
+using DrumGame.Game.Utils;
 using DrumGame.Game.Views;
 using DrumGame.Game.Views.Settings;
 using osu.Framework.Allocation;
@@ -149,6 +150,8 @@ public class CommandPaletteContainer : Container
         return Push(modal);
     }
 
+    // note that if this is used with basic `RequestModal`s, they will kill eachother with unique
+    // this is typically desirable
     public T Push<T>(T modal, bool keepAliveOnClose = false, bool unique = true) where T : Drawable, IModal
     {
         if (unique)
@@ -180,13 +183,14 @@ public class CommandPaletteContainer : Container
 
     // This always pushes a new `T` instead of just resurfacing an old `T`
     public T PushNew<T>(bool unique = true) where T : Drawable, IModal, new() => Push(new T(), unique: unique);
+    public T GetModal<T>() where T : Drawable, IModal => ModalStack.OfType<T>().LastOrDefault();
 
     public T Push<T>(bool unique = true) where T : Drawable, IModal, new()
     {
         T modal = null;
         if (unique)
         {
-            modal = ModalStack.OfType<T>().LastOrDefault();
+            modal = GetModal<T>();
             if (modal != null)
             {
                 // we do this to bring it back to the front when we add it later
@@ -240,9 +244,9 @@ public class CommandPaletteContainer : Container
     }
 
     public void ScheduleAction(Action action, bool forceScheduled = false) => Scheduler.Add(action, forceScheduled);
-    public void ShowMessage(string message)
+    public void ShowMessage(string message, LogLevel logLevel = LogLevel.Important)
     {
-        Logger.Log(message, level: LogLevel.Important);
+        Logger.Log(message, level: logLevel);
         Scheduler.Add(() =>
         {
             var textOverlay = new TextOverlay(message);
@@ -251,6 +255,8 @@ public class CommandPaletteContainer : Container
             textOverlay.OnDisappear = () => Remove(textOverlay, true);
         });
     }
+    public void UserError(string message) => ShowMessage(message, logLevel: LogLevel.Error);
+    public void UserError(UserException exception) => UserError(exception.Message);
 
     public void EditKeybind(CommandInfo commandInfo, int index)
     {

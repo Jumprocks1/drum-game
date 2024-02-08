@@ -72,7 +72,7 @@ public partial class BeatmapEditor
                         Beatmap.Id = newId;
                     }, () =>
                     {
-                        Beatmap.Source.Filename = oldName;
+                        Beatmap.Source.AbsolutePath = oldName;
                         Beatmap.Source.MapStoragePath = oldStoragePath;
                         Beatmap.Id = oldId;
                     }, $"rename beatmap to {newName}"));

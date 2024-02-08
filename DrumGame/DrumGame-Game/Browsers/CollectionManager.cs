@@ -107,7 +107,7 @@ public class CollectionManager : CompositeDrawable
                 if (absolute)
                 {
                     var listRule = collection.Rules[0] as CollectionRuleList;
-                    foreach (var map in Selector.FilteredMaps) listRule.List.Add(map.Filename);
+                    foreach (var map in Selector.FilteredMaps) listRule.List.Add(map.MapStoragePath);
                 }
                 else
                 {
@@ -137,7 +137,7 @@ public class CollectionManager : CompositeDrawable
 
     public bool ModifyCollection(CommandContext context, Collection collection, BeatmapSelectorMap targetMap, bool add)
     {
-        var target = targetMap?.Filename;
+        var target = targetMap?.MapStoragePath;
         if (target == null || collection == null) return false;
 
 
@@ -225,7 +225,7 @@ public class CollectionManager : CompositeDrawable
     public bool AddToCollection(CommandContext context)
     {
         var targetMap = context.TryGetParameter(out BeatmapSelectorMap o) ? o : Selector.TargetMap;
-        var targetFile = targetMap?.Filename;
+        var targetFile = targetMap?.MapStoragePath;
         if (targetFile == null) return false;
         EnsureCollectionExists(context);
         context.GetItem(CollectionStorage.GetCollections().Select(e => CollectionStorage.GetCollection(e)).Where(e => !e.Locked),

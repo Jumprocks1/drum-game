@@ -134,7 +134,7 @@ public class BeatmapDetailLoader : CompositeDrawable
         if (Map == null) return;
         Padding = new MarginPadding(Spacing);
         RelativeSizeAxes = Axes.Both;
-        LoadFromBeatmap(mapStorage.DeserializeMap(Map.Filename, skipNotes: true));
+        LoadFromBeatmap(mapStorage.DeserializeMap(Map.MapStoragePath, skipNotes: true));
     }
 
     void SortChanged(ValueChangedEvent<SortMethod> e)

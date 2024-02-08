@@ -1,16 +1,11 @@
-using System;
 using DrumGame.Game.Components;
-using DrumGame.Game.Utils;
-using osu.Framework.Graphics;
 using osu.Framework.Graphics.Cursor;
-using osu.Framework.Input;
-using osu.Framework.Input.Events;
-using osu.Framework.Localisation;
 
 namespace DrumGame.Game.Modals;
 
 public class BoolFieldConfig : FieldConfigBase<bool>
 {
+    public const float Height = 30;
     public BoolFieldConfig(string label = null, bool defaultValue = false)
     {
         Label = label;
@@ -27,7 +22,7 @@ public class BoolFieldConfig : FieldConfigBase<bool>
         public Field(BoolFieldConfig config)
         {
             Config = config;
-            Height = 30;
+            Height = BoolFieldConfig.Height;
             TooltipContent = config.Tooltip;
             Value = config.DefaultValue;
         }

@@ -155,6 +155,7 @@ public class DtxExporter
     {
         public int Time { get; set; }
     }
+    class EndEventObject : ITickTime { public int Time { get; set; } }
 
     string DtxChannel(ITickTime ev)
     {
@@ -183,6 +184,7 @@ public class DtxExporter
             return "08";
         else if (ev is BgmObject)
             return "01";
+        else if (ev is EndEventObject) return "61"; // SE1
         else throw new NotImplementedException();
     }
 
@@ -257,6 +259,9 @@ public class DtxExporter
             if (ev is HitObject ho)
                 return GetChip(SampleKey(ho)).Id;
             if (ev is BgmObject) return BgmChip.Id;
+            else if (ev is EndEventObject)
+                // not sure if there's a better way to do this. Ideally we would just reserve the next sample id
+                return "99";
             throw new NotImplementedException();
         }
 
@@ -327,6 +332,9 @@ public class DtxExporter
         events = events.Append(new BgmObject { Time = bgmStartTick });
         events = events.Concat(tempoChanges);
         events = events.Concat(beatmap.MeasureChanges);
+        var endEvent = BookmarkEvents.OfType<BookmarkEndEvent>().FirstOrDefault();
+        if (endEvent != null)
+            events = events.Append(new EndEventObject { Time = beatmap.TickFromBeat(endEvent.Beat) });
         // events are ordered in reverse, so MeasureChanges are inserted first in the DTX file (based on measure)
         var eventQueue = events.OrderByDescending(e => e.Time).ToList();
 
@@ -441,8 +449,8 @@ public class DtxExporter
     public void ExportSingleMap(Beatmap beatmap)
     {
         this.CurrentBeatmap = beatmap;
-
-        VolumeEvents = BookmarkEvent.CreateList(CurrentBeatmap).OfType<BookmarkVolumeEvent>().AsArray();
+        BookmarkEvents = BookmarkEvent.CreateList(CurrentBeatmap);
+        VolumeEvents = BookmarkEvents.OfType<BookmarkVolumeEvent>().AsArray();
         var dtxOutputName = GetDtxFileName(CurrentBeatmap) + ".dtx";
         MakeBgmChip();
         WriteDtx(CurrentBeatmap, Output.OpenCreate(dtxOutputName));
@@ -662,6 +670,7 @@ public class DtxExporter
 
     readonly Beatmap TargetBeatmap;
     Beatmap CurrentBeatmap; // current beatmap we are trying to export, useful so we don't have to pass the parameter around
+    List<BookmarkEvent> BookmarkEvents;
     readonly ExportConfig Config;
     FileProvider Output;
     DtxExporter(Beatmap beatmap, ExportConfig config)
@@ -676,12 +685,24 @@ public class DtxExporter
     }
     public static bool Export(CommandContext context, Beatmap beatmap)
     {
+        static bool isBad(char c) => char.IsWhiteSpace(c) || c == '.';
+        var z = $"{beatmap.GetRomanArtist()} - {beatmap.GetRomanTitle()}";
+        var zipName = new StringBuilder();
+        for (var i = 0; i < z.Length; i++)
+        {
+            if (isBad(z[i]))
+            {
+                if (i > 0 && isBad(z[i - 1])) continue;
+                zipName.Append(' ');
+            }
+            else zipName.Append(z[i]);
+        }
         var fields = new FieldBuilder()
             .Add(new BoolFieldConfig { Label = "Build Zip" })
             .Add(new BoolFieldConfig { Label = "Export All Difficulties", DefaultValue = true })
             .Add(new StringFieldConfig { Label = "Ghost Note Width", DefaultValue = "80" })
             // TODO zip name can't have certain charcters in it (`:\/`)
-            .Add(new StringFieldConfig { Label = "Zip Name", DefaultValue = $"{beatmap.Artist} - {beatmap.Title}" })
+            .Add(new StringFieldConfig { Label = "Zip Name", DefaultValue = zipName.ToString() })
             .Add(new BoolFieldConfig { Label = "Encode Offset", DefaultValue = true, Key = nameof(ExportConfig.EncodeOffset) });
 
         var hasRolls = beatmap.HitObjects.Any(e => e.Roll);

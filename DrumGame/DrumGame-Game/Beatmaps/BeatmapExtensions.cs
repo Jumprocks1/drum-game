@@ -9,6 +9,7 @@ using DrumGame.Game.Beatmaps.Display;
 using DrumGame.Game.Beatmaps.Editor;
 using DrumGame.Game.Beatmaps.Loaders;
 using DrumGame.Game.Channels;
+using DrumGame.Game.Commands.Requests;
 using DrumGame.Game.Interfaces;
 using DrumGame.Game.Stores;
 using DrumGame.Game.Timing;
@@ -177,20 +178,48 @@ public partial class Beatmap
             .OrderBy(e => e);
     }
 
+    public void TrySaveToDisk(MapStorage mapStorage, BeatmapEditor editor = null)
+    {
+        if (!Source.BJson)
+        {
+            Util.Palette.Push(SaveRequest.DtxSaveRequest(Source.FilenameWithExt, removePrevious =>
+            {
+                var oldPath = Source.MapStoragePath;
+                if (TrySetName(Source.FilenameNoExt))
+                {
+                    editor?.ForceDirty();
+                    if (removePrevious) mapStorage.Delete(oldPath);
+                    else Id = Guid.NewGuid().ToString();
+                    TrySaveToDisk(mapStorage, editor);
+                }
+            }));
+            return;
+        }
+        try
+        {
+            var o = SaveToDisk(mapStorage);
+            editor?.Display?.LogEvent($"Saved to {o}");
+            editor?.MarkSaveHistory();
+        }
+        catch (UserException e)
+        {
+            Util.Palette.UserError(e);
+        }
+    }
+
     public string SaveToDisk(MapStorage mapStorage, MapImportContext context = null)
     {
         if (DisableSaving)
             throw new UserException("Map saving disabled. Likely caused by application of a modifier.");
         // if (Notes == null) throw new Exception("Attempted to save a beatmap before it was exported. Please report this issue to the developer.");
         var target = Source.AbsolutePath;
-        if (!target.EndsWith(".bjson", true, CultureInfo.InvariantCulture))
-            throw new UserException("Can only save .bjson files");
+        if (!Source.BJson) throw new UserException("Can only save .bjson files");
         using var stream = mapStorage.GetStream(target, FileAccess.Write, FileMode.Create);
         using var writer = new StreamWriter(stream);
         context ??= MapImportContext.Current;
         if (context != null)
         {
-            context.NewMaps.Add(mapStorage.RelativePath(target));
+            context.NewMaps.Add(Source.MapStoragePath ?? mapStorage.RelativePath(target));
             Mapper ??= context.Author;
         }
         var s = stream as FileStream;
@@ -202,7 +231,7 @@ public partial class Beatmap
             Formatting = Formatting.Indented,
         };
         serializer.Serialize(writer, this);
-        mapStorage.ReplaceMetadata(mapStorage.RelativePath(target), this);
+        mapStorage.ReplaceMetadata(Source.MapStoragePath, this);
         // Logger.Log($"Save complete", level: LogLevel.Important); // expected that the caller will log this
         return s.Name;
     }

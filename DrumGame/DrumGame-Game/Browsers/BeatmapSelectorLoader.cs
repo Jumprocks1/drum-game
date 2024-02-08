@@ -20,6 +20,7 @@ using DrumGame.Game.Beatmaps.Display.Mania;
 using DrumGame.Game.Components.Overlays;
 using DrumGame.Game.Modals;
 using DrumGame.Game.Modifiers;
+using DrumGame.Game.IO;
 
 namespace DrumGame.Game.Browsers;
 
@@ -151,11 +152,7 @@ public class BeatmapSelectorLoader : CompositeDrawable
     public void LoadReplay(ReplayInfo replayInfo, BeatmapReplay replay = null)
     {
         HideSelector();
-        if (scene != null)
-        {
-            RemoveInternal(scene, true);
-            scene = null;
-        }
+        EnsureBeatmapClosed();
         var beatmap = MapStorage.LoadMapFromId(replayInfo.MapId);
         replay ??= BeatmapReplay.From(Dependencies.Get<FileSystemResources>(), replayInfo);
         AddInternal(scene = new BeatmapScene(beatmap, replay, SelectorState, Game, replayInfo));
@@ -175,6 +172,13 @@ public class BeatmapSelectorLoader : CompositeDrawable
                 track = scene.Player.Track.AcquireTrack();
                 trackPath = scene.Player.Beatmap.FullAudioPath();
             }
+            var source = scene.Player?.Beatmap?.Source?.MapStoragePath;
+            if (!string.IsNullOrEmpty(source) && SelectorState.Filename != source)
+            {
+                // if we have an unsaved rename, it won't be in MapStorage
+                if (Util.MapStorage.Exists(source))
+                    SelectorState.Filename = source;
+            }
             scene.Dispose();
             scene = null;
         }
@@ -192,6 +196,65 @@ public class BeatmapSelectorLoader : CompositeDrawable
             RemoveInternal(selector, true);
             selector = null;
         }
+    }
+
+    void EnsureBeatmapClosed()
+    {
+        if (scene != null)
+        {
+            RemoveInternal(scene, true);
+            scene = null;
+        }
+    }
+
+    [CommandHandler]
+    public bool UpdateMap(CommandContext context)
+    {
+        if (selector != null)
+        {
+            var target = selector.TargetMap?.MapStoragePath;
+            if (target == null) return false;
+            var sync = SSHSync.From(context);
+            if (sync == null) return false;
+            BackgroundTask.Enqueue(new BackgroundTask(_ =>
+            {
+                sync.CopyToLocal("maps", target);
+                if (selector != null) Schedule(selector.Refresh);
+            })
+            { Name = $"Updating {target}" });
+            return true;
+        }
+        else if (scene != null)
+        {
+            var player = scene.Player;
+            var target = player.Beatmap.Source.MapStoragePath;
+            if (target == null) return false;
+            var sync = SSHSync.From(context);
+            if (sync == null) return false;
+            BackgroundTask.Enqueue(new BackgroundTask(_ =>
+            {
+                sync.CopyToLocal("maps", target);
+                Schedule(() =>
+                {
+                    if (player is BeatmapEditor be && be.Dirty)
+                    {
+                        be.Close(Util.CommandController.NewContext());
+                        return;
+                    }
+                    var state = player.ExportState();
+                    var map = MapStorage.LoadMap(target);
+                    if (map != null)
+                    {
+                        EnsureBeatmapClosed();
+                        LoadMap(map);
+                        scene?.Player?.LoadState(state);
+                    }
+                });
+            })
+            { Name = $"Updating {target}" });
+            return true;
+        }
+        return false;
     }
 }
 

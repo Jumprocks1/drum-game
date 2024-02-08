@@ -532,4 +532,21 @@ public class BeatmapPlayer : CompositeDrawable
             Track.RegisterEvents(_metronome);
         }
     }
+
+    public class PlayerState
+    {
+        public double Time;
+        public bool Running;
+    }
+    public virtual PlayerState ExportState() => new()
+    {
+        Time = Track.CurrentTime,
+        Running = Track.IsRunning
+    };
+    public virtual new void LoadState(PlayerState state)
+    {
+        Track.Seek(state.Time);
+        if (state.Running) Track.Play();
+        else Track.Stop();
+    }
 }

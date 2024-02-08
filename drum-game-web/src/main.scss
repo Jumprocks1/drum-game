@@ -105,7 +105,10 @@
 
 }
 
-$card-width: 600px;
+$card-height: 94px;
+$card-width: 650px;
+
+$card-indent: $card-height + $s2;
 
 #map-selector {
     overflow: hidden;
@@ -134,14 +137,13 @@ $card-width: 600px;
 .beatmap-card-wrapper>div {
     cursor: pointer;
     background: $DarkBackground;
-    padding: $s 0 $s $s3;
 
     border-radius: $s;
     box-shadow: 0 0 $s2 $LightBorder,
         0 0 $s2 $LightBorder,
         0 0 $s3 $LightBorder;
 
-    height: 94px;
+    height: $card-height;
 
     &:hover {
         background: mix($DarkBackground, $DarkActiveBackground);
@@ -151,9 +153,23 @@ $card-width: 600px;
         background: $DarkActiveBackground;
     }
 
-    >*:not(.title) {
+    .title {
+        position: absolute;
+        left: $card-indent;
+    }
+
+    .artist, .bottom-line, .date {
         font-size: $FontSize * 0.68;
         padding-left: $s2;
+    }
+
+    .map-image {
+        position: absolute;
+        display: block;
+        width: $card-height;
+        height: $card-height;
+        left: 0;
+        top: 0;
     }
 
     white-space: nowrap;
@@ -164,13 +180,14 @@ $card-width: 600px;
 
     .artist {
         top: $title-height;
+        left: $card-indent;
         position: absolute;
     }
 
     .bottom-line {
         bottom: $s2;
+        left: $card-indent;
         position: absolute;
-
     }
 
     .date {
@@ -200,7 +217,7 @@ $card-width: 600px;
     @include sm {
         flex-direction: column;
 
-        img {
+        #map-preview img {
             max-height: 20vh;
         }
 

@@ -1,6 +1,5 @@
 import Component from "../framework/Component";
 import { CacheMap } from "../interfaces/Cache";
-import MapSelectorPage from "../pages/MapSelectorPage";
 import MapCarousel from "./MapCarousel";
 
 
@@ -12,10 +11,12 @@ export default class BeatmapCard extends Component {
     Title = <div className="title" />
     Artist = <div className="artist" />
     BottomLine = <div className="bottom-line" />
+    Image = <img className="map-image" loading="lazy" /> as HTMLImageElement
     MappedBy = <span />
     Date = <span className="date" />
     Difficulty = <span />
     Card = <div>
+        {this.Image}
         {this.Title}
         {this.Artist}
         {this.BottomLine}
@@ -39,6 +40,14 @@ export default class BeatmapCard extends Component {
         this.Title.textContent = map.Title;
         this.Artist.textContent = map.Artist;
         this.Date.textContent = map.Date ?? "";
+
+        if (!map.ImageUrl) {
+            this.Image.src = "";
+            this.Image.style.opacity = "0"
+        } else {
+            this.Image.style.removeProperty("opacity")
+            this.Image.src = map.ImageUrl;
+        }
 
         this.MappedBy.textContent = map.Mapper ? ` mapped by ${map.Mapper}` : "";
         this.Difficulty.textContent = map.Difficulty ? map.DifficultyString! : "";

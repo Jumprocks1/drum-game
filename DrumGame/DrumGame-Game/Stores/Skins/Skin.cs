@@ -113,7 +113,6 @@ public class Skin
 
     [JsonIgnore] public string Source;
     [JsonIgnore] public string SourceFolder;
-    public string SourceKey => Path.GetFileNameWithoutExtension(Source);
     [JsonIgnore] public IResourceStore<TextureUpload> LoaderStore;
     public void UnloadTextureStore()
     {

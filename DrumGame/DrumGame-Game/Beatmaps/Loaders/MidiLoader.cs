@@ -18,7 +18,13 @@ public static class MidiLoader
             {62, DrumChannel.OpenHiHat},
             {64, DrumChannel.OpenHiHat},
             {61, DrumChannel.ClosedHiHat},
-            {42, DrumChannel.HiHatPedal}
+            {65, DrumChannel.HiHatPedal},
+            {42, DrumChannel.HiHatPedal},
+            {67, DrumChannel.ClosedHiHat},
+            {68, DrumChannel.OpenHiHat},
+            {69, DrumChannel.OpenHiHat},
+            {70, DrumChannel.OpenHiHat},
+            {71, DrumChannel.OpenHiHat},
         };
     public static Beatmap LoadMidi(Beatmap map, string path)
     {
@@ -58,11 +64,18 @@ public static class MidiLoader
                             if (channel != DrumChannel.None)
                             {
                                 var modifiers = NoteModifiers.None;
-                                if (me.parameter2 >= 120)
-                                    modifiers = NoteModifiers.Accented;
-                                else if (me.parameter2 <= 40)
-                                    modifiers = NoteModifiers.Ghost;
-                                hitObjects.Add(new HitObject(t, new HitObjectData(channel, modifiers)));
+                                // if (me.parameter2 >= 120)
+                                //     modifiers = NoteModifiers.Accented;
+                                // if (me.parameter2 <= 40)
+                                    // modifiers = NoteModifiers.Ghost;
+
+                                // if (me.parameter1 == 57)
+                                    // modifiers |= NoteModifiers.Left;
+
+                                // if (me.parameter2 > 20)
+                                    hitObjects.Add(new HitObject(t, new HitObjectData(channel, modifiers)));
+                                // else
+                                    // Console.WriteLine($"Skipping low velocity: {me.parameter1} at {(double)t / tickRate} {me.parameter2}");
                             }
                             else
                             {

@@ -147,7 +147,7 @@ public static class SkinManager
     static FileWatcher FileWatcher;
     static void SetHotWatcher(string skin)
     {
-        var path = FindSkin(skin);
+        var path = File.Exists(skin) ? skin : FindSkin(skin);
         if (path == null) return;
         if (FileWatcher == null)
         {
@@ -158,6 +158,7 @@ public static class SkinManager
         else
             FileWatcher.UpdatePath(path);
     }
+    public static void SetHotWatcher(Skin skin) => SetHotWatcher(skin?.Source);
 
     public static void ExportCurrentSkin()
     {

@@ -92,13 +92,16 @@ public class RepositoryDefinition
 
     public void Refresh()
     {
+        var oldViewer = Util.Palette.GetModal<RepositoryViewer>();
         var refresher = GetRefresher();
         var task = refresher.Refresh();
         task.ContinueWith(_ =>
         {
             Util.Host.UpdateThread.Scheduler.Add(() =>
             {
-                Util.Palette.PushNew<RepositoryViewer>();
+                if (oldViewer == null || !oldViewer.IsAlive)
+                    Util.Palette.PushNew<RepositoryViewer>();
+                else oldViewer.UpdateSearch();
                 Util.Palette.ShowMessage($"Refresh of {Title} complete");
             });
         });

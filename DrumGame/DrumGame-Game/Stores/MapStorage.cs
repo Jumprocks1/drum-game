@@ -105,8 +105,14 @@ public class BeatmapMetadata
             // for .dtx files we go up 2 layers for this field
             // this is because the filename is not very useful (ie. mstr.dtx)
             // we also skip the first character to hide the $
+            // It may seem weird splitting the logic like this, but in reality it works well
+            Folder = Path.GetDirectoryName(beatmap.Source.MapStoragePath[1..]);
             if (beatmap.Source.Filename.EndsWith(".dtx", true, CultureInfo.InvariantCulture))
-                Folder = Path.GetDirectoryName(Path.GetDirectoryName(beatmap.Source.MapStoragePath[1..]));
+            {
+                var secondParent = Path.GetDirectoryName(Folder);
+                if (!string.IsNullOrWhiteSpace(secondParent))
+                    Folder = secondParent;
+            }
         }
     }
     public BeatmapMetadata(Beatmap beatmap, long writeTime) // write time is separate since it isn't stored in the beatmap
@@ -201,7 +207,7 @@ public class MapStorage : NativeStorage, IDisposable
         foreach (var file in GetMaps())
             yield return (file, GetMetadata(file));
     }
-    public BeatmapMetadata GetMetadata(BeatmapSelectorMap map) => GetMetadata(map?.Filename);
+    public BeatmapMetadata GetMetadata(BeatmapSelectorMap map) => GetMetadata(map?.MapStoragePath);
     public BeatmapMetadata GetMetadata(string filename)
     {
         if (filename == null) return null;
@@ -276,6 +282,7 @@ public class MapStorage : NativeStorage, IDisposable
     public long GetWriteTime(string map) => Directory.GetLastWriteTimeUtc(GetFullPath(map)).Ticks;
     public void ReplaceMetadata(string map, Beatmap beatmap)
     {
+        if (string.IsNullOrWhiteSpace(map)) return;
         if (LoadedMetadata.Maps.TryGetValue(map, out var v))
             v.Update(beatmap, GetWriteTime(map));
         else
@@ -309,14 +316,16 @@ public class MapStorage : NativeStorage, IDisposable
 
     public override string GetFullPath(string path, bool _ = false)
     {
-        if (path == null) return null;
-        if (path.StartsWith("$"))
+        if (string.IsNullOrWhiteSpace(path)) return null;
+        if (path[0] == '$')
         {
             var slash = path.IndexOf('/');
             return Path.GetFullPath(path[(slash + 1)..], MapLibraries.PathMapping[path[1..slash]]);
         }
         return Path.GetFullPath(path, AbsolutePath);
     }
+    // this is not good anymore
+    // it doesn't properly consider library paths
     public string RelativePath(string path) => path == null ? null : Path.GetRelativePath(AbsolutePath, path);
 
     public Beatmap LoadMap(BeatmapMetadata metadata) => LoadMapFromId(metadata.Id);
@@ -384,7 +393,7 @@ public class MapStorage : NativeStorage, IDisposable
         return o;
     }
     public bool CanEdit(string filename) => filename.EndsWith(".bjson", true, CultureInfo.InvariantCulture);
-    public bool CanEdit(BeatmapSelectorMap map) => CanEdit(map.Filename);
+    public bool CanEdit(BeatmapSelectorMap map) => CanEdit(map.MapStoragePath);
     // make sure to set Beatmap.Source after this
     public Beatmap DeserializeBjson(Stream stream, bool skipNotes)
     {

@@ -123,6 +123,8 @@ public abstract class RepoRefresherBase : IDisposable
         {
             Cache.Maps.AddRange(addMaps);
             Cache.Maps = Cache.Maps.OrderByDescending(e => e.Index).ToList();
+            for (var i = 0; i < Cache.Maps.Count; i++)
+                LoadedMaps[Cache.Maps[i].NonNullId] = i;
         }
         else
         {

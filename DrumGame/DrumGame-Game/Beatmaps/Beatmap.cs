@@ -163,9 +163,30 @@ public partial class Beatmap : BJson, IHasHitObjects
             Logger.Log($"Failed to rename beatmap, file already exists at {path}", level: LogLevel.Error);
             return false;
         }
-        Source.Filename = path;
+        Source.AbsolutePath = path;
         if (Source.MapStoragePath != null)
+        {
+            // We have to be careful here. When using libraries, the game uses $library/ as the prefix,
+            //     but on Windows, path methods will convert this to $library\
+            // MapStoragePaths are generated in MapLibraries.GetMaps
+            // I'm open to less messy ways of fixing this
             Source.MapStoragePath = Path.Combine(Path.GetDirectoryName(Source.MapStoragePath), nameWithExt);
+            if (Source.MapStoragePath.StartsWith("$"))
+            {
+                var correctedPath = Source.MapStoragePath.ToCharArray();
+                // replaces first slash with `/`
+                for (var i = 0; i < correctedPath.Length; i++)
+                {
+                    if (correctedPath[i] == '/') break;
+                    else if (correctedPath[i] == '\\')
+                    {
+                        correctedPath[i] = '/';
+                        break;
+                    }
+                }
+                Source.MapStoragePath = new string(correctedPath);
+            }
+        }
         return true;
     }
     public BJson Export()

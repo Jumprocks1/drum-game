@@ -13,7 +13,7 @@ public class PpfRepoRefresher : RepoRefresherBase
     readonly HttpClient Client = new();
     public PpfRepoRefresher(RepositoryDefinition repo) : base(repo) { }
 
-    string PageUrl(int page) => $"{Repo.Url}/getRight.php?p={(page + 1)}";
+    string PageUrl(int page) => $"{Repo.Url}/getRight.php?p={page + 1}";
     public override async Task<List<JsonRepositoryBeatmap>> DownloadPage(int page, bool _)
     {
         var url = PageUrl(page);
@@ -162,17 +162,19 @@ public class FurukonRequestRefresher : RepoRefresherBase
         {
             var cells = ForeachFirstGroup(row, cellMatch).ToList();
             // columns: copy code, folder, title, artist, comment, duration
-            var comments = $"Folder: {cells[1]}\nLength: {cells[5]}";
+            var comments = $"Folder: {cells[3]}\nLength: {cells[5]}";
             if (!string.IsNullOrWhiteSpace(cells[4]))
                 comments += $"\n{cells[4].Trim()}";
+            var title = StripXml(cells[1]).TrimEnd('⭐'); // remove star request text
             refreshedMaps.Add(new JsonRepositoryBeatmap
             {
                 Comments = comments,
-                Title = StripXml(cells[2]), // remove star request text
-                Artist = cells[3],
+                Title = title,
+                Artist = cells[2],
             });
         }
-
+        Cache.Maps = new(); // clear maps
+        LoadedMaps.Clear();
         AddMapsToCache(refreshedMaps);
         Cache.Refreshed = DateTimeOffset.UtcNow;
         Cache.Save();

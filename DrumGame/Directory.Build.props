@@ -2,5 +2,6 @@
 <Project>
   <PropertyGroup>
     <ApplicationManifest>$(MSBuildThisFileDirectory)app.manifest</ApplicationManifest>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
   </PropertyGroup>
 </Project>

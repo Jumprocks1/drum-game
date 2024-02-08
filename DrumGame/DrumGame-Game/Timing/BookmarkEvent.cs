@@ -11,6 +11,7 @@ public abstract class BookmarkEvent
     public BookmarkEvent(double beat) { Beat = beat; }
 
     public const string JumpKey = "jump";
+    public const string EndKey = "end";
     public const string VolumeKey = "v";
     public const string CrescendoKey = "cres";
 
@@ -86,6 +87,10 @@ public abstract class BookmarkEvent
                     Volume = (ReadNumber() ?? 100) / 100
                 });
             }
+            else if (key == EndKey)
+            {
+                o.Add(new BookmarkEndEvent(bookmark.Time));
+            }
         }
         return o;
     }
@@ -106,6 +111,7 @@ public class BookmarkCrescendoEvent : BookmarkVolumeEvent
         return Math.Clamp((beat - Beat) / LengthBeats, 0, 1) * (Volume - StartVolume) + StartVolume;
     }
 }
+public class BookmarkEndEvent(double beat) : BookmarkEvent(beat) { }
 public class BookmarkVolumeEvent : BookmarkEvent
 {
     public double Volume;

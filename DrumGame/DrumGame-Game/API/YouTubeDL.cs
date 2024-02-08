@@ -79,6 +79,8 @@ public static class YouTubeDL
             processInfo.ArgumentList.Add("--audio-format");
             processInfo.ArgumentList.Add("vorbis");
         }
+        if (url.Length == 11)
+            url = "youtu.be/" + url; // without this, IDs starting with `-` will fail
         processInfo.ArgumentList.Add(url);
 
         var process = Process.Start(processInfo);

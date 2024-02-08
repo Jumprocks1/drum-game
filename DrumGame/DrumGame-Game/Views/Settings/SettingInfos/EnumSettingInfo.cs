@@ -67,6 +67,9 @@ public class SkinSetting : SettingInfo
                 Util.CommandController.ActivateCommand(Command.ExportCurrentSkin);
             else
                 Util.RevealInFileExplorer(source);
+            // make sure we are watching the skin after we open it
+            // this makes it easier to make quick changes without having to manually reload
+            SkinManager.SetHotWatcher(Util.Skin);
         }, FontAwesome.Solid.Edit, Height)
         {
             Anchor = Anchor.TopRight,

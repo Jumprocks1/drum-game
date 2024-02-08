@@ -106,7 +106,7 @@ public class CollectionRuleList : CollectionRule
 {
     [JsonProperty("query")]
     public HashSet<string> List;
-    public override bool Filter(BeatmapSelectorMap map) => List.Contains(map.Filename);
+    public override bool Filter(BeatmapSelectorMap map) => List.Contains(map.MapStoragePath);
     public override void ApplyAnd(CollectionContext context)
     {
         if (List.Count > 0) base.ApplyAnd(context);

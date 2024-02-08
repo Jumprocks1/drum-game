@@ -807,5 +807,16 @@ public static class Util
     static int? _trackMixerHandle;
     public static int TrackMixerHandle => _trackMixerHandle ??= Get<int>(DrumGame.Audio.TrackMixer, "Handle");
     public static (T, T) Order<T>(T a, T b) where T : IComparisonOperators<T, T, bool> => a > b ? (b, a) : (a, b);
+    public static List<T> Shuffled<T>(this IEnumerable<T> source)
+    {
+        var list = source.ToList();
+        var n = list.Count;
+        for (var i = 0; i < n - 1; i++)
+        {
+            var k = RNG.Next(i, n);
+            (list[i], list[k]) = (list[k], list[i]);
+        }
+        return list;
+    }
 }
 

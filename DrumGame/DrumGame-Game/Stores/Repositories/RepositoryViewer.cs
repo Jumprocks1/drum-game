@@ -35,7 +35,6 @@ public class RepositoryViewer : CompositeDrawable, IModal, IAcceptFocus
     public void UpdateSearch()
     {
         var search = Search.Current.Value;
-        var split = search.Split((char[])null, System.StringSplitOptions.RemoveEmptyEntries);
         var y = 0f;
         foreach (var child in ScrollContainer.Children.OfType<RepoRow>())
         {

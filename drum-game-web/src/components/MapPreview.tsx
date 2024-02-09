@@ -5,6 +5,13 @@ import { RouteLink } from "../framework/RouteButton";
 import { CacheMap, CacheMapLink } from "../interfaces/Cache";
 import BeatmapPlayerPage from "../pages/BeatmapPlayerPage";
 
+function formatDuration(duration: number | undefined) {
+    if (duration === undefined) return 0
+    const s = Math.floor(duration / 1000)
+    const m = Math.floor(s / 60)
+    return `${m}:${(s % 60).toString().padStart(2, "0")}`
+}
+
 export default class MapPreview extends Component {
     private Dtx = false;
 
@@ -67,7 +74,7 @@ export default class MapPreview extends Component {
             }
             this.Image.src = imageUrl ?? "";
             this.Title.textContent = `${map.Artist} - ${map.Title}`;
-            this.Description.textContent = `${map.MedianBPM} BPM - ${map.DifficultyString}`;
+            this.Description.textContent = `${map.MedianBPM} BPM - ${map.DifficultyString} - Length: ${formatDuration(map.PlayableDuration)}`;
             this.Date.textContent = map.Date ?? "";
 
             let download = map.DownloadUrl;

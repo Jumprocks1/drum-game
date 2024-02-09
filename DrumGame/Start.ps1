@@ -10,6 +10,8 @@ $dir = Split-Path $MyInvocation.MyCommand.Path
 
 $par = New-Object System.Collections.Generic.List[string]
 
+$par.Add("--no-discord")
+
 if ($NoCompile) {
     if ($args) {
         foreach ($arg in $args) {

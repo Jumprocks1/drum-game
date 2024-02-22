@@ -80,6 +80,7 @@ public partial class Beatmap
     public static int TickFromBeat(double beat, int tickRate) => (int)(beat * tickRate + 0.5);
     public int TickFromBeatSlow(double beat) => (int)Math.Round(beat * TickRate);
     public double BeatFromTick(int tick) => (double)tick / TickRate;
+    public double BeatFromTick(ITickTime e) => (double)e.Time / TickRate;
 
     public bool DisableSaving; // used to prevent saving after applying modifiers
 
@@ -787,9 +788,11 @@ public partial class Beatmap
         public double Divisor;
         public int Streak;
         public bool RemoveExistingSticking;
+        public bool LeftLead;
         public bool NoHandsOnLeft; // we could change this to all hands if the sticking is left
     }
 
+    int SnapFromTick(ITickTime e) => TickRate / Util.GCD(e.Time % TickRate, TickRate);
     public void SetDoubleBassSticking(BeatSelection selection, DoubleBassStickingSettings settings)
     {
         var divisor = settings.Divisor;
@@ -805,6 +808,23 @@ public partial class Beatmap
             if (currentStreak.Count == 0) return;
             if (currentStreak.Count >= minStreak)
             {
+                if (settings.LeftLead && currentStreak.Count > 1)
+                {
+                    var e = HitObjects[currentStreak[0]];
+                    // this checks if the current hit is more "awkward" than the next hit based on snap
+                    // for example, if there's a bass hit on the sixteenth note before a new measure, that would be 4 snap => level 4 awkward
+                    // this is not enabled at all times because there is nuance to "awkward"
+                    // for example (b = bass, r = right bass, l = left bass):
+                    // 0 1 2 3 0
+                    //  b b b bbb
+                    //
+                    //  r r r lrl => left lead
+                    // vs
+                    //  r r r rlr => right lead
+                    // in this example, the off beat actually feels less awkward, so it gets the right foot
+                    if (SnapFromTick(e) > SnapFromTick(HitObjects[currentStreak[1]]))
+                        HitObjects[currentStreak[0]] = e.With(e.Modifiers | NoteModifiers.Left);
+                }
                 var lastStickingWasLeft = HitObjects[currentStreak[0]].Sticking.HasFlag(NoteModifiers.Left);
                 for (var i = 1; i < currentStreak.Count; i++)
                 {

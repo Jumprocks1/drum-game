@@ -291,6 +291,11 @@ public partial class BeatmapEditor
                     DefaultValue = false,
                     Tooltip = "Left pedal hits will only be set if there's no hands at the same time"
                 },
+                new BoolFieldConfig {
+                    Label = "Allow Lead With Left",
+                    DefaultValue = false,
+                    Tooltip = "Starts streaks with left foot when not on the primary beat.\nRecommended to only use this for certain parts of a song that are weird with right lead."
+                },
             },
             OnCommit = e =>
             {
@@ -304,9 +309,13 @@ public partial class BeatmapEditor
                     Divisor = div.Value,
                     RemoveExistingSticking = e.GetValue<bool>(1),
                     Streak = (int)Math.Floor(streak.Value),
+                    LeftLead = e.GetValue<bool>(4),
                     NoHandsOnLeft = e.GetValue<bool>(3)
                 };
-                PushChange(new NoteBeatmapChange(Display, () => Beatmap.SetDoubleBassSticking(range, settings), "setting left bass drum sticking"));
+                var desc = "setting left bass drum sticking";
+                if (range != null)
+                    desc += $" {range}";
+                PushChange(new NoteBeatmapChange(Display, () => Beatmap.SetDoubleBassSticking(range, settings), desc));
             }
         });
         context.Palette.Push(req);
@@ -451,6 +460,14 @@ public partial class BeatmapEditor
                 {
                     var h = Beatmap.HitObjects[i];
                     Beatmap.HitObjects[i] = h.WithTime(h.Time * numer / denom);
+                }
+            }, null)
+            , new BookmarkBeatmapChange(Beatmap, () =>
+            {
+                for (var i = 0; i < Beatmap.Bookmarks.Count; i++)
+                {
+                    var e = Beatmap.Bookmarks[i];
+                    Beatmap.Bookmarks[i] = e.With(e.Time * numer / denom);
                 }
             }, null)
         ));

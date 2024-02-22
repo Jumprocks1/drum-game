@@ -22,6 +22,7 @@ public class DrumGameConfigManager : IniConfigManager<DrumGameSetting>
     public void OpenExternally() => Storage.OpenFileExternally(FILENAME);
 
     public Bindable<double> MidiInputOffset;
+    public Bindable<int> MidiThreshold;
     public Bindable<double> KeyboardInputOffset;
     public Bindable<double> MidiOutputOffset;
     public Bindable<bool> SmoothScroll;
@@ -83,6 +84,7 @@ public class DrumGameConfigManager : IniConfigManager<DrumGameSetting>
         SetDefault<string>(DrumGameSetting.MinimumDtxLevel, null);
         AddBindable(DrumGameSetting.MapLibraries, MapLibraries = new BindableJson<MapLibraries>());
         DiscordRichPresence = SetDefault<bool>(DrumGameSetting.DiscordRichPresence, false);
+        MidiThreshold = SetDefault(DrumGameSetting.MidiThreshold, 0, -1, 127);
     }
 
     protected override void PerformLoad()
@@ -163,6 +165,7 @@ public enum DrumGameSetting
     Skin,
     MinimumDtxLevel,
     MapLibraries,
-    DiscordRichPresence
+    DiscordRichPresence,
+    MidiThreshold
 }
 

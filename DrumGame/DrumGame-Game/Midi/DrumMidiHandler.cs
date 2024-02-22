@@ -269,7 +269,9 @@ public static class DrumMidiHandler
     public delegate bool NoteOnHandler(MidiNoteOnEvent noteOn);
     public delegate bool MidiAuxHandler(MidiAuxEvent ev);
 
+    // raw handlers trigger immediately and can cancel further processing
     static List<NoteOnHandler> rawHandlers = new();
+    // update handlers run on update thread
     static List<NoteOnHandler> updateHandlers = new();
     public static void AddNoteHandler(NoteOnHandler handler, bool raw = false) => (raw ? rawHandlers : updateHandlers).Add(handler);
     public static void RemoveNoteHandler(NoteOnHandler handler, bool raw = false) => (raw ? rawHandlers : updateHandlers).Remove(handler);
@@ -278,6 +280,8 @@ public static class DrumMidiHandler
     public static void RemoveAuxHandler(MidiAuxHandler handler) => auxHandlers.Remove(handler);
     static void handleNoteOn(MidiNoteOnEvent e)
     {
+        // ignore velocity 0
+        if (e.Velocity <= Util.ConfigManager.MidiThreshold.Value) return;
         Util.InputManager?.HideMouse();
         if (Util.ConfigManager.PlaySamplesFromMidi.Value)
         {

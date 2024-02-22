@@ -32,3 +32,31 @@ public class DoubleSettingInfo : SettingInfo
         };
     }
 }
+public class IntSettingInfo : SettingInfo
+{
+    public Bindable<int> Binding;
+    public IntSettingInfo(string label, Bindable<int> binding) : base(label)
+    {
+        Binding = binding;
+    }
+    public override void Render(SettingControl control)
+    {
+        var textBox = new DrumTextBox
+        {
+            Width = 300,
+            Height = Height - 4,
+            Y = 2,
+            Anchor = Anchor.TopRight,
+            Origin = Anchor.TopRight,
+            X = -SettingControl.SideMargin,
+            Text = Binding.Value.ToString(),
+            CommitOnFocusLost = true
+        };
+        control.Add(textBox);
+        textBox.OnCommit += (_, __) =>
+        {
+            Binding.Value = int.TryParse(textBox.Current.Value, out var o) ? o : 0;
+            textBox.Current.Value = Binding.Value.ToString();
+        };
+    }
+}

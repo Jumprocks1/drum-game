@@ -25,7 +25,7 @@ public class FileSystemResources : StorageBackedResourceStore
         _largeTextureStore = new Lazy<ITextureStore>(() =>
         {
             var loader = Util.Host.CreateTextureLoaderStore(GlobalStorageStore);
-            return new LargeTextureStore(GLUtil.Renderer, loader); // this doesn't use mip map unfortunately
+            return new LargeTextureStore(GLUtil.Renderer, loader);
         });
         ResourceStore = new ResourceStore<byte[]>(this);
         if (Util.Host?.Renderer != null)

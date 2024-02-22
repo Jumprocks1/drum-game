@@ -6,7 +6,7 @@ namespace DrumGame.Game.Stores;
 
 public class ParsableBindable<T> : Bindable<T> where T : ICanBind<T>
 {
-    public override void Parse(object input)
+    public override void Parse(object input, IFormatProvider provider)
     {
         switch (input)
         {
@@ -17,7 +17,7 @@ public class ParsableBindable<T> : Bindable<T> where T : ICanBind<T>
                 Value.Changed = TriggerChange;
                 break;
             default:
-                base.Parse(input);
+                base.Parse(input, provider);
                 break;
         }
     }

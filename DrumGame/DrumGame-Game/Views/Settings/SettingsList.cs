@@ -60,6 +60,9 @@ public static class SettingsList
         new ModalSettingInfo<ChannelEquivalentsView>("Channel Equivalents") {
             Tooltip = "This can be helpful if you do not have a trigger for every channel in Drum Game. Especially useful for cymbals."
         },
+        new IntSettingInfo("MIDI Threshold", config.MidiThreshold) {
+            Tooltip = "MIDI events with a velocity less than or equal to this value will be completely ignored by the game.\nMIDI events typically have velocities between 0 and 127. Recommended to set this to 0 and configure your module for adjusting specific pads.\nPrimarily useful for excluding velocity 0 events since some modules always output these events."
+        },
         new EnumSettingInfo<LayoutPreference>("Layout Preference", config.LayoutPreference) {
             Tooltip = "This moves the input display off to the side so you can overlay a camera."
         },

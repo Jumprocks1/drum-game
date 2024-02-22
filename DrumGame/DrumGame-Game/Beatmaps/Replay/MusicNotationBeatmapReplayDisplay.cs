@@ -31,7 +31,7 @@ public class MusicNotationBeatmapReplayDisplay : MusicNotationBeatmapDisplay
         Track.RegisterEvents(Replay);
         if (Replay.Video != null)
         {
-            ToggleVolumeControls(); // hide volume controls for replay
+            VolumeControls.Alpha = 0;
             StatusContainer.Alpha = 0; // hide status text (zoom, speed, etc.)
             ZoomLevel = 0.8;
             LoadCamera();

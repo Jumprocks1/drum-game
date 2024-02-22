@@ -1,4 +1,5 @@
 
+using System.IO;
 using System.Threading.Tasks;
 using DrumGame.Game.Beatmaps;
 using DrumGame.Game.Browsers.BeatmapSelection;
@@ -51,6 +52,8 @@ public class PreviewLoader : Component
         {
             // don't clear target if paths match
             if (beatmap == null || previewTarget == null ||
+                // unfortunately this check doesn't work for DTX files with preview tracks
+                // since this uses BeatmapSelectorMap, we don't have access to the PreviewAudio field
                 previewTarget.AudioPath != beatmap.FullAssetPath(beatmap.LoadedMetadata.Audio))
                 SetTarget(null);
         }
@@ -66,25 +69,32 @@ public class PreviewLoader : Component
         }
     }
 
+    PreviewInfo GetTarget(Beatmap beatmap)
+    {
+        if (beatmap == null) return null;
+        if (beatmap.PreviewAudio != null)
+        {
+            var previewAudio = beatmap.FullAssetPath(beatmap.PreviewAudio);
+            if (File.Exists(previewAudio)) return new PreviewInfo
+            {
+                AudioPath = previewAudio,
+                RelativeVolume = beatmap.CurrentRelativeVolume,
+                PreviewTime = 0
+            };
+        }
+        return new PreviewInfo
+        {
+            AudioPath = beatmap.FullAudioPath(),
+            RelativeVolume = beatmap.CurrentRelativeVolume,
+            PreviewTime = beatmap.PreviewTime,
+            YouTubeId = beatmap.YouTubeID,
+            YouTubeOffset = beatmap.YouTubeOffset
+        };
+    }
+
     public void SetTarget(Beatmap beatmap)
     {
-        lock (quickLock)
-        {
-            PreviewInfo newTarget = null;
-            if (beatmap != null)
-            {
-                var newAudio = beatmap.FullAudioPath();
-                newTarget = new PreviewInfo
-                {
-                    AudioPath = newAudio,
-                    RelativeVolume = beatmap.CurrentRelativeVolume,
-                    PreviewTime = beatmap.PreviewTime,
-                    YouTubeId = beatmap.YouTubeID,
-                    YouTubeOffset = beatmap.YouTubeOffset
-                };
-            }
-            SetTarget(newTarget, false);
-        }
+        lock (quickLock) { SetTarget(GetTarget(beatmap), false); }
     }
     void SetTarget(PreviewInfo newTarget, bool force)
     {

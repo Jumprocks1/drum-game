@@ -159,8 +159,6 @@ public partial class DtxLoader
         // o.DifficultyName // this comes from the SET.def
         o.Tags = Config.MountOnly ? "dtx-mount" : "dtx-import";
 
-        var hasLbLane = false; // used to decide if we should swap LP for LB or just always leave LP as hi-hat pedal
-
         if (Context != null)
             o.MapSourceUrl = Context.Url;
 
@@ -197,6 +195,7 @@ public partial class DtxLoader
                     }
                 }
             }
+            else if (code == "PREVIEW") o.PreviewAudio = value;
             else if (code == "GENRE" && !string.IsNullOrWhiteSpace(value)) o.AddTags($"genre-{value}");
             else if (code == "ARTIST") o.Artist = value;
             else if (code == "DLEVEL")
@@ -215,12 +214,12 @@ public partial class DtxLoader
             else if (code.StartsWith("VOLUME"))
             {
                 var id = (code[6], code[7]);
-                info.Samples[id].Volume = double.Parse(value) / 100;
+                info.Samples[id].Volume = ParseDouble(value) / 100;
             }
             else if (code.StartsWith("BPM"))
             {
                 var rem = code[3..];
-                var parsed = double.Parse(value);
+                var parsed = ParseDouble(value);
                 var tempo = new Tempo { BPM = parsed };
                 if (rem.Length == 0)
                 {
@@ -247,7 +246,7 @@ public partial class DtxLoader
                     // if these come out of order, we are screwed
                     // we have to round them because if they are super weird, then it breaks everything else
                     var roundTo = o.TickRate / 12;
-                    var targetLength = Math.Round(double.Parse(value) * 4 * roundTo) / roundTo;
+                    var targetLength = Math.Round(ParseDouble(value) * 4 * roundTo) / roundTo;
                     o.MeasureChanges.Add(new MeasureChange(o.TickFromMeasure(measure), targetLength));
                 }
                 else if (channelInt >= 49 && channelInt <= 60) { } // hidden chips (not played in DTX)
@@ -294,10 +293,7 @@ public partial class DtxLoader
             {
                 var mod = NoteModifiers.None;
                 if (channel == "1C") // 1C is left bass drum in DTX
-                {
-                    hasLbLane = true;
                     mod = NoteModifiers.Left;
-                }
                 var data = new HitObjectData(dc, mod);
                 if (dc == DrumChannel.BassDrum) // for the bass channel, we have to mark the samples as bass drum samples
                     s((tick, id, sample) =>
@@ -308,7 +304,7 @@ public partial class DtxLoader
                 else if (dc == DrumChannel.HiHatPedal) // older maps use the HiHat channel for double bass, so we have to check for bass samples
                     s((tick, id, sample) =>
                     {
-                        if (sample != null && sample.Bass && !hasLbLane)
+                        if (sample != null && sample.Bass)
                             o.HitObjects.Add(new HitObject(tick, new HitObjectData(DrumChannel.BassDrum, NoteModifiers.Left)));
                         else
                             o.HitObjects.Add(new HitObject(tick, data));
@@ -415,7 +411,9 @@ public partial class DtxLoader
             beatmap.StartOffset = -beatmap.MillisecondsFromTick(mainBgm.StartTime.Value) + ImportOffset;
             beatmap.RelativeVolume *= mainBgm.Volume;
 
-            var fullBgmNames = new string[] { "bgm-full.ogg", "bgm_b.ogg" };
+            var fullBgmNames = new List<string> { "bgm-full.ogg", "bgm_b.ogg" };
+            if (mainBgm.Path == "drumless.ogg")
+                fullBgmNames.Add("bgm.ogg");
             var fullFound = false; // setting this will disable any FFmpeg mixing
             foreach (var name in fullBgmNames)
             {

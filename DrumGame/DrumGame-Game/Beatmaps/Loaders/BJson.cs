@@ -109,6 +109,7 @@ public class Bookmark : IBeatTime
         Title = title;
     }
     double IBeatTime.Time => Time;
+    public Bookmark With(double time) => new(time, Title);
 }
 public class Annotation : IBeatTime
 {
@@ -121,6 +122,8 @@ public class Annotation : IBeatTime
     }
     double IBeatTime.Time => Time;
 }
+// this is serialized with NullValueHandling ignore
+// for non-null defaults, we have to set DefaultValueHandling
 public abstract class BJson
 {
     // Ticks per quarter note
@@ -139,6 +142,7 @@ public abstract class BJson
     public double? RelativeVolume { get; set; }
     public string Audio { get; set; }
     public string DrumOnlyAudio { get; set; }
+    public string PreviewAudio { get; set; }
     public string Video { get; set; }
     [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
     public double VideoOffset { get; set; }
@@ -147,6 +151,7 @@ public abstract class BJson
     public string Id { get; set; }
     [JsonProperty("offset")]
     public virtual double StartOffset { get; set; }
+    [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
     public virtual double LeadIn { get; set; }
     public float? SpacingMultiplier { get; set; }
     public JToken BPM { get; set; }

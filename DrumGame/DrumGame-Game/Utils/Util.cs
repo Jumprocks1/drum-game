@@ -34,6 +34,8 @@ using System.Threading;
 using osu.Framework.Input.States;
 using System.Numerics;
 using System.ComponentModel;
+using osu.Framework.Allocation;
+using System.Globalization;
 
 namespace DrumGame.Game.Utils;
 
@@ -319,22 +321,23 @@ public static class Util
         var d = t / 60;
         return $"{d}:{t - d * 60:00}";
     }
-    public static double? ParseTime(string time)
+    public static double? ParseTime(string time, CultureInfo culture = null)
     {
+        culture ??= CultureInfo.InvariantCulture;
         var spl = time.Split(":", options: StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         try
         {
             if (spl.Length == 1)
             {
-                return double.Parse(spl[0]) * 1000;
+                return double.Parse(spl[0], culture) * 1000;
             }
             else if (spl.Length == 2)
             {
-                return double.Parse(spl[0]) * 1000 * 60 + double.Parse(spl[1]) * 1000;
+                return double.Parse(spl[0], culture) * 1000 * 60 + double.Parse(spl[1], culture) * 1000;
             }
             else if (spl.Length >= 3)
             {
-                return double.Parse(spl[0]) * 1000 * 60 + double.Parse(spl[1]) * 1000 + double.Parse(spl[2]);
+                return double.Parse(spl[0], culture) * 1000 * 60 + double.Parse(spl[1], culture) * 1000 + double.Parse(spl[2], culture);
             }
         }
         catch { }
@@ -608,16 +611,17 @@ public static class Util
 
     public static T Random<T>(this IList<T> list) => list[RNG.Next(list.Count)];
 
+    public static Clipboard Clipboard => Host.Dependencies.Get<Clipboard>();
     public static string ShortClipboard
     {
         get
         {
-            var t = Host.GetClipboard()?.GetText();
+            var t = Clipboard?.GetText();
             if (t != null && t.Length < 500) return t;
             return null;
         }
     }
-    public static void SetClipboard(string text) => Host.GetClipboard().SetText(text);
+    public static void SetClipboard(string text) => Clipboard.SetText(text);
     public static Stopwatch StartTime;
     public static void CheckStartDuration()
     {

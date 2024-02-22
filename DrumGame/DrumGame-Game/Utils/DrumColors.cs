@@ -1,3 +1,4 @@
+using DrumGame.Game.Beatmaps.Scoring;
 using osu.Framework.Graphics;
 
 namespace DrumGame.Game.Utils;
@@ -97,4 +98,25 @@ public static class DrumColors
     // useful for inline decorator in VSCode
     static Colour4 rgb(byte r, byte g, byte b) => new(r, g, b, 255);
     public static Colour4 Mix(this Colour4 color, Colour4 other, float alpha) => color * (1 - alpha) + other * alpha;
+
+    public static Colour4 BlendedHitColor(double error, Stores.Skins.Skin.Skin_HitColors colors, HitWindows windows)
+    {
+        // not might be a better way to do this, not sure
+        var g = new (double error, Colour4 color)[]
+        {
+            (-windows.BadWindow, colors.EarlyMiss),
+            (-windows.GoodWindow, colors.EarlyGood),
+            (-windows.PerfectWindow, colors.EarlyPerfect),
+            (windows.PerfectWindow, colors.LatePerfect),
+            (windows.GoodWindow, colors.LateGood),
+            (windows.BadWindow, colors.LateMiss),
+        };
+        if (error <= g[0].error) return g[0].color;
+        for (var i = 0; i < g.Length - 1; i++)
+        {
+            if (error < g[i + 1].error)
+                return Mix(g[i].color, g[i + 1].color, (float)((error - g[i].error) / (g[i + 1].error - g[i].error)));
+        }
+        return g[^1].color;
+    }
 }

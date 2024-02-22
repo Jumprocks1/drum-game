@@ -1,6 +1,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -42,7 +43,7 @@ public partial class DtxLoader
     static bool shouldIgnore(string code) => code switch
     {
         "DTXC_LANEBINDEDCHIP" or "DTXC_LANEBINDEDCHIP_AL" or "DTXC_CHIPPALETTE" or
-        "PREVIEW" or "DTXC_WAVBACKCOLOR" or "GLEVEL" or "DTXVPLAYSPEED" or
+        "DTXC_WAVBACKCOLOR" or "GLEVEL" or "DTXVPLAYSPEED" or
         "BACKGROUND" or "RESULTIMAGE" or "HIDDENLEVEL" or
         "BLEVEL" or "STAGEFILE" => true,
         _ => IgnoreStartsWith.Any(e => code.StartsWith(e))
@@ -50,6 +51,8 @@ public partial class DtxLoader
     static readonly string[] IgnoreStartsWith = new string[] {
         "PAN", "AVI", "SIZE"
     };
+    // make sure to use this. We can't use default double.Parse since it doesn't always work with decimals ie `0.5`
+    static double ParseDouble(string s) => double.Parse(s, CultureInfo.InvariantCulture);
 
     static bool SetDifficultyName(List<Def> defs, string localFileName, Beatmap beatmap)
     {

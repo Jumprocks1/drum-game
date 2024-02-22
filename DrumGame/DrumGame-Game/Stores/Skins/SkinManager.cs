@@ -5,20 +5,41 @@ using System.Linq;
 using DrumGame.Game.Beatmaps.Loaders;
 using DrumGame.Game.Channels;
 using DrumGame.Game.Commands;
+using DrumGame.Game.Components;
 using DrumGame.Game.Notation;
 using DrumGame.Game.Utils;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
-using NuGet.Protocol;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Primitives;
 using osu.Framework.Logging;
 
 namespace DrumGame.Game.Stores.Skins;
 
 public static class SkinManager
 {
+    static List<AdjustableSkinElement> Elements = new();
+    public static void RegisterElement(AdjustableSkinElement element)
+    {
+        Elements.Add(element);
+    }
+    public static void UnregisterElement(AdjustableSkinElement element)
+    {
+        Elements.Remove(element);
+    }
+    static bool AltState;
+    public static void SetAltKey(bool altPressed)
+    {
+        if (altPressed == AltState) return;
+        AltState = altPressed;
+        foreach (var element in Elements)
+        {
+            if (altPressed) element.ShowOverlay();
+            else element.HideOverlay();
+        }
+    }
+
     public static event Action SkinChanged; // triggered when skin is modified/reloaded and when different skin is selected
 
     // public static void ReloadSkin() => SkinChanged?.Invoke();
@@ -159,25 +180,77 @@ public static class SkinManager
             FileWatcher.UpdatePath(path);
     }
     public static void SetHotWatcher(Skin skin) => SetHotWatcher(skin?.Source);
+    static List<Skin> DirtySkins; // should probably clear these when reloading skins
+    public static void MarkDirty(Skin skin) // TODO this really needs to only dirty a specific path
+    {
+        DirtySkins ??= new();
+        if (!DirtySkins.Contains(skin)) DirtySkins.Add(skin);
+    }
+    public static void Cleanup()
+    {
+        if (DirtySkins != null)
+        {
+            foreach (var skin in DirtySkins)
+                SavePartialSkin(skin);
+            DirtySkins = null;
+        }
+    }
+    public static void SavePartialSkin(Skin skin) // TODO we cannot save the whole skin, it is simply impractical
+    {
+        if (skin == null) return;
+        try
+        {
+            // saving is relatively rare, so we will choose to re-deserialize each time before saving
+            // the other option would be to save the deserialized JSON inside the skin on load, but that is overkill
+
+            // var settings = new JsonSerializerSettings
+            // {
+            //     ContractResolver = new SkinContractResolver(),
+            //     Converters = new JsonConverter[] { new ColorHexConverter() },
+            //     Formatting = Formatting.Indented,
+            //     NullValueHandling = NullValueHandling.Ignore,
+            // };
+            // if (export)
+            // {
+            //     skin.GameVersion ??= Util.VersionString;
+            //     skin.Comments ??= "This is an exported version of a skin. It may contain extra fields that are not needed.";
+            // }
+            // var s = JsonConvert.SerializeObject(skin, settings);
+            // File.WriteAllText(path ?? skin.Source, s);
+            // Logger.Log($"Skin saved to {skin.Source}", level: LogLevel.Important);
+        }
+        catch (Exception e)
+        {
+            Logger.Error(e, $"Failed to save skin {skin.Name}");
+        }
+    }
 
     public static void ExportCurrentSkin()
     {
-        var skin = Util.Skin;
-        var name = skin.Name ?? "Default";
-        var exportName = Util.ToFilename($"export {name}", ".json");
-        var outputPath = Util.Resources.GetAbsolutePath(Path.Join("skins", exportName));
-        var settings = new JsonSerializerSettings
+        try
         {
-            ContractResolver = new SkinContractResolver(),
-            Converters = new JsonConverter[] { new ColorHexConverter() },
-            Formatting = Formatting.Indented,
-            NullValueHandling = NullValueHandling.Ignore,
-        };
-        skin.GameVersion ??= Util.VersionString;
-        skin.Comments ??= "This is an exported version of a skin. It may contain extra fields that are not needed.";
-        var s = JsonConvert.SerializeObject(skin, settings);
-        File.WriteAllText(outputPath, s);
-        Util.RevealInFileExplorer(outputPath);
+            var skin = Util.Skin;
+            var name = skin.Name ?? "Default";
+            var exportName = Util.ToFilename($"export {name}", ".json");
+            var outputPath = Util.Resources.GetAbsolutePath(Path.Join("skins", exportName));
+            var settings = new JsonSerializerSettings
+            {
+                ContractResolver = new SkinContractResolver(),
+                Converters = new JsonConverter[] { new ColorHexConverter() },
+                Formatting = Formatting.Indented,
+                NullValueHandling = NullValueHandling.Ignore,
+            };
+            skin.GameVersion ??= Util.VersionString;
+            skin.Comments ??= "This is an exported version of a skin. It may contain extra fields that are not needed.";
+            var s = JsonConvert.SerializeObject(skin, settings);
+            File.WriteAllText(outputPath, s);
+            Util.RevealInFileExplorer(outputPath);
+        }
+        catch (Exception e)
+        {
+            Logger.Error(e, "Export failed");
+            Util.Palette.UserError("Export failed, see log for exception");
+        }
     }
 
     public class SkinChannelConverter : JsonConverter<Dictionary<DrumChannel, SkinNote>>
@@ -237,6 +310,10 @@ public static class SkinManager
                     Writable = false,
                     ShouldSerialize = _ => true
                 });
+            }
+            else if (type == typeof(RectangleF))
+            {
+                list = list.Where(e => e.Writable && e.PropertyType == typeof(float)).ToList();
             }
             return list;
         }

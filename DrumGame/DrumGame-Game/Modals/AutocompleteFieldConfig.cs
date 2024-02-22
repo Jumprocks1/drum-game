@@ -13,6 +13,7 @@ namespace DrumGame.Game.Modals;
 public class EnumFieldConfig<T> : FieldConfigBase<T> where T : struct, Enum
 {
     public override IDrawableField<T> Render(RequestModal modal) => new Field(this);
+    public List<T> Values;
     class Field : EnumAutocomplete<T>, IDrawableField<T>, IHasCustomTooltip
     {
         public FieldConfigBase Config { get; }
@@ -26,7 +27,7 @@ public class EnumFieldConfig<T> : FieldConfigBase<T> where T : struct, Enum
                 Target = Options.First(e => eq.Equals(e.Value, value));
             }
         }
-        public Field(EnumFieldConfig<T> config) : base(config.DefaultValue)
+        public Field(EnumFieldConfig<T> config) : base(config.DefaultValue, config.Values)
         {
             Config = config;
             TooltipContent = config.Tooltip;

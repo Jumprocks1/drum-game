@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using DrumGame.Game.Beatmaps.Display;
 using DrumGame.Game.Commands;
+using DrumGame.Game.Components;
 using DrumGame.Game.Components.Abstract;
 using DrumGame.Game.Utils;
 using osu.Framework.Allocation;
@@ -10,18 +12,29 @@ using osu.Framework.Logging;
 
 namespace DrumGame.Game.Containers;
 
-public class EventContainer : FadeContainer
+public class EventContainer : AdjustableSkinElement
 {
-    public override Colour4 BackgroundColour => Colour4.Transparent;
+    public override ref AdjustableSkinData SkinPath => ref Util.Skin.Notation.EventContainer;
+    public override AdjustableSkinData DefaultData() => new()
+    {
+        Anchor = Anchor.BottomLeft,
+        Y = -BeatmapTimeline.Height - MusicNotationBeatmapDisplay.ModeTextHeight - SongInfoPanel.DefaultHeight
+    };
     public static readonly FontUsage Font = FrameworkFont.Regular.With(size: 14);
     public const int EventBuffer = 8;
     // if we need more detailed storage we can make custom class over SpriteText
-    Queue<SpriteText> events = new Queue<SpriteText>(EventBuffer);
+    Queue<SpriteText> events = new(EventBuffer);
     public const int EventHeight = 16;
+    FadeContainer Container;
     public EventContainer()
     {
+        AddInternal(Container = new()
+        {
+            AutoSizeAxes = Axes.Both,
+            Padding = new MarginPadding { Left = 2 },
+            BackgroundColour = Colour4.Transparent
+        });
         AutoSizeAxes = Axes.Both;
-        Padding = new MarginPadding { Left = 2 };
     }
     public void Add(EventLog log)
     {
@@ -48,24 +61,23 @@ public class EventContainer : FadeContainer
         {
             d.Y -= EventHeight;
         }
-        if (added.Parent == null) AddInternal(added);
+        if (added.Parent == null) Container.Add(added);
         added.Y = 0;
         events.Enqueue(added);
         Touch();
     }
 
-    [Resolved] CommandController CommandController { get; set; }
     [CommandHandler(Command.ShowEventLog)]
-    public override void Touch() => base.Touch();
+    public void Touch() => Container.Touch();
 
     [BackgroundDependencyLoader]
     private void load()
     {
-        CommandController.RegisterHandlers(this);
+        Util.CommandController.RegisterHandlers(this);
     }
     protected override void Dispose(bool isDisposing)
     {
-        CommandController.RemoveHandlers(this);
+        Util.CommandController.RemoveHandlers(this);
         base.Dispose(isDisposing);
     }
 }
@@ -81,5 +93,5 @@ public class EventLog
         Time = time ?? DateTime.Now;
         Level = level;
     }
-    public static implicit operator EventLog(string description) => new EventLog(description);
+    public static implicit operator EventLog(string description) => new(description);
 }

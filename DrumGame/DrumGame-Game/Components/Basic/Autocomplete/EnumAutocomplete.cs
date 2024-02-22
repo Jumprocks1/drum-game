@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using DrumGame.Game.Utils;
 using osu.Framework.Bindables;
@@ -39,10 +40,10 @@ public class EnumAutocomplete<T> : Autocomplete<EnumOption<T>>, IHasTooltip wher
             CommittedTarget = Options.First(e => e.Value.Equals(ev.NewValue));
         });
     }
-    public EnumAutocomplete(T current = default) : this(current, false) { }
-    public EnumAutocomplete(T? current = default, bool nullable = true)
+    public EnumAutocomplete(T current = default, IEnumerable<T> values = null) : this(current, false, values) { }
+    public EnumAutocomplete(T? current = default, bool nullable = true, IEnumerable<T> values = null)
     {
-        var options = Enum.GetValues(typeof(T)).Cast<T>().Select(e => new EnumOption<T>(e));
+        var options = (values ?? Enum.GetValues(typeof(T)).Cast<T>()).Select(e => new EnumOption<T>(e));
         if (nullable) options = options.Append(null);
         Options = options.ToList();
         CommittedTarget = current == null ? null : Options.First(e => e == null ? false : e.Value.Equals(current));

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using DrumGame.Game.Channels;
+using DrumGame.Game.Components;
 using DrumGame.Game.Notation;
 using DrumGame.Game.Utils;
 using Newtonsoft.Json;
@@ -37,7 +38,7 @@ public class Skin
         public Colour4 LatePerfect;
         public Colour4 Perfect = Colour4.DeepSkyBlue;
 
-        const float DefaultShadeAmount = 0.4f;
+        public const float DefaultShadeAmount = 0.4f;
 
         public void LoadDefaults()
         {
@@ -53,8 +54,10 @@ public class Skin
             if (EarlyPerfect == default) EarlyPerfect = Perfect;
             if (LatePerfect == default) LatePerfect = Perfect;
         }
+        public Skin_HitColors Clone() => (Skin_HitColors)MemberwiseClone();
     }
     public Skin_HitColors HitColors = new();
+    public AdjustableSkinData KeyPressOverlay;
 
     public class Skin_NotationInfo
     {
@@ -68,6 +71,9 @@ public class Skin
         public Colour4 StaffLineColor;
         public Colour4 PlayfieldBackground = Colour4.White;
         public Colour4 InputDisplayBackground = Colour4.Gainsboro;
+        public AdjustableSkinData SongInfoPanel;
+        public AdjustableSkinData EventContainer;
+        public AdjustableSkinData VolumeControlGroup;
         public void LoadDefaults()
         {
             if (NoteColor == default) NoteColor = NotationColor;

@@ -243,7 +243,6 @@ public partial class MusicNotationBeatmapDisplay : BeatmapDisplay
         }
     }
     public VolumeControlGroup VolumeControls;
-    [CommandHandler] public void ToggleVolumeControls() => VolumeControls.Alpha = VolumeControls.Alpha == 1 ? 0 : 1;
     void UpdateNoteContainerLength() => NoteContainer.BeatCount = Beatmap.QuarterNotes;
     void MeasuresUpdated()
     {
@@ -253,6 +252,7 @@ public partial class MusicNotationBeatmapDisplay : BeatmapDisplay
         // this will also handle updating the measure lines
         ReloadNoteRange(true);
     }
+    public const float ModeTextHeight = 20;
     [BackgroundDependencyLoader]
     private void load()
     {
@@ -313,12 +313,7 @@ public partial class MusicNotationBeatmapDisplay : BeatmapDisplay
         StatusContainer.Add(TempoText = new CommandText(Command.SetPlaybackSpeed) { Colour = TextColor });
         StatusContainer.Add(BeatText = new CommandText(Command.SeekToBeat) { Colour = TextColor });
         AddInternal(StatusContainer);
-        AddInternal(VolumeControls = new VolumeControlGroup(Player as BeatmapEditor)
-        {
-            Origin = Anchor.BottomRight,
-            Anchor = Anchor.BottomRight,
-            Y = -BeatmapTimeline.Height - 20
-        });
+        AddInternal(VolumeControls = new VolumeControlGroup(Player as BeatmapEditor));
         if (Player is BeatmapEditor)
         {
             AddInternal(new CommandIconButton(Command.EditorTools, FontAwesome.Solid.Tools, 40)
@@ -340,12 +335,8 @@ public partial class MusicNotationBeatmapDisplay : BeatmapDisplay
         modeContainer.Add(ModeText = new CommandText(Command.SwitchMode) { Colour = TextColor });
         if (Player is BeatmapEditor) modeContainer.Add(SnapText = new CommandText(Command.SetEditorSnapping) { Colour = TextColor });
         AddInternal(modeContainer);
-        AddInternal(EventContainer = new EventContainer
-        {
-            Origin = Anchor.BottomLeft,
-            Anchor = Anchor.BottomLeft,
-            Y = -BeatmapTimeline.Height - 20
-        });
+        AddInternal(new SongInfoPanel(Beatmap));
+        AddInternal(EventContainer = new());
         LoadNotes();
         Beatmap.AnnotationsUpdated += LoadAnnotations;
         LoadAnnotations();

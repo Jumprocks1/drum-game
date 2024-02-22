@@ -1,16 +1,23 @@
+using DrumGame.Game.Beatmaps.Display;
 using DrumGame.Game.Beatmaps.Editor;
 using DrumGame.Game.Commands;
 using DrumGame.Game.Interfaces;
+using DrumGame.Game.Utils;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
-using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 
 namespace DrumGame.Game.Components;
 
-public class VolumeControlGroup : CompositeDrawable
+public class VolumeControlGroup : AdjustableSkinElement
 {
+    public override ref AdjustableSkinData SkinPath => ref Util.Skin.Notation.VolumeControlGroup;
+    public override AdjustableSkinData DefaultData() => new()
+    {
+        Anchor = Anchor.BottomRight,
+        Y = -BeatmapTimeline.Height - 20
+    };
     public BindableNumber<double> RelativeSongVolume;
     public VolumeControlGroup(BeatmapEditor editor = null)
     {

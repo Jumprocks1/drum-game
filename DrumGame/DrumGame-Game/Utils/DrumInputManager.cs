@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using DrumGame.Game.Interfaces;
+using DrumGame.Game.Stores.Skins;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Input;
@@ -28,6 +29,12 @@ public class DrumInputManager : UserInputManager
             hiddenChanged = false;
         }
         base.HandleMousePositionChange(e);
+    }
+
+    protected override void HandleKeyboardKeyStateChange(ButtonStateChangeEvent<Key> keyboardKeyStateChange)
+    {
+        SkinManager.SetAltKey(keyboardKeyStateChange.State.Keyboard.AltPressed);
+        base.HandleKeyboardKeyStateChange(keyboardKeyStateChange);
     }
 
     protected override void LoadComplete()
@@ -107,13 +114,13 @@ public class DrumInputManager : UserInputManager
         {
             if (Button == MouseButton.Right)
             {
-                if (targets != null && EnableClick && DraggedDrawable?.DragBlocksClick != true && !BlockNextClick)
+                if (targets != null && EnableClick && DraggedDrawable?.DragBlocksClick != true)
                 {
                     foreach (var e in targets)
                     {
                         if (e.IsHovered)
                         {
-                            if (e is IHasContextMenu cm)
+                            if (e is IHasContextMenu)
                             {
                                 // make sure the click gets dumped into the ContextMenuContainer
                                 targets.Clear();
@@ -131,7 +138,7 @@ public class DrumInputManager : UserInputManager
         {
             if (Button == MouseButton.Left || Button == MouseButton.Right)
             {
-                if (targets != null && EnableClick && DraggedDrawable?.DragBlocksClick != true && !BlockNextClick)
+                if (targets != null && EnableClick && DraggedDrawable?.DragBlocksClick != true)
                 {
                     foreach (var e in targets)
                     {

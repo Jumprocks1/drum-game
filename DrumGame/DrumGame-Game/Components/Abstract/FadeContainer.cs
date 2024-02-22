@@ -1,3 +1,4 @@
+using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -5,9 +6,9 @@ using osu.Framework.Input.Events;
 
 namespace DrumGame.Game.Components.Abstract;
 
-public abstract class FadeContainer : CompositeDrawable
+public class FadeContainer : Container
 {
-    public virtual Colour4 BackgroundColour => Colour4.Black.MultiplyAlpha(0.75f);
+    public Colour4 BackgroundColour = Colour4.Black.MultiplyAlpha(0.75f);
     public virtual double VisibleTime => 2000;
     public virtual double FadeTime => 800;
     public double DisplayTime; // doesn't need to be initialized since Alpha = 0 at start
@@ -15,13 +16,19 @@ public abstract class FadeContainer : CompositeDrawable
     public FadeContainer()
     {
         Alpha = 0;
+    }
+
+    [BackgroundDependencyLoader]
+    private void load()
+    {
         var bg = BackgroundColour;
         if (bg.A > 0)
         {
             AddInternal(new Box
             {
                 Colour = bg,
-                RelativeSizeAxes = Axes.Both
+                RelativeSizeAxes = Axes.Both,
+                Depth = 100
             });
         }
     }

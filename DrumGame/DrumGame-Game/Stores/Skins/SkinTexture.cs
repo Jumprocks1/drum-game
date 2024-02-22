@@ -1,5 +1,6 @@
 using DrumGame.Game.Components;
 using DrumGame.Game.Utils;
+using Newtonsoft.Json;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Sprites;
@@ -71,6 +72,7 @@ public class SkinTexture
         ApplyBasic(sprite);
         return sprite;
     }
+    [JsonIgnore]
     public SkinTexture Prepared { get { PrepareForDraw(); return this; } }
     Colour4 Color;
     bool Ready;

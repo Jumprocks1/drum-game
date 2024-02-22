@@ -97,7 +97,6 @@ public enum Command
     EditorTools,
     ToggleAutoPlayHitSounds,
     ToggleMetronome,
-    ToggleVolumeControls,
     IncreaseVolume,
     DecreaseVolume,
     Mute,
@@ -489,7 +488,6 @@ public static class CommandList
         controller.RegisterCommand(Command.SaveAudioRecording);
         controller.RegisterCommand(Command.SetRecordingDevices);
         controller.RegisterCommand(Command.LoadReplayVideo);
-        controller.RegisterCommand(Command.ToggleVolumeControls);
         controller.RegisterCommand(Command.IncreaseVolume, new KeyCombo(ModifierKey.Alt, InputKey.MouseWheelUp),
             new KeyCombo(ModifierKey.Alt, InputKey.Up));
         controller.RegisterCommand(Command.DecreaseVolume, new KeyCombo(ModifierKey.Alt, InputKey.MouseWheelDown),

@@ -9,7 +9,7 @@ namespace DrumGame.Game.Input;
 
 public class BindableMidiMapping : Bindable<MidiMapping>
 {
-    public override void Parse(object input)
+    public override void Parse(object input, IFormatProvider provider)
     {
         switch (input)
         {
@@ -17,7 +17,7 @@ public class BindableMidiMapping : Bindable<MidiMapping>
                 Value = new MidiMapping(str);
                 break;
             default:
-                base.Parse(input);
+                base.Parse(input, provider);
                 break;
         }
     }

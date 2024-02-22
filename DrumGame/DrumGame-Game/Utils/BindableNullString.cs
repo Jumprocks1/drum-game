@@ -1,3 +1,4 @@
+using System;
 using osu.Framework.Bindables;
 
 namespace DrumGame.Game.Utils;
@@ -5,7 +6,7 @@ namespace DrumGame.Game.Utils;
 // this bindable is basically the same as a Bindable<string> except it prefers setting it's value to null when parsing instead of empty
 public class BindableNullString : Bindable<string>
 {
-    public override void Parse(object input)
+    public override void Parse(object input, IFormatProvider provider)
     {
         switch (input)
         {
@@ -13,7 +14,7 @@ public class BindableNullString : Bindable<string>
                 Value = string.IsNullOrWhiteSpace(str) ? null : str;
                 break;
             default:
-                base.Parse(input);
+                base.Parse(input, provider);
                 break;
         }
     }

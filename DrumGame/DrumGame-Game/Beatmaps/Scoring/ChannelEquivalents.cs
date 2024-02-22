@@ -9,7 +9,7 @@ namespace DrumGame.Game.Beatmaps.Scoring;
 
 public class BindableChannelEquivalents : Bindable<ChannelEquivalents>
 {
-    public override void Parse(object input)
+    public override void Parse(object input, IFormatProvider provider)
     {
         switch (input)
         {
@@ -17,7 +17,7 @@ public class BindableChannelEquivalents : Bindable<ChannelEquivalents>
                 Value = new ChannelEquivalents(str);
                 break;
             default:
-                base.Parse(input);
+                base.Parse(input, provider);
                 break;
         }
     }

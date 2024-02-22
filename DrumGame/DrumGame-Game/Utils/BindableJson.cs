@@ -1,3 +1,4 @@
+using System;
 using DrumGame.Game.Interfaces;
 using Newtonsoft.Json;
 using osu.Framework.Bindables;
@@ -6,7 +7,7 @@ namespace DrumGame.Game.Utils;
 
 public class BindableJson<T> : Bindable<T> where T : class, IInit, IChangedEvent, new()
 {
-    public override void Parse(object input)
+    public override void Parse(object input, IFormatProvider provider)
     {
         switch (input)
         {
@@ -19,7 +20,7 @@ public class BindableJson<T> : Bindable<T> where T : class, IInit, IChangedEvent
                     init.Init();
                 break;
             default:
-                base.Parse(input);
+                base.Parse(input, provider);
                 break;
         }
     }
@@ -39,7 +40,7 @@ public class BindableJson<T> : Bindable<T> where T : class, IInit, IChangedEvent
         };
     }
 
-    public override string ToString() => JsonConvert.SerializeObject(Value, new JsonSerializerSettings
+    public override string ToString(string format, IFormatProvider formatProvider) => JsonConvert.SerializeObject(Value, new JsonSerializerSettings
     {
         DefaultValueHandling = DefaultValueHandling.Ignore
     });

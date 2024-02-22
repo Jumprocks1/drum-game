@@ -36,23 +36,26 @@ public class Canvas<State> : Canvas where State : new()
             base.ApplyState();
             Source.ApplyState(State);
         }
+        protected override void BindUniformResources(IShader shader, IRenderer renderer)
+        {
+            if (shader == null || !shader.IsLoaded) return;
+            Shader = shader;
+            base.BindUniformResources(shader, renderer);
+        }
         // TODO add opaque mode (not sure why we need, but I think it's good)
         // only use when a full background is drawn
-        public override void Draw(IRenderer renderer)
+        protected override void Draw(IRenderer renderer)
         {
             base.Draw(renderer);
-            var shader = GetAppropriateShader(renderer);
-            if (shader == null || !shader.IsLoaded) return;
-            shader.Bind();
+            BindTextureShader(renderer);
             Renderer = renderer;
-            Shader = shader;
 
             Color = DrawColourInfo.Colour; // have to reset color on each render
             Source.Draw(this, State);
 
             Shader = null;
             Renderer = null;
-            shader.Unbind();
+            UnbindTextureShader(renderer);
         }
     }
 }
@@ -61,14 +64,12 @@ public abstract class Canvas : Drawable, ITexturedShaderDrawable
 {
     public bool Relative;
     public IShader TextureShader { get; set; }
-    public IShader RoundedTextureShader { get; set; }
     [BackgroundDependencyLoader]
     private void load(ShaderManager shaders)
     {
         // I don't fully understand the differences here
         // Defaults should work fine since we don't use EdgeSmoothness
         TextureShader ??= shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
-        RoundedTextureShader ??= shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
     }
     protected override void Update()
     {
@@ -113,6 +114,7 @@ public abstract class CanvasNode : TexturedShaderDrawNode
 
     public IRenderer Renderer; // only set while in DrawAction()
     public IShader Shader;
+    // would be dope if we could do a circle here
     public void Box(float x, float y, float w, float h) =>
         Sprite(Renderer.WhitePixel, x, y, w, h);
     public void CenterBox(float x, float y, float w, float h) =>

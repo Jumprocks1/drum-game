@@ -1,4 +1,5 @@
 
+using DrumGame.Game.Components;
 using DrumGame.Game.Timing;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;

@@ -178,11 +178,8 @@ public class DrumGameGameBase : osu.Framework.Game
         Storage = host.Storage;
         LocalConfig = new DrumGameConfigManager(Host.Storage);
 
-        if (host.Window is SDL2DesktopWindow desktopWindow)
-        {
-            desktopWindow.DragDrop += f => fileDrop(new[] { f });
-            desktopWindow.Title = "Drum Game";
-        }
+        host.Window.Title = "Drum Game";
+        host.Window.DragDrop += f => fileDrop(new[] { f });
     }
 
     private readonly List<string> droppedFiles = new List<string>();
@@ -222,6 +219,7 @@ public class DrumGameGameBase : osu.Framework.Game
     {
         base.Dispose(isDisposing);
         Util.GameDisposed();
+        SkinManager.Cleanup(); // saves dirty skins
         MapStorage?.Dispose(); // saves map cache
         CollectionStorage?.Dispose(); // saves dirty collections
         LocalConfig?.Dispose(); // save settings
@@ -331,7 +329,7 @@ public class DrumGameGameBase : osu.Framework.Game
         context.ShowMessage($"Frame sync set to {syncString}");
         return true;
     }
-    [CommandHandler] public void CycleFrameStatistics() => Trigger(FrameworkAction.CycleFrameStatistics);
+    [CommandHandler] public new void CycleFrameStatistics() => base.CycleFrameStatistics();
     [CommandHandler] public void ToggleLogOverlay() => Trigger(FrameworkAction.ToggleLogOverlay);
     [CommandHandler]
     public bool ToggleExecutionMode(CommandContext context)
@@ -390,7 +388,7 @@ public class DrumGameGameBase : osu.Framework.Game
     public void ToggleScreencastMode()
     {
         if (RemoveAll(e => e is KeyPressOverlay, true) == 0)
-            Add(new KeyPressOverlay { Depth = -3 });
+            Add(new KeyPressOverlay { Depth = -30 });
     }
 
     [CommandHandler]

@@ -28,7 +28,7 @@ public class AudioDump
         SampleRate = info.Frequency;
 
         const int samplesPerIteration = 400_000;
-        const int bytesPerIteration = TrackBass.BYTES_PER_SAMPLE * samplesPerIteration;
+        const int bytesPerIteration = 4 * samplesPerIteration;
 
         float[] sampleBuffer = new float[samplesPerIteration];
 
@@ -43,7 +43,7 @@ public class AudioDump
             var bytesRead = Bass.ChannelGetData(decodeStream, sampleBuffer, bytesPerIteration);
             if (bytesRead <= 0) break;
 
-            var samplesRead = (int)(bytesRead / TrackBass.BYTES_PER_SAMPLE);
+            var samplesRead = (int)(bytesRead / 4);
 
             for (int i = 0; i < samplesRead; i += channels) // sample channels are interleaved L,R,L,R etc
             {

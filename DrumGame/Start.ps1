@@ -18,7 +18,7 @@ if ($NoCompile) {
             $par.Add($arg)
         }
     }
-    & "$dir/DrumGame.Desktop/bin/Debug/net7.0/DrumGame.exe" @par
+    & "$dir/DrumGame.Desktop/bin/Debug/net8.0/DrumGame.exe" @par
     exit;
 }
 

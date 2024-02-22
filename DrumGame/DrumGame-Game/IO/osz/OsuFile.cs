@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -53,7 +54,7 @@ public class OsuFile
         }
         else if (field.FieldType == typeof(double))
         {
-            field.SetValue(target, double.Parse(value));
+            field.SetValue(target, double.Parse(value, CultureInfo.InvariantCulture));
         }
         else
         {

@@ -27,7 +27,6 @@ namespace osu.Framework.Graphics.Sprites
         [Resolved]
         private FontStore store { get; set; }
         public IShader TextureShader { get; private set; }
-        public IShader RoundedTextureShader { get; private set; }
 
         public NoteSprite()
         {
@@ -39,7 +38,6 @@ namespace osu.Framework.Graphics.Sprites
         private void load(ShaderManager shaders)
         {
             TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
-            RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
 
             store.Get(font.FontName, Character);
         }
@@ -134,18 +132,16 @@ namespace osu.Framework.Graphics.Sprites
                 part = Source.screenSpaceCharacters;
             }
 
-            public override void Draw(IRenderer renderer)
+            protected override void Draw(IRenderer renderer)
             {
                 base.Draw(renderer);
 
-                var shader = GetAppropriateShader(renderer);
-
-                shader.Bind();
+                BindTextureShader(renderer);
 
                 if (part is ScreenSpaceCharacterPart p)
                     renderer.DrawQuad(p.Texture, p.DrawQuad, DrawColourInfo.Colour, inflationPercentage: p.InflationPercentage);
 
-                shader.Unbind();
+                UnbindTextureShader(renderer);
             }
         }
     }

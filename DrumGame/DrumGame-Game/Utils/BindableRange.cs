@@ -5,7 +5,7 @@ namespace DrumGame.Game.Utils;
 
 public class BindableRange : Bindable<(byte, byte)>
 {
-    public override void Parse(object input)
+    public override void Parse(object input, IFormatProvider provider)
     {
         switch (input)
         {
@@ -15,7 +15,7 @@ public class BindableRange : Bindable<(byte, byte)>
                 Value = (byte.Parse(spl[0]), byte.Parse(spl[1]));
                 break;
             default:
-                base.Parse(input);
+                base.Parse(input, provider);
                 break;
         }
     }

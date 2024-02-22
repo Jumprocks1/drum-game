@@ -96,7 +96,7 @@ public class LoudnessNormalization
 
         // 100 ms window
         var samplesPerWindow = (int)(info.Frequency * 0.1f * info.Channels);
-        var bytesPerWindow = samplesPerWindow * TrackBass.BYTES_PER_SAMPLE;
+        var bytesPerWindow = samplesPerWindow * 4;
 
 
         totalWindowLength = samplesPerWindow * 4 / info.Channels;

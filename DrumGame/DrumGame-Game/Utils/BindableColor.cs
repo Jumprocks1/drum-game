@@ -6,7 +6,7 @@ namespace DrumGame.Game.Utils;
 
 public class BindableColor : Bindable<Colour4>
 {
-    public override void Parse(object input)
+    public override void Parse(object input, IFormatProvider provider)
     {
         switch (input)
         {
@@ -25,7 +25,7 @@ public class BindableColor : Bindable<Colour4>
                 );
                 break;
             default:
-                base.Parse(input);
+                base.Parse(input, provider);
                 break;
         }
     }

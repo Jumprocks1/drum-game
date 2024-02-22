@@ -165,7 +165,7 @@ public class RepositoryViewer : CompositeDrawable, IModal, IAcceptFocus
             if (Map.DownloadUrl == null && Map.Url == null)
             {
                 if (tryDownload || !allowClipboard) Util.Google(Map.FullName);
-                else Util.Host.GetClipboard().SetText(Map.FullName);
+                else Util.SetClipboard(Map.FullName);
                 return;
             }
             var url = tryDownload ? Map.DownloadUrl ?? Map.Url : Map.Url;
@@ -244,7 +244,7 @@ public class RepositoryViewer : CompositeDrawable, IModal, IAcceptFocus
                 return ContextMenuBuilder.New(Map)
                     .Add("Download", e => DownloadOrOpen(true, false)).Color(DrumColors.BrightGreen).Disabled(Map.DownloadUrl == null)
                     .Add("View online", e => DownloadOrOpen(false, false)).Disabled(Map.Url == null).Color(DrumColors.BrightOrange)
-                    .Add("Copy name to clipboard", e => Util.Host.GetClipboard().SetText(e.FullName))
+                    .Add("Copy name to clipboard", e => Util.SetClipboard(e.FullName))
                     .Add("Search name on Google", e => Util.Google(e.FullName))
                     .Add("Search name on YouTube", e => Util.YouTube(e.FullName))
                     .Add($"{(downloaded ? "Unmark" : "Mark")} as downloaded",

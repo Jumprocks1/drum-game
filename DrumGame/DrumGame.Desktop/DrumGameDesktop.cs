@@ -20,12 +20,12 @@ internal class DrumGameDesktop : DrumGameGame
     {
         base.SetHost(host);
 
-        if (!Util.IsLocal && host.Window is SDL2DesktopWindow window)
+        if (!Util.IsLocal)
         {
             // costs ~25ms
             var iconStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(GetType(), "game.ico");
             if (iconStream != null)
-                window.SetIconFromStream(iconStream);
+                host.Window.SetIconFromStream(iconStream);
         }
     }
 

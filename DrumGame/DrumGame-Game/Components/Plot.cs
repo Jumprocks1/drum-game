@@ -17,17 +17,16 @@ using DrumGame.Game.Utils;
 using osu.Framework.Graphics.Rendering.Vertices;
 using osu.Framework.Graphics.Rendering;
 using DrumGame.Game.Interfaces;
+namespace DrumGame.Game.Components;
 
 public class Plot : Drawable, IBufferedDrawable, IHasMarkupTooltip
 {
-    public IShader RoundedTextureShader { get; private set; }
     public IShader TextureShader { get; private set; }
     private IShader pathShader;
 
     [BackgroundDependencyLoader]
     private void load(ShaderManager shaders)
     {
-        RoundedTextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE_ROUNDED);
         TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
         pathShader = shaders.Load(VertexShaderDescriptor.TEXTURE_3, FragmentShaderDescriptor.TEXTURE);
     }
@@ -89,8 +88,8 @@ public class Plot : Drawable, IBufferedDrawable, IHasMarkupTooltip
         }
     }
 
-    private readonly List<Line> segmentsBacking = new List<Line>();
-    private readonly Cached segmentsCache = new Cached();
+    private readonly List<Line> segmentsBacking = new();
+    private readonly Cached segmentsCache = new();
     private List<Line> segments => segmentsCache.IsValid ? segmentsBacking : generateSegments();
 
     private List<Line> generateSegments()
@@ -100,8 +99,11 @@ public class Plot : Drawable, IBufferedDrawable, IHasMarkupTooltip
         if (Vertices != null && Vertices.Length > 1)
         {
             var scale = DrawWidth / Vertices.Length;
-            for (int i = 0; i < Vertices.Length - 1; ++i)
+            for (var i = 0; i < Vertices.Length - 1; ++i)
+            {
+                if (float.IsNaN(Vertices[i]) || float.IsNaN(Vertices[i + 1])) continue;
                 segmentsBacking.Add(new Line(new Vector2(i * scale, Vertices[i]), new Vector2((i + 1) * scale, Vertices[i + 1])));
+            }
         }
 
         segmentsCache.Validate();
@@ -277,7 +279,7 @@ public class Plot : Drawable, IBufferedDrawable, IHasMarkupTooltip
                 addLineQuads(segment, texRect, j++);
         }
 
-        public override void Draw(IRenderer renderer)
+        protected override void Draw(IRenderer renderer)
         {
             base.Draw(renderer);
 

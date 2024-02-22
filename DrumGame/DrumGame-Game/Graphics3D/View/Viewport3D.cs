@@ -124,7 +124,7 @@ public partial class Viewport3D : Drawable
             base.Dispose(isDisposing);
         }
 
-        public override void Draw(IRenderer renderer)
+        protected override void Draw(IRenderer renderer)
         {
             base.Draw(renderer);
 

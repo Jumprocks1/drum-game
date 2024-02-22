@@ -137,7 +137,6 @@ public class BeatmapTimeline : CompositeDrawable
     WarningIcon Warning;
     protected override void Update()
     {
-        var time = Track.CurrentTime;
         var playing = Track.IsRunning;
         if (playing != playingIconPlay)
         {
@@ -176,6 +175,7 @@ public class BeatmapTimeline : CompositeDrawable
         Thumb.X = x;
         Track.Seek(x * (Track.EndTime + Track.LeadIn) - Track.LeadIn, true);
     }
+    // not sure why I have these mouse handlers. I think we only need the drag handlers
     protected override bool OnMouseDown(MouseDownEvent e)
     {
         SetScrubPosition((this.Parent.ToSpaceOfOtherDrawable(e.MousePosition, timelineBarContainer).X - timelineBarContainer.Padding.Left) /

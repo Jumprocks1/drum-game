@@ -25,7 +25,7 @@ public class DrumContextMenu : Menu
         MaskingContainer.BorderThickness = 2; // technically this border eats into the item size a little
         ItemsContainer.Padding = new MarginPadding { Vertical = 8 };
 
-        SizeCache = (LayoutValue)ItemsContainer.GetType().GetField("SizeCache").GetValue(ItemsContainer);
+        SizeCache = (LayoutValue)ItemsContainer.GetType().GetProperty("SizeCache").GetValue(ItemsContainer);
     }
 
     protected override Menu CreateSubMenu() => new DrumContextMenu()

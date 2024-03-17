@@ -38,8 +38,8 @@ public static class MetadataEditor
             if (value != oldValue)
             {
                 if (editor != null)
-                    editor.PushChange(() => prop.SetValue(beatmap, value),
-                        () => prop.SetValue(beatmap, oldValue), $"set beatmap {prop.Name} to {value}");
+                    editor.PushChange(new MetadataChange(editor, () => prop.SetValue(beatmap, value),
+                        () => prop.SetValue(beatmap, oldValue), $"set beatmap {prop.Name} to {value}"));
                 else
                     prop.SetValue(beatmap, value);
             }

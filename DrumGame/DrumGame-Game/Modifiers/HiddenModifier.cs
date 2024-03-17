@@ -20,7 +20,7 @@ public class HiddenModifier : BeatmapModifier
     const float HiddenBeats = 3; // how much to hide 100% past the cursor
     const float FadeBeats = 2; // width of fade
 
-    const float StartPosition = -4; // start a little early just in case. Had issue with ghost notes popping out to the left
+    public const float StartPosition = -4; // start a little early just in case. Had issue with ghost notes popping out to the left
 
     protected override void ModifyInternal(BeatmapPlayer player)
     {
@@ -55,7 +55,6 @@ public class HiddenModifier : BeatmapModifier
             {
                 fade.Width = FadeBeats * display.Font.Spacing;
                 var noteContainer = display.NoteContainer;
-                noteContainer.ChangeChildDepth(display.SongCursor, -3); // render above the overlay
                 noteContainer.Add(hiddenOverlay);
                 noteContainer.Add(fade);
             };

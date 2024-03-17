@@ -112,7 +112,7 @@ public class DrumInputManager : UserInputManager
 
         protected override Drawable HandleButtonDown(InputState state, List<Drawable> targets)
         {
-            if (Button == MouseButton.Right)
+            if (Button == MouseButton.Left || Button == MouseButton.Right)
             {
                 if (targets != null && EnableClick && DraggedDrawable?.DragBlocksClick != true)
                 {
@@ -120,12 +120,22 @@ public class DrumInputManager : UserInputManager
                     {
                         if (e.IsHovered)
                         {
-                            if (e is IHasContextMenu)
+                            if (Button == MouseButton.Right && e is IHasContextMenu)
                             {
                                 // make sure the click gets dumped into the ContextMenuContainer
                                 targets.Clear();
                                 targets.Add(Util.ContextMenuContainer);
                                 break;
+                            }
+                            // this condition should match HandleButtonUp
+                            if ((state.Keyboard.ControlPressed && e is IHasUrl)
+                                || (e is IHasCommandInfo command && !command.DisableClick && command.CommandInfo != null))
+                            {
+                                // basically just MouseDown => true
+                                // prevents mouse down from triggering other drawables
+                                if (state.Mouse.IsPositionValid)
+                                    MouseDownPosition = state.Mouse.Position;
+                                return e;
                             }
                         }
                     }
@@ -145,7 +155,7 @@ public class DrumInputManager : UserInputManager
                         if (e.IsHovered)
                         {
                             if (state.Keyboard.ControlPressed && e is IHasUrl url) { Util.InputManager.GameHost?.OpenUrlExternally(url.Url); break; }
-                            if (e is IHasCommandInfo command && command.AllowClick && command.CommandInfo != null)
+                            if (e is IHasCommandInfo command && !command.DisableClick && command.CommandInfo != null)
                             {
                                 if (state.Keyboard.ControlPressed || Button == MouseButton.Right)
                                     Util.Palette.EditKeybind(command.CommandInfo);

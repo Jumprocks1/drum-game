@@ -22,11 +22,15 @@ public class RegexDefinition
 public class RepositoryDefinition
 {
     public string Url { get; set; }
+    public string HomeUrl { get; set; }
     public string PagedUrl { get; set; }
     public string MapsPath { get; set; }
     public string DownloadUrlPrefix { get; set; }
     public string UrlPrefix { get; set; }
     public string DownloadUrlPath { get; set; }
+    public string PreviewUrlPath { get; set; }
+    public string TitlePath { get; set; }
+    public string ArtistPath { get; set; }
     public string Title { get; set; }
     public string Type { get; set; }
     public RegexDefinition[] DownloadUrlRegex { get; set; }
@@ -79,8 +83,10 @@ public class RepositoryDefinition
             return new PpfRepoRefresher(this);
         if (Type == "blogspot")
             return new BlogspotRepoRefresher(this);
-        if (Title.StartsWith("Furukon"))
+        if (Title.StartsWith("Furukon Request"))
             return new FurukonRequestRefresher(this);
+        if (Title == "Furukon")
+            return new FuruRepoRefresher(this);
         else if (Type == "xml")
             return new QudamRepoRefresher(this);
         else if (Type == "youtube")

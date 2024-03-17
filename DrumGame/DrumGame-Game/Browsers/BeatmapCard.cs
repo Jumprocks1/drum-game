@@ -247,11 +247,11 @@ public class BeatmapCard : CompositeDrawable, IHasContextMenu
                     // this used to use CacheDrawnEffect, not sure if needed
                     // the new way to cache is pass useCachedFrameBuffer to BufferedContainer constructor, which is a little difficult here
                     // we would need to make a custom blur effect (which would overall be pretty easy)
-                    Strength = 15,
-                    Colour = Colour4.White,
+                    Colour = new Colour4(1.5f, 1.5f, 1.5f, 40f), // Idk how this really works
                     PadExtent = true,
                     Sigma = new Vector2(sigma),
-                    DrawOriginal = false
+                    DrawOriginal = false,
+                    Blending = BlendingParameters.Additive
                 });
                 container.Add(effect);
                 container.Add(add);

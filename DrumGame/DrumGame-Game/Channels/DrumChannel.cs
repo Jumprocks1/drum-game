@@ -23,7 +23,9 @@ public enum DrumChannel
     Splash,
     China,
     Rim,
+    // channels below here are not displayed in all places
     Metronome,
+    PracticeMetronome,
     Aux1,
     Aux2,
     Aux3,

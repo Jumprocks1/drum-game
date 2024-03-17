@@ -74,6 +74,7 @@ public class Skin
         public AdjustableSkinData SongInfoPanel;
         public AdjustableSkinData EventContainer;
         public AdjustableSkinData VolumeControlGroup;
+        public AdjustableSkinData PracticeInfoPanel;
         public void LoadDefaults()
         {
             if (NoteColor == default) NoteColor = NotationColor;

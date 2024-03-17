@@ -47,7 +47,7 @@ public class KeyboardMappingEditor : CompositeDrawable
         FlowContainer.Padding = new MarginPadding(2.5f);
         foreach (var channel in Enum.GetValues<DrumChannel>())
         {
-            if (channel == DrumChannel.None || channel == DrumChannel.Metronome) continue;
+            if (channel == DrumChannel.None || channel >= DrumChannel.Metronome) continue;
 
             FlowContainer.Add(new DrumButtonTooltip
             {

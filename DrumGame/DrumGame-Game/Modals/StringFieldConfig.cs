@@ -11,6 +11,42 @@ namespace DrumGame.Game.Modals;
 public class NumberFieldConfig : FieldConfigBase<double?>
 {
     public override IDrawableField<double?> Render(RequestModal modal) => new StringFieldConfig.StringField(modal, this, DefaultValue.ToString());
+
+    public override double? Convert(object v)
+    {
+        if (v is string s) return double.TryParse(s, out var e) ? e : null;
+        return base.Convert(v);
+    }
+
+    public delegate ref double RefDelN();
+    public RefDelN RefN
+    {
+        set
+        {
+            DefaultValue = value();
+            OnCommit = e => { if (e.HasValue) value() = e.Value; };
+        }
+    }
+}
+public class IntFieldConfig : FieldConfigBase<int?>
+{
+    public override IDrawableField<int?> Render(RequestModal modal) => new StringFieldConfig.StringField(modal, this, DefaultValue.ToString());
+
+    public override int? Convert(object v)
+    {
+        if (v is string s) return int.TryParse(s, out var e) ? e : null;
+        return base.Convert(v);
+    }
+
+    public delegate ref int RefDelN();
+    public RefDelN RefN
+    {
+        set
+        {
+            DefaultValue = value();
+            OnCommit = e => { if (e.HasValue) value() = e.Value; };
+        }
+    }
 }
 
 public class StringFieldConfig : FieldConfigBase<string>

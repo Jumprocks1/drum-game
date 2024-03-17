@@ -27,6 +27,7 @@ public class DrumsetAudioPlayer : IDisposable
     public readonly static Dictionary<DrumChannel, (string, int)> ChannelMapping = new()
     {
         {DrumChannel.Metronome, ("assets/metronome/*.wav", 1)},
+        {DrumChannel.PracticeMetronome, ("assets/metronome/*.wav", 1)},
     };
 
 
@@ -75,7 +76,9 @@ public class DrumsetAudioPlayer : IDisposable
                 // can't use AggregateVolume here because sample isn't add to the mixer until you call Play()
                 var volume = VolumeController.SampleVolume.ComputedValue
                     * VolumeController.MasterVolume.ComputedValue;
-                if (ev.Channel == DrumChannel.Metronome)
+                if (ev is Beatmaps.Practice.PracticeMetronomeEvent pme)
+                    volume *= pme.Volume;
+                else if (ev.Channel == DrumChannel.Metronome)
                     volume *= VolumeController.MetronomeVolume.ComputedValue;
                 else
                     volume *= VolumeController.HitVolume.ComputedValue;
@@ -111,7 +114,7 @@ public class DrumsetAudioPlayer : IDisposable
         var velocity = ev.Velocity;
         if (velocity == 0) return null;
         ISampleHandler handler = null;
-        if (channel != DrumChannel.Metronome)
+        if (channel != DrumChannel.Metronome && channel != DrumChannel.PracticeMetronome)
         {
             handler = LoadedSoundFont;
             if (handler == null && TryMidi && (DrumMidiHandler.Output != null || !MidiConnectionAttempted))
@@ -130,7 +133,7 @@ public class DrumsetAudioPlayer : IDisposable
         // we subtract 1 so that velocity = 127 maps to 126 * x / 127 = x - 1
         // it also helps giving the first sample a more "fair" balanced number of velocities
         int sampleId;
-        if (channel == DrumChannel.Metronome)
+        if (channel == DrumChannel.Metronome || channel == DrumChannel.PracticeMetronome)
             sampleId = ev.Velocity;
         else
             sampleId = (velocity - 1) * mapping.Item2 / 127 + 1;
@@ -144,6 +147,7 @@ public class DrumsetAudioPlayer : IDisposable
                 Logger.Log($"Failed to locate sample: {filename}", level: LogLevel.Error);
                 return null;
             }
+            // the adjustments here don't really do much since we override them before playing the sample in BasicHandler
             if (channel == DrumChannel.Metronome)
             {
                 // this could also use aggregate instead of level.

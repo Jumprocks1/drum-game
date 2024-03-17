@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using DrumGame.Game.Commands;
 using DrumGame.Game.Components;
+using DrumGame.Game.Components.Basic;
 using DrumGame.Game.Interfaces;
 using DrumGame.Game.Utils;
 using osu.Framework.Allocation;
@@ -24,10 +25,13 @@ public interface IFieldConfig
     public bool HasCommit { get; }
     public string Key { get; }
     public object Tooltip { get; }
+    public string MarkupTooltip { get; }
+    public Drawable[] LabelButtons { get; }
 }
 public interface IFieldConfig<T> : IFieldConfig // there might be some covariance stuff we can do here, but I couldn't figure it out
 {
-    void IFieldConfig.TriggerCommit(object value) => OnCommit?.Invoke((T)value);
+    public T Convert(object v);
+    void IFieldConfig.TriggerCommit(object value) => OnCommit?.Invoke(Convert(value));
     public Action<T> OnCommit { get; set; }
     public T DefaultValue { get; }
     IDrawableField IFieldConfig.Render(RequestModal modal) => Render(modal);
@@ -71,6 +75,7 @@ public class RequestConfig
     public string DisableCommit; // set to tooltip text for disable reason
     public bool HasCommit => OnCommit != null || (Fields != null && Fields.Any(e => e.HasCommit));
     public Action<RequestModal> OnCommit;
+    // works well as single button, footer command, or even container
     public Drawable Footer;
 }
 
@@ -110,7 +115,7 @@ public class RequestModal : TabbableContainer, IModal, IAcceptFocus
     public override bool CanBeTabbedTo => false;
     protected override Container<Drawable> Content => InnerContent;
     Container FooterButtonContainer;
-    Container InnerContent;
+    public Container InnerContent;
     public Drawable initialFocus; // TODO make private
 
 
@@ -288,13 +293,35 @@ public class RequestModal : TabbableContainer, IModal, IAcceptFocus
                 Fields[i] = fieldInfo.Render(this);
                 var drawable = (Drawable)Fields[i];
                 y += CommandPalette.Margin + drawable.Height;
-                content[i] = new Drawable[] {
-                    fieldInfo.Label != null ? new SpriteText
+                Drawable label = null;
+                if (fieldInfo.Label != null)
+                {
+                    label = new MarkupTooltipSpriteText
                     {
                         Text = fieldInfo.Label + ": ",
+                        MarkupTooltip = fieldInfo.MarkupTooltip,
                         Origin = Anchor.CentreLeft,
-                        Anchor = Anchor.CentreLeft
-                    } : null,
+                        Y = drawable.Height / 2,
+                    };
+                    var buttons = fieldInfo.LabelButtons;
+                    if (buttons != null)
+                    {
+                        var cont = new FillFlowContainer
+                        {
+                            Direction = FillDirection.Horizontal,
+                            AutoSizeAxes = Axes.Both,
+                            Origin = Anchor.CentreLeft,
+                            Y = drawable.Height / 2,
+                        };
+                        label.Y = 0;
+                        label.Anchor = Anchor.CentreLeft;
+                        cont.Add(label);
+                        cont.AddRange(buttons);
+                        label = cont;
+                    }
+                }
+                content[i] = new Drawable[] {
+                    label,
                     drawable
                 };
                 initialFocus ??= drawable;

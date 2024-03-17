@@ -23,7 +23,7 @@ public interface IHasCommand : IHasCommandInfo
 public interface IHasCommandInfo : IHasMarkupTooltip
 {
     CommandInfo CommandInfo { get; }
-    bool AllowClick => false;
+    bool DisableClick => false;
     string IHasMarkupTooltip.MarkupTooltip => GetMarkupTooltip(CommandInfo);
 
     public static string GetMarkupTooltip(CommandInfo commandInfo)

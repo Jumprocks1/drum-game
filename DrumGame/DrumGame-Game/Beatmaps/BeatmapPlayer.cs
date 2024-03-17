@@ -8,6 +8,7 @@ using DrumGame.Game.Beatmaps.Display;
 using DrumGame.Game.Beatmaps.Display.ScoreDisplay;
 using DrumGame.Game.Beatmaps.Editor;
 using DrumGame.Game.Beatmaps.Loaders;
+using DrumGame.Game.Beatmaps.Practice;
 using DrumGame.Game.Beatmaps.Replay;
 using DrumGame.Game.Browsers;
 using DrumGame.Game.Commands;
@@ -41,15 +42,17 @@ public enum BeatmapPlayerMode
     Playing = 4, // loads input handler/display
     Record = Edit | Playing,
     Watching = 8,
-    Replay = Playing | Watching // mostly just set so it changes to mode text
+    Replay = Playing | Watching, // mostly just set so it changes to mode text
+    Practice = 16 | Playing
 }
 public class BeatmapPlayer : CompositeDrawable
 {
     BeatmapPlayerMode _mode = BeatmapPlayerMode.Listening;
     public BeatmapPlayerInputHandler BeatmapPlayerInputHandler;
-    [Resolved] protected FileSystemResources Resources { get; private set; }
-    [Resolved] protected MapStorage MapStorage { get; private set; }
-    [Resolved] public CommandController Command { get; private set; }
+    public PracticeMode PracticeMode;
+    protected FileSystemResources Resources => Util.Resources;
+    protected MapStorage MapStorage => Util.MapStorage;
+    public CommandController Command => Util.CommandController;
     public BeatmapSelectorLoader Loader => Dependencies.Get<BeatmapSelectorLoader>();
     protected virtual bool AutoStart => true;
     public virtual BeatmapPlayerMode Mode
@@ -66,7 +69,7 @@ public class BeatmapPlayer : CompositeDrawable
                     BeatmapPlayerInputHandler.OnTrigger += Display.OnDrumTrigger;
                     Display.EnterPlayMode();
                 }
-                if (AutoStart && !Track.IsRunning) Track.Start();
+                if (AutoStart && value != BeatmapPlayerMode.Practice && !Track.IsRunning) Track.Start();
             }
             else
             {
@@ -98,6 +101,19 @@ public class BeatmapPlayer : CompositeDrawable
         RelativeSizeAxes = Axes.Both;
         Modifiers = mods;
         ApplyMods();
+        PracticeMode.AddHook(this);
+
+        Beatmap.LengthChanged += LengthChanged;
+        LengthChanged();
+        Track = new BeatClock(Beatmap, LoadTrack(true));
+        Track.BeforeSeek += _ =>
+        {
+            if (Util.DrumGame.Drumset.IsValueCreated)
+                Util.DrumGame.Drumset.Value.ClearQueue();
+        };
+        Command.RegisterHandlers(this);
+        Util.DrumGame.VolumeController.MetronomeVolume.Muted.BindValueChanged(MetronomeMuteChanged, true);
+        AddInternal(Display);
     }
     void ApplyMods()
     {
@@ -121,13 +137,15 @@ public class BeatmapPlayer : CompositeDrawable
             (Track.CurrentTime > endTime + EndTimeDelay || Track.CurrentTime >= Track.EndTime) &&
             Beatmap.HitObjects.Count > 0;
 
-    bool ShouldHideEndscreen => Track.CurrentTime < endScreenTriggerTime; // if we seek backwards, hide end screen
+    // if we seek backwards or switch modes, hide end screen
+    bool ShouldHideEndscreen => Track.CurrentTime < endScreenTriggerTime || Mode != BeatmapPlayerMode.Playing;
 
     EndScreen endScreen;
     protected override void Update()
     {
         Track.Update(Clock.ElapsedFrameTime);
         BeatmapPlayerInputHandler?.Update();
+        PracticeMode?.Update();
         // TODO we should always show end screen, but have a note saying not played from start, so not saving replay
         // Have option to save anyways (to file)
         if (ShouldTriggerEndScreen)
@@ -146,6 +164,23 @@ public class BeatmapPlayer : CompositeDrawable
     }
 
     [CommandHandler] public void ShowEndScreen() => TriggerEndScreen();
+    public void TogglePracticeMode() => Mode = Mode == BeatmapPlayerMode.Practice ? BeatmapPlayerMode.Playing : BeatmapPlayerMode.Practice;
+    [CommandHandler(Commands.Command.PracticeMode)]
+    public void PracticeModeCommand()
+    {
+        if (PracticeMode == null) Mode = BeatmapPlayerMode.Practice;
+        else PracticeMode.Configure();
+    }
+
+    public void EnterPracticeMode(double startBeat, double endBeat)
+    {
+        if (Display is MusicNotationBeatmapDisplay d)
+        {
+            PracticeMode = new(d, startBeat, endBeat);
+            Mode = BeatmapPlayerMode.Practice;
+            PracticeMode.Begin();
+        }
+    }
 
     protected virtual void TriggerEndScreen()
     {
@@ -230,7 +265,7 @@ public class BeatmapPlayer : CompositeDrawable
                             var newTrack = new YouTubeTrack(Beatmap.YouTubeID);
                             ((AudioCollectionManager<AdjustableAudioComponent>)Util.Resources.Tracks).AddItem(newTrack);
                             newTrack.Volume.Value = Beatmap.CurrentRelativeVolume;
-                            Track.SwapTrack(newTrack);
+                            SwapTrack(newTrack);
                         });
                     });
                     RemoteVideoWebSocket.Current.TargetVideoId = Beatmap.YouTubeID;
@@ -243,20 +278,6 @@ public class BeatmapPlayer : CompositeDrawable
         return track;
     }
 
-    [BackgroundDependencyLoader]
-    private void load(Lazy<DrumsetAudioPlayer> ds)
-    {
-        Beatmap.LengthChanged += LengthChanged;
-        LengthChanged();
-        Track = new BeatClock(Beatmap, LoadTrack(true));
-        Track.BeforeSeek += _ =>
-        {
-            if (ds.IsValueCreated) ds.Value.ClearQueue();
-        };
-        Command.RegisterHandlers(this);
-        Util.DrumGame.VolumeController.MetronomeVolume.Muted.BindValueChanged(MetronomeMuteChanged, true);
-        AddInternal(Display);
-    }
     protected override void Dispose(bool isDisposing)
     {
         // make sure to dispose children first, since this will unhook MIDI events for us
@@ -321,7 +342,12 @@ public class BeatmapPlayer : CompositeDrawable
     {
         var newAudioPath = Util.CopyAudio(file, Beatmap);
         if (newAudioPath == null) return false;
-        if (newAudioPath == Beatmap.Audio) return true;
+        if (newAudioPath == Beatmap.Audio)
+        {
+            // audio path already good, may need to swap track though
+            if (Track.Virtual) SwapTrack(LoadTrack());
+            return true;
+        }
 
 
         var ed = this as BeatmapEditor;
@@ -331,7 +357,11 @@ public class BeatmapPlayer : CompositeDrawable
         else change.Do();
         // we don't want to save in edit mode, since they need to save manually
         // in edit mode they will also be asked to save on exit
-        if (ed == null) Beatmap.SaveToDisk(MapStorage);
+        if (ed == null)
+        {
+            Beatmap.Export();
+            Beatmap.TrySaveToDisk(MapStorage);
+        }
         else
         {
             if (Beatmap.Title == null || Beatmap.Artist == null)
@@ -465,13 +495,19 @@ public class BeatmapPlayer : CompositeDrawable
                             var newTrack = new YouTubeTrack(Beatmap.YouTubeID);
                             ((AudioCollectionManager<AdjustableAudioComponent>)Util.Resources.Tracks).AddItem(newTrack);
                             newTrack.Volume.Value = Beatmap.CurrentRelativeVolume;
-                            Track.SwapTrack(newTrack);
+                            SwapTrack(newTrack);
                         });
                     });
                 }
             });
         }
         return true;
+    }
+
+    public void SwapTrack(Track track)
+    {
+        Track.SwapTrack(track);
+        if (this is BeatmapEditor be) be.ResetOffsetWizard();
     }
 
     [CommandHandler]
@@ -484,9 +520,8 @@ public class BeatmapPlayer : CompositeDrawable
             {
                 var track = Resources.GetTrack(target);
                 track.Volume.Value = Beatmap.CurrentRelativeVolume;
-                Track.SwapTrack(track);
+                SwapTrack(track);
                 Beatmap.UseYouTubeOffset = true;
-                if (this is BeatmapEditor be) be.ResetOffsetWizard();
                 Beatmap.FireOffsetUpdated();
                 CloseFileRequest();
                 return true;

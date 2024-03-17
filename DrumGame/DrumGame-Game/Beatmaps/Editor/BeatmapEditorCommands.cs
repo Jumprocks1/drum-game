@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using DrumGame.Game.API;
 using DrumGame.Game.Beatmaps.Data;
 using DrumGame.Game.Beatmaps.Display;
@@ -541,9 +542,16 @@ public partial class BeatmapEditor
     [CommandHandler]
     public void SetNormalizedRelativeVolume()
     {
-        var lufs = API.EbUr128.LoudnessNormalization.GetLufs(CurrentAudioPath);
-        var volume = Math.Round(Math.Pow(10, (TargetLufs - lufs) / 20), 4);
-        var oldVolume = Beatmap.RelativeVolume;
-        PushChange(() => SetRelativeVolume(volume), () => SetRelativeVolume(oldVolume), $"Set relative volume to {volume} (source: {lufs:0.00} LUFS)");
+        Task.Run(() =>
+        {
+            var lufs = API.EbUr128.LoudnessNormalization.GetLufs(CurrentAudioPath);
+            // schedule will safely be skipped if we die during the LUFS calculation
+            Schedule(() =>
+            {
+                var volume = Math.Round(Math.Pow(10, (TargetLufs - lufs) / 20), 4);
+                var oldVolume = Beatmap.RelativeVolume;
+                PushChange(() => SetRelativeVolume(volume), () => SetRelativeVolume(oldVolume), $"Set relative volume to {volume} (source: {lufs:0.00} LUFS)");
+            });
+        });
     }
 }

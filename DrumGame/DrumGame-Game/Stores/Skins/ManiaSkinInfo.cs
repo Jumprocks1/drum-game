@@ -44,7 +44,7 @@ public class ManiaSkinInfo
         public float LeftBorder; // left border thickness weight. The first border detail is also used for the final right border
         public Colour4 BorderColor;
         public float Width;
-        public int Index; // only used during skin loading
+        public float Index;
         [JsonIgnore] public DrumChannel Channel { get; set; }
         public Colour4 Color { get; set; }
         public SkinTexture Chip { get; set; }
@@ -118,6 +118,12 @@ public class ManiaSkinInfo
             }
         };
 
+        public ManiaSkinInfo_LaneList()
+        {
+            for (var i = 0; i < LaneList.Length; i++)
+                LaneList[i].Index = i;
+        }
+
         public ManiaSkinInfo_Lane LaneFor(DrumChannel channel) => LaneList.FirstOrDefault(e => e.Channel == channel);
     }
 
@@ -136,19 +142,25 @@ public class ManiaSkinInfo
                 reader.Read();
                 var lane = res.LaneFor(channel);
                 if (lane != null)
+                {
+                    var oldI = lane.Index;
                     serializer.Populate(reader, lane);
+                    // if index changes, we need to sort
+                    if (lane.Index != oldI)
+                        clone ??= [.. res.LaneList];
+                }
                 else
                 {
                     clone ??= [.. res.LaneList];
                     lane = serializer.Deserialize<ManiaSkinInfo_Lane>(reader);
                     lane.Channel = channel;
-                    clone.Insert(lane.Index, lane);
+                    clone.Add(lane);
                 }
                 reader.Read();
             }
 
             if (clone != null)
-                res.LaneList = [.. clone];
+                res.LaneList = [.. clone.OrderBy(e => e.Index)];
 
             return res;
         }

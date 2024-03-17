@@ -10,6 +10,9 @@ using osu.Framework.Platform;
 
 namespace DrumGame.Game.Stores;
 
+// seems like this saves unecessarily unforunately
+// bindables change when they're parsed and it saves those changes right away, which isn't ideal
+// I think it also saves on exit
 public class DrumGameConfigManager : IniConfigManager<DrumGameSetting>
 {
     internal const string FILENAME = @"drumgame.ini";
@@ -33,6 +36,7 @@ public class DrumGameConfigManager : IniConfigManager<DrumGameSetting>
     public Bindable<SortMethod> ReplaySort;
     public Bindable<string> FileSystemResources;
     public BindableJson<MapLibraries> MapLibraries;
+    public BindableJson<Beatmaps.Practice.PracticeMode.PracticeConfig> PracticeConfig;
     public Bindable<string> FFmpegLocation;
     public Bindable<double> CursorInset;
     public Bindable<bool> PlaySamplesFromMidi;
@@ -83,6 +87,7 @@ public class DrumGameConfigManager : IniConfigManager<DrumGameSetting>
         PlaySamplesFromMidi = SetDefault(DrumGameSetting.PlaySamplesFromMidi, false);
         SetDefault<string>(DrumGameSetting.MinimumDtxLevel, null);
         AddBindable(DrumGameSetting.MapLibraries, MapLibraries = new BindableJson<MapLibraries>());
+        AddBindable(DrumGameSetting.PracticeConfig, PracticeConfig = new BindableJson<Beatmaps.Practice.PracticeMode.PracticeConfig>());
         DiscordRichPresence = SetDefault<bool>(DrumGameSetting.DiscordRichPresence, false);
         MidiThreshold = SetDefault(DrumGameSetting.MidiThreshold, 0, -1, 127);
     }
@@ -99,6 +104,7 @@ public class DrumGameConfigManager : IniConfigManager<DrumGameSetting>
             v.Init();
             MapLibraries.Value = v;
         }
+        PracticeConfig.Value ??= new();
     }
 
     public DrumGameConfigManager(Storage storage, IDictionary<DrumGameSetting, object> defaultOverrides = null)
@@ -165,6 +171,7 @@ public enum DrumGameSetting
     Skin,
     MinimumDtxLevel,
     MapLibraries,
+    PracticeConfig,
     DiscordRichPresence,
     MidiThreshold
 }

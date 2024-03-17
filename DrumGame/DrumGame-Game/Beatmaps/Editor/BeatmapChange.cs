@@ -9,8 +9,8 @@ namespace DrumGame.Game.Beatmaps.Editor;
 // Classes for handling history for beatmaps
 public class BeatmapChange : IHistoryChange
 {
-    readonly Func<bool> action;
-    readonly Action undo;
+    protected readonly Func<bool> action;
+    protected readonly Action undo;
     public string Description { get; }
     public BeatmapChange(Action action, Action undo, string description) : this(() => { action(); return true; }, undo, description) { }
     public BeatmapChange(Func<bool> action, Action undo, string description)
@@ -19,8 +19,30 @@ public class BeatmapChange : IHistoryChange
         this.action = action;
         this.undo = undo;
     }
-    public bool Do() => action();
-    public void Undo() => undo();
+    public virtual void OnChange() { }
+    public bool Do()
+    {
+        var res = action();
+        if (res) OnChange();
+        return res;
+    }
+    public void Undo()
+    {
+        undo();
+        OnChange();
+    }
+}
+public class MetadataChange : BeatmapChange
+{
+    readonly BeatmapEditor Editor;
+    public MetadataChange(BeatmapEditor editor, Action action, Action undo, string description) : base(action, undo, description)
+    {
+        Editor = editor;
+    }
+    public override void OnChange()
+    {
+        Editor?.Display.InfoPanel.UpdateData();
+    }
 }
 public class OffsetBeatmapChange : PropertyChange<double>
 {
@@ -51,7 +73,7 @@ public class AudioBeatmapChange : PropertyChange<string>
         get => Beatmap.Audio; set
         {
             Beatmap.Audio = value;
-            Player.Track.SwapTrack(Player.LoadTrack());
+            Player.SwapTrack(Player.LoadTrack());
         }
     }
 }

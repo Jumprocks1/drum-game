@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -19,6 +20,8 @@ using DrumGame.Game.Timing;
 using DrumGame.Game.Utils;
 using Newtonsoft.Json;
 using osu.Framework.Audio.Track;
+using osu.Framework.Graphics;
+using osu.Framework.Graphics.Sprites;
 using osu.Framework.Logging;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Jpeg;
@@ -26,6 +29,8 @@ using SixLabors.ImageSharp.Processing;
 
 namespace DrumGame.Game.Beatmaps.Loaders;
 
+// 1 instance for set of maps exported
+// Typically this is just 1 map, but if export all difficulties is checked, the instance is shared
 public class DtxExporter
 {
     public static double ExportOffset => -DtxLoader.ImportOffset;
@@ -64,11 +69,6 @@ public class DtxExporter
             var outputVolume = Math.Round(Math.Clamp(Volume, 0, 100));
             // var outputVolume = Math.Round(Math.Clamp(Volume * VelocityMultiplier, 0, 100));
 
-            if (Note == 36)
-                // prevent bass from being too loud
-                // I heard it clipping on some other people's setups
-                outputVolume = Math.Min(outputVolume, 85);
-
             if (outputVolume != 100)
                 writer.WriteLine($"#VOLUME{Id}: {outputVolume}");
 
@@ -93,6 +93,7 @@ public class DtxExporter
     List<WavChip> Samples = new();
     Dictionary<WavChipKey, WavChip> SampleMap = new();
     BookmarkVolumeEvent[] VolumeEvents;
+    Dictionary<int, DrumChannel> HiHatHits;
     double BgmEncodingOffset; // if 0, no need to do anything. Should always be positive
     public enum OutputFormat
     {
@@ -118,6 +119,7 @@ public class DtxExporter
         public double RollDivisor;
         public int GhostNoteWidth = 100;
         public bool EncodeOffset;
+        public int OffbeatHiHatVolume = 100;
     }
 
     class DtxWriter : StreamWriter
@@ -147,9 +149,30 @@ public class DtxExporter
         }
         return NoteModifiers.None;
     }
+    double GetVolume(HitObject ho)
+    {
+        var baseVolume = CurrentBeatmap.GetVolumeMultiplier(VolumeEvents, ho);
+        var channel = ho.Channel;
+        if (channel == DrumChannel.OpenHiHat || channel == DrumChannel.ClosedHiHat)
+        {
+            var beatStartTick = CurrentBeatmap.BeatStartTickFromTick(ho.Time);
+            if (beatStartTick != ho.Time)
+            {
+                if (HiHatHits.TryGetValue(beatStartTick, out var o) && o == channel)
+                    baseVolume *= Config.OffbeatHiHatVolume / 100d;
+                else
+                {
+                    var half = beatStartTick + CurrentBeatmap.TickRate / 2;
+                    if (half < ho.Time && HiHatHits.TryGetValue(half, out o) && o == channel)
+                        baseVolume *= Config.OffbeatHiHatVolume / 100d;
+                }
+            }
+        }
+        return baseVolume;
+    }
 
     WavChipKey SampleKey(HitObject ho) =>
-        new(ho.Channel, ho.Data.VelocityModifiers, StereoSticking(ho), CurrentBeatmap.GetVolumeMultiplier(VolumeEvents, ho));
+        new(ho.Channel, ho.Data.VelocityModifiers, StereoSticking(ho), GetVolume(ho));
 
     class BgmObject : ITickTime
     {
@@ -247,8 +270,15 @@ public class DtxExporter
             }
             writer.WriteMetadata("PREIMAGE", ImageOutput);
         }
-        writer.WriteMetadata("BPM", startingTempo.HumanBPM.ToString());
-        writer.WriteMetadata("DLEVEL", beatmap.GetDtxLevel() ?? "50");
+        writer.WriteMetadata("BPM", startingTempo.HumanBPM.ToString(CultureInfo.InvariantCulture));
+        var level = beatmap.GetDtxLevel();
+        if (level == null)
+        {
+            const string msg = "Please add a dtx-level-xx tag to the map";
+            if (osu.Framework.Development.DebugUtils.IsDebugBuild) throw new UserException(msg);
+            else Util.Palette.UserError(msg);
+        }
+        else writer.WriteMetadata("DLEVEL", level);
         writer.WriteLine();
 
         var bpmChips = new Dictionary<int, string>();
@@ -451,6 +481,13 @@ public class DtxExporter
         this.CurrentBeatmap = beatmap;
         BookmarkEvents = BookmarkEvent.CreateList(CurrentBeatmap);
         VolumeEvents = BookmarkEvents.OfType<BookmarkVolumeEvent>().AsArray();
+        HiHatHits = new();
+        foreach (var ho in beatmap.HitObjects.Where(e =>
+            e.Channel == DrumChannel.OpenHiHat || e.Channel == DrumChannel.ClosedHiHat ||
+            e.Channel == DrumChannel.HalfOpenHiHat || e.Channel == DrumChannel.HiHatPedal))
+        {
+            HiHatHits.Add(ho.Time, ho.Channel);
+        }
         var dtxOutputName = GetDtxFileName(CurrentBeatmap) + ".dtx";
         MakeBgmChip();
         WriteDtx(CurrentBeatmap, Output.OpenCreate(dtxOutputName));
@@ -543,7 +580,7 @@ public class DtxExporter
                 }
             }
             var process = new FFmpegProcess("creating preview");
-            process.AddArguments("-ss", (Math.Max(0, targetTime) / 1000).ToString(), "-t", "15");
+            process.AddArguments("-ss", (Math.Max(0, targetTime) / 1000).ToString(CultureInfo.InvariantCulture), "-t", "15");
             process.AddInput(CurrentBeatmap.FullAudioPath());
             var mult = Math.Clamp(BgmChip.Volume / 100, 0, 1);
             if (mult != 1)
@@ -617,9 +654,12 @@ public class DtxExporter
             writer.WriteLine("#TITLE " + set[0].Item2.Title);
             writer.WriteLine();
             var i = 1;
+            var names = new HashSet<string>();
             foreach (var diff in orderedSet)
             {
                 var filename = GetDtxFileName(diff.Item2.SplitTags());
+                if (!names.Add(filename))
+                    throw new UserException("Duplicate level name found, please add `dtx-name-ext` (or similar) tag to one of the maps.");
                 writer.WriteLine($"#L{i}LABEL {GetDtxDiffName(filename)}");
                 writer.WriteLine($"#L{i}FILE {filename}.dtx");
                 writer.WriteLine();
@@ -680,8 +720,16 @@ public class DtxExporter
     }
     public static void Export(Beatmap beatmap, ExportConfig config)
     {
-        var exporter = new DtxExporter(beatmap, config);
-        exporter.Export();
+        try
+        {
+            var exporter = new DtxExporter(beatmap, config);
+            exporter.Export();
+        }
+        catch (Exception e)
+        {
+            Util.Palette.UserError("Failed to export. See log for details.");
+            Logger.Error(e, "Failed to export as DTX");
+        }
     }
     public static bool Export(CommandContext context, Beatmap beatmap)
     {
@@ -703,13 +751,14 @@ public class DtxExporter
             .Add(new StringFieldConfig { Label = "Ghost Note Width", DefaultValue = "80" })
             // TODO zip name can't have certain charcters in it (`:\/`)
             .Add(new StringFieldConfig { Label = "Zip Name", DefaultValue = zipName.ToString() })
-            .Add(new BoolFieldConfig { Label = "Encode Offset", DefaultValue = true, Key = nameof(ExportConfig.EncodeOffset) });
+            .Add(new BoolFieldConfig { Label = "Encode Offset", DefaultValue = true, Key = nameof(ExportConfig.EncodeOffset) })
+            .Add(new StringFieldConfig { Label = "Offbeat hihat volume", DefaultValue = "92", Key = nameof(ExportConfig.OffbeatHiHatVolume) });
 
         var hasRolls = beatmap.HitObjects.Any(e => e.Roll);
         if (hasRolls)
             fields.Add(new StringFieldConfig { Label = "Roll Divisor", DefaultValue = "4", Key = "rollDivisor" });
 
-        context.Palette.Request(new Modals.RequestConfig
+        var req = context.Palette.Request(new Modals.RequestConfig
         {
             Title = "Export to DTX",
             CommitText = "Export",
@@ -724,11 +773,24 @@ public class DtxExporter
                 config.GhostNoteWidth = int.Parse(e.GetValue<string>(2));
                 config.ExportName = e.GetValue<string>(3);
                 config.EncodeOffset = e.GetValue<bool>(nameof(ExportConfig.EncodeOffset));
+                config.OffbeatHiHatVolume = int.Parse(e.GetValue<string>(nameof(ExportConfig.OffbeatHiHatVolume)));
                 if (hasRolls)
                     config.RollDivisor = double.TryParse(e.GetValue<string>("rollDivisor"), out var o) ? o : 4;
                 Export(beatmap, config);
             }
         });
+        if (beatmap.PreviewTime == null)
+        {
+            var y = req.InnerContent.Children.Sum(e => e.Height);
+            var s = new SpriteText
+            {
+                Text = "Warning: No preview time set",
+                Colour = DrumColors.WarningText,
+                Font = FrameworkFont.Regular,
+                Y = y
+            };
+            req.Add(s);
+        }
         return true;
     }
 

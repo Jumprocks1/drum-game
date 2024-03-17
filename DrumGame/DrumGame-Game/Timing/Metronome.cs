@@ -3,37 +3,38 @@ using DrumGame.Game.Beatmaps;
 using DrumGame.Game.Beatmaps.Scoring;
 using DrumGame.Game.Channels;
 using System;
-using DrumGame.Game.Utils;
-using ManagedBass.Mix;
-using osu.Framework.Audio.Track;
 
 namespace DrumGame.Game.Timing;
 
-public class Metronome : IBeatEventHandler
+public class Metronome(BeatmapPlayer Player, DrumsetAudioPlayer Drumset) : IBeatEventHandler
 {
-    DrumsetAudioPlayer drumset;
-    readonly BeatmapPlayer player;
-    Beatmap beatmap => player.Beatmap;
-    public Metronome(BeatmapPlayer player, DrumsetAudioPlayer drumset)
-    {
-        this.player = player;
-        this.drumset = drumset;
-    }
+    Beatmap beatmap => Player.Beatmap;
     double nextBeat = double.NaN;
     double nextBeatTime = double.NaN;
     bool measureBeat; // if nextBeatTime is a measure start beat
     public void SkipTo(int _, double __)
     {
         nextBeatTime = double.NaN;
-        Queue.UnbindAndClear(player.Track.Track);
+        Queue.UnbindAndClear(Player.Track.Track);
     }
 
-    void UpdateNextBeat(double currentBeat) // if current beat is an integer, nextBeat will NOT be that beat
+    // if current beat is an integer, this should NOT return that beat
+    protected virtual double GetNextBeat(int currentMeasure, double currentBeat)
+    {
+        var measureStart = beatmap.BeatFromMeasure(currentMeasure);
+        return measureStart + Math.Floor(currentBeat - measureStart) + 1;
+    }
+
+    void UpdateNextBeat(double currentBeat)
     {
         var currentMeasure = beatmap.MeasureFromBeat(currentBeat);
 
-        var measureStart = beatmap.BeatFromMeasure(currentMeasure);
-        nextBeat = measureStart + Math.Floor(currentBeat - measureStart) + 1;
+        nextBeat = GetNextBeat(currentMeasure, currentBeat);
+        if (double.IsPositiveInfinity(nextBeat))
+        {
+            nextBeatTime = double.PositiveInfinity;
+            return;
+        }
 
         var nextMeasure = beatmap.BeatFromMeasure(currentMeasure + 1);
 
@@ -45,6 +46,10 @@ public class Metronome : IBeatEventHandler
 
     SyncQueue Queue = new();
 
+    public virtual DrumChannel Channel => DrumChannel.Metronome;
+
+    public virtual DrumChannelEvent MakeEvent(bool measureBeat) => new(0, Channel, measureBeat ? (byte)1 : (byte)2);
+
     public void TriggerThrough(int _, BeatClock clock, bool __)
     {
         if (double.IsNaN(nextBeatTime))
@@ -53,7 +58,7 @@ public class Metronome : IBeatEventHandler
         var playbackSpeed = clock.PlaybackSpeed.Value;
         if (time + IBeatEventHandler.Prefire * playbackSpeed > nextBeatTime)
         {
-            drumset.PlayAt(new DrumChannelEvent(0, DrumChannel.Metronome, measureBeat ? (byte)1 : (byte)2), clock, nextBeatTime, Queue);
+            Drumset.PlayAt(MakeEvent(measureBeat), clock, nextBeatTime, Queue);
             UpdateNextBeat(nextBeat);
         }
     }

@@ -35,9 +35,11 @@ public class BeatmapSelectorLoader : CompositeDrawable
     private class BeatmapScene : CompositeDrawable
     {
         public BeatmapPlayer Player;
+        readonly BeatmapSelectorState SelectorState; // this is mutable, be careful
         public BeatmapScene(Beatmap beatmap, BeatmapSelectorState state)
         {
             RelativeSizeAxes = Axes.Both;
+            SelectorState = state;
             BeatmapDisplay display = Util.ConfigManager.DisplayMode.Value == DisplayPreference.Mania ?
                 new ManiaBeatmapDisplay() : new MusicNotationBeatmapDisplay();
             if ((state.OpenMode == BeatmapOpenMode.Edit || state.OpenMode == BeatmapOpenMode.Record) && display is MusicNotationBeatmapDisplay mnd)
@@ -48,28 +50,25 @@ public class BeatmapSelectorLoader : CompositeDrawable
             {
                 AddInternal(Player = new BeatmapPlayer(beatmap, display, state.OpenMode, state.Modifiers));
             }
-            void OnLoad(Drawable _)
-            {
-                if (state.OpenMode == BeatmapOpenMode.Listen)
-                {
-                    Player.Mode = BeatmapPlayerMode.Listening;
-                    Player.Track.Start();
-                }
-                else if (state.Autoplay || state.OpenMode == BeatmapOpenMode.Play) Player.Mode = BeatmapPlayerMode.Playing; // this will start the track for us
-                UserActivity.Activity = new PlayingBeatmap(Player);
-            }
-            Player.OnLoadComplete += OnLoad; // don't need to remove since it clears itself
         }
-        public BeatmapScene(Beatmap beatmap, BeatmapReplay replay, BeatmapSelectorState state, DrumGameGameBase game, ReplayInfo replayInfo)
+        public BeatmapScene(Beatmap beatmap, BeatmapReplay replay, BeatmapSelectorState state, ReplayInfo replayInfo)
         {
+            SelectorState = state;
             RelativeSizeAxes = Axes.Both;
             var display = new MusicNotationBeatmapReplayDisplay(replay, replayInfo) { RelativeSizeAxes = Axes.Both, Depth = -1 };
             AddInternal(Player = new BeatmapReplayPlayer(beatmap, display));
-            void OnLoad(Drawable _)
+        }
+        [BackgroundDependencyLoader]
+        private void load()
+        {
+            if (SelectorState.OpenMode == BeatmapOpenMode.Listen)
             {
-                UserActivity.Activity = new PlayingBeatmap(Player); // TODO change to watching replay
+                Player.Mode = BeatmapPlayerMode.Listening;
+                Player.Track.Start();
             }
-            Player.OnLoadComplete += OnLoad; // don't need to remove since it clears itself
+            else if (SelectorState.Autoplay || SelectorState.OpenMode == BeatmapOpenMode.Play)
+                Player.Mode = BeatmapPlayerMode.Playing; // this will start the track for us
+            UserActivity.Activity = new PlayingBeatmap(Player);
         }
     }
     BeatmapSelector selector;
@@ -155,7 +154,7 @@ public class BeatmapSelectorLoader : CompositeDrawable
         EnsureBeatmapClosed();
         var beatmap = MapStorage.LoadMapFromId(replayInfo.MapId);
         replay ??= BeatmapReplay.From(Dependencies.Get<FileSystemResources>(), replayInfo);
-        AddInternal(scene = new BeatmapScene(beatmap, replay, SelectorState, Game, replayInfo));
+        AddInternal(scene = new BeatmapScene(beatmap, replay, SelectorState, replayInfo));
     }
 
     public void ShowSelector()

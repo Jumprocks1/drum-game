@@ -3,54 +3,69 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using DrumGame.Game.Utils;
 
 namespace DrumGame.Game.Stores.Repositories;
 
 public class JsonRepoRefresher : RepoRefresherBase
 {
     public JsonRepoRefresher(RepositoryDefinition repo) : base(repo) { }
+    public virtual JsonRepositoryBeatmap ParseMap(JObject e)
+    {
+        var diff = GetString(e, "difficultyString");
+        var tags = GetString(e, "tags");
+        var downloadUrl = GetString(e, Repo.DownloadUrlPath ?? "downloadUrl");
+        return new JsonRepositoryBeatmap
+        {
+            Title = GetString(e, "title"),
+            Artist = GetString(e, "artist"),
+            Comments = $"Difficulty: {diff}\nTags: {tags}",
+            Mapper = GetString(e, "mapper"),
+            PublishedOn = GetDateTime(e, "creationTimeUtc"),
+            DownloadUrl = Repo.DownloadUrlPrefix ?? "" + downloadUrl,
+            Url = Repo.UrlPrefix + downloadUrl
+        };
+    }
     public override async Task Refresh()
     {
-        var json = JToken.Parse(await Download(Repo.Url));
-        var refreshedMaps = new List<JsonRepositoryBeatmap>();
-
-        IEnumerable<JObject> maps;
-
-        var mapsToken = json.SelectToken(Repo.MapsPath);
-        if (mapsToken is JArray ja) maps = mapsToken.Cast<JObject>();
-        else if (mapsToken is JObject jo)
+        try
         {
-            var e = (IEnumerable<KeyValuePair<string, JToken>>)jo;
-            maps = e.Select(e =>
+            var stringData = await Download(Repo.Url);
+            const string prefix = "/*O_o*/\ngoogle.visualization.Query.setResponse(";
+            if (stringData.StartsWith(prefix))
             {
-                var token = (JObject)e.Value;
-                token.Add("$key", e.Key);
-                return token;
-            });
-        }
-        else throw new Exception($"Unexpected token: {mapsToken}");
+                // removes prefix + `);` at the end
+                stringData = stringData[prefix.Length..^2];
+            }
+            var json = JToken.Parse(stringData);
+            var refreshedMaps = new List<JsonRepositoryBeatmap>();
 
-        foreach (var e in maps)
+            IEnumerable<JObject> maps;
+
+            var mapsToken = json.SelectToken(Repo.MapsPath);
+            if (mapsToken is JArray ja) maps = mapsToken.Cast<JObject>();
+            else if (mapsToken is JObject jo)
+            {
+                var e = (IEnumerable<KeyValuePair<string, JToken>>)jo;
+                maps = e.Select(e =>
+                {
+                    var token = (JObject)e.Value;
+                    token.Add("$key", e.Key);
+                    return token;
+                });
+            }
+            else throw new Exception($"Unexpected token: {mapsToken}");
+
+            foreach (var e in maps) refreshedMaps.Add(ParseMap(e));
+            Cache.Maps = refreshedMaps.OrderByDescending(e => e.PublishedOn).ToList();
+            Cache.Refreshed = DateTimeOffset.UtcNow;
+            Cache.Save();
+            Dispose();
+        }
+        catch (Exception e)
         {
-            var diff = GetString(e, "difficultyString");
-            var tags = GetString(e, "tags");
-            var downloadUrl = GetString(e, "downloadUrl") ?? GetString(e, Repo.DownloadUrlPath);
-            refreshedMaps.Add(new JsonRepositoryBeatmap
-            {
-                Title = GetString(e, "title"),
-                Artist = GetString(e, "artist"),
-                Comments = $"Difficulty: {diff}\nTags: {tags}",
-                Mapper = GetString(e, "mapper"),
-                PublishedOn = GetDateTime(e, "creationTimeUtc"),
-                DownloadUrl = Repo.DownloadUrlPrefix + downloadUrl,
-                Url = Repo.UrlPrefix + downloadUrl
-            });
+            Util.Palette.UserError("Refresh failed", e);
         }
-
-        Cache.Maps = refreshedMaps.OrderByDescending(e => e.PublishedOn).ToList();
-        Cache.Refreshed = DateTimeOffset.UtcNow;
-        Cache.Save();
-        Dispose();
     }
 
     public string GetString(JObject obj, string path)

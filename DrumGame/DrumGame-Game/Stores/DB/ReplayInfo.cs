@@ -78,8 +78,9 @@ public class ReplayInfo
         Miss = 0;
     }
 
-    public string Accuracy => (AccuracyTotal == AccuracyHit) ? "100.0%" : $"{(double)(AccuracyHit * 100) / AccuracyTotal:00.00}%";
-    public string AccuracyNoLeading => (AccuracyTotal == AccuracyHit) ? "100.0%" : $"{(double)(AccuracyHit * 100) / AccuracyTotal:0.00}%";
+    public double AccuracyPercent => AccuracyTotal == AccuracyHit ? 100 : (double)(AccuracyHit * 100) / AccuracyTotal;
+    public string Accuracy => $"{AccuracyPercent:00.00}%";
+    public string AccuracyNoLeading => $"{AccuracyPercent:0.00}%";
     public const string DateTimeString = "yyyyMMddHHmmss";
     public void SetCompleteTime(DateTimeOffset completeTime)
         => CompleteTimeTicks = completeTime.UtcTicks;

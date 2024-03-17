@@ -87,7 +87,7 @@ public static class DrumColors
     public static readonly Colour4 Black40 = new(102, 102, 102, 255);
 
     public static readonly Colour4 AnsiWhite = new(229, 229, 229, 255);
-
+    public static Colour4 WarningText => BrightOrange;
 
 
     // https://www.reddit.com/r/CasualCSS/comments/43aizf/reddit_color_codes/

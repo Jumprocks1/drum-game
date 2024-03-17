@@ -16,6 +16,7 @@ namespace DrumGame.Game.Components;
 
 public class SyncedVideo : Video, IHasTooltip, IHasCommand
 {
+    public bool DisableClick => true;
     public readonly TrackClock Track;
     public readonly string Path;
     public BindableDouble Offset = new BindableDouble(0);

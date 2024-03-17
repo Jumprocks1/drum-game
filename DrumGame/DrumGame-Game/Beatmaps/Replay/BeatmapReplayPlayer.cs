@@ -60,7 +60,7 @@ public class BeatmapReplayPlayer : BeatmapPlayer
         VideoRecorder = new VideoRecorder();
         var nextFrame = 0;
         var manualTrack = new TrackManual(Track.EndTime);
-        Track.SwapTrack(manualTrack);
+        SwapTrack(manualTrack);
         Track.Seek(manualClock.CurrentTime);
         var firstFrame = true;
         // var infoText = new SpriteText // helpful for debugging

@@ -30,7 +30,7 @@ public class BeatmapScorer : BeatmapScorerBase
     {
         ReplayInfo.PlaybackSpeed = Track.PlaybackSpeed.Value;
         base.ResetTo(position);
-        SeekPracticeMode = ReplayInfo.StartNote != -1;
+        SeekPracticeMode = ReplayInfo.StartNote != -1 && PracticeMode == null;
     }
 
     public override double LoadTime => Track.CurrentTime;

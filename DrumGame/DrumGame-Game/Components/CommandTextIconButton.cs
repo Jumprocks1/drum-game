@@ -12,7 +12,6 @@ namespace DrumGame.Game.Components;
 public class CommandTextIconButton : CompositeDrawable, IHasCommand
 {
     public Command Command { get; }
-    public bool AllowClick => true;
     Colour4? baseColor;
 
     SpriteText SpriteText;

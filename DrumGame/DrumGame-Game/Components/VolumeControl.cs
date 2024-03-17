@@ -118,7 +118,6 @@ public class VolumeSlider : BasicSlider<double>, IHasMarkupTooltip
 public class VolumeButton : CompositeDrawable, IHasCommand
 {
     public Command Command { get; set; }
-    public bool AllowClick => true;
     public IconUsage? Icon;
     public void UpdateIcon(double volume)
     {
@@ -156,7 +155,7 @@ public class VolumeButton : CompositeDrawable, IHasCommand
     protected override bool OnClick(ClickEvent e)
     {
         // The input manager will automatically skip this call if we route through the command controller
-        // since we have AllowClick, this will be skipped whenever Command is set
+        // this will be skipped whenever Command is set
         Control.Target.ToggleMute();
         return base.OnClick(e);
     }

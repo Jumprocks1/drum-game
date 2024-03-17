@@ -1,5 +1,8 @@
 using System;
+using DrumGame.Game.Beatmaps.Editor;
+using DrumGame.Game.Commands;
 using DrumGame.Game.Components;
+using DrumGame.Game.Interfaces;
 using DrumGame.Game.Utils;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -7,9 +10,9 @@ using osu.Framework.Graphics.Sprites;
 
 namespace DrumGame.Game.Beatmaps.Display;
 
-public class SongInfoPanel : AdjustableSkinElement
+public class SongInfoPanel : AdjustableSkinElement, IHasCommandInfo
 {
-    public const float DefaultHeight = 60;
+    public const float DefaultHeight = 90; // should be at least as big a BeatmapCard
     public override AdjustableSkinData DefaultData() => new()
     {
         Anchor = Anchor.BottomLeft,
@@ -20,6 +23,8 @@ public class SongInfoPanel : AdjustableSkinElement
 
     public override ref AdjustableSkinData SkinPath => ref Util.Skin.Notation.SongInfoPanel;
 
+    public CommandInfo CommandInfo => Util.GetParent<BeatmapEditor>(this) != null ? Util.CommandController[Command.EditBeatmapMetadata] : null;
+
     // after this is all set up for both displays, we should accept a DisplayPreference argument
     // based on this, we pull the skin data from the skin
     // if the skin data is null, we load the appropriate DefaultSkinData
@@ -27,12 +32,17 @@ public class SongInfoPanel : AdjustableSkinElement
     public SongInfoPanel(Beatmap beatmap)
     {
         Beatmap = beatmap;
+        AddInternal(Title = new());
+        AddInternal(Artist = new());
+        AddInternal(Image = new());
     }
 
-    [BackgroundDependencyLoader]
-    private void load()
+    SpriteText Title;
+    SpriteText Artist;
+    Sprite Image;
+
+    public void UpdateData()
     {
-        Height = DefaultHeight;
         var x = 0f;
         var imagePath = Beatmap.FullAssetPath(Beatmap.Image);
         if (imagePath != null)
@@ -51,40 +61,39 @@ public class SongInfoPanel : AdjustableSkinElement
                     }
                 }
             }
-            Sprite sprite;
-            AddInternal(sprite = new Sprite
-            {
-                Width = Height,
-                Height = Height,
-                Texture = texture
-            });
-            x += sprite.Width;
+            Image.Width = Height;
+            Image.Height = Height;
+            Image.Texture = texture;
+            Image.Alpha = 1;
+            x += Image.Width;
         }
+        else Image.Alpha = 0;
         x += 5;
 
         // formatting here loosely based off of BeatmapCard
         // height breakdown:
         // Title: 25, Space: 1, Artist 18 - Total: 44
         // we auto scale in case we eventually allow users to change our height
-        var scale = Height / 46;
-        var title = new SpriteText
-        {
-            Text = Beatmap.Title,
-            Font = FrameworkFont.Regular.With(size: 25 * scale),
-            X = x
-        };
-        AddInternal(title);
+        // we don't divide by 44 since we want the text to be a bit smaller (so it's not so wide)
+        // eventually we should add auto scaling text which crunches really long text
+        var yScale = Height / 75;
+        Title.Text = Beatmap.Title;
+        Title.Font = FrameworkFont.Regular.With(size: 25 * yScale);
+        Title.X = x;
         const float artistIndent = 8f;
-        var artist = new SpriteText
-        {
-            Text = Beatmap.Artist,
-            Font = FrameworkFont.Regular.With(size: 18 * scale),
-            X = x + artistIndent,
-            Y = 26 * scale
-        };
-        AddInternal(artist);
-        x += Math.Max(title.Width, artist.Width + artistIndent) + 5;
+        Artist.Text = Beatmap.Artist;
+        Artist.Font = FrameworkFont.Regular.With(size: 18 * yScale);
+        Artist.X = x + artistIndent;
+        Artist.Y = 26 * yScale;
+        x += Math.Max(Title.Width, Artist.Width + artistIndent) + 5;
         // TODO may need some sort of max width
         Width = Math.Max(x, 200);
+    }
+
+    [BackgroundDependencyLoader]
+    private void load()
+    {
+        Height = DefaultHeight;
+        UpdateData();
     }
 }

@@ -562,14 +562,14 @@ public static class Util
             }
         }
     }
+    // expensive
     public static T Find<T>(CompositeDrawable parent) where T : Drawable
     {
         var queue = new Queue<CompositeDrawable>();
         queue.Enqueue(parent);
         var t = typeof(CompositeDrawable);
         var prop = t.GetField("internalChildren", BindingFlags.Instance | BindingFlags.NonPublic);
-        CompositeDrawable e;
-        while (queue.TryDequeue(out e))
+        while (queue.TryDequeue(out var e))
         {
             var children = (SortedList<Drawable>)prop.GetValue(e);
             for (var i = 0; i < children.Count; i++)

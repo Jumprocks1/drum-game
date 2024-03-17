@@ -244,19 +244,28 @@ public class CommandPaletteContainer : Container
     }
 
     public void ScheduleAction(Action action, bool forceScheduled = false) => Scheduler.Add(action, forceScheduled);
-    public void ShowMessage(string message, LogLevel logLevel = LogLevel.Important)
+    public void ShowMessage(string message, LogLevel logLevel = LogLevel.Important, MessagePosition position = MessagePosition.Top)
     {
         Logger.Log(message, level: logLevel);
         Scheduler.Add(() =>
         {
-            var textOverlay = new TextOverlay(message);
+            var textOverlay = new TextOverlay(message, position);
             Add(textOverlay);
             textOverlay.Touch();
             textOverlay.OnDisappear = () => Remove(textOverlay, true);
-        });
+        }, false);
     }
     public void UserError(string message) => ShowMessage(message, logLevel: LogLevel.Error);
-    public void UserError(UserException exception) => UserError(exception.Message);
+    public void UserError(string message, Exception exception)
+    {
+        Logger.Error(exception, message);
+        ShowMessage(message + ", see log for details", logLevel: LogLevel.Error);
+    }
+    public void UserError(Exception exception)
+    {
+        Logger.Error(exception, "User error");
+        UserError(exception.Message);
+    }
 
     public void EditKeybind(CommandInfo commandInfo, int index)
     {

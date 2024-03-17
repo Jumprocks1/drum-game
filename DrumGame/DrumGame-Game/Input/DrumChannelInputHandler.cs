@@ -51,11 +51,18 @@ public class DrumChannelInputHandler : IDisposable
     }
     public bool OnMidiNote(MidiNoteOnEvent e)
     {
+        // need to pull version before trackTime
+        // ideally we could lock and pull both at the same time
+        // if we pull version after, track could seek after we pull time, but our version would be the latest still
+        // if a seek happens between the version pull, that's okay but it does mean we drop an event when we technically don't need to
+        var version = Track.TimeVersion;
         var trackTime = Track.AbsoluteTime - MidiInputOffset * Track.EffectiveRate;
         var channel = e.DrumChannel;
         if (channel != DrumChannel.None)
         {
-            Util.Host.UpdateThread.Scheduler.Add(() => OnTrigger(e.ToDrumChannelEvent(trackTime)), false);
+            var ev = e.ToDrumChannelEvent(trackTime);
+            ev.TimeVersion = version;
+            Util.Host.UpdateThread.Scheduler.Add(() => OnTrigger(ev), false);
             return ConsumeInputs;
         }
         return false;

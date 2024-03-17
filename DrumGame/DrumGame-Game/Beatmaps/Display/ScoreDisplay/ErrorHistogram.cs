@@ -14,10 +14,9 @@ namespace DrumGame.Game.Beatmaps.Display.ScoreDisplay;
 
 public class ErrorHistogram : CompositeDrawable
 {
-    public ErrorHistogram(BeatmapReplay replay, ReplayInfo replayInfo, Beatmap beatmap)
+    public ErrorHistogram(ReplayResults results)
     {
-        using var scorer = new ReplayScorer(beatmap, replay);
-        var hitErrors = scorer.ComputeHitErrors();
+        var hitErrors = results.HitErrors;
         var radius = 100;
         var count = radius * 2 + 1;
         var vertices = new float[count];

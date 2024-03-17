@@ -397,6 +397,19 @@ public partial class Beatmap
         }
         return selection.HasVolume ? it() : GetHitObjectsAt(selection.Left);
     }
+    public IEnumerable<int> GetHitObjectsInTicks(int start, int end)
+    {
+        IEnumerable<int> it()
+        {
+            var startIndex = HitObjects.BinarySearchFirst(start);
+            for (var i = startIndex; i < HitObjects.Count; i++)
+            {
+                if (HitObjects[i].Time >= end) break;
+                yield return i;
+            }
+        }
+        return it();
+    }
 
     public AffectedRange RemoveHits(BeatSelection selection)
     {
@@ -491,6 +504,13 @@ public partial class Beatmap
             return (tick - measureTicks + 1) / measureTicks;
         }
         else return MeasureFromTick(tick);
+    }
+    // I'm sure this can be optimized slightly
+    public int MeasureStartTickFromTick(int tick) => TickFromMeasure(MeasureFromTick(tick));
+    public int BeatStartTickFromTick(int tick)
+    {
+        var measureStart = MeasureStartTickFromTick(tick);
+        return measureStart + (tick - measureStart) / TickRate * TickRate;
     }
     public int MeasureFromTick(int tick)
     {

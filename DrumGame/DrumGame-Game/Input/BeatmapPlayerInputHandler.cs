@@ -34,7 +34,7 @@ public class BeatmapPlayerInputHandler : IDisposable
         if (Player != null)
         {
             Scorer = new BeatmapScorer(Player.Beatmap, Player.Track);
-            Player.Track.OnSeekCommit += AfterSeek;
+            Player.Track.AfterSeek += AfterSeek;
             Scorer.OnScoreEvent += e => // don't need to unsubscribe since Scorer will die before us
             {
                 Player.Display?.DisplayScoreEvent(e);
@@ -69,7 +69,7 @@ public class BeatmapPlayerInputHandler : IDisposable
         InputHandler = null;
         DrumMidiHandler.RemoveAuxHandler(OnMidiAux);
         Scorer?.Dispose();
-        if (Player != null) Player.Track.OnSeekCommit -= AfterSeek;
+        if (Player != null) Player.Track.AfterSeek -= AfterSeek;
     }
 
     // Use for "live" events (not replays or auto-playback)
@@ -81,6 +81,8 @@ public class BeatmapPlayerInputHandler : IDisposable
     // Can pass in a time to override track time (for auto player/replays)
     public void TriggerEvent(DrumChannelEvent ev, bool playAudio)
     {
+        // ignore events that are queued during a seek
+        if (ev.TimeVersion != 0 && ev.TimeVersion != Player.Track.TimeVersion) return;
         var channel = ev.Channel;
         if (Player != null)
         {

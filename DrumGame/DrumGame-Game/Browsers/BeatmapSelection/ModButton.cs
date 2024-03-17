@@ -12,7 +12,6 @@ namespace DrumGame.Game.Browsers.BeatmapSelection;
 
 public class ModButton : CompositeDrawable, IHasCommandInfo
 {
-    public bool AllowClick => true;
     public CommandInfo CommandInfo { get; }
     string IHasMarkupTooltip.MarkupTooltip => IHasCommandInfo.GetMarkupTooltip(CommandInfo) + "\n" + Modifier.MarkupDescription;
 

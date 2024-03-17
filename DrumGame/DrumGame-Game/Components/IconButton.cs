@@ -31,7 +31,7 @@ public class IconButton : SpriteIcon, IHasMarkupTooltip
     protected override bool OnHover(HoverEvent e)
     {
         this.FadeColour(Colour4.White.Darken(0.3f), 200);
-        return base.OnHover(e);
+        return true;
     }
 
     protected override void OnHoverLost(HoverLostEvent e)

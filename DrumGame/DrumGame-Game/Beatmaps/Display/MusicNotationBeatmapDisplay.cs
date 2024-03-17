@@ -242,6 +242,7 @@ public partial class MusicNotationBeatmapDisplay : BeatmapDisplay
                 Beatmap.TickFromBeatSlow(Selection.End.Value), ed.TickStride);
         }
     }
+    public SongInfoPanel InfoPanel;
     public VolumeControlGroup VolumeControls;
     void UpdateNoteContainerLength() => NoteContainer.BeatCount = Beatmap.QuarterNotes;
     void MeasuresUpdated()
@@ -279,7 +280,8 @@ public partial class MusicNotationBeatmapDisplay : BeatmapDisplay
             Alpha = _songCursorVisible ? 1 : 0,
             Origin = Anchor.TopCentre,
             Y = -2,
-            Height = 8
+            Height = 8,
+            Depth = -3,
         });
         if (Player is BeatmapEditor)
         {
@@ -335,7 +337,7 @@ public partial class MusicNotationBeatmapDisplay : BeatmapDisplay
         modeContainer.Add(ModeText = new CommandText(Command.SwitchMode) { Colour = TextColor });
         if (Player is BeatmapEditor) modeContainer.Add(SnapText = new CommandText(Command.SetEditorSnapping) { Colour = TextColor });
         AddInternal(modeContainer);
-        AddInternal(new SongInfoPanel(Beatmap));
+        AddInternal(InfoPanel = new SongInfoPanel(Beatmap));
         AddInternal(EventContainer = new());
         LoadNotes();
         Beatmap.AnnotationsUpdated += LoadAnnotations;
@@ -343,6 +345,8 @@ public partial class MusicNotationBeatmapDisplay : BeatmapDisplay
         SkinManager.SkinChanged += SkinChanged;
         LogEvent("Beatmap loaded");
     }
+    public void Add(Drawable drawable) => AddInternal(drawable);
+    public void Remove(Drawable drawable, bool dispose) => RemoveInternal(drawable, dispose);
     void LoadAnnotations()
     {
         if (AnnotationsContainer == null)

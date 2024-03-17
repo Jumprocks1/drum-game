@@ -12,13 +12,12 @@ namespace DrumGame.Game.Beatmaps.Display.ScoreDisplay;
 
 public class AccuracyPlot : CompositeDrawable
 {
-    public AccuracyPlot(BeatmapReplay replay, ReplayInfo replayInfo, Beatmap beatmap)
+    public AccuracyPlot(ReplayInfo replayInfo, ReplayResults results)
     {
         AutoSizeAxes = Axes.Both;
 
 
-        using var scorer = new ReplayScorer(beatmap, replay);
-        var hitErrors = scorer.ComputeHitErrors();
+        var hitErrors = results.HitErrors;
         var count = 101;
         var vertices = new float[count];
         var rawData = new double[count];
@@ -79,7 +78,7 @@ public class AccuracyPlot : CompositeDrawable
             if (rawData[i] < min) min = rawData[i];
         }
         for (var i = 0; i < count; i++)
-            plot.Vertices[i] = (float)((1 - (rawData[i] - min) / (max - min)) * h);
+            vertices[i] = (float)((1 - (rawData[i] - min) / (max - min)) * h);
         plot.Invalidate();
         AddInternal(new SpriteText
         {

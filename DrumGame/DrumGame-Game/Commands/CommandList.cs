@@ -27,6 +27,7 @@ public enum Command
     SwitchMode,
     SwitchModeBack,
     ToggleEditMode,
+    PracticeMode,
     ToggleFillMode,
     ToggleRecordMode,
     Copy,
@@ -245,6 +246,7 @@ public static class CommandList
         controller.RegisterCommand(Command.SwitchMode, InputKey.Tab);
         controller.RegisterCommand(Command.SwitchModeBack, new KeyCombo(ModifierKey.Shift, InputKey.Tab));
         controller.RegisterCommand(Command.ToggleEditMode, InputKey.E);
+        controller.RegisterCommand(Command.PracticeMode, InputKey.P);
         controller.RegisterCommand(Command.ToggleFillMode, new KeyCombo(ModifierKey.Ctrl, InputKey.E));
         controller.RegisterCommand(Command.ToggleRecordMode, new KeyCombo(ModifierKey.Shift, InputKey.R));
         controller.RegisterCommand(Command.Copy, new KeyCombo(ModifierKey.Ctrl, InputKey.C));

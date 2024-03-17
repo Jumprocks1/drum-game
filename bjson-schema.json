@@ -198,8 +198,16 @@
     "title": {
       "type": "string"
     },
+    "romanTitle": {
+      "type": "string",
+      "description": "Romanized version of title. If title is already using roman characters, this should be null."
+    },
     "artist": {
       "type": "string"
+    },
+    "romanArtist": {
+      "type": "string",
+      "description": "Romanized version of artist. If artist is already using roman characters, this should be null."
     },
     "album": {
       "type": "string"

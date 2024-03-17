@@ -11,7 +11,6 @@ namespace DrumGame.Game.Browsers;
 
 public class VoteDisplay : CompositeDrawable, IHasCommandInfo
 {
-    public bool AllowClick => true;
     SpriteText Text = new SpriteText
     {
         Font = FrameworkFont.Regular.With(size: 18),

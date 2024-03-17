@@ -30,9 +30,10 @@ public static class Program
             GLUtil.StartSDLMultisample();
         if (!osu.Framework.Development.DebugUtils.IsDebugBuild) // release build doesn't print, but I like it
             Logger.NewEntry += LogHook;
-        using (GameHost host = Host.GetSuitableDesktopHost(@"DrumGame"))
-        using (osu.Framework.Game game = new DrumGameDesktop())
+        using (var host = Host.GetSuitableDesktopHost(@"DrumGame"))
         {
+            Util.Host = host;
+            using var game = new DrumGameDesktop();
             if (Sync)
                 game.OnLoadComplete += _ => Util.CommandController.ActivateCommand(Game.Commands.Command.SyncMaps, Game.Browsers.BeatmapSelector.SyncOptions.Local);
             if (OpenFiles != null)

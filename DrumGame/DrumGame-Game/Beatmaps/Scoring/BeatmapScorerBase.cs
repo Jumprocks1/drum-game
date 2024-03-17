@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using DrumGame.Game.Beatmaps.Practice;
 using DrumGame.Game.Channels;
 using DrumGame.Game.Stores;
 using DrumGame.Game.Stores.DB;
@@ -31,10 +32,11 @@ public class BeatmapScorerBase : IDisposable
     // instead we should wait for the user to hit a note, then we can start marking notes
     // it gets set inside `BeatmapScorer.cs`
     public bool SeekPracticeMode = false;
+    public PracticeMode PracticeMode;
 
     public event Action<ScoreEvent> OnScoreEvent;
     public event Action OnChange;
-    public static HitWindows HitWindows = new HitWindows(); // we can load this from the beatmap eventually
+    public readonly static HitWindows HitWindows = new(); // we can load this from the beatmap eventually
     protected List<HitObjectRealTime> HitObjects;
     readonly Beatmap Beatmap;
     // make sure to only update this after triggering all events
@@ -78,6 +80,22 @@ public class BeatmapScorerBase : IDisposable
     public virtual void TriggerScoreEvent(ScoreEvent scoreEvent, bool roll = false)
     {
         SeekPracticeMode = false; // make sure seek practice is off after we hit a note
+        if (PracticeMode != null)
+        {
+            var t = scoreEvent.Time;
+            var obj = scoreEvent.ObjectTime;
+            if (t.HasValue) // player hit
+            {
+                if (!obj.HasValue || obj < PracticeMode.StartTime || obj >= PracticeMode.EndTime)
+                    scoreEvent.Rating = HitScoreRating.Ignored;
+            }
+            else
+            {
+                // should just be auto misses
+                if (obj < PracticeMode.StartTime || obj >= PracticeMode.EndTime)
+                    return;
+            }
+        }
         if (!roll) ReplayInfo.CountHit(scoreEvent.Rating);
         switch (scoreEvent.Rating)
         {

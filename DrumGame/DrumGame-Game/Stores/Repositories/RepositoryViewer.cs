@@ -232,6 +232,8 @@ public class RepositoryViewer : CompositeDrawable, IModal, IAcceptFocus
                 else text = $"<brightOrange>Open {url}</> (Hold Ctrl to download)";
                 if (!string.IsNullOrWhiteSpace(Map.Comments))
                     text += "\n" + MarkupText.Escape(Map.Comments); // comments frequently contains "\" character
+                if (Map.Difficulties != null)
+                    text += "\nDifficulty: " + MarkupText.Escape(string.Join(" / ", Map.Difficulties));
                 return text;
             }
         }
@@ -305,7 +307,7 @@ public class RepositoryViewer : CompositeDrawable, IModal, IAcceptFocus
             {
                 var foot = "";
                 if (Definition.Url != null)
-                    foot += $"\nRepo source: {Definition.Url}";
+                    foot += $"\nRepo source: {Definition.HomeUrl ?? Definition.Url}";
                 foot += "\n<brightRed>Right click</c> to display more options";
                 if (filteredCount == 0)
                     return $"<brightYellow>No maps match filter</c>{foot}";

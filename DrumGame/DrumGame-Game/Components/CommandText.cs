@@ -10,7 +10,6 @@ namespace DrumGame.Game.Components;
 public class CommandText : SpriteText, IHasCommand
 {
     public Command Command { get; }
-    public bool AllowClick => true;
     Colour4? baseColor;
     public CommandText(Command command)
     {

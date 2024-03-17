@@ -10,7 +10,6 @@ namespace DrumGame.Game.Components;
 public class CommandIconButton : SpriteIcon, IHasCommand
 {
     public Command Command { get; }
-    public bool AllowClick => true;
     Colour4? baseColor;
     public CommandIconButton(Command command, IconUsage icon, float size)
     {

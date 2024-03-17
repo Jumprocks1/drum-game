@@ -1,5 +1,6 @@
 using System;
 using DrumGame.Game.Beatmaps.Replay;
+using DrumGame.Game.Beatmaps.Scoring;
 using DrumGame.Game.Browsers;
 using DrumGame.Game.Commands;
 using DrumGame.Game.Components;
@@ -16,6 +17,7 @@ using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Localisation;
+using osu.Framework.Logging;
 
 namespace DrumGame.Game.Beatmaps.Display.ScoreDisplay;
 
@@ -126,18 +128,34 @@ public class EndScreen : ModalBase, IModal
                 X = -5,
                 Y = -5
             });
-            bodyOuter.Add(new AccuracyPlot(Replay, Info, Beatmap)
+            using var scorer = new ReplayScorer(Beatmap, Replay);
+            var results = scorer.ComputeResults();
+            bodyOuter.Add(new AccuracyPlot(Info, results)
             {
                 Anchor = Anchor.BottomLeft,
                 Origin = Anchor.BottomLeft,
                 X = 0
             });
-            bodyOuter.Add(new ErrorHistogram(Replay, Info, Beatmap)
+            bodyOuter.Add(new ErrorHistogram(results)
             {
                 Anchor = Anchor.BottomLeft,
                 Origin = Anchor.BottomLeft,
                 X = 303
             });
+            try
+            {
+                bodyOuter.Add(new AccuracyOverTime(Beatmap, results)
+                {
+                    Anchor = Anchor.BottomLeft,
+                    Origin = Anchor.BottomLeft,
+                    RelativeSizeAxes = Axes.X,
+                    Y = -140
+                });
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e, $"Failed to load accuracy plot");
+            }
         }
 
         if (Replay != null && !replayOnDisk)

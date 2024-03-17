@@ -9,7 +9,6 @@ namespace DrumGame.Game.Components;
 public class CommandButton : DrumButton, IHasCommandInfo
 {
     public CommandInfo CommandInfo { get; }
-    public bool AllowClick => true;
     public CommandButton(Command command) : this(Util.CommandController[command]) { }
     public CommandButton(CommandInfo commandInfo)
     {

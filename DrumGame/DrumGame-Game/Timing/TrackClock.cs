@@ -15,7 +15,7 @@ public class TrackClock : IClock, IDisposable
     public double RemainingTime => (EndTime - CurrentTime) / Rate;
     public virtual double CurrentTime { get; protected set; }
     public double EffectiveRate => IsRunning ? PlaybackSpeed.Value : 0; // use when calculating offsets
-    public double Rate => PlaybackSpeed.Value;
+    public double Rate { get => PlaybackSpeed.Value; set => PlaybackSpeed.Value = value; }
     public event Action RunningChanged;
     public bool IsRunning { get; private set; }
     public double? PendingSeek { get; private set; }
@@ -29,7 +29,9 @@ public class TrackClock : IClock, IDisposable
     // TODO we could even pull this directly with a Bass call so it's not limited by the AudioThread
     // Should be a more precise version of CurrentTime - used for scoring
     public double AbsoluteTime => IsRunning && Track.IsRunning && !IsAsyncSeeking ? Track.CurrentTime + LatencyFactor : CurrentTime;
-    static double LatencyCorrection = 40;
+    static double LatencyCorrection = 60;
+    // incremented on update thread when seeking. Use to handle events that originate from different threads
+    public int TimeVersion = 1;
     double LatencyFactor => IsRunning ? -LatencyCorrection * (Rate - 1) : 0;
     public Track Track { get; private set; }
     public bool Virtual => Track is TrackVirtual;
@@ -150,6 +152,7 @@ public class TrackClock : IClock, IDisposable
     bool saveState = true;
     public void Seek(double time, bool async = false, bool fromHistory = false)
     {
+        TimeVersion += 1; // don't need Interlocked since this is always on the update thread
         BeforeSeek?.Invoke(time);
         if (saveState && !fromHistory) PushState();
         if (IsRunning && LoopEnd.HasValue && time > LoopEnd.Value) time = LoopStart.Value;
@@ -204,6 +207,7 @@ public class TrackClock : IClock, IDisposable
         }
         if (IsRunning && !async && !fromHistory) PushState();
         saveState = !async && !IsRunning;
+        AfterSeek?.Invoke(CurrentTime);
     }
     public void CommitAsyncSeek() => (Track as YouTubeTrack)?.CommitAsyncSeek();
     protected virtual void SeekCommit(double time)
@@ -212,6 +216,7 @@ public class TrackClock : IClock, IDisposable
     }
     public event Action<double> OnSeekCommit;
     public event Action<double> BeforeSeek;
+    public event Action<double> AfterSeek;
     public void CommitPendingSeek()
     {
         if (PendingSeek != null)

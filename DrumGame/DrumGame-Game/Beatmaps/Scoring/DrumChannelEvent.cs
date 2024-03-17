@@ -21,6 +21,7 @@ public class DrumChannelEvent : IReplayEvent
     // Only used for deciding if we should play samples.
     // It is expected that a MIDI note will have it's sample played by the MIDI device itself
     [JsonIgnore] public bool MIDI;
+    [JsonIgnore] public int TimeVersion; // only needed when created outside of update thread
     // MIDI note number, 0 if not from MIDI. MIDI bool is separate from this, since `Note` gets serialized and is used for playback
     public byte Note;
     public byte MidiNote => Note == 0 ? (byte)Channel.MidiKey() : Note;

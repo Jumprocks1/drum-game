@@ -27,6 +27,8 @@ using DrumGame.Game.IO;
 using DrumGame.Game.Modals;
 using osu.Framework.Graphics.Sprites;
 using DrumGame.Game.Stores.Skins;
+using osu.Framework.Input.Handlers.Mouse;
+using osu.Framework.Input.Handlers.Keyboard;
 
 namespace DrumGame.Game;
 
@@ -165,15 +167,8 @@ public class DrumGameGameBase : osu.Framework.Game
     protected KeybindConfigManager KeybindConfig { get; private set; }
     public override void SetHost(GameHost host)
     {
-        Util.Host = host;
+        Util.Host ??= host;
         base.SetHost(host);
-
-        // Only needed if we are running unmodified osu-framework
-        // foreach (var input in host.AvailableInputHandlers)
-        // {
-        //     if (input is osu.Framework.Input.Handlers.Midi.MidiHandler || input is osu.Framework.Input.Handlers.Tablet.OpenTabletDriverHandler)
-        //         input.Enabled.Value = false;
-        // }
 
         Storage = host.Storage;
         LocalConfig = new DrumGameConfigManager(Host.Storage);
@@ -421,9 +416,20 @@ public class DrumGameGameBase : osu.Framework.Game
         return true;
     }
 
-    protected override IDictionary<FrameworkSetting, object> GetFrameworkConfigDefaults() => new Dictionary<FrameworkSetting, object>
+    protected override IDictionary<FrameworkSetting, object> GetFrameworkConfigDefaults()
     {
-        { FrameworkSetting.FrameSync, FrameSync.VSync }
-    };
+        // Disabling these here instead of in SetHost saves us at least 100ms
+        // It's sketchy because we need Util.Host to be assigned, but this really is the best way
+        //    to make sure these are disabled before they are initialized
+        foreach (var input in Util.Host.AvailableInputHandlers)
+        {
+            if (input is not MouseHandler and not KeyboardHandler)
+                input.Enabled.Value = false;
+        }
+
+        return new Dictionary<FrameworkSetting, object> {
+            { FrameworkSetting.FrameSync, FrameSync.VSync }
+        };
+    }
 }
 

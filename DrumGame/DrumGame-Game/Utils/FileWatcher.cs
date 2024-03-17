@@ -36,19 +36,19 @@ public class FileWatcher : IDisposable
     public event Action Changed;
 
     public string TargetPath;
-    string directory;
+    public string Directory;
 
     public static FileWatcher<T> FromPath<T>(string path) => new(Path.GetDirectoryName(path), path);
     public FileWatcher(string path) : this(Path.GetDirectoryName(path), path) { }
     public FileWatcher(string directory, string path) // make sure to call Register() to start it
     {
         TargetPath = path;
-        this.directory = directory;
+        Directory = directory;
     }
 
     public void Register()
     {
-        watcher = new(directory)
+        watcher = new(Directory)
         {
             NotifyFilter = NotifyFilters.LastWrite
         };
@@ -74,9 +74,12 @@ public class FileWatcher : IDisposable
         watcher.EnableRaisingEvents = true;
     }
 
-    public void UpdatePath(string path)
+    public void UpdatePath(string path) => UpdatePath(Path.GetDirectoryName(path), path);
+    public void UpdatePath(string directory, string path)
     {
+        Directory = directory;
         TargetPath = path;
+        watcher.Path = Directory;
         watcher.Filter = Path.GetFileName(path);
     }
 

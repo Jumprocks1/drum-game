@@ -17,7 +17,7 @@ This project is still in early development. Most of the features are geared towa
 There is also a web version available [here](https://jumprocks1.github.io/drum-game) but it currently only supports display with audio playback via YouTube. The desktop version is significantly more polished.
 
 ## Running Drum Game
-To start, download the latest [release](https://github.com/Jumprocks1/drum-game/releases). On Windows, you should download the `win-x64` version, unzip it, and run either `DrumGame.exe` or `DrumGame.bat`. For other desktop platforms (Linux/macOS), download the `net7.0` version, unzip, and then run it using the command `dotnet DrumGame.dll`. The cross-platform version requires .NET 7.0 to be installed. If you have any trouble, please [submit an issue](https://github.com/Jumprocks1/drum-game/issues/new) or post in the [Discord](https://discord.gg/RTc3xDKabU).
+To start, download the latest [release](https://github.com/Jumprocks1/drum-game/releases). On Windows, you should download the `win-x64` version, unzip it, and run either `DrumGame.exe` or `DrumGame.bat`. For other desktop platforms (Linux/macOS), download the `net8.0` version, unzip, and then run it using the command `dotnet DrumGame.dll`. The cross-platform version requires .NET 8.0 to be installed. If you have any trouble, please [submit an issue](https://github.com/Jumprocks1/drum-game/issues) or post in the [Discord](https://discord.gg/RTc3xDKabU).
 
 To download maps, I recommend using the in-game repository browser. This can be accessed by pressing <kbd>F1</kbd> and typing `View Repositories`, then pressing enter. YouTubeDL is required to load audio for some maps - the game should instruct you accordingly if this is necessary.
 

@@ -7,7 +7,7 @@ using DrumGame.Game.Beatmaps.Replay;
 using osu.Framework.Graphics.Shapes;
 using DrumGame.Game.Utils;
 using osu.Framework.Graphics.Sprites;
-using DrumGame.Game.Stores.Skins;
+using DrumGame.Game.Skinning;
 using DrumGame.Game.Components;
 
 namespace DrumGame.Game.Beatmaps.Display.ScoreDisplay;

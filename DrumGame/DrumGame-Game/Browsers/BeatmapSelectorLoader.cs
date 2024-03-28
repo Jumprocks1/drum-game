@@ -166,7 +166,7 @@ public class BeatmapSelectorLoader : CompositeDrawable
         {
             RemoveInternal(scene, false);
             // we acquire the track so that we can continue playing it on the selector screen
-            if (scene.Player.Track.Track.IsRunning)
+            if (scene.Player.Track.PrimaryTrack == null && scene.Player.Track.Track.IsRunning)
             {
                 track = scene.Player.Track.AcquireTrack();
                 trackPath = scene.Player.Beatmap.FullAudioPath();

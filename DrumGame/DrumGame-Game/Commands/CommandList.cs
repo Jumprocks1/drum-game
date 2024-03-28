@@ -40,6 +40,7 @@ public enum Command
     SetLocalOffset,
     TimingWizard,
     OffsetWizard,
+    ListenToDrumOnlyAudio,
     AutoMapperPlot,
     FrequencyImage,
     AutoMapper,
@@ -181,6 +182,7 @@ public enum Command
     OpenResourcesFolder,
     OpenLogFolder,
     OpenDrumGameDiscord,
+    ExportMap,
     ExportToMidi,
     ExportToDtx,
     ConvertAudioToOgg,
@@ -259,6 +261,7 @@ public static class CommandList
         controller.RegisterCommand(Command.SetLocalOffset);
         controller.RegisterCommand(Command.TimingWizard, new KeyCombo(ModifierKey.Ctrl, InputKey.T));
         controller.RegisterCommand(Command.OffsetWizard, new KeyCombo(ModifierKey.CtrlShift, InputKey.T));
+        controller.RegisterCommand(Command.ListenToDrumOnlyAudio);
         controller.RegisterCommand(Command.AutoMapperPlot);
         controller.RegisterCommand(Command.FrequencyImage);
         controller.RegisterCommand(Command.AutoMapper);
@@ -515,6 +518,7 @@ public static class CommandList
         controller.RegisterCommand(Command.OpenResourcesFolder);
         controller.RegisterCommand(Command.OpenLogFolder);
         controller.RegisterCommand(Command.OpenDrumGameDiscord);
+        controller.RegisterCommand(Command.ExportMap);
         controller.RegisterCommand(Command.ExportToMidi);
         controller.RegisterCommand(Command.ExportToDtx);
         controller.RegisterCommand(Command.ConvertAudioToOgg);
@@ -632,6 +636,7 @@ public static class CommandList
 
         // Rare but useful commands
         Command.ToggleAutoPlayHitSounds,
+        Command.ListenToDrumOnlyAudio,
         Command.SetZoom,
         Command.InsertRoll,
         Command.StackDrumChannel,

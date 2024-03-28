@@ -8,6 +8,7 @@ using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
+using osu.Framework.Localisation;
 using osuTK;
 using osuTK.Input;
 
@@ -15,7 +16,10 @@ namespace DrumGame.Game.Containers;
 
 public record MultilineTooltipData(string Data) { }
 // just my shitty version of markdown
-public record MarkupTooltipData(string Data) { }
+public record MarkupTooltipData(string Data)
+{
+    public static explicit operator LocalisableString(MarkupTooltipData b) => b.Data;
+}
 public class DrumPopoverContainer : TooltipContainer
 {
     protected override double AppearDelay => 0;

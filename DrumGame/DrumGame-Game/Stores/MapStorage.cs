@@ -127,7 +127,7 @@ public class MapStorage : NativeStorage, IDisposable
     const string cachePath = ".cache.json";
     string FullCachePath => GetFullPath(cachePath);
     bool dirty = false;
-    private MetadataCache CachedMetadata;
+    private MetadataCache CachedMetadata; // nullable
     public MapLibraries MapLibraries => Util.ConfigManager.MapLibraries.Value;
     public List<MapLibrary> ValidLibraries => MapLibraries.ValidLibraries;
     MetadataCache LoadedMetadata
@@ -172,7 +172,7 @@ public class MapStorage : NativeStorage, IDisposable
     {
         var writeTimes = GetWriteTimes();
         var remove = new List<string>();
-        foreach (var map in CachedMetadata.Maps)
+        foreach (var map in LoadedMetadata.Maps)
             if (!writeTimes.TryGetValue(map.Key, out var v) || v != map.Value.WriteTime)
                 remove.Add(map.Key);
         if (remove.Count > 0)
@@ -184,24 +184,20 @@ public class MapStorage : NativeStorage, IDisposable
     }
     public void ForceReloadMetadata(MapLibrary provider)
     {
-        var metadata = GetCachedMetadata();
+        var metadata = LoadedMetadata;
         var remove = new List<string>();
-        foreach (var map in metadata)
+        foreach (var map in metadata.Maps)
             if (provider.IsInProvider(map.Key))
                 remove.Add(map.Key);
         if (remove.Count > 0)
         {
             dirty = true;
             foreach (var r in remove)
-                CachedMetadata.Maps.Remove(r);
+                metadata.Maps.Remove(r);
         }
         MapLibraries.InvokeChanged(provider);
     }
-    public Dictionary<string, BeatmapMetadata> GetCachedMetadata() // may not return everything if metadata is outdated
-    {
-        if (CachedMetadata == null) LoadMetadataCache();
-        return CachedMetadata.Maps;
-    }
+    public Dictionary<string, BeatmapMetadata> GetCachedMetadata() => LoadedMetadata.Maps;
     public IEnumerable<(string, BeatmapMetadata)> GetAllMetadata()
     {
         foreach (var file in GetMaps())
@@ -211,20 +207,15 @@ public class MapStorage : NativeStorage, IDisposable
     public BeatmapMetadata GetMetadata(string filename)
     {
         if (filename == null) return null;
-        if (CachedMetadata == null) LoadMetadataCache();
-        var o = CachedMetadata.Maps.GetValueOrDefault(filename);
+        var o = LoadedMetadata.Maps.GetValueOrDefault(filename);
         if (o == null)
         {
-            CachedMetadata.Maps[filename] = o = new BeatmapMetadata(DeserializeMap(filename, skipNotes: true), GetWriteTime(filename));
+            LoadedMetadata.Maps[filename] = o = new BeatmapMetadata(DeserializeMap(filename, skipNotes: true), GetWriteTime(filename));
             dirty = true;
         }
         return o;
     }
-    public BeatmapMetadata GetMetadataFromId(string id)
-    {
-        if (CachedMetadata == null) LoadMetadataCache();
-        return CachedMetadata.Maps.Values.FirstOrDefault(e => e.Id == id);
-    }
+    public BeatmapMetadata GetMetadataFromId(string id) => LoadedMetadata.Maps.Values.FirstOrDefault(e => e.Id == id);
     public void SaveMapCache()
     {
         if (!dirty || CachedMetadata == null) return;
@@ -268,7 +259,7 @@ public class MapStorage : NativeStorage, IDisposable
         if (audio == null)
         {
             audio = Directory.GetFiles(GetFullPath("audio")).Select(e => Path.GetFileName(e)).ToHashSet();
-            foreach (var metadata in CachedMetadata.Maps.Values)
+            foreach (var metadata in LoadedMetadata.Maps.Values)
             {
                 var au = metadata.Audio;
                 if (Path.DirectorySeparatorChar == '/' && au.Contains('\\'))
@@ -344,11 +335,7 @@ public class MapStorage : NativeStorage, IDisposable
         }
         return null;
     }
-    public Beatmap LoadMapFromId(string mapId)
-    {
-        if (CachedMetadata == null) LoadMetadataCache();
-        return LoadMap(CachedMetadata.Maps.FirstOrDefault(e => e.Value.Id == mapId).Key);
-    }
+    public Beatmap LoadMapFromId(string mapId) => LoadMap(LoadedMetadata.Maps.FirstOrDefault(e => e.Value.Id == mapId).Key);
     // use when we want the raw JSON instead of a loaded beatmap
     // absolute is used when loading a map from a random location. Currently this is just when someone drops in a .bjson file
     // skipNotes should be true whenever we don't need the notes and we don't intend to save the map
@@ -467,7 +454,7 @@ public class MapStorage : NativeStorage, IDisposable
     public List<(string, BeatmapMetadata)> GetMapSet(Beatmap beatmap)
     {
         var set = new List<(string, BeatmapMetadata)>();
-        foreach (var (file, metadata) in GetCachedMetadata())
+        foreach (var (file, metadata) in LoadedMetadata.Maps)
         {
             if (metadata.Artist == beatmap.Artist && metadata.Mapper == beatmap.Mapper
                 && metadata.Audio == beatmap.Audio)

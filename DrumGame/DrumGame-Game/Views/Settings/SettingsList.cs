@@ -55,10 +55,13 @@ public static class SettingsList
             Tooltip = "Distance (in beats) between the cursor and the left edge of the screen. Defaults to 4. Smaller values are recommended when at higher zoom or note spacing."
         },
         new DoubleSettingInfo("Mania Scroll Multiplier", config.GetBindable<double>(DrumGameSetting.ManiaScrollMultiplier)) {
-            Tooltip = "Increases or decreases spacing between mania chips. Only applies when display mode set to Mania. Higher values will make faster maps easier to read."
+            Tooltip = "Increases or decreases spacing between mania chips. Only applies when display mode set to Mania.\nHigher values will make faster maps easier to read.\nThe numbers here should match scroll rates in DTXmania."
         },
         new ModalSettingInfo<ChannelEquivalentsView>("Channel Equivalents") {
             Tooltip = "This can be helpful if you do not have a trigger for every channel in Drum Game. Especially useful for cymbals."
+        },
+        new DoubleSettingInfo("Minimum Lead-In", config.GetBindable<double>(DrumGameSetting.MinimumLeadIn)) {
+            Tooltip = "Minimum time in seconds before the first note of a song. Default to 1 second."
         },
         new IntSettingInfo("MIDI Threshold", config.MidiThreshold) {
             Tooltip = "MIDI events with a velocity less than or equal to this value will be completely ignored by the game.\nMIDI events typically have velocities between 0 and 127. Recommended to set this to 0 and configure your module for adjusting specific pads.\nPrimarily useful for excluding velocity 0 events since some modules always output these events."
@@ -77,6 +80,9 @@ public static class SettingsList
         },
         new BooleanSettingInfo("Discord Rich Presence", config.GetBindable<bool>(DrumGameSetting.DiscordRichPresence)) {
             Tooltip = "When enabled, the game will attempt to connect to the DiscordRPC API."
+        },
+        new BooleanSettingInfo("Preserve Pitch", config.GetBindable<bool>(DrumGameSetting.PreservePitch)) {
+            Tooltip = "When enabled and using playback speeds other than 1, the game will use pitch correction to keep the pitch the same when changing speeds.\nCan be useful when editing at lower speeds."
         },
     };
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using DrumGame.Game.Commands;
+using DrumGame.Game.Components;
 using DrumGame.Game.Components.Basic;
 using DrumGame.Game.Interfaces;
 using DrumGame.Game.Utils;
@@ -99,7 +100,7 @@ public class DrumContextMenu : Menu
 
         public float MinimumDrawWidth = 0;
 
-        SpriteText text;
+        Drawable text;
         FillFlowContainer hotkeyDisplay;
 
         const float Spacing = 16;
@@ -107,15 +108,14 @@ public class DrumContextMenu : Menu
         protected override Drawable CreateContent()
         {
             var col = Item.TextColor;
-            text = new SpriteText
-            {
-                Anchor = Anchor.CentreLeft,
-                Origin = Anchor.CentreLeft,
-                Height = 20,
-                X = 16,
-                Font = FrameworkFont.Regular,
-                Colour = Disabled ? col.Darken(0.5f) : col,
-            };
+            if (Item.MarkupText) text = new MarkupText { Font = FrameworkFont.Regular, AutoSizeAxes = Axes.X };
+            else text = new SpriteText { Font = FrameworkFont.Regular, };
+            text.Anchor = Anchor.CentreLeft;
+            text.Origin = Anchor.CentreLeft;
+            text.Height = 20;
+            text.X = 16;
+            text.Colour = Disabled ? col.Darken(0.5f) : col;
+
             MinimumDrawWidth += Spacing * 2; // text padding
 
             if (Item.Bindings != null)
@@ -125,7 +125,8 @@ public class DrumContextMenu : Menu
                     RelativeSizeAxes = Axes.X,
                     Height = 20
                 };
-                text.Text = Item.Text.Value;
+                if (text is IHasText t)
+                    t.Text = Item.Text.Value;
                 container.Add(text);
 
                 MinimumDrawWidth += Spacing; // spacing between hotkey and text
@@ -147,6 +148,7 @@ public class DrumMenuItem : MenuItem
 {
     public DrumMenuItem(string text, Action action) : base(text, action) { }
     public Colour4 TextColor = Colour4.White;
+    public bool MarkupText; // applies markup to supplied text
     public List<KeyCombo> Bindings;
     public string MarkupTooltip;
 }
@@ -167,6 +169,11 @@ public class ContextMenuBuilder<T>
     public ContextMenuBuilder<T> Add(string name, Action<T> action)
     {
         items.Add(new DrumMenuItem(name, () => action(Target)));
+        return this;
+    }
+    public ContextMenuBuilder<T> AddMarkup(string markupText, Action<T> action)
+    {
+        items.Add(new DrumMenuItem(markupText, () => action(Target)) { MarkupText = true });
         return this;
     }
     public ContextMenuBuilder<T> Add(Command command) => Add(Util.CommandController[command]);

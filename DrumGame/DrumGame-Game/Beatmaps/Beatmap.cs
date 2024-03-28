@@ -46,7 +46,7 @@ public partial class Beatmap : BJson, IHasHitObjects
 
     public double ComputedLeadIn()
     {
-        const double minimumLeadIn = 1000;
+        var minimumLeadIn = Util.ConfigManager.Get<double>(Stores.DrumGameSetting.MinimumLeadIn) * 1000;
         if (HitObjects.Count == 0) return LeadIn;
         return Math.Max(LeadIn, -(MillisecondsFromTick(HitObjects[0].Time) - minimumLeadIn));
     }
@@ -130,8 +130,8 @@ public partial class Beatmap : BJson, IHasHitObjects
                 HitObjects.Add(new HitObject(TickFromBeat(t), data));
             }
         }
-        BeatmapLoader.LoadTempo(this);
-        BeatmapLoader.LoadMeasures(this);
+        BeatmapLoader.LoadTempo(this, true);
+        BeatmapLoader.LoadMeasures(this, true);
         QuarterNotes = Math.Max((int)(t + 1), 4);
         // We use OrderBy instead of List.Sort since OrderBy is stable sort
         HitObjects = HitObjects.OrderBy(e => e.Time).ToList();

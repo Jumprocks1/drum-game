@@ -10,7 +10,7 @@ using DrumGame.Game.Containers;
 using DrumGame.Game.Input;
 using DrumGame.Game.Notation;
 using DrumGame.Game.Stores;
-using DrumGame.Game.Stores.Skins;
+using DrumGame.Game.Skinning;
 using DrumGame.Game.Utils;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
@@ -159,8 +159,6 @@ public partial class MusicNotationBeatmapDisplay : BeatmapDisplay
         foreach (var group in groups)
         {
             var containerI = group.Beat / ContainerSize;
-            // TODO remove this check after a few weeks of testing the new filters
-            System.Diagnostics.Debug.Assert(containerI >= start && containerI < end);
             var container = NoteGroupContainers[containerI];
             OutsideNoteContainer.CurrentTarget = containerI;
             Font.RenderGroup(container, group, containerI * ContainerSize, OutsideNoteContainer);
@@ -331,10 +329,10 @@ public partial class MusicNotationBeatmapDisplay : BeatmapDisplay
             Origin = Anchor.BottomLeft,
             Anchor = Anchor.BottomLeft,
             Y = -BeatmapTimeline.Height,
-            AutoSizeAxes = Axes.Both,
-            X = 2,
+            AutoSizeAxes = Axes.Both
         };
-        modeContainer.Add(ModeText = new CommandText(Command.SwitchMode) { Colour = TextColor });
+        modeContainer.Add(ModeText = new CommandText(Command.SwitchMode) { Margin = new() { Left = 2 }, Colour = TextColor });
+        SkinManager.RegisterTarget(SkinAnchorTarget.ModeText, modeContainer);
         if (Player is BeatmapEditor) modeContainer.Add(SnapText = new CommandText(Command.SetEditorSnapping) { Colour = TextColor });
         AddInternal(modeContainer);
         AddInternal(InfoPanel = new SongInfoPanel(Beatmap));
@@ -342,7 +340,6 @@ public partial class MusicNotationBeatmapDisplay : BeatmapDisplay
         LoadNotes();
         Beatmap.AnnotationsUpdated += LoadAnnotations;
         LoadAnnotations();
-        SkinManager.SkinChanged += SkinChanged;
         LogEvent("Beatmap loaded");
     }
     public void Add(Drawable drawable) => AddInternal(drawable);
@@ -371,14 +368,15 @@ public partial class MusicNotationBeatmapDisplay : BeatmapDisplay
             });
         }
     }
-    void SkinChanged()
+    protected override void SkinChanged()
     {
+        base.SkinChanged();
         ReloadNoteRange(true);
     }
     protected override void Dispose(bool isDisposing)
     {
+        SkinManager.UnregisterTarget(SkinAnchorTarget.ModeText);
         Util.CommandController.RemoveHandlers(this);
-        SkinManager.SkinChanged -= SkinChanged;
         Beatmap.MeasuresUpdated -= MeasuresUpdated;
         Beatmap.LengthChanged -= UpdateNoteContainerLength;
         Beatmap.AnnotationsUpdated -= LoadAnnotations;

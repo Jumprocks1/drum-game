@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using DrumGame.Game.Channels;
 using DrumGame.Game.Midi;
@@ -84,6 +85,8 @@ public class CommandController
                 ParameterCommands[(int)c.Command] = target = new List<CommandInfo>();
             }
             target.Add(c);
+            if (ParameterInfo[(int)c.Command] == null)
+                SetParameterInfo(c.Command, [.. c.Parameters.Select(e => e.GetType())]);
         }
         foreach (var key in c.Bindings)
         {

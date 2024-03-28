@@ -51,17 +51,16 @@ public class ReplayDisplay : CompositeDrawable, IHasMarkupTooltip, IHasContextMe
         }).Disabled(!ReplayInfo.Exists)
         .Build();
 
-    public static void Delete(ReplayInfo replay)
+    public void Delete(ReplayInfo replay)
     {
         Util.CommandController.Palette.Push(new ConfirmationModal(() =>
         {
             if (Util.Resources.Exists(replay.Path))
                 Util.Resources.Storage.Delete(replay.Path);
-            using (var context = Util.GetDbContext())
-            {
-                context.Replays.Remove(replay);
-                context.SaveChanges();
-            }
+            using var context = Util.GetDbContext();
+            context.Replays.Remove(replay);
+            context.SaveChanges();
+            Util.GetParent<BeatmapDetailLoader>(this)?.RefreshReplays();
         }, "Do you want to delete this replay?"));
     }
 

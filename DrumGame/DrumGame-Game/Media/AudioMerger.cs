@@ -40,6 +40,7 @@ public class AudioMerger
             process.Vorbis(8);
             process.AddArguments("-ac", "2");
             process.AddOutput(OutputFile);
+            Directory.CreateDirectory(Path.GetDirectoryName(OutputFile));
             await process.RunAsync(); // can't return here since we don't want to delete our files
         }
         finally

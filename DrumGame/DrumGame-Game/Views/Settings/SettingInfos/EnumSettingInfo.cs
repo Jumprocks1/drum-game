@@ -4,7 +4,7 @@ using DrumGame.Game.Commands;
 using DrumGame.Game.Components;
 using DrumGame.Game.Components.Basic.Autocomplete;
 using DrumGame.Game.Stores;
-using DrumGame.Game.Stores.Skins;
+using DrumGame.Game.Skinning;
 using DrumGame.Game.Utils;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;

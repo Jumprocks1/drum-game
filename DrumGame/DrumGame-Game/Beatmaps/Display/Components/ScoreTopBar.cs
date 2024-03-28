@@ -12,22 +12,13 @@ namespace DrumGame.Game.Beatmaps.Display.Components;
 public class ScoreTopBar : CompositeDrawable
 {
     public new const float Height = 50;
-    readonly HitErrorDisplay HitErrorDisplay;
     readonly BeatmapScorer Scorer;
     readonly ComboMeter Meter;
     public ScoreTopBar(BeatmapScorer scorer)
     {
         Scorer = scorer;
-        Scorer.OnScoreEvent += HandleScoreEvent;
         RelativeSizeAxes = Axes.X;
         base.Height = Height;
-        AddInternal(HitErrorDisplay = new HitErrorDisplay(BeatmapScorer.HitWindows)
-        {
-            Width = 200,
-            Origin = Anchor.TopCentre,
-            Anchor = Anchor.TopCentre,
-            Height = 40
-        });
         AddInternal(statsText = new StatsText
         {
             X = 3
@@ -46,18 +37,6 @@ public class ScoreTopBar : CompositeDrawable
             Anchor = Anchor.TopRight,
             Origin = Anchor.TopRight,
         });
-        Scorer.Track.OnSeekCommit += ResetScore;
-    }
-    void ResetScore(double _)
-    {
-        HitErrorDisplay.Clear();
-    }
-
-    protected override void Dispose(bool isDisposing)
-    {
-        Scorer.OnScoreEvent -= HandleScoreEvent;
-        Scorer.Track.OnSeekCommit -= ResetScore;
-        base.Dispose(isDisposing);
     }
 
     public void HandleScoreChange()
@@ -65,17 +44,6 @@ public class ScoreTopBar : CompositeDrawable
         Meter.UpdateValues(Scorer.MultiplierHandler.MeterLevel, Scorer.MultiplierHandler.Multiplier);
         statsText.Text = $"{Scorer.Accuracy}  {Scorer.ReplayInfo.Combo}x";
         scoreText.Target = Scorer.ReplayInfo.Score;
-    }
-
-    public void HandleScoreEvent(ScoreEvent e)
-    {
-        if (!e.Ignored)
-        {
-            if (e.HitError.HasValue) // this filters out rolls
-            {
-                HitErrorDisplay.AddTick((float)e.HitError.Value);
-            }
-        }
     }
 
     SpriteText statsText;

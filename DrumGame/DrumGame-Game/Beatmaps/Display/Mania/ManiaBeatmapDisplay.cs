@@ -5,9 +5,10 @@ using DrumGame.Game.Beatmaps.Display.Components;
 using DrumGame.Game.Beatmaps.Editor;
 using DrumGame.Game.Beatmaps.Scoring;
 using DrumGame.Game.Channels;
+using DrumGame.Game.Commands;
 using DrumGame.Game.Components;
 using DrumGame.Game.Containers;
-using DrumGame.Game.Stores.Skins;
+using DrumGame.Game.Skinning;
 using DrumGame.Game.Utils;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -31,6 +32,7 @@ using LaneInfo = ManiaSkinInfo.ManiaSkinInfo_Lane;
 
 public partial class ManiaBeatmapDisplay : BeatmapDisplay
 {
+    Colour4 TextColor = Colour4.White;
     public class ManiaCanvasData
     {
         public (int Start, int End) VisibleChips;
@@ -48,7 +50,7 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
 
         data.VisibleChips = Chips.FindRangeContinuous(startTime, endTime);
         data.VisibleLines = Lines.FindRangeContinuous(startTime, endTime);
-        data.Offset = ScrollingOverlay.Y;
+        data.Offset = ScoreEventContainer.Y;
     }
 
     void DrawCanvas(Canvas<ManiaCanvasData>.Node node, ManiaCanvasData data)
@@ -57,8 +59,7 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
         {
             node.Color = lane.Config.BorderColor;
             node.Box(lane.X, 0, -lane.LeftBorderWidth, 1);
-            node.Color = lane.BackgroundColor;
-            node.Box(lane.X, 0, lane.Width, 1);
+            lane.DrawBackground(node);
         }
         var lane1 = Lanes[0];
         node.Color = lane1.Config.BorderColor;
@@ -66,7 +67,6 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
 
         node.Translate(new Vector2(0, node.State.Offset));
 
-        node.Color = ManiaConfig.BeatLineColor;
         var end = node.State.VisibleLines.End;
         for (var i = node.State.VisibleLines.Start; i < end; i++)
             Lines[i].Draw(node);
@@ -76,15 +76,32 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
         // these frick up our blending, be careful
         // we split into 2 loops to prevent swapping blend modes
         // swapping blend modes forces a flush of the draw buffer
+        node.Alpha = 1;
         for (var i = start; i < end; i++)
+        {
+            if (PracticeMode != null)
+            {
+                var contained = Chips[i].HitTime > PracticeMode.StartTime && Chips[i].HitTime < PracticeMode.EndTime;
+                node.Alpha = contained ? 1 : 1 - PracticeMode.Config.OverlayStrength;
+            }
             Chips[i].DrawAdornment(node);
+        }
         for (var i = start; i < end; i++)
+        {
+            if (PracticeMode != null)
+            {
+                var contained = Chips[i].HitTime > PracticeMode.StartTime && Chips[i].HitTime < PracticeMode.EndTime;
+                node.Alpha = contained ? 1 : 1 - PracticeMode.Config.OverlayStrength;
+            }
             Chips[i].DrawChip(node);
+        }
+        node.Alpha = 1;
     }
 
     public Lane[] Lanes;
 
     static ManiaSkinInfo ManiaConfig => Util.Skin.Mania;
+    static bool HasShutter => ManiaConfig.Shutter != null && ManiaConfig.Shutter.Height != 0;
     public double ScrollRate => ManiaSkinInfo.ScrollRate;
     public List<BeatLine> Lines = new();
     public class BeatLine : IComparable<double>
@@ -92,11 +109,17 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
         float Y;
         float Height;
         double HitTime;
-        public void Draw(Canvas<ManiaCanvasData>.Node node) => node.Box(0, Y, 1, Height);
+        bool Measure;
+        public void Draw(Canvas<ManiaCanvasData>.Node node)
+        {
+            node.Color = Measure ? ManiaConfig.MeasureLineColor : ManiaConfig.BeatLineColor;
+            node.Box(0, Y, 1, Height);
+        }
         public int CompareTo(double other) => HitTime.CompareTo(other);
         public BeatLine((double Time, bool Measure) line)
         {
             HitTime = line.Time;
+            Measure = line.Measure;
             Height = line.Measure ? ManiaConfig.MeasureLineThickness : ManiaConfig.BeatLineThickness;
             Y = (float)(-HitTime * ManiaSkinInfo.ScrollRate) + 1 - Height / 2;
         }
@@ -110,7 +133,7 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
         float Width;
         float Height;
         float ChipWidth;
-        public void DrawAdornment(Canvas<ManiaCanvasData>.Node node) => ChipInfo.Adornment?.Draw(node, X, Y, Width, Height);
+        public void DrawAdornment(Canvas<ManiaCanvasData>.Node node) => ChipInfo.Adornment?.DrawCentered(node, X, Y, Width, Height);
         public void DrawChip(Canvas<ManiaCanvasData>.Node node)
         {
             if (ChipInfo.Chip == null)
@@ -120,7 +143,7 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
             }
             else
             {
-                ChipInfo.Chip?.Draw(node, X, Y, Width * ChipWidth, Height);
+                ChipInfo.Chip?.DrawCentered(node, X, Y, Width * ChipWidth, Height);
             }
         }
         public Chip(ManiaBeatmapDisplay display, HitObjectRealTime ho)
@@ -132,7 +155,7 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
             Height = ManiaConfig.ChipThickness;
             X = lane.X + Width / 2;
             Y = (float)(-HitTime * display.ScrollRate) + 1;
-            ChipWidth = ho.Data.Modifiers.HasFlag(NoteModifiers.Ghost) ? 0.7f : 1f;
+            ChipWidth = ho.Data.Modifiers.HasFlag(NoteModifiers.Ghost) ? Util.Skin.Mania.GhostNoteWidth : 1f;
 
             var channel = ho.Channel;
             if (laneConfig.Channel != channel)
@@ -147,6 +170,7 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
     public class Lane
     {
         public readonly LaneInfo Config;
+        public SkinTexture Background => Config.Background;
         public ManiaIcon Icon;
         public ColourInfo BackgroundColor;
         public float X;
@@ -156,6 +180,15 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
         {
             Config = laneConfig;
             BackgroundColor = laneConfig.Color.MultiplyAlpha(0.05f);
+        }
+        public void DrawBackground(CanvasNode node)
+        {
+            if (Background != null) Background.Draw(node, X, 0, Width, 1);
+            else
+            {
+                node.Color = BackgroundColor;
+                node.Box(X, 0, Width, 1);
+            }
         }
     }
     Dictionary<DrumChannel, Lane> PrimaryLaneLookup = new();
@@ -186,7 +219,8 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
     }
 
     Container LaneContainer = new();
-    Container ScrollingOverlay = new();
+    Container ScoreEventContainer = new();
+    ManiaTimeline Timeline;
 
     List<Chip> Chips;
 
@@ -197,6 +231,7 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
             Chips.Add(new Chip(this, hitObject));
         Chips.Sort((a, b) => a.HitTime.CompareTo(b.HitTime));
 
+        Lines.Clear();
         foreach (var line in Beatmap.BeatLinesMs())
             Lines.Add(new(line));
     }
@@ -204,6 +239,10 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
     [BackgroundDependencyLoader]
     private void load()
     {
+        SkinManager.RegisterTarget(SkinAnchorTarget.LaneContainer, LaneContainer);
+        AddInternal(Timeline = new(this));
+        SkinManager.RegisterTarget(SkinAnchorTarget.PositionIndicator, Timeline);
+        AddInternal(new SongInfoPanel(Beatmap, true));
         LaneContainer.RelativeSizeAxes = Axes.Both;
         LaneContainer.Origin = Anchor.TopCentre;
         LaneContainer.Anchor = Anchor.TopCentre;
@@ -215,6 +254,61 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
             ApplyState = ApplyState,
             Relative = true
         });
+        LoadLanes();
+        LoadChips();
+        LaneContainer.Add(ScoreEventContainer = new NoMaskContainer
+        {
+            RelativeSizeAxes = Axes.Both,
+            RelativePositionAxes = Axes.Y,
+            // if we have shutter, these have to appear below the icons and the shutter
+            Depth = HasShutter ? -1f : -5
+        });
+        LaneContainer.Add(new Box
+        {
+            Colour = ManiaConfig.JudgementColor,
+            Y = -ManiaConfig.JudgementPosition,
+            Height = ManiaConfig.JudgementThickness,
+            RelativeSizeAxes = Axes.Both,
+            RelativePositionAxes = Axes.Y,
+            Anchor = Anchor.BottomLeft,
+            Origin = Anchor.CentreLeft,
+        });
+        if (HasShutter)
+        {
+            var d = ManiaConfig.Shutter.Texture?.MakeSprite() ?? new Box { Colour = ManiaConfig.BackgroundColor };
+            d.RelativeSizeAxes = Axes.Both;
+            d.RelativePositionAxes = Axes.Both;
+            d.Height = ManiaConfig.JudgementPosition;
+            d.Anchor = Anchor.BottomLeft;
+            d.Origin = Anchor.TopLeft;
+            d.Y = -ManiaConfig.JudgementPosition;
+            d.Depth = -2; // icons are -3
+            LaneContainer.Add(d);
+        }
+        AddInternal(LaneContainer);
+        AddInternal(ModeText = new CommandText(Command.SwitchMode) { Colour = TextColor, Anchor = Anchor.BottomLeft, Origin = Anchor.BottomLeft, X = 3 });
+        Player.ModeChanged += UpdateModeText;
+        UpdateModeText(Player.Mode);
+    }
+    SpriteText ModeText;
+
+    void UpdateModeText(BeatmapPlayerMode mode)
+    {
+        ModeText.Text = mode == BeatmapPlayerMode.Replay ? string.Empty : $"{Player.Mode} Mode ";
+    }
+
+    protected override void SkinChanged()
+    {
+        base.SkinChanged();
+        PrimaryLaneLookup.Clear();
+        SecondaryLaneLookup.Clear();
+        LaneContainer.RemoveAll(e => e is ManiaIcon, true);
+        LoadLanes();
+        LoadChips();
+    }
+
+    void LoadLanes()
+    {
         var lanes = Util.Skin.Mania.Lanes.LaneList;
         Lanes = new Lane[lanes.Length];
         var totalWeight = lanes.Sum(e => e.LeftBorder + e.Width) + lanes[0].LeftBorder;
@@ -247,7 +341,7 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
             if (icon != null)
             {
                 laneObject.Icon = icon;
-                icon.Depth = -1;
+                icon.Depth = -3;
                 icon.X = laneObject.X;
                 icon.Width = laneObject.Width;
                 icon.Height = ManiaConfig.JudgementPosition;
@@ -257,37 +351,18 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
             }
             x += lane.Width;
         }
-        LoadChips();
-        LaneContainer.Add(ScrollingOverlay = new NoMaskContainer
-        {
-            RelativeSizeAxes = Axes.Both,
-            RelativePositionAxes = Axes.Y,
-            Depth = -5
-        });
-        LaneContainer.Add(new Box
-        {
-            Colour = ManiaConfig.JudgementColor,
-            Y = -ManiaConfig.JudgementPosition,
-            Height = ManiaConfig.JudgementThickness,
-            RelativeSizeAxes = Axes.Both,
-            RelativePositionAxes = Axes.Y,
-            Anchor = Anchor.BottomLeft,
-            Origin = Anchor.CentreLeft,
-        });
-        AddInternal(LaneContainer);
     }
-
     protected override void Update()
     {
         if (Dragging) UpdateDrag();
-        ScrollingOverlay.Y = (float)(Track.CurrentTime * ScrollRate - ManiaConfig.JudgementPosition);
+        ScoreEventContainer.Y = (float)(Track.CurrentTime * ScrollRate - ManiaConfig.JudgementPosition);
     }
 
     SpriteText StatsText;
     public override void EnterPlayMode()
     {
         if (StatsText == null)
-            AddInternal(StatsText = new StatsText { Colour = Colour4.White, X = 3 });
+            AddInternal(StatsText = new StatsText { Colour = TextColor, X = 3 });
         base.EnterPlayMode();
     }
     public override void LeavePlayMode()
@@ -320,7 +395,7 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
             Anchor = Anchor.BottomLeft,
             Origin = Anchor.CentreLeft
         };
-        ScrollingOverlay.Add(h);
+        ScoreEventContainer.Add(h);
         h.FadeOut(1000).Expire();
     }
 
@@ -332,5 +407,13 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
     public override void ReloadNoteRange(AffectedRange range)
     {
         LoadChips();
+    }
+
+    protected override void Dispose(bool isDisposing)
+    {
+        Player.ModeChanged -= UpdateModeText;
+        SkinManager.UnregisterTarget(LaneContainer);
+        SkinManager.UnregisterTarget(Timeline);
+        base.Dispose(isDisposing);
     }
 }

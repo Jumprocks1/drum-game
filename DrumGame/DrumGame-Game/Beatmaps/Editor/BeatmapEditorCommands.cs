@@ -16,6 +16,7 @@ using DrumGame.Game.Components;
 using DrumGame.Game.Midi;
 using DrumGame.Game.Modals;
 using DrumGame.Game.Utils;
+using osu.Framework.Audio.Track;
 using osu.Framework.Logging;
 
 namespace DrumGame.Game.Beatmaps.Editor;
@@ -486,6 +487,8 @@ public partial class BeatmapEditor
     [CommandHandler] public void EditorTools() => Util.Palette.Palette.ShowCommandList(true, CommandList.EditorTools);
     [CommandHandler] public bool ExportToDtx(CommandContext context) => DtxExporter.Export(context, Beatmap);
     [CommandHandler]
+    public bool ExportMap(CommandContext context) => BeatmapExporter.Export(context, Beatmap);
+    [CommandHandler]
     public bool ConvertAudioToOgg(CommandContext context)
     {
         var fields = new FieldBuilder()
@@ -553,5 +556,39 @@ public partial class BeatmapEditor
                 PushChange(() => SetRelativeVolume(volume), () => SetRelativeVolume(oldVolume), $"Set relative volume to {volume} (source: {lufs:0.00} LUFS)");
             });
         });
+    }
+
+    Track DrumOnlyAudio;
+    [CommandHandler]
+    public void ListenToDrumOnlyAudio()
+    {
+        if (!string.IsNullOrWhiteSpace(Beatmap.DrumOnlyAudio))
+            DrumOnlyAudio ??= Resources.GetTrack(Util.Resources.GetAbsolutePath(Beatmap.DrumOnlyAudio));
+        if (DrumOnlyAudio == null)
+        {
+            Util.Palette.RequestFile("Drum Only Audio", "Drum only audio not found, please drop in an audio file to load", e =>
+            {
+                var oldAudio = Beatmap.DrumOnlyAudio;
+                string newDrumAudioPath;
+                if (Util.Resources.Contains(e))
+                    newDrumAudioPath = Util.Resources.GetRelativePath(e);
+                else
+                {
+                    var name = Path.GetFileNameWithoutExtension(e);
+                    var ext = Path.GetExtension(e);
+                    var outputPath = Util.Resources.GetTemp($"{name}-drums{ext}");
+                    newDrumAudioPath = Util.Resources.GetRelativePath(outputPath);
+                    if (!File.Exists(outputPath))
+                        File.Copy(e, outputPath);
+                }
+                PushChange(() => Beatmap.DrumOnlyAudio = newDrumAudioPath,
+                    () => Beatmap.DrumOnlyAudio = oldAudio, $"set drum only audio to {newDrumAudioPath}");
+                ListenToDrumOnlyAudio();
+            });
+            return;
+        }
+        if (Track.PrimaryTrack == null) Track.TemporarySwap(DrumOnlyAudio);
+        else Track.ResumePrimary();
+        Track.Track.Volume.Value = Beatmap.CurrentRelativeVolume;
     }
 }

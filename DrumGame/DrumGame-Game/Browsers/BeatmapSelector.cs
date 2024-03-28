@@ -864,6 +864,9 @@ public partial class BeatmapSelector : CompositeDrawable
         return DtxExporter.Export(context, MapStorage.LoadMap(TargetMap.MapStoragePath));
     }
 
+    [CommandHandler]
+    public bool ExportMap(CommandContext context) => BeatmapExporter.Export(context, MapStorage.LoadMap(TargetMap.MapStoragePath));
+
 
     bool ModifyRating(CommandContext context, int inc)
     {
@@ -898,7 +901,15 @@ public partial class BeatmapSelector : CompositeDrawable
     {
         var targetMap = GetTargetMap(context);
         if (targetMap == null) return false;
-        Util.RevealInFileExplorer(MapStorage.GetFullPath(targetMap.LoadedMetadata.Audio));
+        var main = MapStorage.GetFullPath(targetMap.LoadedMetadata.Audio);
+        if (File.Exists(main))
+            Util.RevealInFileExplorer(main);
+        else
+        {
+            var youTubeId = Util.MapStorage.LoadMap(targetMap.LoadedMetadata).YouTubeID;
+            var yt = Util.Resources.YouTubeAudioPath(youTubeId);
+            if (File.Exists(yt)) Util.RevealInFileExplorer(yt);
+        }
         return true;
     }
     [CommandHandler]

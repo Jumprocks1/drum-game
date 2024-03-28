@@ -13,9 +13,10 @@ public class FuruRepoRefresher(RepositoryDefinition repo) : JsonRepoRefresher(re
     {
         // column 8 + 7x for difficulty, 5 maximum total difficulties
         var difficulties = new List<string>();
+        var c = e.GetValue("c");
         for (var i = 0; i < 5; i++)
         {
-            var cell = e.GetValue("c")[8 + 7 * i];
+            var cell = c[8 + 7 * i];
             if (cell.Type == JTokenType.Object)
             {
                 var diff = cell.GetValue<string>("v");
@@ -27,6 +28,7 @@ public class FuruRepoRefresher(RepositoryDefinition repo) : JsonRepoRefresher(re
         {
             Title = GetString(e, Repo.TitlePath),
             Artist = GetString(e, Repo.ArtistPath),
+            Index = long.Parse(c[1].GetValue<string>("v").Split(' ')[0]),
             Comments = GetString(e, "c[5].v"),
             DownloadUrl = (Repo.DownloadUrlPrefix ?? "") + GetString(e, Repo.DownloadUrlPath),
             Url = (Repo.UrlPrefix ?? "") + Uri.EscapeDataString(GetString(e, Repo.PreviewUrlPath)),

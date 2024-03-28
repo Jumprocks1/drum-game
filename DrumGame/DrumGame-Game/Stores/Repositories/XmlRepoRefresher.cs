@@ -127,9 +127,11 @@ public class QudamRepoRefresher : RepoRefresherBase
             try
             {
                 var map = await DownloadEntry(entryUrl);
-                if (!force && AlreadyContains(map)) return maps; // stop early to save network
                 if (map != null)
+                {
+                    if (!force && AlreadyContains(map)) return maps; // stop early to save network
                     maps.Add(map);
+                }
             }
             catch (Exception e)
             {

@@ -44,7 +44,7 @@ public class BeatmapSelectorMap : ISearchable<BeatmapSelectorMap>
 
     public static FilterFieldInfo<BeatmapSelectorMap>[] Fields { get; } = [
         new("title", "Filters by song title\nExamples:\n<code>title=unravel</>\n<code>title^</> - sorts by title"),
-        new("artist", "Filters by song artist\nExample: <code>artist=babymetal</>"),
+        new("artist", "Filters by song artist\nExamples:\n<code>artist=babymetal</>\n<code>artist^</> - sorts by artist"),
         new("mapper", "Filters by map author\nExample: <code>mapper=jumprocks</>"),
         new("difficulty",
             "Filters by map difficulty\nExample: <code>difficulty=expert</>\n\nAlso supports numeric difficulties (based on color).\n"

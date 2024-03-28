@@ -4,6 +4,7 @@ using DrumGame.Game.Beatmaps.Display;
 using DrumGame.Game.Commands;
 using DrumGame.Game.Components;
 using DrumGame.Game.Components.Abstract;
+using DrumGame.Game.Skinning;
 using DrumGame.Game.Utils;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -17,8 +18,9 @@ public class EventContainer : AdjustableSkinElement
     public override ref AdjustableSkinData SkinPath => ref Util.Skin.Notation.EventContainer;
     public override AdjustableSkinData DefaultData() => new()
     {
-        Anchor = Anchor.BottomLeft,
-        Y = -BeatmapTimeline.Height - MusicNotationBeatmapDisplay.ModeTextHeight - SongInfoPanel.DefaultHeight
+        Origin = Anchor.BottomLeft,
+        Anchor = Anchor.TopLeft,
+        AnchorTarget = SkinAnchorTarget.SongInfoPanel
     };
     public static readonly FontUsage Font = FrameworkFont.Regular.With(size: 14);
     public const int EventBuffer = 8;

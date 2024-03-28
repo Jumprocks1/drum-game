@@ -5,6 +5,7 @@ using System.Linq;
 using DrumGame.Game.API;
 using DrumGame.Game.Beatmaps.Data;
 using DrumGame.Game.Beatmaps.Display;
+using DrumGame.Game.Beatmaps.Display.Mania;
 using DrumGame.Game.Beatmaps.Display.ScoreDisplay;
 using DrumGame.Game.Beatmaps.Editor;
 using DrumGame.Game.Beatmaps.Loaders;
@@ -79,6 +80,13 @@ public class BeatmapPlayer : CompositeDrawable
                     BeatmapPlayerInputHandler.Dispose();
                     BeatmapPlayerInputHandler = null;
                 }
+            }
+            if (Display is MusicNotationBeatmapDisplay d)
+            {
+                var edit = value.HasFlagFast(BeatmapPlayerMode.Edit);
+                var record = value == BeatmapPlayerMode.Record;
+                var measureLines = (edit && !record) || Util.Skin.Notation.MeasureLines;
+                if (d.MeasureLines == null == measureLines) d.ToggleMeasureLines();
             }
             ModeChanged?.Invoke(value);
         }
@@ -174,12 +182,9 @@ public class BeatmapPlayer : CompositeDrawable
 
     public void EnterPracticeMode(double startBeat, double endBeat)
     {
-        if (Display is MusicNotationBeatmapDisplay d)
-        {
-            PracticeMode = new(d, startBeat, endBeat);
-            Mode = BeatmapPlayerMode.Practice;
-            PracticeMode.Begin();
-        }
+        PracticeMode = new(Display, startBeat, endBeat);
+        Mode = BeatmapPlayerMode.Practice;
+        PracticeMode.Begin();
     }
 
     protected virtual void TriggerEndScreen()
@@ -563,7 +568,7 @@ public class BeatmapPlayer : CompositeDrawable
         }
         else
         {
-            _metronome = new Metronome(this, Dependencies.Get<Lazy<DrumsetAudioPlayer>>().Value);
+            _metronome = new Metronome(this, Util.DrumGame.Drumset.Value);
             Track.RegisterEvents(_metronome);
         }
     }

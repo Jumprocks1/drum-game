@@ -105,17 +105,20 @@ public class AccuracyOverTime : CompositeDrawable
         max += 0.05;
         min -= 0.05;
 
-        (double StartBeat, double EndBeat) UpdatePracticeWindow(int i)
+        (double StartBeat, double EndBeat) UpdatePracticeWindow(int plotIndex)
         {
-            if (cachedWindow != null && cachedWindow.Value.i == i)
+            if (cachedWindow != null && cachedWindow.Value.i == plotIndex)
                 return (cachedWindow.Value.StartBeat, cachedWindow.Value.EndBeat);
 
-            while (i > 0 && plotData[i - 1].accuracy < plotData[i].accuracy) i--;
-            while (i < plotData.Length - 1 && plotData[i + 1].accuracy < plotData[i].accuracy) i++;
-            if (cachedWindow != null && cachedWindow.Value.i == i)
+            while (plotIndex > 0 && (plotData[plotIndex - 1].accuracy < plotData[plotIndex].accuracy)) plotIndex--;
+            while (plotIndex < plotData.Length - 1 && plotData[plotIndex + 1].accuracy < plotData[plotIndex].accuracy) plotIndex++;
+            if (cachedWindow != null && cachedWindow.Value.i == plotIndex)
                 return (cachedWindow.Value.StartBeat, cachedWindow.Value.EndBeat);
 
-            var hardMeasure = beatmap.MeasureFromBeat(beatmap.BeatFromMilliseconds(plotData[i].time) + Beatmap.BeatEpsilon);
+            var hardMeasure = beatmap.MeasureFromBeat(beatmap.BeatFromMilliseconds(plotData[plotIndex].time) + Beatmap.BeatEpsilon);
+            while (hardMeasure > 0 && beatmap.IsEmptyMeasure(hardMeasure))
+                hardMeasure--;
+
 
             int scoreStartMeasure(int s)
             {
@@ -140,6 +143,24 @@ public class AccuracyOverTime : CompositeDrawable
                     res += 3;
                 else if (!beatmap.GetHitObjectsInTicks(tick - beatmap.TickRate / 2, tick).Any())
                     res += 1;
+
+                // if measure is empty, we really do not want to start practice there
+                if (!beatmap.GetHitObjectsInTicks(tick, beatmap.TickFromMeasure(s + 1)).Any())
+                    res -= 20;
+                else if (!beatmap.GetHitObjectsAtTick(tick).Any())
+                    res -= 3;
+
+                // prefer at least 4 bars of practice
+                var length = getEndMeasure(s) - s;
+                if (length == 1)
+                    res -= 12;
+                else if (length == 2)
+                    res -= 7;
+                else if (length == 3)
+                    res -= 3;
+                else if (length > 4)
+                    res -= length - 4;
+
                 return res;
             }
             var startMeasure = hardMeasure - 2;
@@ -155,9 +176,17 @@ public class AccuracyOverTime : CompositeDrawable
                 }
             }
 
-            var endMeasure = Math.Max(hardMeasure + 2, startMeasure + 4);
+            int getEndMeasure(int s)
+            {
+                var endMeasure = Math.Max(hardMeasure + 2, s + 4);
+                while ((endMeasure - 1 > s) && beatmap.IsEmptyMeasure(endMeasure - 1))
+                    endMeasure--;
+                return endMeasure;
+            }
+            // end measure is exclusive
+            var endMeasure = getEndMeasure(startMeasure);
             var res = (beatmap.BeatFromMeasure(startMeasure), beatmap.BeatFromMeasure(endMeasure));
-            cachedWindow = (i, res.Item1, res.Item2);
+            cachedWindow = (plotIndex, res.Item1, res.Item2);
 
             PracticeWindowBox.Alpha = 1;
             var x1 = Math.Clamp((float)((beatmap.MillisecondsFromBeat(res.Item1) - start) / length), 0, 1);
@@ -189,9 +218,9 @@ public class AccuracyOverTime : CompositeDrawable
                     var beat = (int)beatmap.BeatFromMilliseconds(time);
                     var (StartBeat, EndBeat) = UpdatePracticeWindow(i);
                     return
-                        $"Accuracy: {accuracy * 100:0.00}%\n"
+                        $"<brightGreen>Accuracy:</c> {accuracy * 100:0.00}%\n"
                         + $"<brightGreen>Time:</c> {Util.FormatTime(time)}\n<brightGreen>Beat:</c> {beat}\n"
-                        + $"Recommended practice window: {StartBeat}-{EndBeat} <faded>(click or activate {IHasCommand.GetMarkupTooltipIgnoreUnbound(Command.PracticeMode)} to practice)</c>\n"
+                        + $"<brightGreen>Recommended practice window:</c> {StartBeat}-{EndBeat} <faded>(click or activate {IHasCommand.GetMarkupTooltipIgnoreUnbound(Command.PracticeMode)} to practice)</c>\n"
                         + $"<good>Target accuracy:</c> {PracticeAcc * 100}";
                 }
                 catch (Exception e)
@@ -230,7 +259,8 @@ public class AccuracyOverTime : CompositeDrawable
     {
         bool tryEnter(BeatmapPlayer player)
         {
-            if (player?.Display is MusicNotationBeatmapDisplay display && display.Beatmap == Beatmap)
+            var display = player?.Display;
+            if (display != null && display.Beatmap == Beatmap)
             {
                 display.Player.EnterPracticeMode(startBeat, endBeat);
                 return true;

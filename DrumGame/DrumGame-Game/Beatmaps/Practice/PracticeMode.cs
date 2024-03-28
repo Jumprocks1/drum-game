@@ -88,27 +88,28 @@ public partial class PracticeMode : IDisposable
     #endregion
 
     public PracticeConfig Config = Util.ConfigManager.PracticeConfig.Value;
-    public MusicNotationBeatmapDisplay Display;
+    public BeatmapDisplay Display;
     public Beatmap Beatmap => Display.Beatmap;
     public BeatClock Track => Player.Track;
     public BeatmapPlayer Player => Display.Player;
     public BeatmapScorer Scorer => Player.BeatmapPlayerInputHandler?.Scorer;
-    float Spacing => Display.Font.Spacing;
-    public PracticeMode(MusicNotationBeatmapDisplay display, double start, double end)
+    public PracticeMode(BeatmapDisplay display, double start, double end)
     {
         Init(display, start, end);
     }
-    void Init(MusicNotationBeatmapDisplay display, double start, double end)
+    void Init(BeatmapDisplay display, double start, double end)
     {
         Display = display;
         StartBeat = start;
         EndBeat = end;
-        Display.ClearSelection();
+        if (display is MusicNotationBeatmapDisplay notation)
+            notation.ClearSelection();
     }
-    public PracticeMode(MusicNotationBeatmapDisplay display)
+    public PracticeMode(BeatmapDisplay display)
     {
-        if (display.Selection != null && display.Selection.IsComplete)
-            Init(display, display.Selection.Start, display.Selection.End.Value);
+        if (display is MusicNotationBeatmapDisplay notation &&
+            notation.Selection != null && notation.Selection.IsComplete)
+            Init(display, notation.Selection.Start, notation.Selection.End.Value);
         else
         {
             var currentMeasure = display.Track.CurrentMeasure;
@@ -166,7 +167,7 @@ public partial class PracticeMode : IDisposable
             Player.Mode = BeatmapPlayerMode.Playing;
             Scorer.SeekPracticeMode = true;
         }
-        else PracticeInfoPanel.UpdateText();
+        else Display.PracticeInfoPanel.UpdateText();
     }
     PracticeMetronome Metronome;
     void RefreshMetronome()
@@ -174,6 +175,7 @@ public partial class PracticeMode : IDisposable
         Track.UnregisterEvents(Metronome);
         Track.RegisterEvents(Metronome ??= new(this, Player.Dependencies.Get<Lazy<DrumsetAudioPlayer>>().Value));
     }
+    public event Action<PracticeMode> PracticeChanged;
     public void Begin()
     {
         Logger.Log($"Starting practice for beats {StartBeat}-{EndBeat}");
@@ -182,7 +184,7 @@ public partial class PracticeMode : IDisposable
         Util.CommandController.RegisterHandlers(this);
         Track.Stop();
         Track.SeekToBeat(StartBeat - Config.LeadInBeats);
-        AddOverlay();
+        Display.StartPractice(this);
         Track.Rate = Config.StartRate;
 
         var scorer = Scorer;
@@ -193,58 +195,16 @@ public partial class PracticeMode : IDisposable
             scorer.PracticeMode = this;
         }
     }
-    Box LeftOverlay;
-    Box RightOverlay;
-    public void AddOverlay()
-    {
-        var noteContainer = Display.NoteContainer;
-        // very similar to hidden overlay
-        noteContainer.Add(LeftOverlay = new Box
-        {
-            Colour = Util.Skin.Notation.PlayfieldBackground,
-            Depth = -2,
-            Y = -6,
-            Height = 16,
-        });
-        noteContainer.Add(RightOverlay = new Box
-        {
-            Colour = Util.Skin.Notation.PlayfieldBackground,
-            Depth = -2,
-            Y = -6,
-            Height = 16,
-        });
-        UpdateOverlay();
-        Display.Add(PracticeInfoPanel = new PracticeInfoPanel(this));
-    }
-    public void UpdateOverlay()
-    {
-        LeftOverlay.X = HiddenModifier.StartPosition;
-        LeftOverlay.Width = (float)(StartBeat * Spacing - HiddenModifier.StartPosition);
-        LeftOverlay.Alpha = Config.OverlayStrength;
-
-        RightOverlay.X = (float)(EndBeat * Spacing);
-        RightOverlay.Width = (float)((Beatmap.QuarterNotes - EndBeat) * Spacing);
-        RightOverlay.Alpha = Config.OverlayStrength;
-    }
-    PracticeInfoPanel PracticeInfoPanel;
-    public void RemoveOverlay()
-    {
-        Display.NoteContainer.Remove(LeftOverlay, true);
-        LeftOverlay = null;
-        Display.NoteContainer.Remove(RightOverlay, true);
-        RightOverlay = null;
-        Display.Remove(PracticeInfoPanel, true);
-        PracticeInfoPanel = null;
-    }
+    PracticeInfoPanel PracticeInfoPanel => Display.PracticeInfoPanel;
     public static void AddHook(BeatmapPlayer player)
     {
         player.ModeChanged += e =>
         {
-            if (e.HasFlag(BeatmapPlayerMode.Practice) && player.Display is MusicNotationBeatmapDisplay d)
+            if (e.HasFlag(BeatmapPlayerMode.Practice))
             {
                 if (player.PracticeMode == null)
                 {
-                    player.PracticeMode = new(d);
+                    player.PracticeMode = new(player.Display);
                     player.PracticeMode.Begin();
                 }
             }
@@ -272,7 +232,7 @@ public partial class PracticeMode : IDisposable
                 scorer.SeekPracticeMode = true; // prevent immediate misses
             }
         }
-        RemoveOverlay();
+        Display.EndPractice(this);
     }
 
     public void Dispose() => Exit();

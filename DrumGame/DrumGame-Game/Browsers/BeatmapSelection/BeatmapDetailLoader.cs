@@ -31,6 +31,26 @@ public class BeatmapDetailLoader : CompositeDrawable
 
     CommandButton SortButton;
     DrumScrollContainer Scroll;
+    GridContainer Grid;
+
+    public void RefreshReplays()
+    {
+        var replaySort = Util.ConfigManager.ReplaySort;
+        var replayY = 0f;
+        using var context = Util.GetDbContext();
+        // Will need to virtualize these eventually
+        // It's fine to pull all the replays from the DB, but we shouldn't render them all
+        var replays = context.Replays.Where(e => e.MapId == Beatmap.Id);
+
+        Scroll.Clear();
+        foreach (var replay in replays.Sort(replaySort.Value))
+        {
+            Scroll.Add(new ReplayDisplay(replay) { Y = replayY });
+            replayY += ReplayDisplay.Height + Spacing;
+        }
+        var maxSize = replayY == 0f ? float.MaxValue : replayY - Spacing;
+        Grid.RowDimensions = [new(GridSizeMode.AutoSize), new(GridSizeMode.Distributed, maxSize: maxSize)];
+    }
 
     public void LoadFromBeatmap(Beatmap beatmap)
     {
@@ -101,29 +121,17 @@ public class BeatmapDetailLoader : CompositeDrawable
             RelativeSizeAxes = Axes.Y
         };
 
-        var replayY = 0f;
-        using (var context = Util.GetDbContext())
+        Grid = new GridContainer
         {
-            // Will need to virtualize these eventually
-            // It's fine to pull all the replays from the DB, but we shouldn't render them all
-            var replays = context.Replays.Where(e => e.MapId == Beatmap.Id);
-
-            foreach (var replay in replays.Sort(replaySort.Value))
-            {
-                Scroll.Add(new ReplayDisplay(replay) { Y = replayY });
-                replayY += ReplayDisplay.Height + Spacing;
+            RelativeSizeAxes = Axes.Both,
+            Content = new Drawable[][] {
+                [ flow ],
+                [ Scroll ],
             }
-        }
-
-        var grid = new GridContainer { RelativeSizeAxes = Axes.Both };
-        var maxSize = replayY == 0f ? float.MaxValue : replayY - Spacing;
-        grid.RowDimensions = new[] { new Dimension(GridSizeMode.AutoSize), new Dimension(GridSizeMode.Distributed, maxSize: maxSize) };
-        grid.Content = new Drawable[][] {
-            new Drawable[] { flow },
-            new Drawable[] { Scroll },
         };
+        RefreshReplays();
 
-        AddInternal(grid);
+        AddInternal(Grid);
         Scroll.ScrollbarOverlapsContent = false; // have to set this after adding to the draw tree not, sure why
     }
 

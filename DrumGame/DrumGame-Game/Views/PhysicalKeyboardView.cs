@@ -13,6 +13,7 @@ using System.Linq;
 using osu.Framework.Graphics.UserInterface;
 using DrumGame.Game.Containers;
 using System.Collections.Generic;
+using DrumGame.Game.Interfaces;
 
 namespace DrumGame.Game.Views;
 
@@ -105,7 +106,7 @@ public class PhysicalKeyboardView : Container<PhysicalKeyboardView.KeyboardKey>
         return null;
     }
 
-    public class KeyboardKey : CompositeDrawable, IHasTooltip, IHasContextMenu
+    public class KeyboardKey : CompositeDrawable, IHasMarkupTooltip, IHasContextMenu
     {
         PhysicalKeyboardView Keyboard;
         CommandController Command => Util.CommandController;
@@ -120,15 +121,14 @@ public class PhysicalKeyboardView : Container<PhysicalKeyboardView.KeyboardKey>
                 Colour4.White;
         }
 
-        public LocalisableString TooltipText
+        public string MarkupTooltip
         {
             get
             {
                 var bindings = Keyboard.Bindings(Key);
                 if (bindings != null)
-                    return string.Join(", ", bindings.Select(e => e.Name));
-                else
-                    return "";
+                    return $"{string.Join('\n', bindings.Select(e => $"<command>{e.Name}</c>"))}\n\nRight click to configure";
+                else return null;
             }
         }
 
@@ -141,9 +141,18 @@ public class PhysicalKeyboardView : Container<PhysicalKeyboardView.KeyboardKey>
                 {
                     var builder = ContextMenuBuilder.New(this);
                     foreach (var e in bindings)
-                        builder.Add($"Edit Keybind - {e.Name}", _ => Util.Palette.EditKeybind(e)).Color(DrumColors.BrightYellow);
+                        // TODO retry using AddMarkup here eventually
+                        // our issue was that MarkupText doesn't update it's width until after the menu is generated
+                        // we should ditch TextFlowContainer to fix this
+                        builder.Add($"Edit Keybind - {e.Name}", _ => Util.Palette.EditKeybind(e))
+                            .Color(DrumColors.BrightYellow);
                     foreach (var e in bindings)
-                        builder.Add(e).Disabled(!Util.CommandController[e.Command].HasHandlers);
+                    {
+                        builder.Add(e);
+                        if (Util.CommandController[e.Command].HasHandlers)
+                            builder.Color(DrumColors.Command);
+                        else builder.Disable();
+                    }
                     return builder.Build();
                 }
                 return null;

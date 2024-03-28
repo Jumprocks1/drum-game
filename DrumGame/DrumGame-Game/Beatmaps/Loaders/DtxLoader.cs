@@ -195,7 +195,7 @@ public partial class DtxLoader
                     }
                 }
             }
-            else if (code == "PREVIEW") o.PreviewAudio = value;
+            else if (code == "PREVIEW") { if (Config.MountOnly) o.PreviewAudio = value; }
             else if (code == "GENRE" && !string.IsNullOrWhiteSpace(value)) o.AddTags($"genre-{value}");
             else if (code == "ARTIST") o.Artist = value;
             else if (code == "DLEVEL")

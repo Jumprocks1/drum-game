@@ -47,6 +47,8 @@ public class SearchTextBox : NonPositionalTextBox
             paragraph.AddParagraph("");
             paragraph.AddParagraph("To search using multiple fields, add a space between filters (AND operation). To perform an OR operation, use | between filters.");
             paragraph.AddParagraph("");
+            paragraph.AddParagraph("All fields can be used for filtering or sorting, the operator symbols are: =, !=, >, >=, <, <=, ^, ^^");
+            paragraph.AddParagraph("");
             paragraph.AddParagraph("The following fields are available in this search bar (hover for more info + examples):");
             paragraph.RelativeSizeAxes = Axes.X;
             paragraph.AutoSizeAxes = Axes.Y;

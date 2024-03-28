@@ -2,6 +2,7 @@ using DrumGame.Game.Beatmaps.Display;
 using DrumGame.Game.Beatmaps.Editor;
 using DrumGame.Game.Commands;
 using DrumGame.Game.Interfaces;
+using DrumGame.Game.Skinning;
 using DrumGame.Game.Utils;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;

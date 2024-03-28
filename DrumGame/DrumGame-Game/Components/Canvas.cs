@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using DrumGame.Game.Utils;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -78,19 +79,18 @@ public abstract class Canvas : Drawable, ITexturedShaderDrawable
 }
 
 // This is nice since we can pass this reference around with the generic
-public abstract class CanvasNode : TexturedShaderDrawNode
+public abstract class CanvasNode : TexturedShaderDrawNode // ~3 of these are instanced per Canvas component
 {
     public ColourInfo Color;
+    public float Alpha = 1; // applied to color if != 1
     public double Time; // need so that the clock time is identical for the entire frame
     public bool Relative;
     public float Width;
     public float Height;
     protected Quad ScreenSpaceDrawQuad { get; private set; }
-    public CanvasNode(ITexturedShaderDrawable source) : base(source) { }
     public DrawInfo pDrawInfo => DrawInfo;
     public float RelativeAspectRatio;
     public Matrix3 Matrix;
-
     public CanvasNode(Canvas source) : base(source) { Source = source; }
     readonly new Canvas Source;
     public override void ApplyState()
@@ -109,9 +109,11 @@ public abstract class CanvasNode : TexturedShaderDrawNode
             Matrix.Row1.Y *= Height;
         }
     }
+    // public Stack<Matrix3> Stack = new();
+    // public void Push() => Stack.Push(Matrix);
+    // public Matrix3 Pop() => Matrix = Stack.Pop();
 
     // should probably override ApplyState here, but we can't since we don't have access to canvas source
-
     public IRenderer Renderer; // only set while in DrawAction()
     public IShader Shader;
     // would be dope if we could do a circle here
@@ -134,7 +136,6 @@ public abstract class CanvasNode : TexturedShaderDrawNode
             return;
         if (w == 0 || h == 0)
             return;
-
-        Renderer.DrawQuad(texture, new Quad(x, y, w, h) * Matrix, Color);
+        Renderer.DrawQuad(texture, new Quad(x, y, w, h) * Matrix, Alpha == 1 ? Color : Color.MultiplyAlpha(Alpha));
     }
 }

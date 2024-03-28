@@ -22,7 +22,7 @@ public class JsonRepoRefresher : RepoRefresherBase
             Comments = $"Difficulty: {diff}\nTags: {tags}",
             Mapper = GetString(e, "mapper"),
             PublishedOn = GetDateTime(e, "creationTimeUtc"),
-            DownloadUrl = Repo.DownloadUrlPrefix ?? "" + downloadUrl,
+            DownloadUrl = (Repo.DownloadUrlPrefix ?? "") + downloadUrl,
             Url = Repo.UrlPrefix + downloadUrl
         };
     }
@@ -56,8 +56,14 @@ public class JsonRepoRefresher : RepoRefresherBase
             }
             else throw new Exception($"Unexpected token: {mapsToken}");
 
+            if (!string.IsNullOrWhiteSpace(Repo.SortPath))
+                maps = maps.OrderBy(e => e.SelectToken(Repo.SortPath)?.ToString());
+
             foreach (var e in maps) refreshedMaps.Add(ParseMap(e));
-            Cache.Maps = refreshedMaps.OrderByDescending(e => e.PublishedOn).ToList();
+            Cache.Maps = refreshedMaps
+                .OrderByDescending(e => e.Index)
+                .ThenByDescending(e => e.PublishedOn)
+                .ThenByDescending(e => e.Comments).ToList();
             Cache.Refreshed = DateTimeOffset.UtcNow;
             Cache.Save();
             Dispose();

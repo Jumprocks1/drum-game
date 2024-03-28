@@ -175,7 +175,7 @@ public class BeatmapTimeline : CompositeDrawable
         Thumb.X = x;
         Track.Seek(x * (Track.EndTime + Track.LeadIn) - Track.LeadIn, true);
     }
-    // not sure why I have these mouse handlers. I think we only need the drag handlers
+    // drag doesn't trigger on 0 pixel mouse press, so we need this
     protected override bool OnMouseDown(MouseDownEvent e)
     {
         SetScrubPosition((this.Parent.ToSpaceOfOtherDrawable(e.MousePosition, timelineBarContainer).X - timelineBarContainer.Padding.Left) /

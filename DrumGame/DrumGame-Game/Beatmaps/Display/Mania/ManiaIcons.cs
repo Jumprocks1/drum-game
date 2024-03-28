@@ -2,7 +2,7 @@ using DrumGame.Game.Channels;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
-using DrumGame.Game.Stores.Skins;
+using DrumGame.Game.Skinning;
 
 namespace DrumGame.Game.Beatmaps.Display.Mania;
 

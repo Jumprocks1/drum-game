@@ -9,7 +9,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
-using DrumGame.Game.Stores.Skins;
+using DrumGame.Game.Skinning;
 using DrumGame.Game.Modals;
 
 namespace DrumGame.Game.Notation;

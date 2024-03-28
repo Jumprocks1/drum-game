@@ -10,18 +10,31 @@ using osuTK.Graphics;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Bindables;
+using DrumGame.Game.Skinning;
+using DrumGame.Game.Beatmaps.Display.Mania;
 
 namespace DrumGame.Game.Beatmaps.Practice;
 
 public class PracticeInfoPanel : AdjustableSkinElement, IHasCommand
 {
-    public override ref AdjustableSkinData SkinPath => ref Util.Skin.Notation.PracticeInfoPanel;
-
+    public override ref AdjustableSkinData SkinPath
+    {
+        get
+        {
+            if (Mania) return ref Util.Skin.Mania.PracticeInfoPanel;
+            return ref Util.Skin.Notation.PracticeInfoPanel;
+        }
+    }
     public Command Command => Command.PracticeMode;
 
     public PracticeMode.PracticeConfig Config => PracticeMode.Config;
 
-    public override AdjustableSkinData DefaultData() => new()
+    public override AdjustableSkinData DefaultData() => Mania ? new()
+    {
+        Origin = Anchor.BottomRight,
+        Anchor = Anchor.BottomLeft,
+        AnchorTarget = SkinAnchorTarget.LaneContainer
+    } : new()
     {
         Anchor = Anchor.BottomLeft,
         Y = -BeatmapTimeline.Height - MusicNotationBeatmapDisplay.ModeTextHeight - SongInfoPanel.DefaultHeight
@@ -34,18 +47,23 @@ public class PracticeInfoPanel : AdjustableSkinElement, IHasCommand
     Box StreakIndicator;
     const float Column = 50;
 
-    readonly PracticeMode PracticeMode;
+    public readonly PracticeMode PracticeMode;
+    bool Mania => PracticeMode.Display is ManiaBeatmapDisplay;
 
-    public PracticeInfoPanel(PracticeMode practiceMode)
+    Colour4 FontColor = Util.Skin.Notation.NotationColor;
+
+    public PracticeInfoPanel(PracticeMode practiceMode) : base(true)
     {
         PracticeMode = practiceMode;
+        InitializeSkinData();
         Height = 80;
         Width = 200;
         var y = 0;
         AddInternal(new SpriteText
         {
             Text = "Practice Mode (click to configure)",
-            Font = FrameworkFont.Regular.With(size: 16)
+            Font = FrameworkFont.Regular.With(size: 16),
+            Colour = FontColor
         });
         y += 16;
         var rowHeight = 14;
@@ -55,13 +73,15 @@ public class PracticeInfoPanel : AdjustableSkinElement, IHasCommand
             {
                 Text = name + ':',
                 Font = FrameworkFont.Regular.With(size: rowHeight),
-                Y = y
+                Y = y,
+                Colour = FontColor
             });
             var res = new SpriteText
             {
                 Font = FrameworkFont.Regular.With(size: rowHeight),
                 X = Column,
-                Y = y
+                Y = y,
+                Colour = FontColor
             };
             AddInternal(res);
             y += rowHeight;
@@ -70,12 +90,14 @@ public class PracticeInfoPanel : AdjustableSkinElement, IHasCommand
         AddInternal(new CommandIconButton(Command.DecreasePlaybackSpeed, FontAwesome.Solid.Minus, 14)
         {
             Y = y,
-            X = Column + 30
+            X = Column + 30,
+            Colour = Colour4.Black
         });
         AddInternal(new CommandIconButton(Command.IncreasePlaybackSpeed, FontAwesome.Solid.Plus, 14)
         {
             Y = y,
-            X = Column + 30 + 18
+            X = Column + 30 + 18,
+            Colour = Colour4.Black
         });
         Rate = AddProperty("Speed");
         Range = AddProperty("Range");

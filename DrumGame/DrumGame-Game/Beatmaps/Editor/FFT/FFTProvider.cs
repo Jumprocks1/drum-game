@@ -7,6 +7,7 @@ using ManagedBass;
 using osu.Framework.Audio.Callbacks;
 using osu.Framework.Caching;
 using osu.Framework.Extensions;
+using osu.Framework.Logging;
 
 namespace DrumGame.Game.Beatmaps.Editor.Timing;
 
@@ -158,10 +159,17 @@ public class FFTProvider : IDisposable
             {
                 using var _ = Util.WriteTime();
                 var bytes = File.ReadAllBytes(cachePath);
-                // using var gz = new GZipStream(fileS, CompressionMode.Decompress);
-                // var bytes = gz.ReadAllRemainingBytesToArray();
-                System.Buffer.BlockCopy(bytes, 0, CachedData, 0, bytes.Length);
-                allLoaded = true;
+                if (bytes.Length != CachedData.Length * 4)
+                {
+                    Logger.Log("Length mismatch, ignoring cache", level: LogLevel.Important);
+                }
+                else
+                {
+                    // using var gz = new GZipStream(fileS, CompressionMode.Decompress);
+                    // var bytes = gz.ReadAllRemainingBytesToArray();
+                    System.Buffer.BlockCopy(bytes, 0, CachedData, 0, bytes.Length);
+                    allLoaded = true;
+                }
             }
         }
     }

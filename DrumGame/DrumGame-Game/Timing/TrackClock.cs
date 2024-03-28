@@ -29,11 +29,14 @@ public class TrackClock : IClock, IDisposable
     // TODO we could even pull this directly with a Bass call so it's not limited by the AudioThread
     // Should be a more precise version of CurrentTime - used for scoring
     public double AbsoluteTime => IsRunning && Track.IsRunning && !IsAsyncSeeking ? Track.CurrentTime + LatencyFactor : CurrentTime;
-    static double LatencyCorrection = 60;
+    public AdjustableProperty PreferredTempoAdjustment;
+    // frequency adjustment doesn't seem to need this
+    double LatencyCorrection => PreferredTempoAdjustment == AdjustableProperty.Tempo ? 60 : 0;
     // incremented on update thread when seeking. Use to handle events that originate from different threads
     public int TimeVersion = 1;
     double LatencyFactor => IsRunning ? -LatencyCorrection * (Rate - 1) : 0;
     public Track Track { get; private set; }
+    public Track PrimaryTrack { get; private set; } // only non-null when Track is holding drum only audio
     public bool Virtual => Track is TrackVirtual;
     public bool Manual => Track is TrackManual;
     double _leadIn;
@@ -45,8 +48,17 @@ public class TrackClock : IClock, IDisposable
             if (CurrentTime < -LeadIn) Seek(-LeadIn);
         }
     }
+    void PitchPreferenceChanged(ValueChangedEvent<bool> e)
+    {
+        Track?.RemoveAdjustment(PreferredTempoAdjustment, PlaybackSpeed);
+        PrimaryTrack?.RemoveAdjustment(PreferredTempoAdjustment, PlaybackSpeed);
+        PreferredTempoAdjustment = e.NewValue ? AdjustableProperty.Tempo : AdjustableProperty.Frequency;
+        Track?.AddAdjustment(PreferredTempoAdjustment, PlaybackSpeed);
+        PrimaryTrack?.AddAdjustment(PreferredTempoAdjustment, PlaybackSpeed);
+    }
     public TrackClock(Track track, double leadIn = 0)
     {
+        Util.ConfigManager.PreservePitch.BindValueChanged(PitchPreferenceChanged, true);
         _leadIn = leadIn;
         CurrentTime = -leadIn;
         SetupTrack(track);
@@ -56,43 +68,55 @@ public class TrackClock : IClock, IDisposable
     }
     public Track AcquireTrack()
     {
-        var track = Track;
-        Track = null;
-        UnbindEvents(track);
+        Track res;
+        if (PrimaryTrack == null)
+        {
+            res = Track;
+            Track = null;
+        }
+        else
+        {
+            res = PrimaryTrack;
+            PrimaryTrack = null;
+            Track = null;
+        }
+        DisownTrack(res);
         Dispose();
-        return track;
+        return res;
     }
     void InnerRunningChanged()
     {
         if (Track.IsRunning) Start();
         else Stop();
     }
-    void UnbindEvents(Track track)
+    void DisownTrack(Track track)
     {
+        track.RemoveAdjustment(PreferredTempoAdjustment, PlaybackSpeed);
         track.Completed -= OnComplete;
         if (track is YouTubeTrack yt) yt.RunningChanged -= InnerRunningChanged;
     }
     void SetupTrack(Track track)
     {
-        track.AddAdjustment(AdjustableProperty.Tempo, PlaybackSpeed);
+        track.AddAdjustment(PreferredTempoAdjustment, PlaybackSpeed);
         // track.Balance.Value = -1;
         track.Completed += OnComplete;
         if (track is YouTubeTrack yt) yt.RunningChanged += InnerRunningChanged;
     }
-    public void SwapTrack(Track track)
+    public void ResumePrimary() // don't return old track here, since the caller should already have a reference
     {
-        if (track == null) return;
-        if (track.IsRunning) track.Stop();
-
-        Track.RemoveAdjustment(AdjustableProperty.Tempo, PlaybackSpeed);
-        UnbindEvents(Track);
-        Track.Dispose();
-        SetupTrack(track);
+        if (PrimaryTrack == null) return;
+        Track.Stop();
+        DisownTrack(Track);
+        SwapBase(PrimaryTrack);
+        PrimaryTrack = null;
+    }
+    void SwapBase(Track track)
+    {
         IsLoaded = track.IsLoaded;
         PendingSeek = null;
         AsyncSeeking = 0;
         Track = track;
-        var targetTime = CurrentTime; // track.Length won't be loaded at this point unfortunately
+        var targetTime = CurrentTime; // track.Length may not be loaded at this point unfortunately
         AtEnd = targetTime == EndTime;
         if (IsRunning && targetTime >= 0)
         {
@@ -104,6 +128,36 @@ public class TrackClock : IClock, IDisposable
             track.Stop();
             if (targetTime >= 0) PendingSeek = targetTime;
         }
+    }
+    // since this is a temporary swap, we DO NOT own the track here
+    // we will try to dispose it anyways, but do not rely on TrackClock disposing
+    public void TemporarySwap(Track track)
+    {
+        if (track == null) return;
+        PrimaryTrack = Track;
+        PrimaryTrack.Stop();
+        Track = track;
+        SetupTrack(track);
+        SwapBase(track);
+    }
+    public void SwapTrack(Track track) // this murders the primary and discards the current track
+    {
+        if (track == null) return;
+        if (PrimaryTrack != null)
+        {
+            DisownTrack(Track);
+            Track.Stop();
+            DisownTrack(PrimaryTrack);
+            PrimaryTrack.Dispose();
+            PrimaryTrack = null;
+        }
+        else
+        {
+            DisownTrack(Track);
+            Track.Dispose();
+        }
+        SetupTrack(track);
+        SwapBase(track);
     }
     private void OnComplete()
     {
@@ -152,7 +206,6 @@ public class TrackClock : IClock, IDisposable
     bool saveState = true;
     public void Seek(double time, bool async = false, bool fromHistory = false)
     {
-        TimeVersion += 1; // don't need Interlocked since this is always on the update thread
         BeforeSeek?.Invoke(time);
         if (saveState && !fromHistory) PushState();
         if (IsRunning && LoopEnd.HasValue && time > LoopEnd.Value) time = LoopStart.Value;
@@ -205,6 +258,13 @@ public class TrackClock : IClock, IDisposable
             PendingSeek = time;
             CurrentTime = time;
         }
+        // this has to increment AFTER updating current tiem
+        // otherwise a different thread could read the version while we are at 1000
+        // then seek finishes and the new time say 0, but the version is still correct from when we pulled 1000
+
+        // by setting it after, we could accidentally pull the time at 0 with the old version.
+        // This will just cause the event to be dropped later
+        TimeVersion += 1; // don't need Interlocked since this is always on the update thread
         if (IsRunning && !async && !fromHistory) PushState();
         saveState = !async && !IsRunning;
         AfterSeek?.Invoke(CurrentTime);
@@ -262,9 +322,15 @@ public class TrackClock : IClock, IDisposable
     public virtual void Dispose()
     {
         Util.CommandController.RemoveHandlers(this);
+        Util.ConfigManager.PreservePitch.ValueChanged -= PitchPreferenceChanged;
         OnLoad = null;
         OnSeekCommit = null;
         BeforeSeek = null;
+        if (PrimaryTrack != null)
+        {
+            PrimaryTrack.Completed -= OnComplete;
+            PrimaryTrack.Dispose();
+        }
         if (Track != null)
         {
             Track.Completed -= OnComplete; // probably don't need this?
@@ -346,7 +412,7 @@ public class TrackClock : IClock, IDisposable
     [CommandHandler] public void TogglePlayback() { if (IsRunning) Stop(); else Start(); }
     [CommandHandler] public void Pause() => Stop();
     [CommandHandler] public void Play() => Start();
-    public Bindable<double> PlaybackSpeed = new Bindable<double>(1);
+    public Bindable<double> PlaybackSpeed = new(1);
     [CommandHandler] public bool SetPlaybackSpeed(CommandContext context) => context.GetNumber(PlaybackSpeed, "Set Playback Speed", "Speed");
     [CommandHandler] public void IncreasePlaybackSpeed() => PlaybackSpeed.Value *= 1.10f;
     [CommandHandler] public void DecreasePlaybackSpeed() => PlaybackSpeed.Value = Math.Max(0.05f, PlaybackSpeed.Value / 1.10f);

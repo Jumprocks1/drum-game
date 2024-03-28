@@ -35,14 +35,14 @@ public class AlsaAudioRecorder : IAudioRecorder
 
     public AlsaAudioRecorder() { }
 
-    public void StartRecording(string outputDirectory = null)
+    public void StartRecording()
     {
         Utils.Util.Host.AudioThread.Scheduler.Add(() =>
         {
             var count = Bass.RecordingDeviceCount;
             Logger.Log($"Found {count} recording devices");
 
-            int targetI = -1;
+            var targetI = -1;
 
             for (var i = 0; i < count; i++)
             {
@@ -120,6 +120,4 @@ public class AlsaAudioRecorder : IAudioRecorder
         AudioAvailable = null;
         Stop();
     }
-
-    public void StartRecording() => StartRecording(null);
 }

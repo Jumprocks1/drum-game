@@ -30,7 +30,11 @@ public class FileRequest : RequestModal
     {
         if (context.TryGetParameter(out string path))
         {
-            ScheduleAfterChildren(() => Callback(path));
+            ScheduleAfterChildren(() =>
+            {
+                Callback(path);
+                Close();
+            });
             return true;
         }
         return false;

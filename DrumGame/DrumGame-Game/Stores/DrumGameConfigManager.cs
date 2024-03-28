@@ -39,8 +39,10 @@ public class DrumGameConfigManager : IniConfigManager<DrumGameSetting>
     public BindableJson<Beatmaps.Practice.PracticeMode.PracticeConfig> PracticeConfig;
     public Bindable<string> FFmpegLocation;
     public Bindable<double> CursorInset;
+    public Bindable<double> MinimumLeadIn; // in seconds
     public Bindable<bool> PlaySamplesFromMidi;
     public Bindable<bool> DiscordRichPresence;
+    public Bindable<bool> PreservePitch;
     public Bindable<(byte, byte)> HiHatRange;
     public ParsableBindable<KeyboardMapping> KeyboardMapping;
     public Bindable<DisplayPreference> DisplayMode;
@@ -75,12 +77,13 @@ public class DrumGameConfigManager : IniConfigManager<DrumGameSetting>
         FileSystemResources = SetDefault<string>(DrumGameSetting.FileSystemResources, null);
         FFmpegLocation = SetDefault<string>(DrumGameSetting.FFmpegLocation, null);
         CursorInset = SetDefault<double>(DrumGameSetting.CursorInset, 4);
+        SetDefault(DrumGameSetting.MinimumLeadIn, 1d, 0d);
         AddBindable(DrumGameSetting.HiHatRange, HiHatRange = new BindableRange((255, 255)));
         AddBindable(DrumGameSetting.KeyboardMapping, KeyboardMapping = new ParsableBindable<KeyboardMapping>());
         KeyboardMapping.Value ??= new(); // doesn't get parsed on a fresh config load
         SetDefault(DrumGameSetting.NoteSpacingMultiplier, 1.0);
         SetDefault(DrumGameSetting.ZoomMultiplier, 1.0);
-        SetDefault(DrumGameSetting.ManiaScrollMultiplier, 1.0);
+        SetDefault(DrumGameSetting.ManiaScrollMultiplier, 2.0);
         SetDefault(DrumGameSetting.WatchImportFolder, false);
         SetDefault(DrumGameSetting.PreferVorbisAudio, false);
         SetDefault<string>(DrumGameSetting.Skin, null);
@@ -90,6 +93,7 @@ public class DrumGameConfigManager : IniConfigManager<DrumGameSetting>
         AddBindable(DrumGameSetting.PracticeConfig, PracticeConfig = new BindableJson<Beatmaps.Practice.PracticeMode.PracticeConfig>());
         DiscordRichPresence = SetDefault<bool>(DrumGameSetting.DiscordRichPresence, false);
         MidiThreshold = SetDefault(DrumGameSetting.MidiThreshold, 0, -1, 127);
+        PreservePitch = SetDefault(DrumGameSetting.PreservePitch, true);
     }
 
     protected override void PerformLoad()
@@ -173,6 +177,8 @@ public enum DrumGameSetting
     MapLibraries,
     PracticeConfig,
     DiscordRichPresence,
-    MidiThreshold
+    MidiThreshold,
+    MinimumLeadIn,
+    PreservePitch
 }
 

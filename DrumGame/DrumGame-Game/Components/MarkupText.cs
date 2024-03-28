@@ -4,12 +4,16 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using DrumGame.Game.Utils;
+using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Localisation;
 
 namespace DrumGame.Game.Components;
-public class MarkupText : TextFlowContainer
+
+// TODO TextFlowContainer is bad. We should just use FillFlowContainer
+public class MarkupText : TextFlowContainer, IHasText
 {
     public static string Color(string inner, Colour4 color)
     {
@@ -44,6 +48,8 @@ public class MarkupText : TextFlowContainer
             invalid = true;
         }
     }
+
+    LocalisableString IHasText.Text { get => Data; set { Data = value.ToString(); Validate(); } }
 
     bool invalid;
 

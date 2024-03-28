@@ -1,5 +1,6 @@
 using DrumGame.Game.Commands;
 using DrumGame.Game.Components.Abstract;
+using DrumGame.Game.Skinning;
 using DrumGame.Game.Utils;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Sprites;

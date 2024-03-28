@@ -158,24 +158,32 @@ public static class FileImporters
                 {
                     var map = MapStorage.DeserializeBjson(provider.Open(fullName), skipNotes: false);
                     map.Source = new BJsonSource(outputTarget);
-                    if (map.Audio != null)
+                    void TryCopy(string zipPath, string localFolder, Action<string> set)
                     {
-                        var zipAudio = Path.GetDirectoryName(fullName) + "/" + map.Audio;
-                        map.Audio = "audio/" + Path.GetFileName(map.Audio);
-                        if (provider.Exists(zipAudio))
+                        if (zipPath != null)
                         {
-                            if (!File.Exists(map.FullAudioPath()))
+                            zipPath = Path.Join(Path.GetDirectoryName(fullName), zipPath);
+                            zipPath = zipPath.Replace('\\', '/');
+                            var newValue = localFolder + "/" + Path.GetFileName(zipPath);
+                            set(newValue);
+                            if (provider.Exists(zipPath))
                             {
-                                try
+                                var assetPath = map.FullAssetPath(newValue);
+                                if (!File.Exists(assetPath))
                                 {
-                                    provider.Copy(zipAudio, map.FullAudioPath());
-                                    Logger.Log($"copied audio to {map.FullAudioPath()}");
+                                    try
+                                    {
+                                        provider.Copy(zipPath, assetPath);
+                                        Logger.Log($"copied to {assetPath}");
+                                    }
+                                    catch (Exception e) { Logger.Error(e, $"failed to copy {localFolder} {zipPath}"); }
                                 }
-                                catch (Exception e) { Logger.Error(e, $"failed to copy audio {zipAudio}"); }
                             }
+                            else Logger.Log($"{zipPath} not found");
                         }
-                        else Logger.Log($"{zipAudio} not found");
                     }
+                    TryCopy(map.Audio, "audio", e => map.Audio = e);
+                    TryCopy(map.Image, "images", e => map.Image = e);
                     map.SaveToDisk(MapStorage);
                     Logger.Log($"imported {fullName} to {outputTarget}");
                 }

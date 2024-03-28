@@ -40,6 +40,7 @@ public class ZipFileProvider : IFileProvider, IDisposable
         if (entry == null) return false;
         try
         {
+            Directory.CreateDirectory(Path.GetDirectoryName(absolutePath));
             entry.ExtractToFile(absolutePath, false);
             return true;
         }

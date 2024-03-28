@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using DrumGame.Game.Interfaces;
-using DrumGame.Game.Stores.Skins;
+using DrumGame.Game.Skinning;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Input;

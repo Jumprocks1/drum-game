@@ -411,6 +411,14 @@ public partial class Beatmap
         return it();
     }
 
+    public bool IsEmptyMeasure(int measure)
+    {
+        var startTick = TickFromMeasure(measure);
+        var endTick = TickFromMeasure(measure + 1);
+        var startIndex = HitObjects.BinarySearchFirst(startTick);
+        return startIndex >= HitObjects.Count || HitObjects[startIndex].Time >= endTick;
+    }
+
     public AffectedRange RemoveHits(BeatSelection selection)
     {
         var t0 = TickFromBeat(selection.Left);

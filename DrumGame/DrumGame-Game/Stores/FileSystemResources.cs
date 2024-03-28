@@ -66,7 +66,7 @@ public class FileSystemResources : StorageBackedResourceStore
             new StorageBackedResourceStore(new AbsoluteStorage(AbsolutePath)));
     public DirectoryInfo GetDirectory(string path) => Directory.CreateDirectory(GetAbsolutePath(path));
     public DirectoryInfo GetDirectory(params string[] path) => Directory.CreateDirectory(GetAbsolutePath(Path.Join(path)));
-    public DirectoryInfo Temp => GetDirectory("temp");
+    public DirectoryInfo Temp => Directory.CreateDirectory(GetAbsolutePath("temp"));
     public string TryFind(string path)
     {
         if (path == null) return null;
@@ -77,6 +77,8 @@ public class FileSystemResources : StorageBackedResourceStore
     public string GetTemp(string filename = null) => Path.Join(Temp.FullName, filename ?? Guid.NewGuid().ToString());
     // Could add security check here
     public string GetAbsolutePath(string path) => Path.GetFullPath(path, AbsolutePath);
+    public string GetRelativePath(string path) => Path.GetRelativePath(AbsolutePath, path);
+    public bool Contains(string path) => Path.GetFullPath(path).StartsWith(AbsolutePath);
     public bool Exists(string path) => Storage.Exists(path);
 
     public string YouTubeAudioPath(string id) => id == null ? null : Path.Join(GetAbsolutePath("temp/youtube"), id + ".ogg");

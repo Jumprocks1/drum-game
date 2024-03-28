@@ -31,6 +31,7 @@ public class RepositoryDefinition
     public string PreviewUrlPath { get; set; }
     public string TitlePath { get; set; }
     public string ArtistPath { get; set; }
+    public string SortPath { get; set; }
     public string Title { get; set; }
     public string Type { get; set; }
     public RegexDefinition[] DownloadUrlRegex { get; set; }

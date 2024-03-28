@@ -1,4 +1,5 @@
 using DrumGame.Game.Beatmaps.Scoring;
+using DrumGame.Game.Skinning;
 using osu.Framework.Graphics;
 
 namespace DrumGame.Game.Utils;
@@ -99,7 +100,7 @@ public static class DrumColors
     static Colour4 rgb(byte r, byte g, byte b) => new(r, g, b, 255);
     public static Colour4 Mix(this Colour4 color, Colour4 other, float alpha) => color * (1 - alpha) + other * alpha;
 
-    public static Colour4 BlendedHitColor(double error, Stores.Skins.Skin.Skin_HitColors colors, HitWindows windows)
+    public static Colour4 BlendedHitColor(double error, Skin.Skin_HitColors colors, HitWindows windows)
     {
         // not might be a better way to do this, not sure
         var g = new (double error, Colour4 color)[]

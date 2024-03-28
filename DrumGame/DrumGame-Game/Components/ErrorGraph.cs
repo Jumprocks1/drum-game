@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using DrumGame.Game.Beatmaps.Scoring;
 using DrumGame.Game.Components;
-using DrumGame.Game.Stores.Skins;
+using DrumGame.Game.Skinning;
 using DrumGame.Game.Utils;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;

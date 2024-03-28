@@ -26,7 +26,7 @@ using SixLabors.ImageSharp;
 using DrumGame.Game.IO;
 using DrumGame.Game.Modals;
 using osu.Framework.Graphics.Sprites;
-using DrumGame.Game.Stores.Skins;
+using DrumGame.Game.Skinning;
 using osu.Framework.Input.Handlers.Mouse;
 using osu.Framework.Input.Handlers.Keyboard;
 

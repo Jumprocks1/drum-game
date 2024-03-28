@@ -12,7 +12,7 @@ namespace DrumGame.Game.Beatmaps.Loaders;
 
 public static class BeatmapLoader
 {
-    public static void LoadTempo(Beatmap beatmap)
+    public static void LoadTempo(Beatmap beatmap, bool free = false)
     {
         var bpmToken = beatmap.BPM;
         var tempos = new List<TempoChange>();
@@ -35,14 +35,16 @@ public static class BeatmapLoader
             }
         }
         // free up memory
-        beatmap.BPM = null;
+        if (free)
+            beatmap.BPM = null;
     }
-    public static void LoadMeasures(Beatmap beatmap)
+    public static void LoadMeasures(Beatmap beatmap, bool free = false)
     {
         beatmap.MeasureChanges = Util.ListFromToken(beatmap.MeasureConfig, token =>
             new MeasureChange(token.TryGetValue("time", out var val) ?
                 beatmap.TickFromBeat((double)val) : 0, token.Value<double>("beats")));
-        beatmap.MeasureConfig = null;
+        if (free)
+            beatmap.MeasureConfig = null;
     }
     public static Beatmap From(Stream stream, string fullSourcePath, string mapStoragePath)
     {

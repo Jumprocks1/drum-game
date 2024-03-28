@@ -40,11 +40,10 @@ public partial class BeatmapEditor : BeatmapPlayer
             base.Mode = value;
             var edit = value.HasFlagFast(BeatmapPlayerMode.Edit);
             var record = value == BeatmapPlayerMode.Record;
-            var measureLines = edit && !record || Util.Skin.Notation.MeasureLines;
 
-            Display.SnapIndicator = measureLines;
-            Display.SongCursorVisible = !measureLines;
-            if (Display.MeasureLines == null == measureLines) Display.ToggleMeasureLines();
+            var snapIndicator = edit && !record;
+            Display.SnapIndicator = snapIndicator;
+            Display.SongCursorVisible = !snapIndicator;
 
             if (value == BeatmapPlayerMode.Fill)
             {
@@ -201,6 +200,8 @@ public partial class BeatmapEditor : BeatmapPlayer
     {
         _fft?.Dispose();
         _fft = null;
+        DrumOnlyAudio?.Dispose();
+        DrumOnlyAudio = null;
         Command.RemoveHandlers(this);
         DrumMidiHandler.RemoveNoteHandler(OnMidiNote, true);
         if (offsetWizard != null)

@@ -29,7 +29,7 @@ using osu.Framework.Threading;
 using osu.Framework.Utils;
 using DrumGame.Game.Containers;
 using DrumGame.Game.Components.Overlays;
-using DrumGame.Game.Stores.Skins;
+using DrumGame.Game.Skinning;
 using System.Threading;
 using osu.Framework.Input.States;
 using System.Numerics;
@@ -649,7 +649,9 @@ public static class Util
 
     public static Colour4 DarkenOrLighten(this Colour4 colour, float amount)
     {
-        if (colour.R + colour.G + colour.B < 1.5f) return colour.Lighten(amount);
+        var grey = colour.R + colour.G + colour.B;
+        if (grey == 0) return new Colour4(amount, amount, amount, colour.A);
+        else if (grey < 1.5f) return colour.Lighten(amount);
         else return colour.Darken(amount);
     }
 
@@ -724,19 +726,17 @@ public static class Util
 
     public static string MD5(params string[] strings)
     {
-        using var md5 = System.Security.Cryptography.MD5.Create();
         var len = strings.Sum(e => e.Length);
         var buffer = new byte[len * 2];
         var i = 0;
         foreach (var s in strings)
             i += Encoding.Unicode.GetBytes(s, 0, s.Length, buffer, i);
-        return Convert.ToHexString(md5.ComputeHash(buffer));
+        return Convert.ToHexString(System.Security.Cryptography.MD5.HashData(buffer));
     }
     public static string MD5(Stream stream)
     {
         using var s = stream;
-        using var md5 = System.Security.Cryptography.MD5.Create();
-        return Convert.ToHexString(md5.ComputeHash(s));
+        return Convert.ToHexString(System.Security.Cryptography.MD5.HashData(s));
     }
     public static void Google(string search) => Host.OpenUrlExternally($"https://google.com/search?q={Uri.EscapeDataString(search)}");
     public static void YouTube(string search) => Host.OpenUrlExternally($"https://www.youtube.com/results?search_query={Uri.EscapeDataString(search)}");

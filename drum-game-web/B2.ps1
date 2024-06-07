@@ -16,6 +16,10 @@ if (!$BjsonName.EndsWith(".bjson")) {
 $bjsonNameLeaf = Split-Path $BjsonName -LeafBase
 $exportFolder = "../drum-game-private/resources/dtx-exports/$bjsonNameLeaf-dtx"
 $zipTarget = (ls $exportFolder *.zip | sort LastWriteTime | select -last 1).FullName
+if (!(Test-Path $zipTarget)) {
+    echo "$zipTarget not found"
+    exit
+}
 
 $encodedCreds = [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes($key))
 

@@ -14,6 +14,9 @@
   "id": "041179fb-74c6-41da-932e-c24e6ea132d4",
   "offset": 533.45,
   "bpm": 203.0,
+  "shader": "sh_Shaders/sh_8beat.fs",
+  "video": "video/8-beat-berserker.mp4",
+  "videoOffset": 1880.98,
   "measureConfig": [
     {
       "time": 532.0,
@@ -34,7 +37,7 @@
   "previewTime": 40731.0,
   "spotify": "3F77vVmHRYAGDxu6lT9fo3",
   "youTubeID": "PWbg7ShjOPk",
-  "youTubeOffset": 1880.98,
+  "youTubeOffset": 1880.9800000000002,
   "playableDuration": 197734.0,
   "medianBPM": 203.0,
   "creationTimeUtc": "2024-05-28T17:54:56.7566024Z",

@@ -59,7 +59,6 @@ public static class Util
     public static DrumContextMenuContainer ContextMenuContainer => Palette.FindClosestParent<DrumContextMenuContainer>();
     public static DrumPopoverContainer PopoverContainer => Palette.FindClosestParent<DrumPopoverContainer>();
     public static DrumGameGameBase DrumGame;
-    public static bool LoadLocalOffset = false;
     public static ExecutionMode ExecutionMode => (ExecutionMode)typeof(ThreadSafety).GetField("ExecutionMode", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
     public static bool IsSingleThreaded => ExecutionMode == ExecutionMode.SingleThread;
     class Timer : IDisposable
@@ -77,12 +76,12 @@ public static class Util
             Console.WriteLine($"{label}{watch.Elapsed.TotalMilliseconds}ms");
         });
     }
-    public static void WriteTime(Action method)
+    public static void WriteTime(Action method, string label = null)
     {
         var watch = Stopwatch.StartNew();
         method();
         watch.Stop();
-        Console.WriteLine($"{watch.Elapsed.TotalMilliseconds}ms");
+        Console.WriteLine($"{label}{watch.Elapsed.TotalMilliseconds}ms");
     }
     public static T WriteTime<T>(Func<T> method)
     {
@@ -172,8 +171,10 @@ public static class Util
     public static double ExpLerp(double current, double target, double pow, double dt, double linearStep = 0)
     {
         if (current == target) return current;
+        // could also use blend = Math.Exp(-decay * dt) instead
+        // decay = -log(pow)
         var blend = Math.Pow(pow, dt); // 0.99 means we will move 1% percent towards target for each ms
-        current = target * (1 - blend) + current * blend;
+        current = target + (current - target) * blend;
 
         if (linearStep > 0)
         {
@@ -274,7 +275,8 @@ public static class Util
             return new JArray(list.Select(token));
         }
     }
-    public static ModifierKey Modifier(this UIEvent e)
+    public static ModifierKey Modifier(this UIEvent e) => e.CurrentState.Keyboard.Modifier();
+    public static ModifierKey Modifier(this KeyboardState e)
     {
         var modifier = ModifierKey.None;
         if (e.ControlPressed) modifier |= ModifierKey.Ctrl;
@@ -375,7 +377,7 @@ public static class Util
                 if (lastChar != '-') o.Append(lastChar = '-');
             }
         }
-        while (o[o.Length - 1] == '-') o.Length -= 1; // remove trailing `-`
+        while (o.Length > 0 && o[^1] == '-') o.Length -= 1; // remove trailing `-`
         if (ext != null) o.Append(ext);
         return o.ToString();
     }
@@ -412,18 +414,21 @@ public static class Util
         var f = typeof(T).GetField(s);
         if (f == null) return s.FromPascalCase();
         var attr = f.GetCustomAttribute<DisplayAttribute>();
-        if (attr == null) return s.FromPascalCase();
-        return attr.Name;
+        if (attr != null) return attr.Name;
+        return s.FromPascalCase();
     }
     public static string MarkupDescription<T>(this T value) where T : struct, Enum
     {
         var s = value.ToString();
-        var f = typeof(T).GetField(s);
-        if (f != null)
+        return MarkupDescription(typeof(T).GetField(s));
+    }
+    public static string MarkupDescription(MemberInfo member)
+    {
+        if (member != null)
         {
-            var attr = f.GetCustomAttribute<DisplayAttribute>();
+            var attr = member.GetCustomAttribute<DisplayAttribute>();
             if (attr != null && attr.Description != null) return attr.Description;
-            var descAttr = f.GetCustomAttribute<DescriptionAttribute>();
+            var descAttr = member.GetCustomAttribute<DescriptionAttribute>();
             if (descAttr != null) return descAttr.Description;
         }
         return null; // if not explicit description, we have nothing to default to
@@ -581,11 +586,11 @@ public static class Util
         return null;
     }
 
-    public static T GetParent<T>(Drawable drawable) where T : Drawable
+    public static T GetParent<T>(Drawable drawable)
     {
         while ((drawable = drawable.Parent) != null)
             if (drawable is T t) return t;
-        return null;
+        return default;
     }
 
     public static void ForceThread(GameThread thread)
@@ -737,6 +742,18 @@ public static class Util
     {
         using var s = stream;
         return Convert.ToHexString(System.Security.Cryptography.MD5.HashData(s));
+    }
+    public static string MD5(IEnumerable<string> strings)
+    {
+        using var md5 = System.Security.Cryptography.MD5.Create();
+        foreach (var s in strings)
+        {
+            if (s == null) continue;
+            var bytes = Encoding.Unicode.GetBytes(s);
+            md5.TransformBlock(bytes, 0, bytes.Length, null, 0);
+        }
+        md5.TransformFinalBlock([], 0, 0);
+        return Convert.ToHexString(md5.Hash);
     }
     public static void Google(string search) => Host.OpenUrlExternally($"https://google.com/search?q={Uri.EscapeDataString(search)}");
     public static void YouTube(string search) => Host.OpenUrlExternally($"https://www.youtube.com/results?search_query={Uri.EscapeDataString(search)}");

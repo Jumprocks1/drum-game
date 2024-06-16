@@ -1,18 +1,18 @@
 using DrumGame.Game.Components.Basic;
+using DrumGame.Game.Components.ColourPicker;
+using DrumGame.Game.Containers;
 using DrumGame.Game.Utils;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
-using osu.Framework.Graphics.UserInterface;
-using osu.Framework.Input.Events;
 
 namespace DrumGame.Game.Views.Settings.SettingInfos;
 
 public class ColorSettingInfo : SettingInfo
 {
     public Bindable<Colour4> Binding;
-    BasicColourPicker Picker;
     Box ColourBox;
+    public override string Description => Binding.Description;
     public ColorSettingInfo(string label, Bindable<Colour4> binding) : base(label)
     {
         Binding = binding;
@@ -31,59 +31,44 @@ public class ColorSettingInfo : SettingInfo
         });
     }
 
-    public override bool Open => Picker != null;
+    public override bool Open => Popover != null;
 
-    class SettingsColourPicker : BasicColourPicker
-    {
-        readonly DrumScrollContainer scrollContainer;
-        public SettingsColourPicker(DrumScrollContainer scrollContainer) { this.scrollContainer = scrollContainer; }
-        protected override void LoadComplete()
-        {
-            base.LoadComplete();
-            // can't get this to work without the 1ms delay
-            Scheduler.AddDelayed(() => scrollContainer.ScrollIntoView(this), 1);
-        }
-        protected override bool Handle(UIEvent e)
-        {
-            if (base.Handle(e)) return true;
-            switch (e)
-            {
-                case ScrollEvent:
-                case MouseEvent:
-                    return true;
-            }
-            return false;
-        }
-    }
+    DrumPopoverContainer.PopoverInstance Popover;
 
     public override void OnClick(SettingControl control)
     {
-        Picker = new SettingsColourPicker(control.ScrollContainer)
+        var picker = new DrumColourPicker();
+        var pickerContainer = new MouseBlockingContainer
         {
-            Anchor = Anchor.TopRight,
+            AutoSizeAxes = Axes.Both,
+            Anchor = Anchor.BottomRight,
             Origin = Anchor.TopRight,
-            Y = control.Y + control.Height
+            Child = picker
         };
         Binding.ValueChanged += ValueChanged;
-        Picker.Current = Binding;
-        control.ScrollContainer.Add(Picker);
+        picker.Current = Binding;
+        Popover = Util.GetParent<DrumPopoverContainer>(control).Popover(pickerContainer, ColourBox, false, true);
+        Placeholder placeholder = null;
+        Popover.OnClose = () =>
+        {
+            if (placeholder != null) control.ScrollContainer.Remove(placeholder, true);
+            placeholder = null;
+            Popover = null;
+            Binding.ValueChanged -= ValueChanged;
+        };
+        var scroll = control.ScrollContainer;
+        var pickerBottom = control.Y + control.Height + DrumColourPicker.TotalHeight;
+        var target = pickerBottom - scroll.DisplayableContent;
+        if (scroll.Target < target)
+        {
+            if (scroll.AvailableContent < pickerBottom)
+                scroll.Add(placeholder = new Placeholder { Y = pickerBottom });
+            scroll.ScrollTo(target);
+        }
     }
-
+    class Placeholder : Drawable { }
     public void ValueChanged(ValueChangedEvent<Colour4> e)
     {
         ColourBox.Colour = e.NewValue;
-    }
-
-    public override void Close(SettingControl control)
-    {
-        if (Picker != null)
-        {
-            control.ScrollContainer.Destroy(ref Picker);
-            Binding.ValueChanged -= ValueChanged;
-        }
-    }
-    public override void Dispose()
-    {
-        Binding.ValueChanged -= ValueChanged;
     }
 }

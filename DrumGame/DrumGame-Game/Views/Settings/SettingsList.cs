@@ -1,4 +1,6 @@
 using System;
+using DrumGame.Game.Commands;
+using DrumGame.Game.Interfaces;
 using DrumGame.Game.Stores;
 using DrumGame.Game.Views.Settings.SettingInfos;
 using osu.Framework.Configuration;
@@ -7,6 +9,8 @@ namespace DrumGame.Game.Views.Settings;
 
 public abstract class SettingInfo : IDisposable
 {
+    // Basically just deferred tooltip
+    public virtual string Description => null; // could also make a virtual IBindable instead and map this to IBindable.Description
     public string Label;
     public virtual bool Open => false;
     public virtual float Height => 30;
@@ -17,7 +21,6 @@ public abstract class SettingInfo : IDisposable
     }
     public virtual void Render(SettingControl control) { } // could be abstract
     public virtual void OnClick(SettingControl control) { }
-    public virtual void Close(SettingControl control) { }
 
     public virtual void Dispose() { }
 }
@@ -37,7 +40,7 @@ public static class SettingsList
             Tooltip = "This value (ms) is subtracted from the time on every MIDI input event"
         },
         new DoubleSettingInfo("MIDI Output Offset", config.MidiOutputOffset) {
-            Tooltip = "MIDI output events are queued earlier (or later) based on this value. Negative values cause output events to be delayed."
+            Tooltip = $"MIDI output events are queued earlier (or later) based on this value.\nNegative values cause output events to be delayed.\n\nOutput events occur when using some form of autoplay (replays, autoplay mod, or editor autoplay).\nYou can view connected MIDI output devices with the {IHasCommand.GetMarkupTooltipIgnoreUnbound(Command.ViewMidi)} command."
         },
         new SkinSetting("Skin"),
         new BooleanSettingInfo("Smooth Scroll", config.SmoothScroll) {
@@ -68,6 +71,9 @@ public static class SettingsList
         },
         new EnumSettingInfo<LayoutPreference>("Layout Preference", config.LayoutPreference) {
             Tooltip = "This moves the input display off to the side so you can overlay a camera."
+        },
+        new EnumSettingInfo<RendererType>("Preferred Renderer", fConfig.GetBindable<RendererType>(FrameworkSetting.Renderer)) {
+            Tooltip = $"Requires rebooting the game to take effect.\nTo see the current renderer, activate {IHasCommand.GetMarkupTooltipIgnoreUnbound(Command.CycleFrameStatistics)}"
         },
         new SliderSettingInfo("Sample Volume", config.SampleVolume) {
             Tooltip = "Volume of samples/sound effects. Currently only applies to metronome and autoplay notes."

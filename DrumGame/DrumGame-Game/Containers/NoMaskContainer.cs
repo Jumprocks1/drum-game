@@ -7,5 +7,5 @@ namespace DrumGame.Game.Containers;
 
 public class NoMaskContainer : Container
 {
-    public override bool UpdateSubTreeMasking(Drawable source, RectangleF maskingBounds) => true;
+    public override bool UpdateSubTreeMasking() => true;
 }

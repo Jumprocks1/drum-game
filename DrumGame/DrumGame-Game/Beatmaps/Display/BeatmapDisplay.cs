@@ -19,10 +19,13 @@ public abstract class BeatmapDisplay : CompositeDrawable
     public abstract void PullView(ViewTarget viewTarget);
     public abstract void OnDrumTrigger(DrumChannelEvent ev);
 
+    // used with JudgementHiderModifier
+    public bool HideJudgements = false;
+
     protected BeatmapPlayerInputHandler InputHandler => Player.BeatmapPlayerInputHandler;
     public BeatmapScorer Scorer => InputHandler.Scorer;
 
-    HitErrorDisplay HitErrorDisplay;
+    public HitErrorDisplay HitErrorDisplay;
     public virtual void EnterPlayMode() // TODO should really just swap this with a mode change listener
     {
         AddInternal(HitErrorDisplay = new HitErrorDisplay(this, BeatmapScorer.HitWindows));
@@ -53,5 +56,5 @@ public abstract class BeatmapDisplay : CompositeDrawable
     }
     public PracticeInfoPanel PracticeInfoPanel;
     public abstract PracticeInfoPanel StartPractice(PracticeMode practice);
-    public abstract void EndPractice(PracticeMode practice);
+    public abstract void ExitPractice(PracticeMode practice);
 }

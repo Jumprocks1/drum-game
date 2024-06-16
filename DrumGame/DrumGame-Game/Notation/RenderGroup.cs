@@ -58,25 +58,43 @@ public partial class MusicFont
 
             foreach (var note in flag.Notes)
             {
+                var skinNote = note.Note;
+
                 // we don't care about the y-anchor since that is only used for the bottom note drawing the stem
-                var anchor = GetNoteheadAnchor(note.Note.Notehead, down).x;
+                var anchor = GetNoteheadAnchor(skinNote.Notehead, down).x;
 
                 // left-most part of the notehead
                 var noteX = bottomX + bottomAnchor.x - anchor;
-                container.Add(Notehead(note.Note, noteX));
-                var l = note.Modifiers.HasFlagFast(NoteModifiers.Left);
-                var r = note.Modifiers.HasFlagFast(NoteModifiers.Right);
-                if (l || r)
+                var l = note.Modifiers.HasFlag(NoteModifiers.Left);
+                var r = note.Modifiers.HasFlag(NoteModifiers.Right);
+                var ghost = note.Modifiers.HasFlag(NoteModifiers.Ghost);
+
+                var noteheadColor = skinNote.Color;
+                if (skinNote.AccentColor != default && note.Modifiers.HasFlag(NoteModifiers.Accented))
+                    noteheadColor = skinNote.AccentColor;
+                else if (skinNote.GhostColor != default && ghost)
+                    noteheadColor = skinNote.GhostColor;
+
+                if (skinNote.StickingColorNotehead)
                 {
-                    var xNotehead = note.Note.IsHollow();
+                    if (l)
+                        noteheadColor = skinNote.LeftColor;
+                    else if (r)
+                        noteheadColor = skinNote.RightColor;
+                }
+
+                container.Add(Notehead(skinNote, noteX, noteheadColor));
+                if ((l || r) && !skinNote.StickingColorNotehead)
+                {
+                    var hollow = skinNote.IsHollow();
                     container.Add(new SpriteText
                     {
                         Text = l ? "L" : "R",
                         Origin = Anchor.Centre,
-                        Colour = xNotehead ? (l ? DrumColors.Cyan : DrumColors.Red) : Skin.Notation.PlayfieldBackground,
-                        Depth = -note.Note.Position - 5,
-                        Scale = new osuTK.Vector2(xNotehead ? 2f / 20 : 1f / 20),
-                        Y = note.Note.Position / 2f,
+                        Colour = l ? skinNote.LeftColor : skinNote.RightColor,
+                        Depth = -skinNote.Position - 5,
+                        Scale = new osuTK.Vector2(hollow ? 2f / 20 : 1f / 20),
+                        Y = skinNote.Position / 2f,
                         X = noteX + 0.5f
                     });
                 }
@@ -85,7 +103,7 @@ public partial class MusicFont
                     var centerOffset = 0.5f;
                     outside.Add(new Circle
                     {
-                        Y = note.Note.Position / 2f - RollHeight / 2f,
+                        Y = skinNote.Position / 2f - RollHeight / 2f,
                         // this is placed outside, so we can ignore groupOffset
                         X = (float)(flag.Time * Spacing) + bottomAnchor.x - anchor + centerOffset,
                         Height = RollHeight,
@@ -94,12 +112,12 @@ public partial class MusicFont
                         Depth = 10
                     });
                 }
-                if (note.Modifiers.HasFlagFast(NoteModifiers.Ghost))
+                if (ghost)
                 {
                     container.Add(new NoteSprite
                     {
                         Character = MusicGlyph.noteheadParenthesis.Codepoint(),
-                        Y = -8 + note.Note.Position / 2f,
+                        Y = -8 + skinNote.Position / 2f,
                         X = noteX,
                         Colour = Colour,
                         Font = FontUsage
@@ -110,8 +128,8 @@ public partial class MusicFont
                 if (flag.EffectiveDuration == 0.75 || flag.EffectiveDuration == 0.375)
                 {
                     // right-most part of the notehead
-                    var rightSide = down ? GetAnchorValue(note.Note.Notehead, "stemUpSE")[0] : anchor;
-                    var dotY = note.Note.Position;
+                    var rightSide = down ? GetAnchorValue(skinNote.Notehead, "stemUpSE")[0] : anchor;
+                    var dotY = skinNote.Position;
                     if ((dotY & 1) == 0) dotY += dir; // prevent dot being placed on a line
                     container.Add(new NoteSprite
                     {

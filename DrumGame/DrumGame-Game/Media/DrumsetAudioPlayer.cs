@@ -116,7 +116,6 @@ public class DrumsetAudioPlayer : IDisposable
         ISampleHandler handler = null;
         if (channel != DrumChannel.Metronome && channel != DrumChannel.PracticeMetronome)
         {
-            handler = LoadedSoundFont;
             if (handler == null && TryMidi && (DrumMidiHandler.Output != null || !MidiConnectionAttempted))
             {
                 if (!MidiConnectionAttempted)
@@ -127,6 +126,7 @@ public class DrumsetAudioPlayer : IDisposable
                 if (DrumMidiHandler.OutputFound)
                     handler = MidiSampleHandler.Instance;
             }
+            handler ??= LoadedSoundFont;
         }
         if (handler != null) return handler;
         if (!ChannelMapping.TryGetValue(channel, out var mapping)) return null;

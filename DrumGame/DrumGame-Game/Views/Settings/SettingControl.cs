@@ -18,9 +18,10 @@ public class SettingControl : BasicButton, IHasCommand
     {
         get
         {
-            if (Info.Tooltip != null && Command != Command.None)
-                return $"{Info.Tooltip} - {IHasCommand.GetMarkupTooltip(Command)}";
-            return Info?.Tooltip ?? IHasCommand.GetMarkupTooltip(Command);
+            var tooltip = Info.Tooltip ?? Info.Description;
+            if (tooltip != null && Command != Command.None)
+                return $"{tooltip} - {IHasCommand.GetMarkupTooltip(Command)}";
+            return tooltip ?? IHasCommand.GetMarkupTooltip(Command);
         }
     }
 
@@ -34,10 +35,6 @@ public class SettingControl : BasicButton, IHasCommand
             X = SideMargin,
             Y = 3,
         };
-    }
-    public void Close()
-    {
-        Info.Close(this);
     }
     protected override void Dispose(bool isDisposing)
     {
@@ -54,5 +51,6 @@ public class SettingControl : BasicButton, IHasCommand
         BackgroundColour = even ? DrumColors.RowHighlight : DrumColors.RowHighlightSecondary;
         Text = info.Label;
         info.Render(this);
+        Action = () => Info.OnClick(this);
     }
 }

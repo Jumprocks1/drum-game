@@ -4,6 +4,11 @@ using DrumGame.Game.Utils;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osuTK;
+using System;
+using System.Linq.Expressions;
+using System.Text;
+using System.Reflection;
+using System.Collections.Generic;
 
 namespace DrumGame.Game.Skinning;
 
@@ -186,8 +191,8 @@ public class AdjustableSkinData // this should be serialized to the skin
 
 public abstract class AdjustableSkinElement : CompositeDrawable
 {
-    // TODO make this use an interface that works for both notation and mania displays
-    public abstract ref AdjustableSkinData SkinPath { get; }
+    public abstract Expression<Func<Skin, AdjustableSkinData>> SkinPathExpression { get; }
+    protected static Skin Skin => Util.Skin;
 
     public virtual ElementLayout[] AvailableLayouts => null;
 
@@ -198,8 +203,7 @@ public abstract class AdjustableSkinElement : CompositeDrawable
     public virtual void ResetData()
     {
         SkinData = DefaultData().LoadDefaults();
-        SkinPath = null;
-        SkinManager.MarkDirty(Util.Skin);
+        SkinPathExpression.Set(null);
         LayoutChanged();
         ApplySkinData(writeToSkin: false);
     }
@@ -234,7 +238,7 @@ public abstract class AdjustableSkinElement : CompositeDrawable
     // can't call this in constructor since SkinPath may not set up correctly yet
     protected void InitializeSkinData()
     {
-        SkinData = SkinPath ?? DefaultData().LoadDefaults();
+        SkinData = SkinPathExpression.GetOrDefault() ?? DefaultData().LoadDefaults();
         ApplySkinData(true, false);
     }
 
@@ -266,13 +270,13 @@ public abstract class AdjustableSkinElement : CompositeDrawable
     {
         AnchorTarget = SkinManager.GetTarget(SkinData.AnchorTarget);
     }
+    // only time we don't write to skin are on initialize and on reset
+    // we don't write on initialize since nothing has actually changed yet
+    // we don't write on reset since we would rather write `null` instead
     public virtual void ApplySkinData(bool initial = false, bool writeToSkin = true)
     {
         if (writeToSkin)
-        {
-            SkinPath = SkinData;
-            SkinManager.MarkDirty(Util.Skin);
-        }
+            SkinPathExpression.Set(SkinData);
         ApplyTarget();
         if (AnchorTarget == null)
         {

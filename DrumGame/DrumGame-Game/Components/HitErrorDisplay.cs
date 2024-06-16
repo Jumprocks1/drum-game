@@ -1,3 +1,5 @@
+using System;
+using System.Linq.Expressions;
 using DrumGame.Game.Beatmaps.Display;
 using DrumGame.Game.Beatmaps.Display.Mania;
 using DrumGame.Game.Beatmaps.Scoring;
@@ -121,7 +123,6 @@ public class HitErrorDisplay : AdjustableSkinElement, IHasMarkupTooltip
     }
 
 
-    static AdjustableSkinData nullRef;
     public override AdjustableSkinData DefaultData() => Mania ? new()
     {
         Width = 40,
@@ -136,14 +137,8 @@ public class HitErrorDisplay : AdjustableSkinElement, IHasMarkupTooltip
         Anchor = Anchor.TopCentre,
         Height = 40
     };
-    public override ref AdjustableSkinData SkinPath
-    {
-        get
-        {
-            if (Mania) return ref Util.Skin.Mania.HitErrorDisplay;
-            return ref nullRef;
-        }
-    }
+    public override Expression<Func<Skin, AdjustableSkinData>> SkinPathExpression =>
+        Mania ? e => e.Mania.SongInfoPanel : e => null;
     bool Mania;
     void HandleSeek(double _) => Clear();
     BeatmapDisplay Display;

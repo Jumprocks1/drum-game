@@ -1,5 +1,5 @@
 using System;
-using System.Collections.Generic;
+using System.Numerics;
 using DrumGame.Game.Commands;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
@@ -11,7 +11,7 @@ using osuTK.Input;
 
 namespace DrumGame.Game.Components;
 
-public class BasicSlider<T> : CompositeDrawable where T : struct, IComparable<T>, IConvertible, IEquatable<T>
+public class BasicSlider<T> : CompositeDrawable where T : struct, IComparable<T>, IConvertible, IEquatable<T>, INumber<T>, IMinMaxValue<T>
 {
     public virtual Colour4 BackgroundColour => new Colour4(100, 4, 4, 220);
     public virtual Colour4 TimelineColour => Colour4.Honeydew;

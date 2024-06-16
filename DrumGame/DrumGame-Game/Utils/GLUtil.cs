@@ -5,8 +5,8 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Rendering;
 using osuTK;
 using osuTK.Graphics.ES30;
-using SDL2;
 using static glTFLoader.Schema.Accessor;
+using static SDL2.SDL;
 
 namespace DrumGame.Game.Utils;
 
@@ -61,16 +61,17 @@ public static class GLUtil
     {
         // if (RuntimeInfo.OS == RuntimeInfo.Platform.Windows && Multisample > 0)
         {
-            SDL.SDL_InitSubSystem(SDL.SDL_INIT_VIDEO);
-            SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_MULTISAMPLEBUFFERS, 1);
-            SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_MULTISAMPLESAMPLES, Multisample);
+            _ = SDL_InitSubSystem(SDL_INIT_VIDEO);
+            // this doesn't actually do anything if we're running D3D11
+            _ = SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_MULTISAMPLEBUFFERS, 1);
+            _ = SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_MULTISAMPLESAMPLES, Multisample);
         }
     }
     public static void StopSDLMultisample()
     {
         // if (RuntimeInfo.OS == RuntimeInfo.Platform.Windows && Multisample > 0)
         {
-            SDL.SDL_QuitSubSystem(SDL.SDL_INIT_VIDEO);
+            SDL_QuitSubSystem(SDL_INIT_VIDEO);
         }
     }
 

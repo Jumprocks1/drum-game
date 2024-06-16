@@ -11,6 +11,7 @@ using DrumGame.Game.Stores;
 using DrumGame.Game.Utils;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 using osu.Framework.Bindables;
 using osu.Framework.Development;
@@ -60,11 +61,19 @@ public static class SkinManager
     // public static void ReloadSkin() => SkinChanged?.Invoke();
     static Bindable<string> Binding;
 
-    static void ChangeSkin(Skin skin)
+    public static void ChangeSkinTo(string skinPath)
     {
-        Util.Skin?.UnloadTextureStore();
+        if (skinPath == null)
+            Binding.Value = null; // load default skin
+        else if (FindSkin(skinPath) != null)
+            Binding.Value = skinPath;
+    }
+
+    static void ChangeSkin(Skin skin) // called for first skin too
+    {
+        Util.Skin?.UnloadStores();
+        skin.LoadStores();
         Util.Skin = skin;
-        skin.LoadTextureStore();
     }
 
     public static void Initialize()
@@ -104,6 +113,35 @@ public static class SkinManager
             .Where(e => e.Name != "skin-schema.json")
             .Select(e => Path.GetFileNameWithoutExtension(e.Name))
             .Concat(subDirs.Select(e => e.Name));
+    }
+    // this is expensive-ish since it has to try parsing all skins
+    public static List<(string skin, string name)> ListSkinsWithNames()
+    {
+        var skins = ListSkins();
+        var res = new List<(string, string)>();
+        foreach (var skin in skins)
+        {
+            var name = GetName(skin) ?? "Unknown";
+            res.Add((skin, name));
+        }
+        return res;
+    }
+    class SkinNameModel { public string Name { get; set; } } // hopefully this is faster than a full skin parse
+    public static string GetName(string skin)
+    {
+        var filename = FindSkin(skin);
+        if (filename == null) return null;
+        try
+        {
+            var serializer = new JsonSerializer();
+            using var file = File.OpenRead(filename);
+            using var sr = new StreamReader(file);
+            using var jsonTextReader = new JsonTextReader(sr);
+            return serializer.Deserialize<SkinNameModel>(jsonTextReader).Name;
+        }
+        catch { } // don't bother logging errors here since this is a quick/minor method
+
+        return null;
     }
 
     public static void ReloadSkin() // this will also start the hot watcher
@@ -190,7 +228,10 @@ public static class SkinManager
         if (path == null) return;
         if (FileWatcher == null)
         {
-            FileWatcher = new FileWatcher(path);
+            FileWatcher = new(path)
+            {
+                ExtraFilters = ["*.fs"]
+            };
             FileWatcher.Changed += ReloadSkin;
             FileWatcher.Register();
         }
@@ -198,44 +239,43 @@ public static class SkinManager
             FileWatcher.UpdatePath(path);
     }
     public static void SetHotWatcher(Skin skin) => SetHotWatcher(skin?.Source);
-    static List<Skin> DirtySkins; // should probably clear these when reloading skins
-    public static void MarkDirty(Skin skin) // TODO this really needs to only dirty a specific path
-    {
-        DirtySkins ??= new();
-        if (!DirtySkins.Contains(skin)) DirtySkins.Add(skin);
-    }
+    public static void MarkDirty(Skin skin, string path) => skin.AddDirtyPath(path);
     public static void Cleanup()
     {
-        if (DirtySkins != null)
-        {
-            foreach (var skin in DirtySkins)
-                SavePartialSkin(skin);
-            DirtySkins = null;
-        }
+        if (Util.Skin.Dirty)
+            SavePartialSkin(Util.Skin);
     }
-    public static void SavePartialSkin(Skin skin) // TODO we cannot save the whole skin, it is simply impractical
+    public static void SavePartialSkin(Skin skin, string outPath = null)
     {
-        if (skin == null) return;
+        if (skin == null || !skin.Dirty) return;
+        if (skin.Source == null && outPath == null)
+        {
+            Util.Palette.ShowMessage("Default skin cannot be saved. Please create a new skin before saving changes.");
+            skin.DirtyPaths.Clear();
+            return;
+        }
         try
         {
-            // saving is relatively rare, so we will choose to re-deserialize each time before saving
-            // the other option would be to save the deserialized JSON inside the skin on load, but that is overkill
+            var serializer = JsonSerializer.Create(SerializerSettings);
 
-            // var settings = new JsonSerializerSettings
-            // {
-            //     ContractResolver = new SkinContractResolver(),
-            //     Converters = new JsonConverter[] { new ColorHexConverter() },
-            //     Formatting = Formatting.Indented,
-            //     NullValueHandling = NullValueHandling.Ignore,
-            // };
-            // if (export)
-            // {
-            //     skin.GameVersion ??= Util.VersionString;
-            //     skin.Comments ??= "This is an exported version of a skin. It may contain extra fields that are not needed.";
-            // }
-            // var s = JsonConvert.SerializeObject(skin, settings);
-            // File.WriteAllText(path ?? skin.Source, s);
-            // Logger.Log($"Skin saved to {skin.Source}", level: LogLevel.Important);
+            JToken freshSkin;
+            using (var file = File.OpenText(skin.Source))
+            using (var reader = new JsonTextReader(file))
+            {
+                freshSkin = JToken.ReadFrom(reader);
+            }
+
+            var loadedSkinJObject = JObject.FromObject(skin, serializer);
+
+            Logger.Log($"Saving skin updates to: {string.Join(',', skin.DirtyPaths)}", level: LogLevel.Important);
+            foreach (var path in skin.DirtyPaths)
+                freshSkin.ReplaceOrAdd(path, loadedSkinJObject.SelectToken(path));
+
+            outPath ??= skin.Source;
+            using var outFile = File.CreateText(outPath);
+            using var writer = new JsonTextWriter(outFile);
+            serializer.Serialize(writer, freshSkin);
+            skin.DirtyPaths.Clear();
         }
         catch (Exception e)
         {
@@ -257,7 +297,7 @@ public static class SkinManager
         try
         {
             var skin = Util.Skin;
-            var name = skin.Name ?? "Default";
+            var name = skin.Name ?? "Default Export";
             var exportName = Util.ToFilename($"export {name}", ".json");
             var outputPath = Util.Resources.GetAbsolutePath(Path.Join("skins", exportName));
             var settings = SerializerSettings;
@@ -271,6 +311,29 @@ public static class SkinManager
         {
             Logger.Error(e, "Export failed");
             Util.Palette.UserError("Export failed, see log for exception");
+        }
+    }
+    public const string DefaultSkinFilename = "default";
+    public static bool EnsureDefaultSkinExists()
+    {
+        try
+        {
+            var outputPath = Util.Resources.GetAbsolutePath(Path.Join("skins", DefaultSkinFilename + ".json"));
+            if (File.Exists(outputPath)) return true;
+            var skin = new Dictionary<string, string>()
+            {
+                ["name"] = "Default",
+                ["$schema"] = "skin-schema.json"
+            };
+            var s = JsonConvert.SerializeObject(skin, SerializerSettings);
+            File.WriteAllText(outputPath, s);
+            return true;
+        }
+        catch (Exception e)
+        {
+            Logger.Error(e, "Export failed");
+            Util.Palette.UserError("Export failed, see log for exception");
+            return false;
         }
     }
 

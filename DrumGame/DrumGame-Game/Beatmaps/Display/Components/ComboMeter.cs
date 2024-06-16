@@ -30,13 +30,13 @@ public class ComboMeter : CompositeDrawable
         if (level == ComboLevels.Length - 1)
         {
             CircularProgress.Colour = Colour4.Transparent;
-            CircularProgress.Current.Value = 0;
+            CircularProgress.Progress = 0;
         }
         else
         {
             CircularProgress.Colour = ComboLevels[level + 1].Colour;
             var range = ComboLevels[level + 1].Combo - ComboLevels[level].Combo;
-            CircularProgress.Current.Value = (meterDisplay - ComboLevels[level].Combo) / range;
+            CircularProgress.Progress = (meterDisplay - ComboLevels[level].Combo) / range;
         }
         ProgressBacking.Colour = ComboLevels[level].Colour;
     }
@@ -65,8 +65,8 @@ public class ComboMeter : CompositeDrawable
             RelativeSizeAxes = Axes.Both,
             Colour = Util.Skin.Notation.NotationColor,
             InnerRadius = 0.1f,
+            Progress = 1
         };
-        border.Current.Value = 1;
 
         AddInternal(ProgressBacking = new CircularProgress
         {
@@ -87,7 +87,7 @@ public class ComboMeter : CompositeDrawable
             Origin = Anchor.Centre,
             InnerRadius = 0.35f
         });
-        ProgressBacking.Current.Value = 1;
+        ProgressBacking.Progress = 1;
         AddInternal(border);
         AddInternal(InnerText = new SpriteText
         {

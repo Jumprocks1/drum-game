@@ -1,4 +1,5 @@
 
+using DrumGame.Game.Interfaces;
 using DrumGame.Game.Utils;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
@@ -13,7 +14,7 @@ using osuTK.Graphics;
 
 namespace DrumGame.Game.Components;
 
-public class DrumButton : Button
+public class DrumButton : Button, IHasMarkupTooltip
 {
 
     LocalisableString _text;
@@ -92,24 +93,30 @@ public class DrumButton : Button
 
     public double HoverFadeDuration { get; set; } = 200;
     public double FlashDuration { get; set; } = 200;
+    public string MarkupTooltip { get; set; }
     public bool AutoFontSize;
 
     protected Box Hover;
     protected Box Background;
     protected SpriteText SpriteText;
 
+    public DrumButton()
+    {
+        Background = new Box
+        {
+            Anchor = Anchor.Centre,
+            Origin = Anchor.Centre,
+            RelativeSizeAxes = Axes.Both,
+            Colour = DrumColors.ActiveButton
+        };
+    }
+
     [BackgroundDependencyLoader]
     private void load()
     {
         AddRange(new Drawable[]
         {
-            Background = new Box
-            {
-                Anchor = Anchor.Centre,
-                Origin = Anchor.Centre,
-                RelativeSizeAxes = Axes.Both,
-                Colour = DrumColors.ActiveButton
-            },
+            Background,
             Hover = new Box
             {
                 Alpha = 0,

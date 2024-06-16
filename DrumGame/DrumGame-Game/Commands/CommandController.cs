@@ -62,16 +62,17 @@ public class CommandController
         CommandList.RegisterCommands(this);
     }
     public ParameterInfo SetParameterInfo(Command command, params Type[] types) => ParameterInfo[(int)command] = new ParameterInfo(types);
-    public void RegisterCommand(Command command, string name = null, params KeyCombo[] keys)
+    public CommandInfo RegisterCommand(Command command, string name = null, params KeyCombo[] keys)
     {
         var c = new CommandInfo(command, name ?? command.ToString().FromPascalCase(), keys);
         c.Handlers = new(); // since this will be a DefaultCommandInfo, we must add handlers
         DefaultCommandInfos[(int)command] = c;
         RegisterCommandInfo(c);
+        return c;
     }
-    public void RegisterCommand(Command command, KeyCombo key, string name = null)
+    public CommandInfo RegisterCommand(Command command, KeyCombo key, string name = null)
         => RegisterCommand(command, name, key);
-    public void RegisterCommand(Command command, params KeyCombo[] keys)
+    public CommandInfo RegisterCommand(Command command, params KeyCombo[] keys)
         => RegisterCommand(command, null, keys);
     public void RegisterCommandInfo(CommandInfo c)
     {

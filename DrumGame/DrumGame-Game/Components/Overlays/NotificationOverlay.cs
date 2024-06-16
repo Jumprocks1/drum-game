@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using DrumGame.Game.Components.Basic;
 using DrumGame.Game.Containers;
+using DrumGame.Game.Modals;
 using DrumGame.Game.Utils;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -53,7 +54,9 @@ public class NotificationOverlay : CompositeDrawable
         else d.Y = 0;
         Content.Add(d);
         if (!noPopup) Util.Palette.Notifications(); // force shows notifications
-        Content.ScrollIntoView(d);
+        // IsPresent didn't seem to work since it doesn't check alpha all the way up
+        if (Util.Palette.ModalOpen<OverlayModal<NotificationOverlay>>())
+            Content.ScrollIntoView(d);
     }
 
     public void Register(BackgroundTask task)

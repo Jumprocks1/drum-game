@@ -14,6 +14,7 @@ namespace DrumGame.Game.Beatmaps.Editor.Timing;
 public record WaveformData
 {
     public float[] Data;
+    public float Peak;
     public double ViewSampleRate; // Times per second that we try to update the view
     public double DataSampleRate;
     public float ScalingFactor = 1;
@@ -30,7 +31,7 @@ public abstract class WaveformPlot : CompositeDrawable
     // it may also be good to think about this relative to the sample rate of the plot
     // in many cases, the plot maybe only have samples at 1khz, meaning a wider range of time is displayed across fewer samples
     readonly int DisplayCount;
-    WaveformData Data;
+    protected WaveformData Data;
     float[] Vertices;
     protected BeatClock Track => Editor.Track;
     protected Beatmap Beatmap => Editor.Beatmap;

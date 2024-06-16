@@ -1,4 +1,5 @@
 using System;
+using System.Linq.Expressions;
 using DrumGame.Game.Interfaces;
 using DrumGame.Game.Skinning;
 using DrumGame.Game.Timing;
@@ -18,7 +19,7 @@ public class ManiaTimeline : AdjustableSkinElement, IHasMarkupTooltip
         public Colour4 BeforeColor = new(0.5f, 0.5f, 0.5f, 0.5f);
         public Colour4 CursorColor = DrumColors.Yellow;
     }
-    public override ref AdjustableSkinData SkinPath => ref Util.Skin.Mania.SongInfoPanel;
+    public override Expression<Func<Skin, AdjustableSkinData>> SkinPathExpression => e => e.Mania.PositionIndicator;
     public new PositionData SkinData => (PositionData)base.SkinData;
 
     public override PositionData DefaultData() => new()

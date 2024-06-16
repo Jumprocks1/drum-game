@@ -20,28 +20,6 @@ public class BeatClock : TrackClock
             _currentBeat = null;
         }
     }
-    double? _pauseTarget;
-    double? PauseTarget
-    {
-        get => _pauseTarget; set
-        {
-            if (_pauseTarget == value) return;
-            _pauseTarget = value;
-            AudioThreadUpdate();
-        }
-    } // when CurrentTime >= PauseTarget, we should pause
-    void AudioThreadUpdate()
-    {
-        if (PauseTarget.HasValue)
-        {
-            if (AbsoluteTime >= PauseTarget)
-            {
-                PauseTarget = null;
-                Stop();
-            }
-            else Util.Host.AudioThread.Scheduler.Add(AudioThreadUpdate);
-        }
-    }
     public readonly Beatmap Beatmap;
     double? _currentBeat;
     public double CurrentBeat => _currentBeat ?? (_currentBeat = Beatmap.BeatFromMilliseconds(CurrentTime)).Value;
@@ -62,7 +40,6 @@ public class BeatClock : TrackClock
     public override void Dispose()
     {
         Util.CommandController.RemoveHandlers(this);
-        PauseTarget = null;
         base.Dispose();
     }
     public void Invalidate()
@@ -181,17 +158,6 @@ public class BeatClock : TrackClock
     {
         var c = Beatmap.HitObjects.Count;
         if (c > 0) Seek(Beatmap.MillisecondsFromTick(Beatmap.HitObjects[c - 1].Time));
-    }
-    [CommandHandler]
-    public void PauseOnNextNote()
-    {
-        Play();
-        var beat = Beatmap.BeatFromMilliseconds(CurrentTime) + Beatmap.BeatEpsilon;
-        var nextNote = Beatmap.NextHit(beat);
-        if (nextNote < Beatmap.HitObjects.Count)
-        {
-            PauseTarget = Beatmap.MillisecondsFromTick(Beatmap.HitObjects[nextNote].Time);
-        }
     }
 
     [CommandHandler]

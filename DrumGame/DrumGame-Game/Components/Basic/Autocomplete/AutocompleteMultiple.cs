@@ -47,7 +47,7 @@ public class AutocompleteMultiple<T> : Autocomplete<T> where T : class, IFiltera
             TargetI = 0;
         }
         // pull focus back
-        Schedule(() => GetContainingInputManager().ChangeFocus(Input));
+        Schedule(() => GetContainingFocusManager().ChangeFocus(Input));
     }
 
     public void Remove(T option)

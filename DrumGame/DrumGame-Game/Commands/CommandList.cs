@@ -1,5 +1,5 @@
-using System;
 using DrumGame.Game.Channels;
+using DrumGame.Game.Interfaces;
 using DrumGame.Game.Modifiers;
 using osu.Framework.Input.Bindings;
 
@@ -37,7 +37,6 @@ public enum Command
     SetBeatmapOffset,
     SetBeatmapOffsetHere,
     AddBeatToOffset,
-    SetLocalOffset,
     TimingWizard,
     OffsetWizard,
     ListenToDrumOnlyAudio,
@@ -46,6 +45,7 @@ public enum Command
     AutoMapper,
     SetBeatmapLeadIn,
     EditBeatmapMetadata,
+    CreateMapSet,
     SetAllEmptyMappers,
     AddTagsToAll,
     SetDifficultyName,
@@ -65,6 +65,7 @@ public enum Command
     RemoveDuplicateNotes,
     CollapseFlams,
     SetLeftBassSticking,
+    SimplifyNotes,
     StackDrumChannel,
     InsertRoll,
     EditTiming,
@@ -74,7 +75,6 @@ public enum Command
     TogglePlayback,
     Play,
     Pause,
-    PauseOnNextNote,
     SeekToNextTimelineMark,
     SeekToPreviousTimelineMark,
     SeekToNextBookmark,
@@ -133,8 +133,8 @@ public enum Command
     ExportSearchToFile,
     HighlightRandom,
     HighlightRandomPrevious,
-    Next,
-    Previous,
+    NextNote,
+    PreviousNote,
     Up,
     Down,
     PageUp,
@@ -203,6 +203,7 @@ public enum Command
     GenerateThumbnail,
     RefreshMidi,
     ReloadSkin,
+    OpenSkinSettings,
     ExportCurrentSkin,
     ReloadSoundFont,
     SetWindowSize,
@@ -226,7 +227,8 @@ public static class CommandList
         controller.RegisterCommand(Command.ShowAllCommands);
         controller.RegisterCommand(Command.Help, InputKey.F1);
         controller.RegisterCommand(Command.OpenSettings, new KeyCombo(ModifierKey.Ctrl, InputKey.Comma));
-        controller.RegisterCommand(Command.EditKeybinds, new KeyCombo(ModifierKey.CtrlShift, InputKey.Comma));
+        controller.RegisterCommand(Command.EditKeybinds, new KeyCombo(ModifierKey.CtrlShift, InputKey.Comma))
+            .SearchTags = "hotkeys bindings";
         controller.RegisterCommand(Command.OpenKeyboardView, new KeyCombo(ModifierKey.Shift, InputKey.F1));
         controller.RegisterCommand(Command.OpenKeyboardDrumEditor);
         controller.RegisterCommand(Command.ViewDrumLegend);
@@ -258,7 +260,6 @@ public static class CommandList
         controller.RegisterCommand(Command.SetBeatmapOffset, InputKey.O);
         controller.RegisterCommand(Command.SetBeatmapOffsetHere);
         controller.RegisterCommand(Command.AddBeatToOffset);
-        controller.RegisterCommand(Command.SetLocalOffset);
         controller.RegisterCommand(Command.TimingWizard, new KeyCombo(ModifierKey.Ctrl, InputKey.T));
         controller.RegisterCommand(Command.OffsetWizard, new KeyCombo(ModifierKey.CtrlShift, InputKey.T));
         controller.RegisterCommand(Command.ListenToDrumOnlyAudio);
@@ -267,6 +268,8 @@ public static class CommandList
         controller.RegisterCommand(Command.AutoMapper);
         controller.RegisterCommand(Command.SetBeatmapLeadIn);
         controller.RegisterCommand(Command.EditBeatmapMetadata);
+        controller.RegisterCommand(Command.CreateMapSet)
+            .SearchTags = "mapset";
         controller.RegisterCommand(Command.SetAllEmptyMappers);
         controller.RegisterCommand(Command.AddTagsToAll);
         controller.RegisterCommand(Command.SetDifficultyName);
@@ -322,17 +325,19 @@ public static class CommandList
         controller.RegisterCommand(Command.RemoveDuplicateNotes);
         controller.RegisterCommand(Command.CollapseFlams);
         controller.RegisterCommand(Command.SetLeftBassSticking);
+        controller.RegisterCommand(Command.SimplifyNotes);
         controller.RegisterCommand(Command.StackDrumChannel);
         controller.SetParameterInfo(Command.StackDrumChannel, typeof(DrumChannel));
         controller.RegisterCommand(Command.InsertRoll, InputKey.R);
-        controller.RegisterCommand(Command.EditTiming, InputKey.T);
-        controller.RegisterCommand(Command.EditBeatsPerMeasure);
+        controller.RegisterCommand(Command.EditTiming, InputKey.T)
+            .SearchTags = "bpm";
+        controller.RegisterCommand(Command.EditBeatsPerMeasure)
+            .SearchTags = "timing";
         controller.RegisterCommand(Command.ToggleBookmark, new KeyCombo(ModifierKey.Ctrl, InputKey.B));
         controller.RegisterCommand(Command.ToggleAnnotation);
         controller.RegisterCommand(Command.TogglePlayback, InputKey.Space);
         controller.RegisterCommand(Command.Play);
         controller.RegisterCommand(Command.Pause);
-        controller.RegisterCommand(Command.PauseOnNextNote);
 
         controller.RegisterCommand(Command.SeekToNextSnapPoint, InputKey.Period, InputKey.KeypadDecimal);
         controller.RegisterCommand(Command.SeekToPreviousSnapPoint, InputKey.Comma, new KeyCombo(ModifierKey.Ctrl, InputKey.KeypadDecimal));
@@ -419,10 +424,10 @@ public static class CommandList
         controller.RegisterCommand(Command.ExportSearchToFile);
         controller.RegisterCommand(Command.HighlightRandom, InputKey.F2, DrumChannel.HiHatPedal, DrumChannel.OpenHiHat);
         controller.RegisterCommand(Command.HighlightRandomPrevious, new KeyCombo(ModifierKey.Shift, InputKey.F2), DrumChannel.ClosedHiHat);
-        controller.RegisterCommand(Command.Next, InputKey.MouseWheelUp);
-        controller.RegisterCommand(Command.Previous, InputKey.MouseWheelDown);
-        controller.RegisterCommand(Command.Up, InputKey.Up, DrumChannel.SmallTom);
-        controller.RegisterCommand(Command.Down, InputKey.Down, DrumChannel.MediumTom);
+        controller.RegisterCommand(Command.NextNote, InputKey.MouseWheelUp);
+        controller.RegisterCommand(Command.PreviousNote, InputKey.MouseWheelDown);
+        controller.RegisterCommand(Command.Up, InputKey.Up, DrumChannel.SmallTom, InputKey.MouseWheelUp);
+        controller.RegisterCommand(Command.Down, InputKey.Down, DrumChannel.MediumTom, InputKey.MouseWheelDown);
         controller.RegisterCommand(Command.PageUp, InputKey.PageUp, DrumChannel.Snare);
         controller.RegisterCommand(Command.PageDown, InputKey.PageDown, DrumChannel.LargeTom);
         controller.RegisterCommand(Command.Undo, new KeyCombo(ModifierKey.Ctrl, InputKey.Z));
@@ -511,7 +516,9 @@ public static class CommandList
         controller.RegisterCommand(Command.CycleFrameSync, new KeyCombo(ModifierKey.Ctrl, InputKey.F7));
         controller.RegisterCommand(Command.CycleFrameStatistics, new KeyCombo(ModifierKey.Ctrl, InputKey.F11));
         controller.RegisterCommand(Command.ToggleLogOverlay, new KeyCombo(ModifierKey.Ctrl, InputKey.F10));
-        controller.RegisterCommand(Command.ToggleExecutionMode, new KeyCombo(ModifierKey.CtrlAlt, InputKey.F7));
+        var c = controller.RegisterCommand(Command.ToggleExecutionMode, new KeyCombo(ModifierKey.CtrlAlt, InputKey.F7));
+        c.SearchTags = "single multi threaded";
+        c.HelperMarkupAction = () => $"Toggles between single-threaded and multi-threaded execution modes.\nUseful in conjunction with {IHasCommand.GetMarkupTooltipIgnoreUnbound(Command.CycleFrameStatistics)}.";
         controller.RegisterCommand(Command.OpenFile, new KeyCombo(ModifierKey.Ctrl, InputKey.O));
         controller.RegisterCommand(Command.RevealInFileExplorer, new KeyCombo(ModifierKey.CtrlAlt, InputKey.R));
         controller.RegisterCommand(Command.RevealAudioInFileExplorer);
@@ -521,7 +528,8 @@ public static class CommandList
         controller.RegisterCommand(Command.ExportMap);
         controller.RegisterCommand(Command.ExportToMidi);
         controller.RegisterCommand(Command.ExportToDtx);
-        controller.RegisterCommand(Command.ConvertAudioToOgg);
+        controller.RegisterCommand(Command.ConvertAudioToOgg)
+            .SearchTags = "reencode";
         controller.RegisterCommand(Command.LoadYouTubeAudio, "Load YouTube Audio");
         controller.RegisterCommand(Command.FixAudio);
         controller.RegisterCommand(Command.NewMapFromYouTube);
@@ -538,6 +546,7 @@ public static class CommandList
         controller.RegisterCommand(Command.GenerateThumbnail);
         controller.RegisterCommand(Command.RefreshMidi);
         controller.RegisterCommand(Command.ReloadSkin);
+        controller.RegisterCommand(Command.OpenSkinSettings);
         controller.RegisterCommand(Command.ExportCurrentSkin);
         controller.RegisterCommand(Command.ReloadSoundFont);
         controller.RegisterCommand(Command.SetWindowSize);
@@ -631,8 +640,8 @@ public static class CommandList
         Command.SeekToMeasureEnd,
         Command.SeekToTime,
         Command.SeekToBeat,
-        Command.Next,
-        Command.Previous,
+        Command.NextNote,
+        Command.PreviousNote,
 
         // Rare but useful commands
         Command.ToggleAutoPlayHitSounds,

@@ -13,7 +13,7 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
         return PracticeInfoPanel;
     }
 
-    public override void EndPractice(PracticeMode practice)
+    public override void ExitPractice(PracticeMode practice)
     {
         RemoveInternal(PracticeInfoPanel, true);
         PracticeMode = null;

@@ -54,7 +54,7 @@ public partial class DtxLoader
     // make sure to use this. We can't use default double.Parse since it doesn't always work with decimals ie `0.5`
     static double ParseDouble(string s) => double.Parse(s, CultureInfo.InvariantCulture);
 
-    static bool SetDifficultyName(List<Def> defs, string localFileName, Beatmap beatmap)
+    static bool ApplyDefInfo(List<Def> defs, string localFileName, Beatmap beatmap)
     {
         if (defs != null)
         {
@@ -65,6 +65,8 @@ public partial class DtxLoader
                     if (dtx.Value.File == localFileName)
                     {
                         beatmap.DifficultyName = dtx.Value.Label;
+                        if (!string.IsNullOrWhiteSpace(set.MapSet))
+                            beatmap.MapSetId = set.MapSet;
                         return true;
                     }
                 }
@@ -83,11 +85,11 @@ public partial class DtxLoader
         "13" => DrumChannel.BassDrum,
         "14" => DrumChannel.SmallTom,
         "15" => DrumChannel.MediumTom,
-        "16" => DrumChannel.Crash,
+        "16" => DrumChannel.Crash, // should be right crash
         "17" => DrumChannel.LargeTom,
         "18" => DrumChannel.OpenHiHat,
         "19" => DrumChannel.Ride,
-        "1A" => DrumChannel.China,
+        "1A" => DrumChannel.Crash, // should be left crash
         "1B" => DrumChannel.HiHatPedal,
         "1C" => DrumChannel.BassDrum,
         _ => DrumChannel.None

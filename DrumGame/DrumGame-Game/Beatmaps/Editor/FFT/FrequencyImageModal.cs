@@ -1,6 +1,7 @@
 using System;
 using System.Buffers;
 using System.IO;
+using DrumGame.Game.Components;
 using DrumGame.Game.Interfaces;
 using DrumGame.Game.Modals;
 using DrumGame.Game.Utils;
@@ -49,6 +50,14 @@ public class FrequencyImageModal : RequestModal
     })
     {
         Editor = editor;
+
+        if (File.Exists(FFTProvider.AutoMapperSettingsPath))
+            AddFooterButton(new DrumButton
+            {
+                AutoSize = true,
+                Text = "Open auto-mapper.json",
+                Action = () => Util.Host.OpenFileExternally(FFTProvider.AutoMapperSettingsPath)
+            });
 
         var chunkWidthMs = FFT.ChunkWidthS * 1000;
         var chunksPerTexture = (int)(RequestedTimeWidth / chunkWidthMs);

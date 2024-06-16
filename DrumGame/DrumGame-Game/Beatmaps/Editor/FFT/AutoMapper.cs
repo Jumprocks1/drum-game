@@ -67,6 +67,12 @@ public class AutoMapper
                 for (var j = v.LowBin; j <= endBin; j++)
                     sum += bins[j];
                 sum *= v.Multiplier;
+                var sub = v.Subtract;
+                if (sub != null)
+                {
+                    for (var j = sub.LowBin; j <= sub.HighBin; j++)
+                        sum -= bins[j] * sub.Multiplier;
+                }
 
                 if (sum < minAfter[c])
                     minAfter[c] = sum;

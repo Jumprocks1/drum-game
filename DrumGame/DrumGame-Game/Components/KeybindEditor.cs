@@ -106,7 +106,7 @@ public class KeybindEditor : CompositeDrawable, IModal, IAcceptFocus
         ConfigManager.KeybindChanged += UpdateHotkeyList;
         Command.RegisterHandlers(this);
     }
-    public void Focus(InputManager _) => SearchBox.TakeFocus();
+    public void Focus(IFocusManager _) => SearchBox.TakeFocus();
     protected override void Dispose(bool isDisposing)
     {
         Command.RemoveHandlers(this);

@@ -39,12 +39,12 @@ public partial class MusicFont
     public const float DefaultSpacing = 5f;
     public float Spacing = DefaultSpacing;
     public readonly FontUsage FontUsage;
-    public Drawable Notehead(SkinNote note, float x) => new NoteSprite
+    public Drawable Notehead(SkinNote note, float x, Colour4 color) => new NoteSprite
     {
         Character = note.Notehead.Codepoint(),
         Y = -8 + note.Position / 2f,
         X = x,
-        Colour = note.Color,
+        Colour = color,
         Font = FontUsage,
         Depth = -note.Position - 5
     };

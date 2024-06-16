@@ -46,7 +46,7 @@ public class EnumAutocomplete<T> : Autocomplete<EnumOption<T>>, IHasTooltip wher
         var options = (values ?? Enum.GetValues(typeof(T)).Cast<T>()).Select(e => new EnumOption<T>(e));
         if (nullable) options = options.Append(null);
         Options = options.ToList();
-        CommittedTarget = current == null ? null : Options.First(e => e == null ? false : e.Value.Equals(current));
+        CommittedTarget = current == null ? null : Options.First(e => e != null && e.Value.Equals(current));
         ClearOnFocus = true;
     }
     public LocalisableString TooltipText => "Click to edit";

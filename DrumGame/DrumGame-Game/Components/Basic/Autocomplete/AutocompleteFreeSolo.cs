@@ -27,9 +27,9 @@ public class AutocompleteFreeSolo : CompositeDrawable, IAcceptFocus
             if (_open == value) return;
             _open = value;
             if (value)
-                Util.GetParent<DrumPopoverContainer>(this).Popover(Popover, ButtonContainer);
+                Util.GetParent<DrumPopoverContainer>(this).Popover(Popover, ButtonContainer, true);
             else
-                Util.GetParent<DrumPopoverContainer>(this)?.ClosePopover(Popover, false);
+                Util.GetParent<DrumPopoverContainer>(this)?.ClosePopover(Popover);
             UpdateFilterAndDisplay();
         }
     }
@@ -286,5 +286,5 @@ public class AutocompleteFreeSolo : CompositeDrawable, IAcceptFocus
         }
         return base.OnKeyDown(e);
     }
-    public void Focus(InputManager inputManager) => inputManager.ChangeFocus(Input);
+    public void Focus(IFocusManager focusManager) => focusManager.ChangeFocus(Input);
 }

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Commons.Music.Midi;
 using DrumGame.Game.Beatmaps.Data;
+using DrumGame.Game.Beatmaps.Formats;
 using DrumGame.Game.Beatmaps.Loaders;
 using DrumGame.Game.Channels;
 using DrumGame.Game.Interfaces;
@@ -59,26 +60,10 @@ public partial class Beatmap : BJson, IHasHitObjects
             OffsetUpdated?.Invoke();
         }
     }
-
-    double _localOffset;
-    public double LocalOffset
-    {
-        get => _localOffset;
-        set
-        {
-            if (_localOffset == value) return;
-            _localOffset = value;
-            using (var context = Util.GetDbContext())
-            {
-                var beatmap = context.GetOrAddBeatmap(Id);
-                beatmap.LocalOffset = value;
-                context.SaveChanges();
-            }
-            FireOffsetUpdated();
-        }
-    }
     public bool UseYouTubeOffset;
-    public double TotalOffset => UseYouTubeOffset ? StartOffset + _localOffset + YouTubeOffset : StartOffset + _localOffset;
+    public double CurrentTrackStartOffset => UseYouTubeOffset ? StartOffset + YouTubeOffset : StartOffset;
+    public double TotalOffset => CurrentTrackStartOffset;
+    public string MapStoragePath => Source.MapStoragePath;
 
     public new string Id { get => base.Id ?? Source.FilenameNoExt; set => base.Id = value; }
     public double CurrentRelativeVolume => RelativeVolume ?? BJson.DefaultRelativeVolume;
@@ -130,21 +115,12 @@ public partial class Beatmap : BJson, IHasHitObjects
                 HitObjects.Add(new HitObject(TickFromBeat(t), data));
             }
         }
-        BeatmapLoader.LoadTempo(this, true);
-        BeatmapLoader.LoadMeasures(this, true);
+        BJsonLoadHelpers.LoadTempo(this, true);
+        BJsonLoadHelpers.LoadMeasures(this, true);
         QuarterNotes = Math.Max((int)(t + 1), 4);
         // We use OrderBy instead of List.Sort since OrderBy is stable sort
         HitObjects = HitObjects.OrderBy(e => e.Time).ToList();
         TempoChanges = TempoChanges.OrderBy(e => e.Time).ToList();
-
-        if (Util.LoadLocalOffset)
-        {
-            // unfortunately this takes ~12ms the first time it runs
-            // afterwards it usually takes 0.5ms
-            // in the long run it is probably worth it since we can load all sorts of data from the database
-            using var context = Util.GetDbContext();
-            _localOffset = context.Find<Stores.DB.BeatmapInfo>(Id)?.LocalOffset ?? 0;
-        }
         Notes = null;
     }
 
@@ -163,7 +139,16 @@ public partial class Beatmap : BJson, IHasHitObjects
             Logger.Log($"Failed to rename beatmap, file already exists at {path}", level: LogLevel.Error);
             return false;
         }
-        Source.AbsolutePath = path;
+        // since we're changing the name and setting the format, we need to remove old format tags
+        if (Source.Format != null && Source.Format != BJsonFormat.Instance)
+        {
+            RemoveTags(Source.Format.MountTag);
+            AddTags(Source.Format.ConvertTag);
+        }
+        Source = new BJsonSource(path, BJsonFormat.Instance)
+        {
+            MapStoragePath = Source.MapStoragePath
+        };
         if (Source.MapStoragePath != null)
         {
             // We have to be careful here. When using libraries, the game uses $library/ as the prefix,

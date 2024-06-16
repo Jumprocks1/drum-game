@@ -615,7 +615,7 @@ public partial class MusicNotationBeatmapDisplay : BeatmapDisplay
         if (left <= sLeft && right >= sRight) return; // already in view
         Track.Seek(Beatmap.MillisecondsFromBeat(sLeft));
     }
-    ScoreTopBar ScoreTopBar;
+    public ScoreTopBar ScoreTopBar;
     public override void EnterPlayMode()
     {
         AddInternal(ScoreTopBar = new ScoreTopBar(Scorer));
@@ -632,6 +632,7 @@ public partial class MusicNotationBeatmapDisplay : BeatmapDisplay
     }
     public override void DisplayScoreEvent(ScoreEvent e)
     {
+        if (HideJudgements) return;
         var xTime = e.Time ?? e.ObjectTime ?? 0;
         var h = new Circle
         {

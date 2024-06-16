@@ -5,26 +5,32 @@ using System.Text;
 
 namespace DrumGame.Game.IO.Midi;
 
+// https://github.com/colxi/midi-parser-js/wiki/MIDI-File-Format-Specifications
+
 public class MidiTrack : MidiFile.Chunk
 {
+    public string Name;
     public List<Event> events;
     public static MidiTrack Read(MidiReader reader, int length)
     {
         var events = new List<Event>();
         var end = reader.BaseStream.Position + length;
         byte? previousEventType = null;
+        var track = new MidiTrack { events = events };
         while (reader.BaseStream.Position < end)
         {
-            var e = Event.Read(reader, ref previousEventType);
+            var e = Event.Read(reader, track, ref previousEventType);
             if (e != null)
             {
                 events.Add(e);
             }
+            if (track.Name == "PART VOCALS")
+            {
+                reader.BaseStream.Seek(end, SeekOrigin.Begin);
+                return track;
+            }
         }
-        return new MidiTrack
-        {
-            events = events
-        };
+        return track;
     }
 
     public class TempoEvent : Event
@@ -53,13 +59,17 @@ public class MidiTrack : MidiFile.Chunk
         public byte parameter1;
         public byte parameter2;
     }
+    public class SysExEvent : Event
+    {
+        public byte[] bytes;
+    }
 
     public abstract class Event
     {
         public static int outputCount = 0;
         public static HashSet<int> midiEvents = new HashSet<int>();
         public int delta;
-        public static Event Read(MidiReader reader, ref byte? previousEventType)
+        public static Event Read(MidiReader reader, MidiTrack track, ref byte? previousEventType)
         {
             var delta = reader.ReadVInt32();
             var eventType = reader.ReadByte();
@@ -79,17 +89,18 @@ public class MidiTrack : MidiFile.Chunk
             if (eventType == 0xF0 || eventType == 0xF7)
             {
                 var length = reader.ReadVInt32();
-                reader.BaseStream.Seek(length, SeekOrigin.Current);
-                Console.WriteLine($"MIDI message {eventType:x} length {length}");
+                var bytes = reader.ReadBytes(length);
+                // Console.WriteLine($"MIDI message {eventType:x} length {length} value {BitConverter.ToString(bytes)}");
+                return new SysExEvent { bytes = bytes, delta = delta };
             }
             else if (eventType == 0xFF) // meta-event
             {
                 var type = reader.ReadByte();
                 var length = reader.ReadVInt32();
-                if (delta > 0 && (type != 47 && type != 88))
+                if (delta > 0 && type != 47 && type != 88 && type != 81 && type != 5 && type != 100 && type != 102)
                 {
                     // throw new NotImplementedException("Meta event delta");
-                    Console.WriteLine($"meta event delta {type}");
+                    Console.WriteLine($"meta event with delta, type: {type} delta: {delta}");
                 }
                 if (type == 84 && length == 5)
                 {
@@ -109,7 +120,6 @@ public class MidiTrack : MidiFile.Chunk
                         delta = delta,
                         MicrosecondsPerQuarterNote = micro
                     };
-                    Console.WriteLine($"BPM: {e.BPM()}");
                     return e;
                 }
                 else if (type == 33 && length == 1)
@@ -141,17 +151,25 @@ public class MidiTrack : MidiFile.Chunk
                 else if (type == 47 && length == 0) // end of track
                 {
                 }
-                else if (type == 3)
+                else if (type == 2)
                 {
                     Console.WriteLine($"Copyright: {Encoding.ASCII.GetString(reader.ReadBytes(length))}");
                 }
-                else if (type == 4)
+                else if (type == 3)
                 {
-                    Console.WriteLine($"Instrument: {Encoding.ASCII.GetString(reader.ReadBytes(length))}");
+                    track.Name = Encoding.ASCII.GetString(reader.ReadBytes(length));
+                    return null;
                 }
+                else if (type == 4)
+                    Console.WriteLine($"Instrument: {Encoding.ASCII.GetString(reader.ReadBytes(length))}");
+                else if (type == 5) { } // lyric event
                 else
                 {
-                    throw new NotImplementedException($"Unknown meta-event {type} length {length}");
+                    // see https://www.music.mcgill.ca/~ich/classes/mumt306/StandardMIDIfileformat.html#BM3_
+                    // see https://github.com/TheNathannator/GuitarGame_ChartFormats/blob/main/doc/FileFormats/.mid/Core%20Infrastructure.md#meta-events
+                    // throw new NotImplementedException($"Unknown meta-event {type} length {length}");
+                    var bytes = reader.ReadBytes(length);
+                    Console.WriteLine($"Unknown meta-event {type} length {length}, {(bytes.Length < 20 ? BitConverter.ToString(bytes) : null)}");
                 }
             }
             else // midi event

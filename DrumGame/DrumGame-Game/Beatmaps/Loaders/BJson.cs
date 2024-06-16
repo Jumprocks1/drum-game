@@ -4,7 +4,10 @@ using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
+using DrumGame.Game.Beatmaps.Formats;
 using DrumGame.Game.Channels;
+using DrumGame.Game.Stores;
 using DrumGame.Game.Utils;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -19,6 +22,15 @@ public class BJsonNote
     public string Modifier { get; set; }
     public string Sticking { get; set; }
     public double? Duration;
+    public HitObjectData ToHitObjectData()
+    {
+        var mod = GetModifiers();
+        var roll = Duration.HasValue && Duration.Value > 0;
+        if (roll)
+            mod |= NoteModifiers.Roll;
+        var data = new HitObjectData(GetDrumChannel(), modifiers: mod);
+        return data;
+    }
     public NoteModifiers GetModifiers() => Modifier switch
     {
         "accent" => NoteModifiers.Accented,
@@ -87,17 +99,20 @@ public class BJsonSource
             Directory = Path.GetDirectoryName(value);
         }
     }
+    public readonly BeatmapFormat Format;
     public string MapStoragePath;
     public readonly string OriginalAbsolutePath;
     public string FilenameNoExt => Path.GetFileNameWithoutExtension(AbsolutePath);
     public string FilenameWithExt => Path.GetFileName(AbsolutePath);
-    public BJsonSource(string absolutePath)
+    public MapLibrary Library => Util.MapStorage.MapLibraries.Sources.FirstOrDefault(e => e.IsInProvider(MapStoragePath));
+    // note, format should be the format we expect to save in
+    // if we are fully importing a map, the format would be BJsonFormat.Instance
+    public BJsonSource(string absolutePath, BeatmapFormat format)
     {
         AbsolutePath = OriginalAbsolutePath = absolutePath;
+        Format = format ?? BJsonFormat.Instance;
     }
     public string Filename => AbsolutePath; // avoid using this, we should remove once we get to 0 references
-    public string Extension => Path.GetExtension(AbsolutePath);
-    public bool BJson => AbsolutePath.EndsWith(".bjson", true, CultureInfo.InvariantCulture);
 }
 public class Bookmark : IBeatTime
 {
@@ -133,7 +148,7 @@ public abstract class BJson
 
     [JsonProperty(DefaultValueHandling = DefaultValueHandling.IgnoreAndPopulate)]
     [DefaultValue(DefaultTickRate)]
-    public int TickRate { get; set; }
+    public int TickRate { get; set; } = DefaultTickRate;
     public string Description { get; set; }
     [JsonProperty(Order = 1)] // move to end since this is like 99% of the map
     public List<BJsonNote> Notes;
@@ -144,11 +159,14 @@ public abstract class BJson
     public string DrumOnlyAudio { get; set; }
     public string PreviewAudio { get; set; }
     public string Video { get; set; }
+    public string Shader { get; set; }
     [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
     public double VideoOffset { get; set; }
     public string Image { get; set; }
     public string ImageUrl { get; set; }
     public string Id { get; set; }
+    // if this is null, it gets hashed based on title, artist, and mapper
+    public string MapSetId { get; set; }
     [JsonProperty("offset")]
     public virtual double StartOffset { get; set; }
     [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
@@ -163,6 +181,7 @@ public abstract class BJson
     public string RomanArtist { get; set; } // typically romaji
     public string GetRomanArtist() => RomanArtist ?? Artist;
     public string Mapper { get; set; }
+    // this should probably be an enum
     public string Difficulty { get; set; }
     public string DifficultyName { get; set; }
     public string Tags { get; set; }
@@ -199,7 +218,27 @@ public abstract class BJson
             Tags += " " + tag;
         }
     }
+    public void RemoveTags(string tags)
+    {
+        if (string.IsNullOrWhiteSpace(Tags) || string.IsNullOrWhiteSpace(tags))
+            return;
+        var remove = SplitTags(tags);
+        if (remove.Length == 0) return;
+        var o = new StringBuilder();
+        var first = true;
+        foreach (var t in SplitTags())
+        {
+            if (Array.IndexOf(remove, t) >= 0) continue;
+            if (first)
+            {
+                o.Append(t);
+                first = false;
+            }
+            else o.Append(" " + t);
+        }
+        Tags = o.ToString();
+    }
     public string[] SplitTags() => SplitTags(Tags);
-    public static string[] SplitTags(string tags) => tags?.Split(' ', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries) ?? new string[0];
+    public static string[] SplitTags(string tags) => tags?.Split(' ', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries) ?? [];
 }
 

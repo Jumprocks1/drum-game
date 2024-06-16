@@ -60,6 +60,7 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
             node.Color = lane.Config.BorderColor;
             node.Box(lane.X, 0, -lane.LeftBorderWidth, 1);
             lane.DrawBackground(node);
+            node.ResetShader();
         }
         var lane1 = Lanes[0];
         node.Color = lane1.Config.BorderColor;
@@ -96,6 +97,7 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
             Chips[i].DrawChip(node);
         }
         node.Alpha = 1;
+        node.ResetShader();
     }
 
     public Lane[] Lanes;
@@ -187,6 +189,7 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
             else
             {
                 node.Color = BackgroundColor;
+                node.ResetShader();
                 node.Box(X, 0, Width, 1);
             }
         }
@@ -218,7 +221,7 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
         AddInternal(new Box { RelativeSizeAxes = Axes.Both, Colour = ManiaConfig.BackgroundColor, Depth = 1000 });
     }
 
-    Container LaneContainer = new();
+    public LaneContainer LaneContainer = new();
     Container ScoreEventContainer = new();
     ManiaTimeline Timeline;
 
@@ -243,10 +246,6 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
         AddInternal(Timeline = new(this));
         SkinManager.RegisterTarget(SkinAnchorTarget.PositionIndicator, Timeline);
         AddInternal(new SongInfoPanel(Beatmap, true));
-        LaneContainer.RelativeSizeAxes = Axes.Both;
-        LaneContainer.Origin = Anchor.TopCentre;
-        LaneContainer.Anchor = Anchor.TopCentre;
-        LaneContainer.Width = ManiaConfig.Width;
         LaneContainer.Add(new Canvas<ManiaCanvasData>
         {
             RelativeSizeAxes = Axes.Both,
@@ -272,6 +271,7 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
             RelativePositionAxes = Axes.Y,
             Anchor = Anchor.BottomLeft,
             Origin = Anchor.CentreLeft,
+            Name = "Cursor"
         });
         if (HasShutter)
         {
@@ -361,24 +361,29 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
     SpriteText StatsText;
     public override void EnterPlayMode()
     {
-        if (StatsText == null)
+        if (StatsText == null && !HideJudgements)
             AddInternal(StatsText = new StatsText { Colour = TextColor, X = 3 });
         base.EnterPlayMode();
     }
     public override void LeavePlayMode()
     {
         base.LeavePlayMode();
-        RemoveInternal(StatsText, true);
-        StatsText = null;
+        if (StatsText != null)
+        {
+            RemoveInternal(StatsText, true);
+            StatsText = null;
+        }
     }
 
     public override void HandleScoreChange()
     {
-        StatsText.Text = $"{Scorer.Accuracy}  {Scorer.ReplayInfo.Combo}x";
+        if (StatsText != null)
+            StatsText.Text = $"{Scorer.Accuracy}  {Scorer.ReplayInfo.Combo}x";
     }
 
     public override void DisplayScoreEvent(ScoreEvent e)
     {
+        if (HideJudgements) return;
         var lane = GetLane(e.Channel);
         var hitTime = e.Time ?? e.ObjectTime ?? 0;
 

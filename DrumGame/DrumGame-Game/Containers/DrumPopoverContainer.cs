@@ -1,6 +1,6 @@
+using System;
 using System.Collections.Generic;
 using DrumGame.Game.Components;
-using DrumGame.Game.Interfaces;
 using DrumGame.Game.Utils;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -8,23 +8,29 @@ using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
-using osu.Framework.Localisation;
 using osuTK;
 using osuTK.Input;
 
 namespace DrumGame.Game.Containers;
 
-public record MultilineTooltipData(string Data) { }
-// just my shitty version of markdown
-public record MarkupTooltipData(string Data)
-{
-    public static explicit operator LocalisableString(MarkupTooltipData b) => b.Data;
-}
+// Tooltips - Depth = 0
+// Mirror/Popover - Depth = 1
+// Blocker (if needed) - Depth = 1, gets added before mirror
+// Lower Content - Depth = 10
 public class DrumPopoverContainer : TooltipContainer
 {
+    public class PopoverInstance(DrumPopoverContainer Container)
+    {
+        public Mirror Mirror;
+        public Drawable Drawable;
+        public MouseBlocker MouseBlocker;
+        public bool KeepAlive;
+        public Action OnClose;
+        public void Close() => Container.ClosePopover(this);
+    }
     protected override double AppearDelay => 0;
-    protected override ITooltip CreateTooltip() => new CustomTooltip();
-    public DrumPopoverContainer()
+    protected override ITooltip CreateTooltip() => new CustomTooltip(); // tooltip should always be depth = 0
+    public DrumPopoverContainer() : base()
     {
         RelativeSizeAxes = Axes.Both;
         ChangeInternalChildDepth(Content, 10); // make sure regular content is at the bottom of this container
@@ -32,34 +38,59 @@ public class DrumPopoverContainer : TooltipContainer
     public static FontUsage Font => FrameworkFont.Regular.With(size: 16);
 
     static MarginPadding InnerPadding => new() { Top = 3, Bottom = 3, Left = 4, Right = 4 };
-    List<Mirror> Popovers = new();
+    List<PopoverInstance> Popovers = new();
 
-    public void Popover(Drawable popover, Drawable attachment)
+    public PopoverInstance Popover(Drawable popover, Drawable attachment, bool keepAlive, bool mouseBlocker = false)
     {
-        if (popover == null || Popovers.Exists(e => e.Child == popover)) return;
-        var mirror = new Mirror(attachment, popover);
-        AddInternal(mirror);
-        Popovers.Add(mirror);
+        if (popover == null) return null;
+        var instance = Popovers.Find(e => e.Drawable == popover);
+        if (instance != null) return instance;
+        instance = new PopoverInstance(this)
+        {
+            Mirror = new Mirror(attachment, popover),
+            Drawable = popover,
+            KeepAlive = keepAlive
+        };
+        if (mouseBlocker)
+            AddInternal(instance.MouseBlocker = new MouseBlocker(instance));
+        AddInternal(instance.Mirror);
+        Popovers.Add(instance);
+        return instance;
     }
 
-    public void ClosePopover(Drawable popover, bool dispose = true)
+    public void CloseThrough(PopoverInstance popover)
     {
-        if (popover == null) return;
-        var i = Popovers.FindIndex(e => e.Child == popover);
-        if (i == -1) return;
-        RemoveInternal(Popovers[i], false);
-        Popovers[i].Kill(dispose);
+        var index = Popovers.IndexOf(popover);
+        if (index < 0) return;
+        for (var i = Popovers.Count - 1; i >= index; i--)
+            ClosePopover(i);
+    }
+    public bool ClosePopover(int i)
+    {
+        if (i < 0) return false;
+        var popover = Popovers[i];
+        var dispose = !popover.KeepAlive;
+        RemoveInternal(popover.Mirror, false);
+        if (popover.MouseBlocker != null)
+        {
+            RemoveInternal(popover.MouseBlocker, true);
+        }
+        popover.Mirror.Kill(dispose);
         Popovers.RemoveAt(i);
+        popover.OnClose?.Invoke();
+        return true;
     }
+    public bool ClosePopover(PopoverInstance popover) => ClosePopover(Popovers.IndexOf(popover));
+    public bool ClosePopover(Drawable drawable) => ClosePopover(Popovers.FindIndex(e => e.Drawable == drawable));
 
-    class Mirror : CompositeDrawable
+    public class Mirror : CompositeDrawable
     {
         public Drawable Child;
         public Drawable Target; // could also push all events from Handle method to Target
         public void Kill(bool killChild)
         {
             // we can skip killing our children by removing them before we dispose
-            if (!killChild) ClearInternal(false);
+            if (!killChild && Child.Parent == this) ClearInternal(false);
             Dispose();
         }
         public Mirror(Drawable target, Drawable child)
@@ -83,14 +114,38 @@ public class DrumPopoverContainer : TooltipContainer
         base.Update();
         for (var i = Popovers.Count - 1; i >= 0; i--)
         {
-            var mirror = Popovers[i];
-            if (mirror.Child.Parent != mirror)
+            var popover = Popovers[i];
+            if (popover.Drawable.Parent != popover.Mirror || !popover.Drawable.IsPresent)
             {
-                RemoveInternal(mirror, true);
-                Popovers.RemoveAt(i);
+                ClosePopover(i);
                 continue;
             }
-            mirror.UpdateMirror();
+            popover.Mirror.UpdateMirror();
+        }
+    }
+    public class MouseBlocker : Drawable
+    {
+        readonly PopoverInstance Instance;
+        public MouseBlocker(PopoverInstance instance)
+        {
+            Instance = instance;
+            Depth = 1;
+            RelativeSizeAxes = Axes.Both;
+        }
+        protected override bool Handle(UIEvent e)
+        {
+            if (e is MouseEvent)
+            {
+                if (e is MouseButtonEvent || e is ScrollEvent)
+                    ((DrumPopoverContainer)Parent).CloseThrough(Instance);
+                return true;
+            }
+            if (e is KeyDownEvent kde && kde.Key == Key.Escape)
+            {
+                ((DrumPopoverContainer)Parent).CloseThrough(Instance);
+                return true;
+            }
+            return false;
         }
     }
 

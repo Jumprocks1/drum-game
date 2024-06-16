@@ -49,11 +49,11 @@ public class Autocomplete<T> : CompositeDrawable, IAcceptFocus where T : class, 
             if (ClearOnFocus && value) Input.Current.Value = "";
             _open = value;
             if (value)
-                Util.GetParent<DrumPopoverContainer>(this).Popover(Popover, ButtonContainer);
+                Util.GetParent<DrumPopoverContainer>(this).Popover(Popover, ButtonContainer, true);
             else
             {
                 Input.Current.Value = _committedTargeted?.Name ?? "";
-                Util.GetParent<DrumPopoverContainer>(this)?.ClosePopover(Popover, false);
+                Util.GetParent<DrumPopoverContainer>(this)?.ClosePopover(Popover);
             }
             UpdateFilterAndDisplay();
         }
@@ -353,7 +353,7 @@ public class Autocomplete<T> : CompositeDrawable, IAcceptFocus where T : class, 
         }
         return base.OnKeyDown(e);
     }
-    public void Focus(InputManager inputManager) => inputManager.ChangeFocus(Input);
+    public void Focus(IFocusManager focusManager) => focusManager.ChangeFocus(Input);
 }
 
 public class Autocomplete : Autocomplete<BasicAutocompleteOption>

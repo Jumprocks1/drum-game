@@ -1,3 +1,4 @@
+using System;
 using DrumGame.Game.Beatmaps.Scoring;
 using DrumGame.Game.Skinning;
 using osu.Framework.Graphics;
@@ -119,5 +120,24 @@ public static class DrumColors
                 return Mix(g[i].color, g[i + 1].color, (float)((error - g[i].error) / (g[i + 1].error - g[i].error)));
         }
         return g[^1].color;
+    }
+
+    // See
+    // https://ux.stackexchange.com/questions/107318/formula-for-color-contrast-between-text-and-background
+    // could make this take a list of colors, then do max by contrast ratio
+    public static Colour4 ContrastText(Colour4 background)
+    {
+        // cutoff is based on contrast ratio formula
+        if (Luminance(background) > 0.1791) return Colour4.Black;
+        return Colour4.White;
+    }
+    public static double ContrastRatio(Colour4 foreground, Colour4 background)
+        => ContrastRatio(Luminance(foreground), Luminance(background));
+    public static double ContrastRatio(double lumA, double lumB) => (Math.Max(lumA, lumB) + 0.05) / (Math.Min(lumA, lumB) + 0.05);
+    public static double Luminance(Colour4 color)
+    {
+        // https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef
+        var linear = color.ToLinear();
+        return 0.2126 * linear.R + 0.7152 * linear.B + 0.0722 * linear.G;
     }
 }

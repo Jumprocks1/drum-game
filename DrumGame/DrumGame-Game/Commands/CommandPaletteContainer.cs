@@ -31,7 +31,7 @@ public class CommandPaletteContainer : Container
     public override bool HandlePositionalInput => HasOverlay;
     public List<IModal> ModalStack = new();
     public CommandPalette Palette;
-    InputManager input;
+    IFocusManager focusManager;
     public CommandController CommandController;
     public RequestModal Request(RequestConfig config) => Push(new RequestModal(config), unique: false);
     public RequestModal RequestNumber(string title, string label, double value, Action<double> callback, string description = null)
@@ -81,7 +81,7 @@ public class CommandPaletteContainer : Container
 
     protected override void LoadComplete()
     {
-        input = GetContainingInputManager();
+        focusManager = GetContainingFocusManager();
         base.LoadComplete();
     }
 
@@ -150,6 +150,8 @@ public class CommandPaletteContainer : Container
         return Push(modal);
     }
 
+    public bool ModalOpen<T>() => ModalStack.OfType<T>().Any();
+
     // note that if this is used with basic `RequestModal`s, they will kill eachother with unique
     // this is typically desirable
     public T Push<T>(T modal, bool keepAliveOnClose = false, bool unique = true) where T : Drawable, IModal
@@ -173,9 +175,9 @@ public class CommandPaletteContainer : Container
         if (keepAliveOnClose) modal.Alpha = 1;
         AddInternal(modal);
         if (modal is IAcceptFocus f)
-            ScheduleAfterChildren(() => f.Focus(input));
+            ScheduleAfterChildren(() => f.Focus(focusManager));
         else
-            ScheduleAfterChildren(() => input.TriggerFocusContention(this));
+            ScheduleAfterChildren(() => focusManager.TriggerFocusContention(this));
         // we could add another interface called IConflictWith which just takes a Drawable (or object) and returns true or false
         // we would run all modals on the stack through this function and close the conflicts
         return modal;
@@ -202,6 +204,7 @@ public class CommandPaletteContainer : Container
     }
     [CommandHandler] public void EditKeybinds() => Push<KeybindEditor>();
     [CommandHandler] public void OpenSettings() => Push<SettingsView>();
+    [CommandHandler] public void OpenSkinSettings() => Push<OverlayModal<SkinSettingsView>>();
     [CommandHandler] public void Notifications() => Push(NotificationOverlayOverlay, true);
     [CommandHandler] public void OpenKeyboardView() => Push<OverlayModal<KeyBindingBrowser>>();
     [CommandHandler] public void OpenKeyboardDrumEditor() => Push<OverlayModal<KeyboardMappingEditor>>();

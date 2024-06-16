@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using DrumGame.Game.API;
 using DrumGame.Game.Beatmaps.Data;
+using DrumGame.Game.Beatmaps.Formats;
 using DrumGame.Game.Channels;
 using DrumGame.Game.Interfaces;
 using DrumGame.Game.IO;
@@ -74,9 +75,9 @@ public partial class DtxLoader
         });
         var res = loader.ImportDtxStream(stream);
         if (CachedDef.directory != directory)
-            CachedDef = (ReadDef(((IFileProvider)provider).TryOpen("set.def", "SET.def")), directory);
+            CachedDef = (ReadDef(((IFileProvider)provider).TryOpen("set.def", "SET.def"), provider.FolderName), directory);
         var defs = CachedDef.defs;
-        SetDifficultyName(defs, Path.GetFileName(fullPath), res.Item1);
+        ApplyDefInfo(defs, Path.GetFileName(fullPath), res.Item1);
         return res.Item1;
     }
     static string DifficultyMap(int dtxDifficulty) => (dtxDifficulty >= 100 ? dtxDifficulty / 10 : dtxDifficulty) switch
@@ -117,6 +118,8 @@ public partial class DtxLoader
             if (path.Contains("Open", StringComparison.InvariantCultureIgnoreCase)
                 && !path.Contains("Half", StringComparison.InvariantCultureIgnoreCase)) Open = true;
             if (path.Contains("OHH", StringComparison.InvariantCultureIgnoreCase)) Open = true;
+            if (path.Contains("HHO", StringComparison.InvariantCultureIgnoreCase)) Open = true;
+            if (path.Contains("106")) Open = true;
             if (path == "69.xa" || path == "6A.xa") Open = true; // for GITADORA imports
         }
     }
@@ -142,6 +145,7 @@ public partial class DtxLoader
     record Def
     {
         public string Title;
+        public string MapSet;
         public Dictionary<char, DtxDef> DtxDefs = new();
     }
 
@@ -292,8 +296,10 @@ public partial class DtxLoader
             if (dc != DrumChannel.None)
             {
                 var mod = NoteModifiers.None;
-                if (channel == "1C") // 1C is left bass drum in DTX
+                if (channel == "1C" || channel == "1A") // 1C is left bass drum in DTX, 1A is left crash
                     mod = NoteModifiers.Left;
+                else if (channel == "16") // 16 is right/main crash
+                    mod = NoteModifiers.Right;
                 var data = new HitObjectData(dc, mod);
                 if (dc == DrumChannel.BassDrum) // for the bass channel, we have to mark the samples as bass drum samples
                     s((tick, id, sample) =>
@@ -325,8 +331,10 @@ public partial class DtxLoader
                         else if (sample != null && sample.Ride)
                             o.HitObjects.Add(new HitObject(tick, DrumChannel.Ride));
                         else if (sample != null && sample.Splash)
-                            o.HitObjects.Add(new HitObject(tick, DrumChannel.Splash));
+                            // splash can be L/R, so we include mod
+                            o.HitObjects.Add(new HitObject(tick, new HitObjectData(DrumChannel.Splash, mod)));
                         else
+                            // this includes the modifier for L/R cymbals
                             o.HitObjects.Add(new HitObject(tick, data));
                     });
                 else if (dc == DrumChannel.OpenHiHat || dc == DrumChannel.ClosedHiHat)
@@ -403,7 +411,7 @@ public partial class DtxLoader
             folderName = folderName[9..];
 
         var outputFilename = (folderName + "-" + beatmap.MetaHash()[0..8].ToLowerInvariant() + "-" + localFileName).ToFilename(".bjson");
-        beatmap.Source = new BJsonSource(Path.Join(outputFolder, outputFilename));
+        beatmap.Source = new BJsonSource(Path.Join(outputFolder, outputFilename), BJsonFormat.Instance);
 
         var mainBgm = info.GetMainBgm();
         if (mainBgm != null)
@@ -441,6 +449,8 @@ public partial class DtxLoader
                 var drumStems = new List<string> { "drums.ogg", "drums.mp3" };
                 if (mainBgm.Path == "bgm.ogg")
                     drumStems.Add("bgmd.ogg");
+                if (mainBgm.Path.Contains("(No Drums)"))
+                    drumStems.Add(mainBgm.Path.Replace("(No Drums)", "(Drums)"));
                 foreach (var file in drumStems)
                 {
                     if (Provider.Exists(file))
@@ -511,20 +521,25 @@ public partial class DtxLoader
 
         await PrepareForSave(localFileName, o, info);
 
-        DefInfo ??= ReadDef(Provider.TryOpen("set.def", "SET.def"));
-        SetDifficultyName(DefInfo, localFileName, o);
+        DefInfo ??= ReadDef(Provider.TryOpen("set.def", "SET.def"), Provider.FolderName);
+        ApplyDefInfo(DefInfo, localFileName, o);
         o.Export();
         o.SaveToDisk(Util.DrumGame.MapStorage, Context);
     }
-    static List<Def> ReadDef(Stream stream)
+    static List<Def> ReadDef(Stream stream, string folderName)
     {
         if (stream == null) return null;
+        var lastPartOfPath = Path.GetFileName(folderName);
         var o = new List<Def>();
         Def def = null;
         foreach (var (code, value) in ReadDtxLines(stream))
         {
-            if (code == "TITLE") o.Add(def = new Def { Title = value });
-            else if (code.StartsWith("L"))
+            if (code == "TITLE") o.Add(def = new Def
+            {
+                Title = value,
+                MapSet = $"{lastPartOfPath}/{value}"
+            });
+            else if (code.StartsWith('L'))
             {
                 if (def == null)
                     o.Add(def = new Def());
@@ -549,7 +564,7 @@ public partial class DtxLoader
     async Task ImportDefInternal(string localFileName)
     {
         Logger.Log($"Importing set.def at {Provider.FolderName}", level: LogLevel.Important);
-        DefInfo = ReadDef(Provider.Open(localFileName));
+        DefInfo = ReadDef(Provider.Open(localFileName), Path.Join(Provider.FolderName, Path.GetDirectoryName(localFileName)));
         Logger.Log($"Loading {DefInfo.FirstOrDefault()?.Title}", level: LogLevel.Important);
         foreach (var set in DefInfo)
         {

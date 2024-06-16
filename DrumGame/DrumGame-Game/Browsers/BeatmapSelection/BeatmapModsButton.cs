@@ -1,6 +1,5 @@
 using System.Linq;
 using DrumGame.Game.Components;
-using DrumGame.Game.Containers;
 using DrumGame.Game.Interfaces;
 using DrumGame.Game.Utils;
 using osu.Framework.Allocation;
@@ -10,7 +9,7 @@ using osu.Framework.Graphics.Sprites;
 
 namespace DrumGame.Game.Browsers.BeatmapSelection;
 
-public class BeatmapModsButton : CommandButton, IHasCustomTooltip
+public class BeatmapModsButton : CommandButton, IHasMarkupTooltip
 {
     readonly BeatmapSelector Selector;
     BeatmapSelectorState State => Selector.State;
@@ -95,24 +94,18 @@ public class BeatmapModsButton : CommandButton, IHasCustomTooltip
         }
     }
 
-    string CommandTooltip => IHasCommand.GetMarkupTooltip(CommandInfo);
-
-    public string MarkupTooltip
+    string IHasMarkupTooltip.MarkupTooltip
     {
         get
         {
             if (State.HasModifiers)
             {
-                return CommandTooltip + "\n" + string.Join('\n', State.Modifiers.Select(e => e.MarkupDisplay));
+                return IHasCommand.GetMarkupTooltip(CommandInfo) + "\n" + string.Join('\n', State.Modifiers.Select(e => e.MarkupDisplay));
             }
             else
             {
-                return CommandTooltip + "\n" + "No modifiers currently selected.";
+                return IHasCommand.GetMarkupTooltip(CommandInfo) + "\n" + "No modifiers currently selected.";
             }
         }
     }
-
-    public object TooltipContent => new MarkupTooltipData(MarkupTooltip);
-
-    public ITooltip GetCustomTooltip() => null;
 }

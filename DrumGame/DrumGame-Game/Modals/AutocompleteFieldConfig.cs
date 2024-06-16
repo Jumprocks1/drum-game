@@ -32,16 +32,6 @@ public class EnumFieldConfig<T> : FieldConfigBase<T> where T : struct, Enum
             Config = config;
             TooltipContent = config.Tooltip;
             RelativeSizeAxes = Axes.X;
-            OnFocusChange += focused =>
-            {
-                if (!focused)
-                {
-                    var modal = Util.GetParent<RequestModal>(this);
-                    if (modal == null) return;
-                    if (modal.Config.Fields.Length == 1)
-                        modal.Close();
-                }
-            };
             OnSelect += value =>
             {
                 var modal = Util.GetParent<RequestModal>(this);

@@ -99,6 +99,11 @@ public class SkinElementOverlay : CompositeDrawable, IHasMarkupTooltip, IHasCont
     // we could probably override + copy paste the entire ContextMenuContainer.OnMouseDown
     // it uses a lot of private methods though, so at that point we might as well remove ContextMenuContainer and just add the features to DrumContextMenuContainer
     public MenuItem[] ContextMenuItems => ContextMenuBuilder.New(Element)
+        .Add("Save changes to skin", e =>
+        {
+            e.SkinPathExpression.Dirty();
+            SkinManager.SavePartialSkin(Util.Skin);
+        }).Color(DrumColors.BrightGreen)
         .Add("Set Position", e =>
         {
             Util.Palette.RequestString("Setting Position", "Position", $"{e.SkinData.X}, {e.SkinData.Y}", s =>

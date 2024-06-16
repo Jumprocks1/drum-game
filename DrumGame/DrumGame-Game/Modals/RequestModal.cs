@@ -243,34 +243,16 @@ public class RequestModal : TabbableContainer, IModal, IAcceptFocus
         }
         var relativeWidth = config.Width <= 1;
         var borderPadding = 2;
-        AddInternal(new Container
+
+        var foreground = new ModalForeground(Axes.Y)
         {
-            AutoSizeAxes = Axes.Y,
             RelativeSizeAxes = relativeWidth ? Axes.X : Axes.None,
             Anchor = Anchor.Centre,
             Origin = Anchor.Centre,
             Width = relativeWidth ? config.Width : config.Width + (borderPadding + CommandPalette.Margin) * 2,
-            Children = new Drawable[] {
-                new Box
-                {
-                    Colour = DrumColors.DarkBorder,
-                    RelativeSizeAxes = Axes.Both
-                },
-                new Container {
-                    AutoSizeAxes = Axes.Y,
-                    RelativeSizeAxes = Axes.X,
-                    Padding = new MarginPadding(borderPadding),
-                    Children = new Drawable [] {
-                        new Box
-                        {
-                            Colour = DrumColors.DarkBackground,
-                            RelativeSizeAxes = Axes.Both
-                        },
-                        mainContainer
-                    }
-                },
-            }
-        });
+        };
+        foreground.Add(mainContainer);
+        AddInternal(foreground);
         if (Config.Commands != null)
             foreach (var command in Config.Commands)
                 Util.CommandController.RegisterHandler(command.Item1, command.Item2);
@@ -358,10 +340,10 @@ public class RequestModal : TabbableContainer, IModal, IAcceptFocus
         }
         return base.OnKeyDown(e);
     }
-    public void Focus(InputManager inputManager)
+    public void Focus(IFocusManager focusManager)
     {
-        if (initialFocus is IAcceptFocus f) f.Focus(inputManager);
-        else inputManager.ChangeFocus(initialFocus);
+        if (initialFocus is IAcceptFocus f) f.Focus(focusManager);
+        else focusManager.ChangeFocus(initialFocus);
     }
 
     // this is probably kinda bad but who cares

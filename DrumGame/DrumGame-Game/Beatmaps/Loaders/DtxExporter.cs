@@ -114,12 +114,14 @@ public class DtxExporter
         public OutputFormat OutputFormat;
         public SampleMethod SampleMethod;
         public bool OpenAfterExport = true;
-        public bool ExportAllDifficulties;
+        public bool ExportMapSet;
         public string ExportName;
         public double RollDivisor;
         public int GhostNoteWidth = 100;
         public bool EncodeOffset;
+        public bool IncludeVideo;
         public int OffbeatHiHatVolume = 100;
+        public bool ExcludeMeasureChanges = true; // TODO add config
     }
 
     class DtxWriter : StreamWriter
@@ -178,6 +180,10 @@ public class DtxExporter
     {
         public int Time { get; set; }
     }
+    class BgObject : ITickTime
+    {
+        public int Time { get; set; }
+    }
     class EndEventObject : ITickTime { public int Time { get; set; } }
 
     string DtxChannel(ITickTime ev)
@@ -207,6 +213,8 @@ public class DtxExporter
             return "08";
         else if (ev is BgmObject)
             return "01";
+        else if (ev is BgObject)
+            return "54";
         else if (ev is EndEventObject) return "61"; // SE1
         else throw new NotImplementedException();
     }
@@ -221,6 +229,10 @@ public class DtxExporter
         Beatmap.AddExtraDefault(tempoChanges);
         var startingTempo = tempoChanges[0];
         tempoChanges.RemoveAt(0); // don't need to write first tempo change
+        var measureChangesBackup = beatmap.MeasureChanges;
+        if (Config.ExcludeMeasureChanges)
+            beatmap.MeasureChanges = [];
+
         var measureChanges = new List<MeasureChange>(beatmap.MeasureChanges);
         Beatmap.AddExtraDefault(measureChanges);
         var startingMeasureChange = measureChanges[0];
@@ -250,9 +262,10 @@ public class DtxExporter
                     var squareImage = true;
 
                     using (var file = File.OpenRead(fullPath))
-                    using (var image = Image.Load(file, out var format))
+                    using (var image = Image.Load(file))
                     {
-                        var size = image.Size();
+                        var format = image.Metadata.DecodedImageFormat;
+                        var size = image.Size;
                         squareImage = size.Width == size.Height;
                         if (!squareImage)
                         {
@@ -289,6 +302,7 @@ public class DtxExporter
             if (ev is HitObject ho)
                 return GetChip(SampleKey(ho)).Id;
             if (ev is BgmObject) return BgmChip.Id;
+            if (ev is BgObject) return "01";
             else if (ev is EndEventObject)
                 // not sure if there's a better way to do this. Ideally we would just reserve the next sample id
                 return "99";
@@ -315,6 +329,13 @@ public class DtxExporter
         var minimumBufferTicks = beatmap.TickRate / 2; // there must be at least 1 half note before BGM start
         if (bgmStartTick <= minimumBufferTicks) // starting near 0 is bad, Idk why
             bufferMeasures = (startingTicksPerMeasure - bgmStartTick + minimumBufferTicks) / startingTicksPerMeasure;
+        var videoStartTick = 0;
+        if (Config.IncludeVideo)
+        {
+            videoStartTick = CurrentBeatmap.TickFromBeatSlow(CurrentBeatmap.BeatFromMilliseconds(-beatmap.YouTubeOffset));
+            if (videoStartTick < -bufferMeasures * startingTicksPerMeasure)
+                bufferMeasures = (startingTicksPerMeasure - videoStartTick) / startingTicksPerMeasure;
+        }
 
         if (Config.EncodeOffset)
         {
@@ -360,6 +381,7 @@ public class DtxExporter
 
         IEnumerable<ITickTime> events = hitObjects;
         events = events.Append(new BgmObject { Time = bgmStartTick });
+        if (Config.IncludeVideo) events = events.Append(new BgObject { Time = videoStartTick });
         events = events.Concat(tempoChanges);
         events = events.Concat(beatmap.MeasureChanges);
         var endEvent = BookmarkEvents.OfType<BookmarkEndEvent>().FirstOrDefault();
@@ -374,9 +396,11 @@ public class DtxExporter
         {
             var measure = beatmap.MeasureFromTickNegative(ev.Time);
             var outputMeasure = measure + bufferMeasures;
+            if (outputMeasure < 0) throw new Exception("DTX measure before 0");
             if (ev is MeasureChange mc)
             {
                 if (mc.Time == 0) outputMeasure = 0;
+                // note this is a special case where we write this early
                 writer.WriteLine($"#{outputMeasure:000}02: {mc.Beats / 4}");
                 continue;
             }
@@ -384,7 +408,7 @@ public class DtxExporter
             var measureEnd = beatmap.TickFromMeasureNegative(measure + 1);
             var channel = DtxChannel(ev);
             bodyBuilder.Append($"#{outputMeasure:000}{channel}: ");
-            if (ev is BgmObject)
+            if (ev is BgmObject || ev is BgObject) // this only works for 01 as a single item
             {
                 // get the offset within ~1ms
                 var accuracy = 1000 / (startingMeasureChange.Beats * startingTempo.MicrosecondsPerQuarterNote);
@@ -436,7 +460,14 @@ public class DtxExporter
             sample.WriteTo(writer);
         writer.WriteLine();
 
+        if (Config.IncludeVideo)
+        {
+            writer.WriteLine("#AVI01: bg.mp4");
+            writer.WriteLine();
+        }
+
         writer.Write(bodyBuilder);
+        beatmap.MeasureChanges = measureChangesBackup;
     }
     class SampleInfo
     {
@@ -501,6 +532,7 @@ public class DtxExporter
                 // we don't archive bgm.ogg since it's in Samples
                 Archive("pre.ogg");
                 Archive(ImageOutput);
+                if (Config.IncludeVideo) Archive("bg.mp4");
                 foreach (var filename in Samples.Select(e => e.Filename))
                     Archive(filename); // this removes duplicates, so don't have to worry about L/R crashes being written twice
             }
@@ -563,6 +595,40 @@ public class DtxExporter
                 process.AddOutput(bgmPath);
                 process.Run();
             }
+        }
+
+        if (Config.IncludeVideo && CurrentBeatmap.YouTubeID != null)
+        {
+            try
+            {
+                var videoPath = Output.BuildPath("bg.mp4");
+                if (!File.Exists(videoPath))
+                {
+
+                    var url = CurrentBeatmap.YouTubeID;
+                    var processInfo = new ProcessStartInfo(YouTubeDL.Executable);
+                    processInfo.ArgumentList.Add("-f");
+                    processInfo.ArgumentList.Add("136");
+                    processInfo.ArgumentList.Add("-o");
+                    processInfo.ArgumentList.Add(videoPath);
+                    processInfo.RedirectStandardError = true;
+                    if (url.Length == 11)
+                        url = "youtu.be/" + url; // without this, IDs starting with `-` will fail
+                    processInfo.ArgumentList.Add(url);
+
+                    var proc = Process.Start(processInfo);
+                    proc.WaitForExit();
+                    if (proc.ExitCode != 0)
+                    {
+                        string error;
+                        if (processInfo.RedirectStandardOutput)
+                            error = proc.StandardOutput.ReadToEnd();
+                        else error = "See console output for error";
+                        throw new Exception($"Failed to run {processInfo.FileName} with: {string.Join(", ", proc.StartInfo.ArgumentList)}\n\n\n{error}");
+                    }
+                }
+            }
+            catch (Exception e) { Logger.Error(e, "Error while downloading YouTube video"); }
         }
 
         var previewPath = Output.BuildPath("pre.ogg");
@@ -644,22 +710,31 @@ public class DtxExporter
         File.WriteAllText(chipInfoFile, JsonConvert.SerializeObject(chipInfo));
     }
 
-    void MakeSetDef(List<(string, BeatmapMetadata)> set)
+    Dictionary<string, string> Filenames = new();
+
+    void MakeSetDef(IReadOnlyList<MapSetEntry> set)
     {
         const string setFile = "SET.def";
         {
-            var orderedSet = set.OrderBy(e => Beatmap.GetDtxLevel(e.Item2.SplitTags()) ?? "50");
+            var orderedSet = set.OrderBy(e => Beatmap.GetDtxLevel(e.Metadata.SplitTags()) ?? "50").ToList();
             using var stream = Output.OpenCreate(setFile);
             using var writer = new StreamWriter(stream, Encoding.Unicode);
-            writer.WriteLine("#TITLE " + set[0].Item2.Title);
+            writer.WriteLine("#TITLE " + set[0].Metadata.Title);
             writer.WriteLine();
-            var i = 1;
             var names = new HashSet<string>();
-            foreach (var diff in orderedSet)
+            for (var j = orderedSet.Count - 1; j >= 0; j--)
             {
-                var filename = GetDtxFileName(diff.Item2.SplitTags());
+                var filename = GetDtxFileNameOrNull(orderedSet[j].Metadata.SplitTags());
+                filename ??= Levels.Last(e => !names.Contains(e));
                 if (!names.Add(filename))
                     throw new UserException("Duplicate level name found, please add `dtx-name-ext` (or similar) tag to one of the maps.");
+                Filenames[orderedSet[j].Metadata.Id] = filename;
+            }
+
+            var i = 1;
+            foreach (var diff in orderedSet)
+            {
+                var filename = Filenames[diff.Metadata.Id];
                 writer.WriteLine($"#L{i}LABEL {GetDtxDiffName(filename)}");
                 writer.WriteLine($"#L{i}FILE {filename}.dtx");
                 writer.WriteLine();
@@ -672,13 +747,13 @@ public class DtxExporter
     void Export()
     {
         var set = MapStorage.GetMapSet(TargetBeatmap);
-        var commonString = GetCommonString(set.Select(e => Path.GetFileNameWithoutExtension(e.Item1)).ToList());
+        var commonString = GetCommonString(set.Select(e => Path.GetFileNameWithoutExtension(e.MapStoragePath)).ToList());
 
         var basename = Util.Resources.GetAbsolutePath(Path.Join("dtx-exports", commonString + "-dtx"));
         Output = new FileProvider(Directory.CreateDirectory(basename));
 
-        if (!Config.ExportAllDifficulties)
-            set.Clear();
+        if (!Config.ExportMapSet)
+            set = [];
 
         if (set.Count > 1)
             MakeSetDef(set);
@@ -733,7 +808,13 @@ public class DtxExporter
     }
     public static bool Export(CommandContext context, Beatmap beatmap)
     {
-        static bool isBad(char c) => char.IsWhiteSpace(c) || c == '.';
+        if (beatmap.UseYouTubeOffset)
+        {
+            Util.Palette.UserError("Cannot export while YouTube audio is loaded");
+            return true;
+        }
+        var badChar = Path.GetInvalidFileNameChars();
+        bool isBad(char c) => char.IsWhiteSpace(c) || c == '.' || badChar.Contains(c);
         var z = $"{beatmap.GetRomanArtist()} - {beatmap.GetRomanTitle()}";
         var zipName = new StringBuilder();
         for (var i = 0; i < z.Length; i++)
@@ -745,20 +826,25 @@ public class DtxExporter
             }
             else zipName.Append(z[i]);
         }
+        var hasMapSet = (Util.MapStorage.MapSets[beatmap]?.Count ?? 0) > 1;
         var fields = new FieldBuilder()
-            .Add(new BoolFieldConfig { Label = "Build Zip" })
-            .Add(new BoolFieldConfig { Label = "Export All Difficulties", DefaultValue = true })
-            .Add(new StringFieldConfig { Label = "Ghost Note Width", DefaultValue = "80" })
-            // TODO zip name can't have certain charcters in it (`:\/`)
-            .Add(new StringFieldConfig { Label = "Zip Name", DefaultValue = zipName.ToString() })
+            .Add(new BoolFieldConfig { Label = "Build Zip" });
+
+        if (hasMapSet)
+            fields.Add(new BoolFieldConfig { Label = "Export Map Set", Key = nameof(ExportConfig.ExportMapSet), DefaultValue = hasMapSet });
+
+        fields
+            .Add(new StringFieldConfig { Label = "Ghost Note Width", DefaultValue = "80", Key = nameof(ExportConfig.GhostNoteWidth) })
+            .Add(new StringFieldConfig { Label = "Zip Name", DefaultValue = zipName.ToString(), Key = nameof(ExportConfig.ExportName) })
             .Add(new BoolFieldConfig { Label = "Encode Offset", DefaultValue = true, Key = nameof(ExportConfig.EncodeOffset) })
-            .Add(new StringFieldConfig { Label = "Offbeat hihat volume", DefaultValue = "92", Key = nameof(ExportConfig.OffbeatHiHatVolume) });
+            .Add(new StringFieldConfig { Label = "Offbeat hihat volume", DefaultValue = "92", Key = nameof(ExportConfig.OffbeatHiHatVolume) })
+            .Add(new BoolFieldConfig { Label = "Include Video", DefaultValue = beatmap.YouTubeID != null, Key = nameof(ExportConfig.IncludeVideo) });
 
         var hasRolls = beatmap.HitObjects.Any(e => e.Roll);
         if (hasRolls)
             fields.Add(new StringFieldConfig { Label = "Roll Divisor", DefaultValue = "4", Key = "rollDivisor" });
 
-        var req = context.Palette.Request(new Modals.RequestConfig
+        var req = context.Palette.Request(new RequestConfig
         {
             Title = "Export to DTX",
             CommitText = "Export",
@@ -769,38 +855,44 @@ public class DtxExporter
                 var config = new ExportConfig();
                 if (buildZip)
                     config.OutputFormat = OutputFormat.Zip;
-                config.ExportAllDifficulties = e.GetValue<bool>(1);
-                config.GhostNoteWidth = int.Parse(e.GetValue<string>(2));
-                config.ExportName = e.GetValue<string>(3);
+                if (hasMapSet)
+                    config.ExportMapSet = e.GetValue<bool>(nameof(ExportConfig.ExportMapSet));
+                config.GhostNoteWidth = int.Parse(e.GetValue<string>(nameof(ExportConfig.GhostNoteWidth)));
+                config.ExportName = e.GetValue<string>(nameof(ExportConfig.ExportName));
                 config.EncodeOffset = e.GetValue<bool>(nameof(ExportConfig.EncodeOffset));
                 config.OffbeatHiHatVolume = int.Parse(e.GetValue<string>(nameof(ExportConfig.OffbeatHiHatVolume)));
+                config.IncludeVideo = e.GetValue<bool>(nameof(ExportConfig.IncludeVideo));
                 if (hasRolls)
                     config.RollDivisor = double.TryParse(e.GetValue<string>("rollDivisor"), out var o) ? o : 4;
                 Export(beatmap, config);
             }
         });
-        if (beatmap.PreviewTime == null)
+        void addWarning(string message)
         {
             var y = req.InnerContent.Children.Sum(e => e.Height);
             var s = new SpriteText
             {
-                Text = "Warning: No preview time set",
+                Text = message,
                 Colour = DrumColors.WarningText,
                 Font = FrameworkFont.Regular,
                 Y = y
             };
             req.Add(s);
         }
+        if (beatmap.PreviewTime == null)
+            addWarning("Warning: No preview time set");
+        if (beatmap.GetDtxLevel() == null)
+            addWarning("Warning: No DTX level tag set");
         return true;
     }
 
-    static string GetDtxFileName(Beatmap beatmap) => GetDtxFileName(beatmap.SplitTags());
-    static string GetDtxFileName(string[] tags)
+    string GetDtxFileName(Beatmap beatmap) => Filenames.GetValueOrDefault(beatmap.Id) ?? GetDtxFileNameOrNull(beatmap.SplitTags()) ?? Levels[^1];
+    static string GetDtxFileNameOrNull(string[] tags)
     {
         foreach (var tag in tags)
             if (tag.StartsWith("dtx-name-"))
                 return tag[9..];
-        return "mstr";
+        return null;
     }
     static string GetDtxDiffName(string filename) => filename switch
     {
@@ -809,6 +901,7 @@ public class DtxExporter
         "ext" => "EXTREME",
         _ => "MASTER"
     };
+    static readonly string[] Levels = ["bsc", "adv", "ext", "mstr"];
     static string GetCommonString(List<string> s)
     {
         var first = s[0];

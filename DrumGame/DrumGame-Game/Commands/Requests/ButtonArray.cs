@@ -13,6 +13,7 @@ public class ButtonOption
 {
     public string Text;
     public bool AutoSize;
+    public string MarkupTooltip;
 }
 public class ButtonArray : CompositeDrawable
 {
@@ -36,7 +37,8 @@ public class ButtonArray : CompositeDrawable
                 X = x,
                 Text = option.Text,
                 AutoFontSize = option.AutoSize,
-                Action = () => onPress(j)
+                Action = () => onPress(j),
+                MarkupTooltip = option.MarkupTooltip
             };
             AddInternal(b);
             x += 150;

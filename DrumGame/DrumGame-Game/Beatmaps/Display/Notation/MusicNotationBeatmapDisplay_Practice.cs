@@ -42,14 +42,18 @@ public partial class MusicNotationBeatmapDisplay
         RightPracticeOverlay.Width = (float)((Beatmap.QuarterNotes - practice.EndBeat) * Spacing);
         RightPracticeOverlay.Alpha = practice.Config.OverlayStrength;
     }
-    public override void EndPractice(PracticeMode practice)
+    // this doesn't get called during disposal (ie. exiting the game)
+    public override void ExitPractice(PracticeMode practice)
     {
         practice.PracticeChanged -= UpdatePracticeOverlay;
-        NoteContainer.Remove(LeftPracticeOverlay, true);
+        if (!IsDisposed) // these fail if we're already disposed/exiting the game (Alt+F4)
+        {
+            NoteContainer.Remove(LeftPracticeOverlay, true);
+            NoteContainer.Remove(RightPracticeOverlay, true);
+            Remove(PracticeInfoPanel, true);
+        }
         LeftPracticeOverlay = null;
-        NoteContainer.Remove(RightPracticeOverlay, true);
         RightPracticeOverlay = null;
-        Remove(PracticeInfoPanel, true);
         PracticeInfoPanel = null;
     }
 }

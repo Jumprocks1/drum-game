@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using DrumGame.Game.API;
 using DrumGame.Game.Browsers.BeatmapSelection;
 using DrumGame.Game.Commands;
@@ -222,15 +223,13 @@ public class BeatmapCarousel : CompositeDrawable
     }
 
     // masking handled via virtualization
-    public override bool UpdateSubTreeMasking(Drawable source, RectangleF maskingBounds) => true;
+    public override bool UpdateSubTreeMasking() => true;
     [CommandHandler] public void Select() => Selector.SelectMap(false);
     [CommandHandler] public void SelectAutostart() => Selector.SelectMap(true);
     [CommandHandler] public void SeekToStart() => CarouselTarget = 0;
     [CommandHandler] public void SeekToEnd() => CarouselTarget = ItemSize * (FilteredMaps.Count - 1);
     [CommandHandler] public void Up() => CarouselTarget -= ItemSize;
-    [CommandHandler] public void Next() => Up();
     [CommandHandler] public void Down() => CarouselTarget += ItemSize;
-    [CommandHandler] public void Previous() => Down();
     [CommandHandler] public void PageUp() => CarouselTarget -= ItemSize * 4;
     [CommandHandler] public void PageDown() => CarouselTarget += ItemSize * 4;
     [CommandHandler]
@@ -254,11 +253,23 @@ public class BeatmapCarousel : CompositeDrawable
         }, "Jumping to Map", "Filename");
         return true;
     }
-    public void JumpToMap(string filename)
+    public bool JumpToMap(BeatmapMetadata metadata)
     {
         for (var i = 0; i < FilteredMaps.Count; i++)
         {
-            if (FilteredMaps[i].MapStoragePath == filename)
+            if (FilteredMaps[i].LoadedMetadata == metadata)
+            {
+                CarouselTarget = i * ItemSize;
+                return true;
+            }
+        }
+        return false;
+    }
+    public void JumpToMap(string mapStoragePath)
+    {
+        for (var i = 0; i < FilteredMaps.Count; i++)
+        {
+            if (FilteredMaps[i].MapStoragePath == mapStoragePath)
             {
                 CarouselTarget = i * ItemSize;
                 return;

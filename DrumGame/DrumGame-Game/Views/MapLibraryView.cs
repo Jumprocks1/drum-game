@@ -52,6 +52,7 @@ public class MapLibraryView : RequestModal
                 })
                 .Add(new BoolFieldConfig("Scan for DTX"))
                 .Add(new BoolFieldConfig("Scan for BJson"))
+                .Add(new BoolFieldConfig("Scan for song.ini"))
                 .Build(),
             CommitText = "Add",
             OnCommit = e =>
@@ -62,7 +63,8 @@ public class MapLibraryView : RequestModal
                     Name = e.GetValue<string>(1),
                     RecursiveDepth = e.GetValue<int?>(2) ?? 5,
                     ScanDtx = e.GetValue<bool>(3),
-                    ScanBjson = e.GetValue<bool>(4)
+                    ScanBjson = e.GetValue<bool>(4),
+                    ScanSongIni = e.GetValue<bool>(5)
                 };
                 Util.MapStorage.MapLibraries.Add(provider);
             }
@@ -93,6 +95,7 @@ public class MapLibraryView : RequestModal
                 ActiveRequest.SetValue(3, containsDtx);
                 var containsBjson = Directory.GetFiles(path, "*.bjson", enumerationOptions).Length > 0;
                 ActiveRequest.SetValue(4, containsBjson);
+                ActiveRequest.SetValue(5, Directory.GetFiles(path, "song.ini", enumerationOptions).Length > 0);
                 return true;
             }
         }
@@ -163,12 +166,13 @@ public class MapLibraryView : RequestModal
         {
             NameText.Text = Library.FriendlyName;
 
-            var (bjson, dtx) = Library.CountMaps();
-            if (bjson != null || dtx != null)
+            var (bjson, dtx, songIni) = Library.CountMaps();
+            if (bjson != null || dtx != null || songIni != null)
             {
                 var text = "";
                 if (bjson != null) text += $"BJson maps: {bjson}";
                 if (dtx != null) text += $" DTX maps: {dtx}";
+                if (songIni != null) text += $" Song.ini maps: {songIni}";
                 CountText.Text = text.Trim();
             }
 

@@ -56,7 +56,7 @@ public class BeatmapPlayer : CompositeDrawable
     public CommandController Command => Util.CommandController;
     public BeatmapSelectorLoader Loader => Dependencies.Get<BeatmapSelectorLoader>();
     protected virtual bool AutoStart => true;
-    public virtual BeatmapPlayerMode Mode
+    public BeatmapPlayerMode Mode
     {
         get => _mode; set
         {
@@ -88,9 +88,12 @@ public class BeatmapPlayer : CompositeDrawable
                 var measureLines = (edit && !record) || Util.Skin.Notation.MeasureLines;
                 if (d.MeasureLines == null == measureLines) d.ToggleMeasureLines();
             }
+            ProtectedModeChanged(value);
             ModeChanged?.Invoke(value);
         }
     }
+    // added so that ModeChanged is always called after child mode change
+    protected virtual void ProtectedModeChanged(BeatmapPlayerMode mode) { }
     public event Action<BeatmapPlayerMode> ModeChanged;
     public readonly Beatmap Beatmap;
     public BeatClock Track;
@@ -291,11 +294,13 @@ public class BeatmapPlayer : CompositeDrawable
         Beatmap.LengthChanged -= LengthChanged;
         Util.DrumGame.VolumeController.MetronomeVolume.Muted.ValueChanged -= MetronomeMuteChanged;
         BeatmapPlayerInputHandler?.Dispose();
+        PracticeMode?.Exit();
+        PracticeMode = null;
         Command.RemoveHandlers(this);
         Track.Dispose();
     }
-    [CommandHandler] public void Next() => Track.SeekToBeat(Track.NextHitOrBeat(true));
-    [CommandHandler] public void Previous() => Track.SeekToBeat(Track.NextHitOrBeat(false));
+    [CommandHandler] public void NextNote() => Track.SeekToBeat(Track.NextHitOrBeat(true));
+    [CommandHandler] public void PreviousNote() => Track.SeekToBeat(Track.NextHitOrBeat(false));
     [CommandHandler]
     public void SwitchMode()
     {
@@ -365,7 +370,7 @@ public class BeatmapPlayer : CompositeDrawable
         if (ed == null)
         {
             Beatmap.Export();
-            Beatmap.TrySaveToDisk(MapStorage);
+            Beatmap.TrySaveToDisk();
         }
         else
         {
@@ -553,11 +558,6 @@ public class BeatmapPlayer : CompositeDrawable
 
 
     [CommandHandler] public void RevealAudioInFileExplorer() => Util.RevealInFileExplorer(CurrentAudioPath);
-
-    [CommandHandler]
-    public bool SetLocalOffset(CommandContext context) =>
-        context.Palette.RequestNumber("Setting Local Offset", "Local offset", Beatmap.LocalOffset,
-        e => Beatmap.LocalOffset = e);
     Metronome _metronome;
     void MetronomeMuteChanged(ValueChangedEvent<bool> e)
     {

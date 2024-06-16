@@ -8,6 +8,7 @@ namespace DrumGame.Game.Views.Settings.SettingInfos;
 public class BooleanSettingInfo : SettingInfo
 {
     public Bindable<bool> Binding;
+    public override string Description => Binding.Description;
     Box Box;
     public BooleanSettingInfo(string label, Bindable<bool> binding) : base(label)
     {

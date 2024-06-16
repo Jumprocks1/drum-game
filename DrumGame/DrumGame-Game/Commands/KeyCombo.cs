@@ -49,7 +49,10 @@ public readonly struct KeyCombo
     public KeyCombo(ScrollEvent e)
     {
         Modifier = e.Modifier();
-        Key = e.ScrollDelta.Y > 0 ? InputKey.MouseWheelUp : InputKey.MouseWheelDown;
+        Key = e.ScrollDelta.Y > 0 ? InputKey.MouseWheelUp :
+            e.ScrollDelta.Y < 0 ? InputKey.MouseWheelDown :
+            e.ScrollDelta.X > 0 ? InputKey.MouseWheelLeft :
+            InputKey.MouseWheelRight;
     }
     public KeyCombo(KeyDownEvent e)
     {

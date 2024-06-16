@@ -1,3 +1,5 @@
+using System;
+using System.Linq.Expressions;
 using DrumGame.Game.Beatmaps.Display;
 using DrumGame.Game.Beatmaps.Editor;
 using DrumGame.Game.Commands;
@@ -13,7 +15,7 @@ namespace DrumGame.Game.Components;
 
 public class VolumeControlGroup : AdjustableSkinElement
 {
-    public override ref AdjustableSkinData SkinPath => ref Util.Skin.Notation.VolumeControlGroup;
+    public override Expression<Func<Skin, AdjustableSkinData>> SkinPathExpression => e => e.Notation.VolumeControlGroup;
     public override AdjustableSkinData DefaultData() => new()
     {
         Anchor = Anchor.BottomRight,

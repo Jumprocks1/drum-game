@@ -1,4 +1,5 @@
 using System;
+using DrumGame.Game.Beatmaps.Loaders;
 using DrumGame.Game.Modals;
 using osu.Framework.Graphics;
 
@@ -40,25 +41,28 @@ public class SaveRequest : RequestModal
         );
     }
 
-    public static RequestModal DtxSaveRequest(string currentName, Action<bool> convert)
+    public static RequestModal ConvertSaveRequest(BJsonSource source, Action<bool> convert)
     {
         var req = new RequestModal(new RequestConfig
         {
-            Title = "DTX files cannot be saved directly.",
+            Title = "This file type cannot be saved directly.",
             Description = "Would you like to convert to a BJson file before saving?",
             CloseText = null,
-            Field = new BoolFieldConfig($"Remove {currentName} after converting", true)
+            Field = new BoolFieldConfig($"Remove {source.FilenameWithExt} after converting", true)
             {
                 Tooltip = "This is recommended to prevent duplicate maps appearing in the selector."
             }
         });
+        var library = source.Library;
+        var enableBjson = !library.IsMain && !library.ScanBjson;
         req.Add(new ButtonArray(i =>
             {
                 req.Close();
                 if (i == 0) convert(req.GetValue<bool>(0));
             }, new ButtonOption
             {
-                Text = "Convert"
+                Text = "Convert",
+                MarkupTooltip = enableBjson ? "This will enable BJson scanning on the currently library" : null
             }, new ButtonOption
             {
                 Text = "Cancel"

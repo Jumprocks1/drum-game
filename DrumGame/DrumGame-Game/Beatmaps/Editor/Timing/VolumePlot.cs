@@ -11,7 +11,6 @@ namespace DrumGame.Game.Beatmaps.Editor.Timing;
 [LongRunningLoad]
 public class VolumePlot : WaveformPlot
 {
-    float MaxVolume = 0;
     readonly double WindowWidth; // in seconds
     public VolumePlot(BeatmapEditor editor, double windowWidth, int sampleCount) : base(editor, sampleCount)
     {
@@ -38,6 +37,53 @@ public class VolumePlot : WaveformPlot
         return (new Tempo { BPM = 60_000 / goalMsPerBeat }, tempoChange, tempoChangeBeat);
     }
 
+    public double ComputeBestOffset()
+    {
+        // TODO we should be able to bin all tempo changes across the song
+        // not sure how yet though
+        // I think you take the slowest tempo and use that for the offsetoptions width
+        // then you recenter the bins so they are based on the current offset
+        var tempo = Beatmap.TempoChanges[0];
+        var bpm = tempo.BPM;
+        var samplesPerBeat = 60 * Data.DataSampleRate / bpm;
+        // couldn't find a way of doing this without binning each sample
+        // note that the number of bins isn't really an integer, so we can't do a simple mod to distribute data across the bins
+        var offsetOptions = new double[(int)samplesPerBeat];
+        var counts = new double[(int)samplesPerBeat];
+        for (var j = 0; j < Data.Data.Length; j++)
+        {
+            var value = Data.Data[j] / Data.Peak;
+            // note, this bin is fractional
+            var beat = j / samplesPerBeat;
+            var targetBin = beat % 1 * offsetOptions.Length;
+            // TODO instead of rounding, we should anti-alias and split the value across 2 bins
+            offsetOptions[(int)targetBin] += value;
+            counts[(int)targetBin] += 1;
+        }
+        var bestIndex = -1;
+        var best = 0.0;
+        for (var j = 0; j < offsetOptions.Length; j++)
+        {
+            if (counts[j] == 0) continue;
+            var v = offsetOptions[j] / counts[j];
+            if (v > best)
+            {
+                best = v;
+                bestIndex = j;
+            }
+        }
+        // this is the first beat peak relative to the start of the audio track
+        var offset = (double)bestIndex / offsetOptions.Length * samplesPerBeat / Data.DataSampleRate * 1000
+             - WindowWidth * 1000;
+        // typically offset should be the first beat in the first measure though, so this could be += 0.5/1/2/3/4 beats or so
+        // we should add as many half beats as needed to get as close as possible to the current offset
+        // we round to half a beat since some songs are mapped in half time to keep the BPM ~120-200
+        offset += Math.Round((Beatmap.CurrentTrackStartOffset - offset) / tempo.MsPerBeat * 2) * tempo.MsPerBeat / 2;
+        // var changeMs = offset - Beatmap.StartOffset;
+        // Console.WriteLine($"offset: {offset:0.0} change: {changeMs:0.0}ms ({changeMs / tempo.MsPerBeat:0.00}beats)");
+        return offset;
+    }
+
     protected override WaveformData LoadData()
     {
         var data = new WaveformData();
@@ -53,12 +99,12 @@ public class VolumePlot : WaveformPlot
         data.DataSampleRate = info.Frequency;
         data.ViewSampleRate = 1000;
 
-        (data.Data, MaxVolume) = new AudioDump(decodeStream, info, e => Progress.Current.Value = e / 2)
-            .VolumeTransform(WindowWidth, e => Progress.Current.Value = e / 2 + 0.5);
+        (data.Data, data.Peak) = new AudioDump(decodeStream, info, e => Progress.Progress = e / 2)
+            .VolumeTransform(WindowWidth, e => Progress.Progress = e / 2 + 0.5);
 
         Bass.StreamFree(decodeStream);
 
-        data.ScalingFactor = 1 / MaxVolume;
+        data.ScalingFactor = 1 / data.Peak;
 
 
         Plot.SampleTooltip = (i, _) =>
@@ -94,29 +140,10 @@ public class VolumePlot : WaveformPlot
             }
             else
             {
-                if (Editor.UseYouTubeOffset)
-                {
-                    var newOffset = Math.Round(Beatmap.YouTubeOffset + diff, 2);
-                    var change = newOffset - Beatmap.YouTubeOffset;
-                    var oldOffset = Beatmap.YouTubeOffset;
-                    Editor.PushChange(new BeatmapChange(() =>
-                    {
-                        Beatmap.YouTubeOffset = newOffset;
-                        Beatmap.FireOffsetUpdated();
-                    }, () =>
-                    {
-                        Beatmap.YouTubeOffset = oldOffset;
-                        Beatmap.FireOffsetUpdated();
-                    }, $"set YouTube offset to {newOffset}"));
-                    Track.Seek(Track.AbsoluteTime + change, true);
-                }
-                else
-                {
-                    var newOffset = Math.Round(Beatmap.StartOffset + diff, 2);
-                    var change = newOffset - Beatmap.StartOffset;
-                    Editor.PushChange(new OffsetBeatmapChange(Editor, newOffset));
-                    Track.Seek(Track.AbsoluteTime + change, true);
-                }
+                var newOffset = Math.Round(Beatmap.CurrentTrackStartOffset + diff, 2);
+                var change = newOffset - Beatmap.CurrentTrackStartOffset;
+                Editor.PushChange(new OffsetBeatmapChange(Editor, newOffset, Editor.UseYouTubeOffset));
+                Track.Seek(Track.AbsoluteTime + change, true);
             }
         };
 

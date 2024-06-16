@@ -1,3 +1,5 @@
+using System;
+using System.Linq.Expressions;
 using DrumGame.Game.Commands;
 using DrumGame.Game.Components.Abstract;
 using DrumGame.Game.Skinning;
@@ -9,7 +11,7 @@ namespace DrumGame.Game.Components.Overlays;
 
 public class KeyPressOverlay : AdjustableSkinElement
 {
-    public override ref AdjustableSkinData SkinPath => ref Util.Skin.KeyPressOverlay;
+    public override Expression<Func<Skin, AdjustableSkinData>> SkinPathExpression => e => e.KeyPressOverlay;
     public override AdjustableSkinData DefaultData() => new()
     {
         Anchor = Anchor.BottomLeft,

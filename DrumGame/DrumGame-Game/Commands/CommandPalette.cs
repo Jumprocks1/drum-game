@@ -20,7 +20,6 @@ public class CommandPalette : CompositeDrawable
     const float SearchHeight = 30;
     PaletteSearch Input;
     CommandController CommandController => Util.CommandController;
-    InputManager inputManager;
     DrumScrollContainer ScrollContainer;
     Container ScrollPadder;
     const int CommandDisplayCount = 12; // number of commands displayed before requiring scroll
@@ -244,12 +243,6 @@ public class CommandPalette : CompositeDrawable
         base.Dispose(isDisposing);
     }
 
-    protected override void LoadComplete()
-    {
-        inputManager = GetContainingInputManager();
-        base.LoadComplete();
-    }
-
     public bool EditKeybind(CommandContext _)
     {
         if (Visible && FilteredCommands.Count > 0)
@@ -293,7 +286,7 @@ public class CommandPalette : CompositeDrawable
         _targetI = null;
         Target = null;
         if (Input != null) Input.Current.Value = string.Empty;
-        Schedule(() => inputManager.ChangeFocus(Input));
+        Schedule(() => GetContainingFocusManager().ChangeFocus(Input));
         UpdateSearch(true);
         base.Show();
     }

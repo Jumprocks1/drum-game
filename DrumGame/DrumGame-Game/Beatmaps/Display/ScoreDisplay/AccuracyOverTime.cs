@@ -87,7 +87,7 @@ public class AccuracyOverTime : CompositeDrawable
                 var (judgementTime, rating) = judgements[i];
                 if (judgementTime > windowEnd) break;
                 var d = (time - judgementTime) / windowWidthMs;
-                var weight = Math.Pow(Math.E, -(d * d));
+                var weight = Math.Exp(-(d * d));
                 scored += rating * weight;
                 total += 3 * weight;
             }

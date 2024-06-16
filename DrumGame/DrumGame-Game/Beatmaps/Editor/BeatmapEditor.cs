@@ -33,26 +33,23 @@ public class CopyBuffer
 }
 public partial class BeatmapEditor : BeatmapPlayer
 {
-    public override BeatmapPlayerMode Mode
+    protected override void ProtectedModeChanged(BeatmapPlayerMode mode)
     {
-        get => base.Mode; set
+        base.ProtectedModeChanged(mode);
+        var edit = mode.HasFlagFast(BeatmapPlayerMode.Edit);
+        var record = mode == BeatmapPlayerMode.Record;
+
+        var snapIndicator = edit && !record;
+        Display.SnapIndicator = snapIndicator;
+        Display.SongCursorVisible = !snapIndicator;
+
+        if (mode == BeatmapPlayerMode.Fill)
         {
-            base.Mode = value;
-            var edit = value.HasFlagFast(BeatmapPlayerMode.Edit);
-            var record = value == BeatmapPlayerMode.Record;
-
-            var snapIndicator = edit && !record;
-            Display.SnapIndicator = snapIndicator;
-            Display.SongCursorVisible = !snapIndicator;
-
-            if (value == BeatmapPlayerMode.Fill)
-            {
-                Track.Stop();
-                Display.DragStart.Running = false; // prevent restart on drag release
-                Track.Seek(Beatmap.MillisecondsFromBeat(SnapTarget));
-            }
-            Recording = record;
+            Track.Stop();
+            Display.DragStart.Running = false; // prevent restart on drag release
+            Track.Seek(Beatmap.MillisecondsFromBeat(SnapTarget));
         }
+        Recording = record;
     }
     public new readonly MusicNotationBeatmapDisplay Display;
     public BeatmapEditor(Beatmap beatmap, MusicNotationBeatmapDisplay display, BeatmapOpenMode openMode,
@@ -184,7 +181,7 @@ public partial class BeatmapEditor : BeatmapPlayer
         {
             var path = Util.Resources.TryFind(Beatmap.DrumOnlyAudio) ?? CurrentAudioPath;
             if (!File.Exists(path)) return null;
-            _fft = FFTProvider.FromSettingsFile(Util.Resources.GetAbsolutePath("auto-mapper.json"), path);
+            _fft = FFTProvider.FromSettingsFile(FFTProvider.AutoMapperSettingsPath, path);
             _fft.CacheAll();
         }
         return _fft;
@@ -345,7 +342,7 @@ public partial class BeatmapEditor : BeatmapPlayer
         InsertMeasureAt(0);
         var measureSize = Beatmap.MillisecondsFromBeat(Beatmap.BeatFromMeasure(1)) - Beatmap.StartOffset;
         var newOffset = Beatmap.StartOffset - measureSize;
-        PushChange(new OffsetBeatmapChange(this, newOffset));
+        PushChange(new OffsetBeatmapChange(this, newOffset, false));
     }
     [CommandHandler]
     public void Delete()
@@ -535,8 +532,8 @@ public partial class BeatmapEditor : BeatmapPlayer
             {
                 if (e == SaveOption.Save)
                 {
-                    Save();
-                    Command.ActivateCommand(safe);
+                    if (saveWithResult())
+                        Command.ActivateCommand(safe);
                 }
                 else if (e == SaveOption.DontSave)
                 {
@@ -554,11 +551,11 @@ public partial class BeatmapEditor : BeatmapPlayer
 
     [CommandHandler] public bool QuitGame(CommandContext context) => DangerCommand(context, Commands.Command.QuitGame, Commands.Command.ForceQuitGame);
     [CommandHandler] public bool Close(CommandContext context) => DangerCommand(context, Commands.Command.Close, Commands.Command.CloseWithoutSaving);
-    [CommandHandler]
-    public void Save()
+    [CommandHandler] public void Save() => saveWithResult(); // we don't want this return value for this command
+    public bool saveWithResult()
     {
         Beatmap.Export();
-        Beatmap.TrySaveToDisk(MapStorage, this);
+        return Beatmap.TrySaveToDisk(this);
     }
     [CommandHandler] public bool ImportMidi(CommandContext context) => OpenFile(context);
 }

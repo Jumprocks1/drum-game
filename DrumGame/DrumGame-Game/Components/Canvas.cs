@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using DrumGame.Game.Utils;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -7,6 +8,7 @@ using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Graphics.Rendering;
 using osu.Framework.Graphics.Shaders;
+using osu.Framework.Graphics.Shaders.Types;
 using osu.Framework.Graphics.Textures;
 using osuTK;
 
@@ -37,26 +39,19 @@ public class Canvas<State> : Canvas where State : new()
             base.ApplyState();
             Source.ApplyState(State);
         }
-        protected override void BindUniformResources(IShader shader, IRenderer renderer)
-        {
-            if (shader == null || !shader.IsLoaded) return;
-            Shader = shader;
-            base.BindUniformResources(shader, renderer);
-        }
         // TODO add opaque mode (not sure why we need, but I think it's good)
         // only use when a full background is drawn
         protected override void Draw(IRenderer renderer)
         {
             base.Draw(renderer);
-            BindTextureShader(renderer);
             Renderer = renderer;
 
             Color = DrawColourInfo.Colour; // have to reset color on each render
             Source.Draw(this, State);
 
-            Shader = null;
+            BoundShader?.Unbind();
+            BoundShader = null;
             Renderer = null;
-            UnbindTextureShader(renderer);
         }
     }
 }
@@ -79,8 +74,39 @@ public abstract class Canvas : Drawable, ITexturedShaderDrawable
 }
 
 // This is nice since we can pass this reference around with the generic
-public abstract class CanvasNode : TexturedShaderDrawNode // ~3 of these are instanced per Canvas component
+// originally based on TexturedShaderDrawNode
+public abstract class CanvasNode : DrawNode // ~3 of these are instanced per Canvas component
 {
+    public IShader TextureShader;
+
+    public IShader DesiredShader; // only checked right when we actually draw
+    protected IShader BoundShader;
+    void BindShader(IShader shader)
+    {
+        if (BoundShader == shader) return;
+        BoundShader?.Unbind();
+        BindUniformResources(shader, Renderer);
+        shader.Bind();
+        BoundShader = shader;
+    }
+    protected void BindUniformResources(IShader shader, IRenderer renderer)
+    {
+        canvasParametersBuffer ??= renderer.CreateUniformBuffer<CanvasParameters>();
+        var t = (float)Time;
+        if (canvasParametersBuffer.Data.Time != t)
+            canvasParametersBuffer.Data = new() { Time = t };
+        shader.BindUniformBlock("m_CanvasParameters", canvasParametersBuffer);
+    }
+
+
+    private IUniformBuffer<CanvasParameters> canvasParametersBuffer;
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    private record struct CanvasParameters
+    {
+        public UniformFloat Time;
+        private readonly UniformPadding12 Padding;
+    }
+
     public ColourInfo Color;
     public float Alpha = 1; // applied to color if != 1
     public double Time; // need so that the clock time is identical for the entire frame
@@ -96,6 +122,9 @@ public abstract class CanvasNode : TexturedShaderDrawNode // ~3 of these are ins
     public override void ApplyState()
     {
         base.ApplyState();
+
+        TextureShader = Source.TextureShader;
+
         Relative = Source.Relative;
         Width = Source.DrawWidth;
         Height = Source.DrawHeight;
@@ -115,7 +144,6 @@ public abstract class CanvasNode : TexturedShaderDrawNode // ~3 of these are ins
 
     // should probably override ApplyState here, but we can't since we don't have access to canvas source
     public IRenderer Renderer; // only set while in DrawAction()
-    public IShader Shader;
     // would be dope if we could do a circle here
     public void Box(float x, float y, float w, float h) =>
         Sprite(Renderer.WhitePixel, x, y, w, h);
@@ -136,6 +164,23 @@ public abstract class CanvasNode : TexturedShaderDrawNode // ~3 of these are ins
             return;
         if (w == 0 || h == 0)
             return;
-        Renderer.DrawQuad(texture, new Quad(x, y, w, h) * Matrix, Alpha == 1 ? Color : Color.MultiplyAlpha(Alpha));
+        if (BoundShader != DesiredShader)
+            BindShader(DesiredShader);
+        if (texture.WrapModeT != default)
+        {
+            Renderer.DrawQuad(texture, new Quad(x, y, w, h) * Matrix, Alpha == 1 ? Color : Color.MultiplyAlpha(Alpha),
+                textureCoords: new RectangleF(0, 0, texture.DisplayWidth, h / w * texture.DisplayWidth));
+        }
+        else if (texture.WrapModeS != default)
+        {
+            Renderer.DrawQuad(texture, new Quad(x, y, w, h) * Matrix, Alpha == 1 ? Color : Color.MultiplyAlpha(Alpha),
+                textureCoords: new RectangleF(0, 0, w / h * texture.DisplayHeight, texture.DisplayHeight));
+        }
+        else
+            Renderer.DrawQuad(texture, new Quad(x, y, w, h) * Matrix, Alpha == 1 ? Color : Color.MultiplyAlpha(Alpha));
+    }
+    public void ResetShader()
+    {
+        DesiredShader = TextureShader;
     }
 }

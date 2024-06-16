@@ -12,19 +12,15 @@ using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Bindables;
 using DrumGame.Game.Skinning;
 using DrumGame.Game.Beatmaps.Display.Mania;
+using System.Linq.Expressions;
+using System;
 
 namespace DrumGame.Game.Beatmaps.Practice;
 
 public class PracticeInfoPanel : AdjustableSkinElement, IHasCommand
 {
-    public override ref AdjustableSkinData SkinPath
-    {
-        get
-        {
-            if (Mania) return ref Util.Skin.Mania.PracticeInfoPanel;
-            return ref Util.Skin.Notation.PracticeInfoPanel;
-        }
-    }
+    public override Expression<Func<Skin, AdjustableSkinData>> SkinPathExpression =>
+        Mania ? e => e.Mania.PracticeInfoPanel : e => e.Notation.PracticeInfoPanel;
     public Command Command => Command.PracticeMode;
 
     public PracticeMode.PracticeConfig Config => PracticeMode.Config;
@@ -91,13 +87,13 @@ public class PracticeInfoPanel : AdjustableSkinElement, IHasCommand
         {
             Y = y,
             X = Column + 30,
-            Colour = Colour4.Black
+            Colour = FontColor
         });
         AddInternal(new CommandIconButton(Command.IncreasePlaybackSpeed, FontAwesome.Solid.Plus, 14)
         {
             Y = y,
             X = Column + 30 + 18,
-            Colour = Colour4.Black
+            Colour = FontColor
         });
         Rate = AddProperty("Speed");
         Range = AddProperty("Range");

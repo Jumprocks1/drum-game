@@ -64,8 +64,8 @@ public static class MetadataEditor
                 if (e == "Difficulty") return new AutocompleteFieldConfig
                 {
                     Label = e,
-                    Buttons = new Drawable[] { new CommandIconButton(Commands.Command.SetDifficultyName, FontAwesome.Solid.PenFancy, 22) },
-                    Options = new[] { "Easy", "Normal", "Hard", "Insane", "Expert", "Expert+" },
+                    Buttons = [new CommandIconButton(Command.SetDifficultyName, FontAwesome.Solid.PenFancy, 22)],
+                    Options = ["Easy", "Normal", "Hard", "Insane", "Expert", "Expert+"],
                     DefaultValue = beatmap.Difficulty,
                     OnCommit = v => CommitProp(t.GetProperty("Difficulty"), v)
                 };

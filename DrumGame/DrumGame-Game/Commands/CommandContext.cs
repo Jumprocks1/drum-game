@@ -2,14 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using DrumGame.Game.Components.Basic.Autocomplete;
-using DrumGame.Game.Components.Overlays;
 using DrumGame.Game.Modals;
 using DrumGame.Game.Utils;
-using DrumGame.Game.Views.Settings.SettingInfos;
 using osu.Framework.Bindables;
-using osu.Framework.Graphics;
 using osu.Framework.Input.Events;
-using osu.Framework.Logging;
 
 namespace DrumGame.Game.Commands;
 

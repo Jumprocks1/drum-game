@@ -13,7 +13,7 @@ public abstract class NonPositionalTextBox : TextBox
     private bool allowImmediateFocus => host?.OnScreenKeyboardOverlapsGameWindow != true;
     public void TakeFocus()
     {
-        if (allowImmediateFocus) GetContainingInputManager().ChangeFocus(this);
+        if (allowImmediateFocus) GetContainingFocusManager().ChangeFocus(this);
     }
     [Resolved] GameHost host { get; set; }
     private bool _holdFocus = true;

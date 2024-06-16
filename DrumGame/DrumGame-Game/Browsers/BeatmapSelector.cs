@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using DrumGame.Game.API;
 using DrumGame.Game.Beatmaps;
+using DrumGame.Game.Beatmaps.Formats;
 using DrumGame.Game.Beatmaps.Loaders;
 using DrumGame.Game.Browsers.BeatmapSelection;
 using DrumGame.Game.Commands;
@@ -648,10 +649,10 @@ public partial class BeatmapSelector : CompositeDrawable
             return;
         }
 
-        var beatmap = MapStorage.DeserializeMap(map.MapStoragePath);
+        var beatmap = MapStorage.LoadForQuickEdit(map.MapStoragePath);
         mutate(beatmap);
         beatmap.SaveToDisk(MapStorage);
-        DetailContainer.ReloadTarget(beatmap);
+        DetailContainer.ReloadTarget(map, beatmap);
         Carousel.ReloadCard(map);
     }
 
@@ -708,14 +709,14 @@ public partial class BeatmapSelector : CompositeDrawable
             if (Util.AudioExtension(extension) || Util.ArchiveExtension(extension))
             {
                 var beatmap = Beatmap.Create();
-                beatmap.Source = new BJsonSource(MapStorage.GetFullPath("temp")); // temporary source so we can copy audio
+                beatmap.Source = new BJsonSource(MapStorage.GetFullPath("temp"), BJsonFormat.Instance); // temporary source so we can copy audio
                 beatmap.Audio = Util.CopyAudio(file, beatmap);
 
                 var beatmapName = Path.GetFileNameWithoutExtension(beatmap.Audio);
                 beatmapName = new Regex(@"^((\d\d \-?)|(\d\d\. ?\-?))").Replace(beatmapName, "");
                 beatmapName = beatmapName.ToFilename(".bjson");
 
-                beatmap.Source = new BJsonSource(MapStorage.GetFullPath(beatmapName));
+                beatmap.Source = new BJsonSource(MapStorage.GetFullPath(beatmapName), BJsonFormat.Instance);
                 var tags = AudioTagUtil.GetAudioTags(beatmap.FullAudioPath());
                 beatmap.Title = tags.Title;
                 beatmap.Artist = tags.Artist;
@@ -746,7 +747,7 @@ public partial class BeatmapSelector : CompositeDrawable
                 Util.UpdateThread.Scheduler.Add(() =>
                 {
                     var o = Beatmap.Create();
-                    o.Source = new BJsonSource(MapStorage.GetFullPath(name + ".bjson"));
+                    o.Source = new BJsonSource(MapStorage.GetFullPath(name + ".bjson"), BJsonFormat.Instance);
                     o.Audio = relativeAudio;
                     o.YouTubeID = name;
                     if (File.Exists(o.Source.AbsolutePath))
@@ -765,20 +766,109 @@ public partial class BeatmapSelector : CompositeDrawable
         => context != null && context.TryGetParameter<BeatmapSelectorMap>(out var o) ? o : TargetMap;
 
     [CommandHandler]
+    public bool CreateMapSet(CommandContext context)
+    {
+        var maps = FilteredMaps.ToArray();
+        foreach (var map in maps)
+        {
+            var canEdit = MapStorage.CanEdit(map);
+            if (!canEdit)
+            {
+                context.Palette.ShowMessage("The current search results contain maps that cannot be edited.");
+                return true;
+            }
+        }
+        if (maps.Length <= 1)
+        {
+            context.Palette.ShowMessage("Please filter the map list to 2+ maps in order to make a map set");
+            return true;
+        }
+        // order by is needed for consistent hashing
+        var defaultHash = Util.MD5(maps.OrderBy(e => e.MapStoragePath).SelectMany(e =>
+        {
+            var meta = e.LoadedMetadata;
+            return new string[] { meta.Title, meta.Artist, meta.Mapper };
+        }));
+        var req = context.Palette.Request(new RequestConfig
+        {
+            Title = "Creating Map Set",
+            Description = $"This will override the map set field for all visible maps ({maps.Length}).",
+            Field = new StringFieldConfig("Map set ID", defaultHash)
+            {
+                MarkupTooltip = "The default value is a hash of the metadata for all maps in the map set.\nAny value should work."
+            },
+            CommitText = $"Create Set",
+            OnCommit = req =>
+            {
+                var newMapSet = req.GetValue<string>();
+                void applyChange()
+                {
+                    foreach (var map in maps)
+                    {
+                        var beatmap = MapStorage.LoadForQuickEdit(map.MapStoragePath);
+                        beatmap.MapSetId = newMapSet;
+                        beatmap.SaveToDisk(MapStorage);
+                    }
+                    Refresh(); // we are changing all visible maps, so this is good
+                }
+                if (maps.Length <= 10)
+                {
+                    applyChange();
+                }
+                else context.Palette.Request(new RequestConfig
+                {
+                    Title = $"Changing {maps.Length} maps",
+                    Description = "This is more than 10 maps, are you sure you wish to proceed?",
+                    CommitText = "Apply Change",
+                    OnCommit = _ => applyChange()
+                });
+            }
+        });
+        void addWarning(string message)
+        {
+            var y = req.InnerContent.Children.Sum(e => e.Height);
+            var s = new SpriteText
+            {
+                Text = message,
+                Colour = DrumColors.WarningText,
+                Font = FrameworkFont.Regular,
+                Y = y
+            };
+            req.Add(s);
+        }
+        var check = maps[0].LoadedMetadata.Artist;
+        if (maps.Any(e => e.LoadedMetadata.Artist != check))
+            addWarning("Set contains multiple artists");
+        check = maps[0].LoadedMetadata.Mapper;
+        if (maps.Any(e => e.LoadedMetadata.Mapper != check))
+            addWarning("Set contains multiple mappers");
+        // take shortest title so things like (TV Size) work
+        check = maps.Select(e => e.LoadedMetadata.Title).MinBy(e => e.Length);
+        if (maps.Any(e => !e.LoadedMetadata.Title.Contains(check, StringComparison.OrdinalIgnoreCase)))
+            addWarning("Set contains multiple titles");
+        if (maps.Length > 10)
+            addWarning("Set contains more than 10 maps");
+        return req;
+    }
+    [CommandHandler]
     public bool EditBeatmapMetadata(CommandContext context)
     {
         var target = GetTargetMap(context);
         if (target == null) return false;
         // if we can't edit, we still want to display, just disable saving
         var canEdit = MapStorage.CanEdit(target);
-        var beatmap = MapStorage.DeserializeMap(target.MapStoragePath, skipNotes: !canEdit); // we need the full deserialize so we can re-save it
+        var beatmap = canEdit ? MapStorage.LoadForQuickEdit(target.MapStoragePath)
+            : MapStorage.LoadForQuickMetadata(target.MapStoragePath);
         return context.Palette.Push(MetadataEditor.Build(beatmap, null, onCommit: req =>
         {
             beatmap.SaveToDisk(MapStorage);
             if (filterLoaded) target.LoadFilter(); // update filter string
+            // make sure active detail container gets reloaded if needed
+            // this method only reloads if the current target matches
+            DetailContainer.ReloadTarget(target, beatmap);
             Carousel.ReloadCard(target); // make sure metadata on our card gets updated
             ReloadFiltering();
-        }), !canEdit);
+        }, !canEdit));
     }
 
     [CommandHandler] public bool SelectMods(CommandContext context) { context.Palette.Toggle(new ModSelector(State)); return true; }
@@ -823,7 +913,7 @@ public partial class BeatmapSelector : CompositeDrawable
             {
                 foreach (var map in targets)
                 {
-                    var beatmap = MapStorage.DeserializeMap(map.MapStoragePath); // we need the full deserialize so we can re-save it
+                    var beatmap = MapStorage.LoadForQuickEdit(map.MapStoragePath); // we need the full deserialize so we can re-save it
                     beatmap.Mapper = newMapper;
                     beatmap.SaveToDisk(MapStorage);
                     if (filterLoaded) map.LoadFilter(); // update filter string
@@ -845,7 +935,7 @@ public partial class BeatmapSelector : CompositeDrawable
                 {
                     if (MapStorage.CanEdit(map))
                     {
-                        var beatmap = MapStorage.DeserializeMap(map.MapStoragePath); // we need the full deserialize so we can re-save it
+                        var beatmap = MapStorage.LoadForQuickEdit(map.MapStoragePath); // we need the full deserialize so we can re-save it
                         beatmap.AddTags(tag);
                         beatmap.SaveToDisk(MapStorage);
                         if (filterLoaded) map.LoadFilter(); // update filter string
@@ -861,11 +951,11 @@ public partial class BeatmapSelector : CompositeDrawable
     public bool ExportToDtx(CommandContext context)
     {
         if (TargetMap == null) return false;
-        return DtxExporter.Export(context, MapStorage.LoadMap(TargetMap.MapStoragePath));
+        return DtxExporter.Export(context, MapStorage.LoadMapForPlay(TargetMap.MapStoragePath));
     }
 
     [CommandHandler]
-    public bool ExportMap(CommandContext context) => BeatmapExporter.Export(context, MapStorage.LoadMap(TargetMap.MapStoragePath));
+    public bool ExportMap(CommandContext context) => BeatmapExporter.Export(context, MapStorage.LoadMapForPlay(TargetMap.MapStoragePath));
 
 
     bool ModifyRating(CommandContext context, int inc)
@@ -935,7 +1025,7 @@ public partial class BeatmapSelector : CompositeDrawable
     {
         var targetMap = GetTargetMap(context);
         if (targetMap == null) return false;
-        var beatmap = MapStorage.DeserializeMap(targetMap.MapStoragePath, skipNotes: true);
+        var beatmap = MapStorage.LoadForQuickMetadata(targetMap.MapStoragePath);
         YouTubeDL.TryFixAudio(beatmap, _ => Util.ActivateCommandUpdateThread(Command.Refresh));
         return true;
     }

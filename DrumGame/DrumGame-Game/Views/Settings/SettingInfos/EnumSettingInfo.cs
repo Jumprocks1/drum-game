@@ -36,13 +36,20 @@ public class SkinSetting : SettingInfo
     public SkinSetting(string label) : base(label)
     {
     }
+    record Pair(string Skin, string Name) : IFilterable { }
     public override void Render(SettingControl control)
     {
         var binding = Util.ConfigManager.GetBindable<string>(DrumGameSetting.Skin);
-        var def = new BasicAutocompleteOption("Default");
-        var options = SkinManager.ListSkins().Select(e => new BasicAutocompleteOption(e)).Prepend(def);
+        // bit sketchy because the "Default" skin cannot be edited as it has no file
+        // if a user tries to edit the default skin, we will create `default.json` and set the skin to "default" instead of null
+        // after this occurs, we probably don't want to show "Default" in this skin list anymore since it may be confusing to show 2 defaults
+        var def = new Pair(null, "Default");
+        var skins = SkinManager.ListSkinsWithNames();
+        var options = skins.Select(e => new Pair(e.skin, $"{e.name} ({e.skin})"));
         var value = binding.Value;
-        var autocomplete = new Autocomplete()
+        if (!skins.Any(e => e.skin == SkinManager.DefaultSkinFilename) || string.IsNullOrWhiteSpace(value))
+            options = options.Prepend(def);
+        var autocomplete = new Autocomplete<Pair>()
         {
             Options = options,
             Width = 300,
@@ -50,16 +57,10 @@ public class SkinSetting : SettingInfo
             Anchor = Anchor.TopRight,
             Origin = Anchor.TopRight,
             X = -SettingControl.SideMargin,
-            CommittedTarget = string.IsNullOrWhiteSpace(value) ? def : options.FirstOrDefault(e => e.Name == value),
+            CommittedTarget = string.IsNullOrWhiteSpace(value) ? def : options.FirstOrDefault(e => e.Skin == value),
             ClearOnFocus = true
         };
-        autocomplete.OnSelect += option =>
-        {
-            if (option == def)
-                binding.Value = null;
-            else
-                binding.Value = option.Name;
-        };
+        autocomplete.OnSelect += option => binding.Value = option.Skin;
         var editButton = new IconButton(() =>
         {
             var source = Util.Skin.Source;
@@ -70,14 +71,21 @@ public class SkinSetting : SettingInfo
             // make sure we are watching the skin after we open it
             // this makes it easier to make quick changes without having to manually reload
             SkinManager.SetHotWatcher(Util.Skin);
-        }, FontAwesome.Solid.Edit, Height)
+        }, FontAwesome.Solid.FolderOpen, Height)
+        {
+            Anchor = Anchor.TopRight,
+            Origin = Anchor.TopRight,
+            X = autocomplete.X - autocomplete.Width - 5 * 2 - Height,
+            MarkupTooltip = "<command>Reveal Skin in File Explorer</>\n\nThis will highlight the current skin in your system file explorer.\nYou can edit the skin by opening the file in a text editor.\nI recommend using an editor with JSON Schema support (VS Code)."
+        };
+        control.Add(editButton);
+        control.Add(new IconButton(SkinSettingsView.Open, FontAwesome.Solid.Cog, Height)
         {
             Anchor = Anchor.TopRight,
             Origin = Anchor.TopRight,
             X = autocomplete.X - autocomplete.Width - 5,
-            MarkupTooltip = "<command>Reveal Skin in File Explorer</>\n\nThis will highlight the current skin in your system file explorer.\nYou can edit the skin by opening the file in a text editor.\nI recommend using an editor with JSON Schema support (VS Code)."
-        };
-        control.Add(editButton);
+            MarkupTooltip = "<command>Skin Settings</>\n\nOnly some skin options are available for edit in-game\nFor more options, edit the skin file directly with a text editor such as VSCode."
+        });
         control.Add(autocomplete);
     }
 }

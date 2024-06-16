@@ -1,7 +1,7 @@
 using System;
+using System.Linq.Expressions;
 using DrumGame.Game.Beatmaps.Editor;
 using DrumGame.Game.Commands;
-using DrumGame.Game.Components;
 using DrumGame.Game.Interfaces;
 using DrumGame.Game.Skinning;
 using DrumGame.Game.Utils;
@@ -30,19 +30,14 @@ public class SongInfoPanel : AdjustableSkinElement, IHasCommandInfo
     };
 
     Beatmap Beatmap;
-
-    public override ref AdjustableSkinData SkinPath
-    {
-        get
-        {
-            if (Mania) return ref Util.Skin.Mania.SongInfoPanel;
-            return ref Util.Skin.Notation.SongInfoPanel;
-        }
-    }
+    public override Expression<Func<Skin, AdjustableSkinData>> SkinPathExpression =>
+        Mania ? e => e.Mania.SongInfoPanel : e => e.Notation.SongInfoPanel;
 
     bool Mania;
 
     public CommandInfo CommandInfo => Util.GetParent<BeatmapEditor>(this) != null ? Util.CommandController[Command.EditBeatmapMetadata] : null;
+
+    Colour4 FontColor => Mania ? Util.Skin.Mania.BackgroundFontColor : Util.Skin.Notation.NotationColor;
 
     // after this is all set up for both displays, we should accept a DisplayPreference argument
     // based on this, we pull the skin data from the skin
@@ -53,8 +48,8 @@ public class SongInfoPanel : AdjustableSkinElement, IHasCommandInfo
         Mania = mania;
         InitializeSkinData();
         Beatmap = beatmap;
-        AddInternal(Title = new() { Colour = Util.Skin.Notation.NotationColor });
-        AddInternal(Artist = new() { Colour = Util.Skin.Notation.NotationColor });
+        AddInternal(Title = new() { Colour = FontColor });
+        AddInternal(Artist = new() { Colour = FontColor });
         AddInternal(Image = new());
         SkinManager.RegisterTarget(SkinAnchorTarget.SongInfoPanel, this);
     }

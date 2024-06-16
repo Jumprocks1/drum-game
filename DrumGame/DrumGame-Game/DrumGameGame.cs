@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using DrumGame.Game.Beatmaps;
+using DrumGame.Game.Beatmaps.Formats;
 using DrumGame.Game.Beatmaps.Loaders;
 using DrumGame.Game.Browsers;
 using DrumGame.Game.Commands;
@@ -104,7 +105,7 @@ public class DrumGameGame : DrumGameGameBase
     public bool CreateNewBeatmap(CommandContext context) => context.GetString(name =>
         {
             var o = Beatmap.Create();
-            o.Source = new BJsonSource(MapStorage.GetFullPath(name + ".bjson"));
+            o.Source = new BJsonSource(MapStorage.GetFullPath(name + ".bjson"), BJsonFormat.Instance);
             if (File.Exists(o.Source.AbsolutePath))
             {
                 context.ShowMessage("A map with that name already exists");

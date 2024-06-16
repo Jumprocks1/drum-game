@@ -43,10 +43,10 @@ public class BeatmapDetailContainer : CompositeDrawable
 
     CancellationTokenSource cancellation;
     BeatmapDetailLoader Loader;
-    public void ReloadTarget(Beatmap beatmap)
+    public void ReloadTarget(BeatmapSelectorMap map, Beatmap beatmap)
     {
         if (Loader.IsLoaded && Loader.Beatmap.Source.Filename == beatmap.Source.Filename)
-            Loader.LoadFromBeatmap(beatmap);
+            Loader.Reload(map, beatmap);
     }
     void TargetChanged()
     {

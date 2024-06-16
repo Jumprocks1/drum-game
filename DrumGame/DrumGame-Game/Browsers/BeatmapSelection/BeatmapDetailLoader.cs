@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using DrumGame.Game.Beatmaps;
@@ -19,12 +21,28 @@ public class BeatmapDetailLoader : CompositeDrawable
 {
     const float Spacing = 4;
     BeatmapSelectorMap Map;
+    IReadOnlyList<MapSetEntry> MapSet;
     public Beatmap Beatmap;
     PreviewLoader PreviewLoader;
     public BeatmapDetailLoader(BeatmapSelectorMap targetMap, PreviewLoader previewLoader)
     {
-        Map = targetMap;
         PreviewLoader = previewLoader;
+        Padding = new MarginPadding(Spacing);
+        RelativeSizeAxes = Axes.Both;
+        LoadOnUpdateThread(targetMap);
+    }
+
+    public void Reload(BeatmapSelectorMap map, Beatmap beatmap)
+    {
+        LoadOnUpdateThread(map);
+        LoadFromBeatmap(beatmap);
+    }
+
+    void LoadOnUpdateThread(BeatmapSelectorMap map)
+    {
+        Util.MapStorage.LoadMetadataCache(); // make sure cache is loaded
+        Map = map;
+        MapSet = Util.MapStorage.MapSets[map]; // this can still be null maybe
     }
 
     [Resolved] CancellationToken cancel { get; set; }
@@ -48,101 +66,139 @@ public class BeatmapDetailLoader : CompositeDrawable
             Scroll.Add(new ReplayDisplay(replay) { Y = replayY });
             replayY += ReplayDisplay.Height + Spacing;
         }
+        // we compute this max size so if we scroll below the replay area, it scrolls the beatmap list instead of the replays
+        // if the scroll container has 0 children, it won't consume the scroll wheel, so float.MaxValue is fine
         var maxSize = replayY == 0f ? float.MaxValue : replayY - Spacing;
-        Grid.RowDimensions = [new(GridSizeMode.AutoSize), new(GridSizeMode.Distributed, maxSize: maxSize)];
+        Grid.RowDimensions = [
+            new(GridSizeMode.AutoSize),
+            new(GridSizeMode.Distributed, maxSize: maxSize)
+        ];
     }
-
+    // WARNING: this can run on background thread. Update thread access must be completed in the constructor/LoadOnUpdateThread
     public void LoadFromBeatmap(Beatmap beatmap)
     {
-        if (cancel.IsCancellationRequested) return;
-        if (Beatmap != null) ClearInternal(true);
-        Beatmap = beatmap;
-
-
-        if (cancel.IsCancellationRequested) return;
-
-        var flow = new FillFlowContainer
+        lock (this)
         {
-            Direction = FillDirection.Vertical,
-            Spacing = new osuTK.Vector2(Spacing),
-            RelativeSizeAxes = Axes.X,
-            AutoSizeAxes = Axes.Y
-        };
+            if (cancel.IsCancellationRequested) return;
+            ClearInternal(true);
+            Beatmap = beatmap;
 
-        var x = 0f;
 
-        if (Beatmap.Description != null)
-        {
-            var textContainer = new TextFlowContainer { RelativeSizeAxes = Axes.X, AutoSizeAxes = Axes.Y };
-            textContainer.AddParagraph(Beatmap.Description);
-            flow.Add(textContainer);
-        }
-        var dtxLevel = Beatmap.GetDtxLevel();
-        if (dtxLevel != null)
-        {
-            flow.Add(new SpriteText { Text = $"DTX Level: {Beatmap.FormatDtxLevel(dtxLevel)}" });
-        }
+            if (cancel.IsCancellationRequested) return;
 
-        Container iconContainer = null;
-        void AddIcon<T>() where T : IBeatmapIcon
-        {
-            if (T.TryConstruct(Beatmap, 30) is Drawable icon)
+            // TODO flow height is only calculated once UpdateAfterChildren is run, which causes this entire grid layout to be different for 1 frame
+            // It is more noticable in single threaded mode
+            var flow = new FillFlowContainer
             {
-                iconContainer ??= new Container
+                Direction = FillDirection.Vertical,
+                Spacing = new osuTK.Vector2(Spacing),
+                RelativeSizeAxes = Axes.X,
+                AutoSizeAxes = Axes.Y
+            };
+
+            var x = 0f;
+
+            if (Beatmap.Description != null)
+            {
+                var textContainer = new TextFlowContainer { RelativeSizeAxes = Axes.X, AutoSizeAxes = Axes.Y };
+                textContainer.AddParagraph(Beatmap.Description);
+                flow.Add(textContainer);
+            }
+            var dtxLevel = Beatmap.GetDtxLevel();
+            if (dtxLevel != null)
+            {
+                flow.Add(new SpriteText { Text = $"DTX Level: {Beatmap.FormatDtxLevel(dtxLevel)}" });
+            }
+
+            Container iconContainer = null;
+            void AddIcon<T>() where T : IBeatmapIcon
+            {
+                if (T.TryConstruct(Beatmap, 30) is Drawable icon)
                 {
-                    RelativeSizeAxes = Axes.X,
-                    Height = 30
-                };
-                icon.X = x;
-                iconContainer.Add(icon);
-                x += 30 + Spacing;
+                    iconContainer ??= new Container
+                    {
+                        RelativeSizeAxes = Axes.X,
+                        Height = 30
+                    };
+                    icon.X = x;
+                    iconContainer.Add(icon);
+                    x += 30 + Spacing;
+                }
             }
+            AddIcon<BandcampIcon>();
+            AddIcon<YouTubeIcon>();
+            AddIcon<SpotifyIcon>();
+            AddIcon<AmazonIcon>();
+            AddIcon<OtotoyIcon>();
+            if (iconContainer != null) flow.Add(iconContainer);
+
+            var replaySort = Util.ConfigManager.ReplaySort;
+
+
+            // Total grid width should be at minimum 1280 - CardWidth - CardMargin * 2 - Spacing * 2 = 
+            //                               = 1280 - 520 - 5 * 2 - 4 * 2
+            //                               = 742
+            // At resolutions wider than 16:9, it may be larger
+
+            var firstColumnWidth = 320;
+
+            flow.Add(SortButton = new CommandButton(Commands.Command.SetReplaySort)
+            {
+                Width = firstColumnWidth,
+                Height = 25
+            });
+            replaySort.BindValueChanged(SortChanged, true);
+
+
+            x = 0;
+            Scroll = new DrumScrollContainer
+            {
+                Width = firstColumnWidth,
+                RelativeSizeAxes = Axes.Y
+            };
+
+            if (MapSet != null && MapSet.Count > 1)
+            {
+                var selectedIndex = -1;
+                for (var i = 0; i < MapSet.Count; i++)
+                {
+                    if (MapSet[i].MapStoragePath == beatmap.MapStoragePath)
+                        selectedIndex = i;
+                }
+                if (selectedIndex >= 0)
+                {
+                    var mapSetDisplay = new MapSetDisplay(MapSet, selectedIndex)
+                    {
+                        X = firstColumnWidth
+                    };
+                    AddInternal(mapSetDisplay);
+                }
+            }
+
+
+            Grid = new()
+            {
+                RelativeSizeAxes = Axes.Y,
+                Content = new Drawable[][] {
+                    [ flow ],
+                    [Scroll],
+                },
+                Width = firstColumnWidth
+            };
+            RefreshReplays();
+
+            AddInternal(Grid);
+            Scroll.ScrollbarOverlapsContent = false; // have to set this after adding to the draw tree, not sure why
         }
-        AddIcon<BandcampIcon>();
-        AddIcon<YouTubeIcon>();
-        AddIcon<SpotifyIcon>();
-        AddIcon<AmazonIcon>();
-        AddIcon<OtotoyIcon>();
-        if (iconContainer != null) flow.Add(iconContainer);
-
-        var replaySort = Util.ConfigManager.ReplaySort;
-        flow.Add(SortButton = new CommandButton(Commands.Command.SetReplaySort)
-        {
-            Width = 320,
-            Height = 25
-        });
-        replaySort.BindValueChanged(SortChanged, true);
-
-
-        x = 0;
-        Scroll = new DrumScrollContainer
-        {
-            Width = 320,
-            RelativeSizeAxes = Axes.Y
-        };
-
-        Grid = new GridContainer
-        {
-            RelativeSizeAxes = Axes.Both,
-            Content = new Drawable[][] {
-                [ flow ],
-                [ Scroll ],
-            }
-        };
-        RefreshReplays();
-
-        AddInternal(Grid);
-        Scroll.ScrollbarOverlapsContent = false; // have to set this after adding to the draw tree not, sure why
     }
 
 
+    // WARNING: this runs on background thread. Update thread access must be completed in the constructor
     [BackgroundDependencyLoader]
-    private void load(MapStorage mapStorage)
+    private void load()
     {
         if (Map == null) return;
-        Padding = new MarginPadding(Spacing);
-        RelativeSizeAxes = Axes.Both;
-        LoadFromBeatmap(mapStorage.DeserializeMap(Map.MapStoragePath, skipNotes: true));
+        LoadFromBeatmap(Util.MapStorage.LoadForQuickMetadata(Map.MapStoragePath));
     }
 
     void SortChanged(ValueChangedEvent<SortMethod> e)

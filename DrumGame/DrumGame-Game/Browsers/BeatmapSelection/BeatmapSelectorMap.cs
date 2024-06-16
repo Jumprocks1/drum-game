@@ -63,7 +63,8 @@ public class BeatmapSelectorMap : ISearchable<BeatmapSelectorMap>
         new("folder", "Filters by the folder a map was loaded from. Only set for maps outside of the main library."),
         new("imageurl", "Example: <code>imageurl=i.scdn.co</>"),
         new("image"),
-        new("random", "Example: <code>random^</> - sorts maps in a random order")
+        new("random", "Example: <code>random^</> - sorts maps in a random order"),
+        new("mapstoragepath", "Filters by the file/path name.")
     ];
     public static IEnumerable<BeatmapSelectorMap> ApplyFilter(IEnumerable<BeatmapSelectorMap> exp, FilterOperator<BeatmapSelectorMap> op,
         FilterFieldInfo<BeatmapSelectorMap> fieldInfo, string value)

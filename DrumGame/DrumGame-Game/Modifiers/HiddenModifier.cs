@@ -3,6 +3,7 @@ using DrumGame.Game.Beatmaps.Display;
 using DrumGame.Game.Utils;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.Textures;
 
 namespace DrumGame.Game.Modifiers;
 
@@ -37,7 +38,7 @@ public class HiddenModifier : BeatmapModifier
             var fade = new Sprite
             {
                 Colour = Util.Skin.Notation.PlayfieldBackground,
-                Texture = Util.Resources.GetAssetTexture("fade.png"),
+                Texture = Util.Resources.GetAssetTexture("fade.png", TextureFilteringMode.Linear),
                 Depth = -2,
                 Y = -6,
                 Height = 16

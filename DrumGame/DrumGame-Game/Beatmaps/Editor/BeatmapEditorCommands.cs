@@ -205,7 +205,7 @@ public partial class BeatmapEditor
     public bool SetBeatmapOffset(CommandContext context)
     {
         var req = context.Palette.RequestNumber("Setting Beatmap Offset", "Beatmap offset", Beatmap.StartOffset,
-                o => PushChange(new OffsetBeatmapChange(this, o)));
+                o => PushChange(new OffsetBeatmapChange(this, o, UseYouTubeOffset)));
         req.AddFooterButton(new CommandButton(Commands.Command.OffsetWizard)
         {
             Text = "Offset Wizard",
@@ -214,10 +214,11 @@ public partial class BeatmapEditor
         });
         return true;
     }
-    [CommandHandler] public void SetBeatmapOffsetHere() => PushChange(new OffsetBeatmapChange(this, Math.Round(Track.CurrentTime)));
+    [CommandHandler] public void SetBeatmapOffsetHere() => PushChange(new OffsetBeatmapChange(this, Math.Round(Track.CurrentTime), UseYouTubeOffset));
     [CommandHandler]
     public bool AddBeatToOffset(CommandContext context) => context.GetNumber(e =>
-        PushChange(new OffsetBeatmapChange(this, Beatmap.StartOffset + Track.CurrentBPM.MillisecondsPerQuarterNote * e))
+        PushChange(new OffsetBeatmapChange(this, Beatmap.CurrentTrackStartOffset + Track.CurrentBPM.MillisecondsPerQuarterNote * e,
+            UseYouTubeOffset))
         , "Adding beats to offset", "Beat count", current: 1);
 
     [CommandHandler]
@@ -322,6 +323,25 @@ public partial class BeatmapEditor
         });
         context.Palette.Push(req);
         return true;
+    }
+    [CommandHandler]
+    public void SimplifyNotes()
+    {
+        var range = GetSelectionOrNull();
+        var desc = "simplifying notes";
+        if (range != null)
+            desc += $" {range.RangeString}";
+        NoteBeatmapChange c = null;
+        PushChange(c = new NoteBeatmapChange(Display, () =>
+        {
+            var res = Beatmap.Simplify(range);
+            if (res != null)
+            {
+                c.OverwriteDescription($"{desc}: {res}");
+                return true;
+            }
+            return false;
+        }, desc));
     }
 
     [CommandHandler]
@@ -492,7 +512,9 @@ public partial class BeatmapEditor
     public bool ConvertAudioToOgg(CommandContext context)
     {
         var fields = new FieldBuilder()
-            .Add(new BoolFieldConfig { Label = "Delete Old Audio" });
+            .Add(new BoolFieldConfig { Label = "Delete Old Audio" })
+            .Add(new IntFieldConfig { Label = "Vorbis Quality", DefaultValue = 8, MarkupTooltip = "8 is ~256kb/s.\b9 is ~320kb/s" })
+            .Add(new BoolFieldConfig { Label = "Swap L/R channels" });
 
         context.Palette.Request(new RequestConfig
         {
@@ -506,8 +528,9 @@ public partial class BeatmapEditor
                 var process = new FFmpegProcess("converting bgm");
                 var oldAudio = Beatmap.FullAudioPath();
                 process.AddInput(oldAudio);
-                process.Vorbis(q: 8); // 256kb/s
+                process.Vorbis(q: e.GetValue<int?>(1) ?? 8);
                 process.SimpleAudio();
+                if (e.GetValue<bool>(2)) process.SwapChannels();
                 process.AddOutput(Beatmap.FullAssetPath(relativePath));
                 process.Run();
                 PushChange(new AudioBeatmapChange(Beatmap, relativePath, this));

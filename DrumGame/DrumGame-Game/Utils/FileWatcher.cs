@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
 using osu.Framework.Logging;
@@ -46,15 +47,22 @@ public class FileWatcher : IDisposable
         Directory = directory;
     }
 
+    public List<string> ExtraFilters;
+    void SetFilters()
+    {
+        watcher.Filters.Clear();
+        if (TargetPath != null)
+            watcher.Filters.Add(Path.GetFileName(TargetPath));
+        if (ExtraFilters != null)
+            foreach (var f in ExtraFilters) watcher.Filters.Add(f);
+    }
     public void Register()
     {
         watcher = new(Directory)
         {
             NotifyFilter = NotifyFilters.LastWrite
         };
-        if (TargetPath != null)
-            watcher.Filter = Path.GetFileName(TargetPath);
-
+        SetFilters();
         var reloadId = 0;
         watcher.Changed += (_, args) =>
         {
@@ -80,7 +88,7 @@ public class FileWatcher : IDisposable
         Directory = directory;
         TargetPath = path;
         watcher.Path = Directory;
-        watcher.Filter = Path.GetFileName(path);
+        SetFilters();
     }
 
     public void ForceTrigger() => handleReady(TargetPath);

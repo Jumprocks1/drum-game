@@ -9,24 +9,27 @@ namespace DrumGame.Game.Commands;
 
 public class CommandInfo
 {
-    string[] _searchTerms;
-    public string[] SearchTerms => _searchTerms == null ? _searchTerms = ComputeSearchTerms() : _searchTerms;
-    string[] ComputeSearchTerms()
+    string _filterString;
+    public string FilterString => _filterString ??= MakeFilterString();
+    string MakeFilterString() // this should only ever be called once per CommandInfo
     {
-        // var s = Name.ToLower().Split(" ", StringSplitOptions.RemoveEmptyEntries);
-        return new[] { Name.ToLower() };
+        if (SearchTags == null)
+        {
+            SearchTags = Util.CommandController[Command].SearchTags;
+            return Name.ToLower();
+        }
+        return $"{Name.ToLower()} {SearchTags}";
     }
-    public bool MatchesSearch(string[] search)
-    {
-        var s = SearchTerms[0]; // eventually we can use a better way of searching
-        return search.All(e => s.Contains(e));
-    }
+    public bool MatchesSearch(string[] search) => search.All(FilterString.Contains);
     public bool HasHandlers => Handlers != null && Handlers.Count > 0;
     // handlers will only exist for DefaultCommandInfo, since parameter CommandInfos get passed to the default
     internal List<object> Handlers;
     public Command Command;
     public readonly string Name;
-    public string HelperMarkup;
+    // These should be lowercase (or they won't work). Spaces can safely be used as they are split when matching
+    public string SearchTags;
+    public string HelperMarkup { get => HelperMarkupAction?.Invoke(); set => HelperMarkupAction = () => value; }
+    public Func<string> HelperMarkupAction;
     public List<KeyCombo> Bindings = new();
     public CommandInfo(Command command, string name)
     {
@@ -103,13 +106,13 @@ public class CommandInfo
         if (Parameters != null && Parameters.Length > 0)
         {
             var o = new StringBuilder(Command.ToString());
-            o.Append("{");
-            for (int i = 0; i < Parameters.Length; i++)
+            o.Append('{');
+            for (var i = 0; i < Parameters.Length; i++)
             {
                 o.Append(Parameters[i]);
-                if (i != Parameters.Length - 1) o.Append(",");
+                if (i != Parameters.Length - 1) o.Append(',');
             }
-            o.Append("}");
+            o.Append('}');
             return o.ToString();
         }
         else

@@ -4,5 +4,5 @@ namespace DrumGame.Game.Interfaces;
 
 public interface IAcceptFocus
 {
-    public void Focus(InputManager inputManager);
+    public void Focus(IFocusManager focusManager);
 }

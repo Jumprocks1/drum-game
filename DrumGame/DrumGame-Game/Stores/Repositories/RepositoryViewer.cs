@@ -139,7 +139,7 @@ public class RepositoryViewer : CompositeDrawable, IModal, IAcceptFocus
     {
         return base.OnMouseDown(e) || true; // prevent closing when we click somewhere inside
     }
-    public void Focus(InputManager _) => Search.TakeFocus();
+    public void Focus(IFocusManager _) => Search.TakeFocus();
 
     class MapRow : DrumButton, IHasMarkupTooltip, IHasContextMenu
     {
@@ -217,7 +217,7 @@ public class RepositoryViewer : CompositeDrawable, IModal, IAcceptFocus
             UpdateDownloaded();
         }
         public bool Ctrl => Util.InputManager.CurrentState.Keyboard.ControlPressed;
-        public string MarkupTooltip
+        string IHasMarkupTooltip.MarkupTooltip
         {
             get
             {
@@ -292,7 +292,9 @@ public class RepositoryViewer : CompositeDrawable, IModal, IAcceptFocus
 
         public MenuItem[] ContextMenuItems => ContextMenuBuilder.New(Definition)
             .Add("Refresh", e => e.Refresh()).Disabled(!Definition.CanRefresh)
-            .Add("View online", e => Util.Host.OpenUrlExternally(Definition.Url)).Disabled(Definition.Url == null).Color(DrumColors.BrightGreen)
+            .Add("View online", e => Util.Host.OpenUrlExternally(Definition.HomeUrl ?? Definition.Url))
+                .Disabled(Definition.HomeUrl == null && Definition.Url == null)
+                .Color(DrumColors.BrightGreen)
             .Add("Refresh Specifc Page", e =>
             {
                 Util.Palette.RequestNumber("Refreshing Page", "Page", 0, page => e.RefreshPage((int)page));
@@ -301,7 +303,7 @@ public class RepositoryViewer : CompositeDrawable, IModal, IAcceptFocus
 
         const int maxRowsDisplayed = 1000;
 
-        public string MarkupTooltip
+        string IHasMarkupTooltip.MarkupTooltip
         {
             get
             {

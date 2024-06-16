@@ -21,6 +21,7 @@ public abstract class BeatmapModifier
         new HiddenModifier(),
         new SinglePedalModifier(),
         new AutoplayModifier(),
+        new JudgementHiderModifier(),
     ];
     public static BeatmapModifier Get(string key) => Modifiers.FirstOrDefault(e => e.Key == key);
     public static T Instance<T>() where T : BeatmapModifier => Modifiers.OfType<T>().First();

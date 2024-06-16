@@ -17,7 +17,7 @@ using Newtonsoft.Json;
 
 namespace DrumGame.Game.Beatmaps.Practice;
 
-public partial class PracticeMode : IDisposable
+public partial class PracticeMode
 {
     public enum PracticeMetronomeSetting
     {
@@ -210,13 +210,13 @@ public partial class PracticeMode : IDisposable
             }
             else if (player.PracticeMode != null)
             {
-                player.PracticeMode.Dispose();
+                player.PracticeMode.Exit();
                 player.PracticeMode = null;
             }
         };
     }
 
-    void Exit()
+    public void Exit()
     {
         Track.UnregisterEvents(Metronome);
         Track.Rate = 1;
@@ -232,10 +232,8 @@ public partial class PracticeMode : IDisposable
                 scorer.SeekPracticeMode = true; // prevent immediate misses
             }
         }
-        Display.EndPractice(this);
+        Display.ExitPractice(this);
     }
-
-    public void Dispose() => Exit();
 }
 
 public class PracticeMetronome(PracticeMode PracticeMode, DrumsetAudioPlayer drumset) : Metronome(PracticeMode.Player, drumset)

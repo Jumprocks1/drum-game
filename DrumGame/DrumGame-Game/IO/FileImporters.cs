@@ -4,6 +4,8 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using DrumGame.Game.API;
+using DrumGame.Game.Beatmaps;
+using DrumGame.Game.Beatmaps.Formats;
 using DrumGame.Game.Beatmaps.Loaders;
 using DrumGame.Game.Browsers;
 using DrumGame.Game.Commands;
@@ -56,7 +58,14 @@ public static class FileImporters
                 }
                 finally
                 {
-                    if (!DebugUtils.IsDebugBuild) File.Delete(path);
+                    try
+                    {
+                        if (!DebugUtils.IsDebugBuild) File.Delete(path);
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.Error(e, $"Failed to delete {path}");
+                    }
                 }
             });
         };
@@ -74,14 +83,15 @@ public static class FileImporters
         try
         {
             var fileName = Path.GetFileName(path);
-            var ext = Path.GetExtension(path);
+            var ext = Path.GetExtension(path).ToLowerInvariant();
             if (ext == ".osz")
                 OszBeatmapLoader.ImportOsz(MapStorage, path);
             else if (ext == ".osu")
                 OszBeatmapLoader.ImportOsu(MapStorage, path);
             else if (ext == ".bjson") // we should also make a FileProvider .bjson importer
-                ImportBjson(path);
+                ImportBJson(path);
             else if (ext == ".dtx") await DtxLoader.ImportDtx(path);
+            else if (fileName.Equals("song.ini", StringComparison.InvariantCultureIgnoreCase)) SongIniLoader.ImportSongIni(path);
             else if (fileName.ToLowerInvariant() == "set.def") await DtxLoader.ImportDef(path);
             else if (ext == ".zip")
             {
@@ -129,19 +139,56 @@ public static class FileImporters
         return false;
     }
 
-    public static void ImportBjson(string path)
+    public static void ImportBJson(string fullPath)
     {
-        var fileName = Path.GetFileName(path);
-        var target = Path.Join(MapStorage.AbsolutePath, fileName);
-        if (target != path)
+        var fileName = Path.GetFileName(fullPath);
+        var outputTarget = Path.Join(MapStorage.AbsolutePath, fileName);
+        if (outputTarget != fullPath)
         {
-            var map = MapStorage.DeserializeMap(path, true);
-            map.Move(MapStorage);
-            YouTubeDL.TryFixAudio(map, _ => Util.ActivateCommandUpdateThread(Command.Refresh));
-            Logger.Log($"imported {target}");
-            DeleteIfTemp(path);
-            Util.CommandController.ActivateCommand(Command.Refresh);
+            var provider = new FileProvider(Path.GetDirectoryName(fullPath));
+            var map = ImportBJsonInProvider(fileName, provider);
+            if (map != null)
+                YouTubeDL.TryFixAudio(map, _ => Util.ActivateCommandUpdateThread(Command.Refresh));
+            DeleteIfTemp(fullPath);
         }
+    }
+
+    static Beatmap ImportBJsonInProvider(string fullName, IFileProvider provider)
+    {
+        // don't need try catch here since it's handled by callers
+        var name = Path.GetFileName(fullName);
+        var outputTarget = Path.Join(MapStorage.AbsolutePath, name);
+        var map = BJsonFormat.Instance.Load(provider.Open(fullName), null, fullName, false, false);
+        map.Source = new BJsonSource(outputTarget, BJsonFormat.Instance);
+        void TryCopy(string zipPath, string localFolder, Action<string> set)
+        {
+            if (zipPath != null)
+            {
+                zipPath = Path.Join(Path.GetDirectoryName(fullName), zipPath);
+                zipPath = zipPath.Replace('\\', '/');
+                var newValue = localFolder + "/" + Path.GetFileName(zipPath);
+                set(newValue);
+                if (provider.Exists(zipPath))
+                {
+                    var assetPath = map.FullAssetPath(newValue);
+                    if (!File.Exists(assetPath))
+                    {
+                        try
+                        {
+                            provider.Copy(zipPath, assetPath);
+                            Logger.Log($"copied to {assetPath}");
+                        }
+                        catch (Exception e) { Logger.Error(e, $"failed to copy {localFolder} {zipPath}"); }
+                    }
+                }
+                else Logger.Log($"{zipPath} not found");
+            }
+        }
+        TryCopy(map.Audio, "audio", e => map.Audio = e);
+        TryCopy(map.Image, "images", e => map.Image = e);
+        map.SaveToDisk(MapStorage);
+        Logger.Log($"imported {fullName} to {outputTarget}");
+        return map;
     }
 
     public static async Task<bool> OpenFileProvider(IFileProvider provider)
@@ -153,48 +200,15 @@ public static class FileImporters
             var entryExt = Path.GetExtension(fullName);
             if (entryExt == ".bjson")
             {
-                var outputTarget = Path.Join(MapStorage.AbsolutePath, name);
-                try
-                {
-                    var map = MapStorage.DeserializeBjson(provider.Open(fullName), skipNotes: false);
-                    map.Source = new BJsonSource(outputTarget);
-                    void TryCopy(string zipPath, string localFolder, Action<string> set)
-                    {
-                        if (zipPath != null)
-                        {
-                            zipPath = Path.Join(Path.GetDirectoryName(fullName), zipPath);
-                            zipPath = zipPath.Replace('\\', '/');
-                            var newValue = localFolder + "/" + Path.GetFileName(zipPath);
-                            set(newValue);
-                            if (provider.Exists(zipPath))
-                            {
-                                var assetPath = map.FullAssetPath(newValue);
-                                if (!File.Exists(assetPath))
-                                {
-                                    try
-                                    {
-                                        provider.Copy(zipPath, assetPath);
-                                        Logger.Log($"copied to {assetPath}");
-                                    }
-                                    catch (Exception e) { Logger.Error(e, $"failed to copy {localFolder} {zipPath}"); }
-                                }
-                            }
-                            else Logger.Log($"{zipPath} not found");
-                        }
-                    }
-                    TryCopy(map.Audio, "audio", e => map.Audio = e);
-                    TryCopy(map.Image, "images", e => map.Image = e);
-                    map.SaveToDisk(MapStorage);
-                    Logger.Log($"imported {fullName} to {outputTarget}");
-                }
-                catch (Exception e)
-                {
-                    Logger.Error(e, $"failed to import {fullName}");
-                }
+                ImportBJsonInProvider(fullName, provider);
             }
-            else if (name.ToLowerInvariant() == "set.def")
+            else if (name.Equals("set.def", StringComparison.OrdinalIgnoreCase))
             {
                 await DtxLoader.ImportDef(new SubFileProvider(provider, Path.GetDirectoryName(fullName)), name);
+            }
+            else if (name.Equals("song.ini", StringComparison.OrdinalIgnoreCase))
+            {
+                SongIniLoader.ImportSongIni(new SubFileProvider(provider, Path.GetDirectoryName(fullName)), name);
             }
         }
         if (!context.MapsFound) // if we failed, we can run a second pass

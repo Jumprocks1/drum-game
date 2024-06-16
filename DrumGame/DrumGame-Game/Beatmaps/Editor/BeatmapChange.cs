@@ -46,10 +46,26 @@ public class MetadataChange : BeatmapChange
 }
 public class OffsetBeatmapChange : PropertyChange<double>
 {
-    readonly BeatmapEditor Editor;
-    public override string Description => $"set offset to {NewValue}";
-    public override double Property { get => Beatmap.StartOffset; set => Beatmap.StartOffset = value; }
-    public OffsetBeatmapChange(BeatmapEditor editor, double newValue) : base(editor.Beatmap, newValue) { Editor = editor; }
+    public bool YouTube;
+    public override string Description => $"set {(YouTube ? "YouTube offset" : "offset")} to {NewValue} ({NewValue - OldValue:+0.00;-0.00}ms)";
+    public override double Property
+    {
+        // Can't use Beatmap.CurrentTrackStartOffset since that can change in the middle of the undo stack
+        get => YouTube ? Beatmap.YouTubeOffset + Beatmap.StartOffset : Beatmap.StartOffset;
+        set
+        {
+            if (YouTube)
+            {
+                Beatmap.YouTubeOffset = Math.Round(value - Beatmap.StartOffset, 2);
+                Beatmap.FireOffsetUpdated();
+            }
+            else Beatmap.StartOffset = Math.Round(value, 2);
+        }
+    }
+    public OffsetBeatmapChange(BeatmapEditor editor, double newValue, bool youTube) : base(editor.Beatmap, newValue)
+    {
+        YouTube = youTube;
+    }
 }
 public class PreviewTimeChange : PropertyChange<double>
 {
@@ -80,20 +96,21 @@ public class AudioBeatmapChange : PropertyChange<string>
 public abstract class PropertyChange<T> : IHistoryChange where T : IEquatable<T>
 {
     public readonly T NewValue;
-    public readonly T OldValue;
+    public T OldValue;
     public readonly Beatmap Beatmap;
     public PropertyChange(Beatmap beatmap, T newValue)
     {
         Beatmap = beatmap;
         NewValue = newValue;
-        OldValue = Property;
     }
     public abstract string Description { get; }
     public abstract T Property { get; set; }
 
     public bool Do()
     {
-        if (Property == null ? NewValue == null : Property.Equals(NewValue)) return false;
+        // have to call this here instead of in constructor since it's virtual
+        OldValue = Property;
+        if (OldValue == null ? NewValue == null : OldValue.Equals(NewValue)) return false;
         Property = NewValue;
         return true;
     }
@@ -107,6 +124,10 @@ public class NoteBeatmapChange : IHistoryChange
     string description;
     public string Description => description;
     ViewTarget viewTarget;
+    public void OverwriteDescription(string s)
+    {
+        description = s;
+    }
     public NoteBeatmapChange(BeatmapDisplay display, Action action, string description, ViewTarget viewTarget = null) :
         this(display, () => { action(); return true; }, description, viewTarget)
     { }

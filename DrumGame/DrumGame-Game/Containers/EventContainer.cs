@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using DrumGame.Game.Beatmaps.Display;
 using DrumGame.Game.Commands;
 using DrumGame.Game.Components;
@@ -15,7 +16,7 @@ namespace DrumGame.Game.Containers;
 
 public class EventContainer : AdjustableSkinElement
 {
-    public override ref AdjustableSkinData SkinPath => ref Util.Skin.Notation.EventContainer;
+    public override Expression<Func<Skin, AdjustableSkinData>> SkinPathExpression => e => e.Notation.EventContainer;
     public override AdjustableSkinData DefaultData() => new()
     {
         Origin = Anchor.BottomLeft,

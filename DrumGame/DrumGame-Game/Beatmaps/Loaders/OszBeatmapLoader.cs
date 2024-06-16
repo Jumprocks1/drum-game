@@ -8,6 +8,7 @@ using DrumGame.Game.IO.Osz;
 using osu.Framework.Logging;
 using osu.Framework.Extensions.EnumExtensions;
 using DrumGame.Game.Utils;
+using DrumGame.Game.Beatmaps.Formats;
 
 namespace DrumGame.Game.Beatmaps.Loaders;
 
@@ -82,7 +83,7 @@ public static class OszBeatmapLoader
         if (File.Exists(Path.Join(outputFolder, outputFilename)))
             outputFilename = Path.GetFileName(absolutePath) + ".bjson";
 
-        o.Source = new BJsonSource(Path.Join(outputFolder, "audio", outputFilename));
+        o.Source = new BJsonSource(Path.Join(outputFolder, "audio", outputFilename), BJsonFormat.Instance);
 
         var osuAudio = Path.Join(Path.GetDirectoryName(absolutePath), osuFile.General.AudioFilename);
 
@@ -115,7 +116,7 @@ public static class OszBeatmapLoader
         {
             var osu = oszReader.ReadOsu(name);
             var o = Convert(osu);
-            o.Source = new BJsonSource(output.GetFullPath(name + ".bjson"));
+            o.Source = new BJsonSource(output.GetFullPath(name + ".bjson"), BJsonFormat.Instance);
 
             var audioPath = output.GetFullPath(o.Audio);
             Logger.Log($"Saving audio to {audioPath}");

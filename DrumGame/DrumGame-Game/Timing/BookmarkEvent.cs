@@ -105,6 +105,12 @@ public class BookmarkCrescendoEvent : BookmarkVolumeEvent
     {
     }
 
+    public override double? SizeFor(HitObjectData data, double beat)
+    {
+        var v = VolumeFor(data, beat);
+        if (v == null) return null;
+        return Math.Sqrt(v.Value);
+    }
     public override double? VolumeFor(HitObjectData data, double beat)
     {
         if (!Matches(data)) return null;
@@ -122,6 +128,10 @@ public class BookmarkVolumeEvent : BookmarkEvent
         Volume = volume;
     }
 
+    public virtual double? SizeFor(HitObjectData data, double beat)
+    {
+        return 1;
+    }
     public virtual double? VolumeFor(HitObjectData data, double beat)
     {
         if (!Matches(data)) return null;

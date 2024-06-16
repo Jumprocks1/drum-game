@@ -7,6 +7,7 @@ using DrumGame.Game.API;
 using DrumGame.Game.Beatmaps.Data;
 using DrumGame.Game.Beatmaps.Display;
 using DrumGame.Game.Beatmaps.Editor;
+using DrumGame.Game.Beatmaps.Formats;
 using DrumGame.Game.Beatmaps.Loaders;
 using DrumGame.Game.Channels;
 using DrumGame.Game.Commands.Requests;
@@ -179,42 +180,55 @@ public partial class Beatmap
             .OrderBy(e => e);
     }
 
-    public void TrySaveToDisk(MapStorage mapStorage, BeatmapEditor editor = null)
+    // returns true if the map was synchronously saved
+    public bool TrySaveToDisk(BeatmapEditor editor = null)
     {
-        if (!Source.BJson)
+        if (!Source.Format.CanSave)
         {
-            Util.Palette.Push(SaveRequest.DtxSaveRequest(Source.FilenameWithExt, removePrevious =>
+            Util.Palette.Push(SaveRequest.ConvertSaveRequest(Source, removePrevious =>
             {
+                var library = Source.Library;
+                var enableBjson = !library.IsMain && !library.ScanBjson;
+
                 var oldPath = Source.MapStoragePath;
                 if (TrySetName(Source.FilenameNoExt))
                 {
                     editor?.ForceDirty();
-                    if (removePrevious) mapStorage.Delete(oldPath);
+                    if (removePrevious) Util.MapStorage.Delete(oldPath);
                     else Id = Guid.NewGuid().ToString();
-                    TrySaveToDisk(mapStorage, editor);
+                    TrySaveToDisk(editor);
+
+                    if (enableBjson)
+                    {
+                        library.ScanBjson = true;
+                        Util.MapStorage.MapLibraries.InvokeChanged(library);
+                    }
                 }
             }));
-            return;
+            return false;
         }
         try
         {
-            var o = SaveToDisk(mapStorage);
+            var o = SaveToDisk(Util.MapStorage);
             editor?.Display?.LogEvent($"Saved to {o}");
             editor?.MarkSaveHistory();
+            return true;
         }
         catch (UserException e)
         {
             Util.Palette.UserError(e);
         }
+        return false;
     }
 
+    // Make sure to call .Export() before this
     public string SaveToDisk(MapStorage mapStorage, MapImportContext context = null)
     {
         if (DisableSaving)
             throw new UserException("Map saving disabled. Likely caused by application of a modifier.");
         // if (Notes == null) throw new Exception("Attempted to save a beatmap before it was exported. Please report this issue to the developer.");
         var target = Source.AbsolutePath;
-        if (!Source.BJson) throw new UserException("Can only save .bjson files");
+        if (!Source.Format.CanSave) throw new UserException("Can only save .bjson files");
         using var stream = mapStorage.GetStream(target, FileAccess.Write, FileMode.Create);
         using var writer = new StreamWriter(stream);
         context ??= MapImportContext.Current;
@@ -389,12 +403,13 @@ public partial class Beatmap
         {
             var end = TickFromBeat(selection.Right);
             var startIndex = HitObjects.BinarySearchFirst(TickFromBeat(selection.Left));
-            for (int i = startIndex; i < HitObjects.Count; i++)
+            for (var i = startIndex; i < HitObjects.Count; i++)
             {
                 if (HitObjects[i].Time >= end) break;
                 yield return i;
             }
         }
+        if (selection == null) return Enumerable.Range(0, HitObjects.Count);
         return selection.HasVolume ? it() : GetHitObjectsAt(selection.Left);
     }
     public IEnumerable<int> GetHitObjectsInTicks(int start, int end)
@@ -776,23 +791,7 @@ public partial class Beatmap
     }
 
     public int NextHit(double beat) => HitObjects.BinarySearchThrough(TickFromBeat(beat));
-    public void Move(MapStorage mapStorage)
-    {
-        var oldAudio = FullAudioPath();
-        Source = new BJsonSource(Path.Join(mapStorage.AbsolutePath, Path.GetFileName(Source.Filename)));
-        Audio = "audio/" + Path.GetFileName(Audio);
-        if (Audio != null)
-        {
-            try
-            {
-                File.Copy(oldAudio, FullAudioPath());
-                Logger.Log($"copied audio to {FullAudioPath()}");
-            }
-            catch { }
-        }
-        SaveToDisk(mapStorage);
-    }
-    public void CollapseCrashes()
+    public void CollapseCrashes(int epsilon = 0)
     {
         var lastCrash = -1;
         for (var i = 0; i < HitObjects.Count; i++)
@@ -800,7 +799,7 @@ public partial class Beatmap
             var e = HitObjects[i];
             if (e.Channel == DrumChannel.Crash || e.Channel == DrumChannel.China)
             {
-                if (lastCrash != -1 && HitObjects[lastCrash].Time == e.Time)
+                if (lastCrash != -1 && Math.Abs(HitObjects[lastCrash].Time - e.Time) <= epsilon)
                 {
                     HitObjects[lastCrash] = new HitObject(e.Time, new HitObjectData(DrumChannel.Crash, NoteModifiers.Accented));
                     HitObjects.RemoveAt(i);
@@ -888,6 +887,53 @@ public partial class Beatmap
         EndStreak();
     }
 
+    public string Simplify(BeatSelection selection)
+    {
+        var remove = new List<int>();
+        bool RemovePending()
+        {
+            if (remove.Count == 0) return false;
+            for (var i = remove.Count - 1; i >= 0; i--)
+                HitObjects.RemoveAt(remove[i]);
+            return true;
+        }
+        var hos = GetHitObjectsIn(selection).ToList();
+        if (hos.Count == 0) return null;
+        foreach (var i in hos)
+        {
+            if (HitObjects[i].Channel == DrumChannel.BassDrum && HitObjects[i].Modifiers.HasFlag(NoteModifiers.Left))
+                remove.Add(i);
+        }
+        if (RemovePending()) return "remove left bass";
+        foreach (var i in hos)
+        {
+            if (HitObjects[i].Modifiers.HasFlag(NoteModifiers.Ghost))
+                remove.Add(i);
+        }
+        if (RemovePending()) return "remove ghost";
+        var hoDiff = hos
+            .Select(i =>
+            {
+                var ho = HitObjects[i];
+                var offset = (ho.Time - MeasureStartTickFromTick(ho.Time)) % TickRate;
+                var gcd = Util.GCD(offset, TickRate);
+                var diff = TickRate / gcd;
+                return (i, diff);
+            })
+            .ToList();
+        var hardest = hoDiff.Max(e => e.diff);
+        if (hardest > 1)
+        {
+            foreach (var (i, diff) in hoDiff)
+            {
+                if (diff == hardest)
+                    remove.Add(i);
+            }
+        }
+        if (RemovePending()) return $"remove {hardest} snap";
+        return null;
+    }
+
     public IEnumerable<(double, bool)> BeatLinesMs()
     {
         // this only takes like 0.5ms
@@ -917,10 +963,14 @@ public partial class Beatmap
 
     public void HashId() => Id = MetaHash();
     public string MetaHash() => Util.MD5(Title ?? "", Artist ?? "", DifficultyName ?? Difficulty ?? "", Mapper ?? "", Description ?? "", Tags ?? "");
+    // note, this doesn't work for things like (TV Size) being in the title, oh well
+    // in those cases, we will have to manually set the map set
+    public string MapSetHash() => Util.MD5(Title ?? "", Artist ?? "", Mapper ?? "");
+    public string MapSetIdNonNull => MapSetId ?? MapSetHash();
     public void HashImageUrl()
     {
-        var slash = ImageUrl.LastIndexOf("/");
-        var dot = ImageUrl.LastIndexOf(".");
+        var slash = ImageUrl.LastIndexOf('/');
+        var dot = ImageUrl.LastIndexOf('.');
         if (slash > dot)
             Image = "images/" + Util.MD5(ImageUrl).ToLower();
         else
@@ -983,7 +1033,7 @@ public partial class Beatmap
             if (TempoChanges == null)
             {
                 TickRate = DefaultTickRate;
-                BeatmapLoader.LoadTempo(this);
+                BJsonLoadHelpers.LoadTempo(this);
             }
             if (TempoChanges.Count == 1 && TempoChanges[0].Time == 0 || TempoChanges.Count == 0)
                 return null;

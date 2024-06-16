@@ -99,7 +99,7 @@ public class MapLibrary
 
     public bool IsInProvider(string mapStoragePath)
     {
-        if (IsMain) return !mapStoragePath.StartsWith("$");
+        if (IsMain) return !mapStoragePath.StartsWith('$');
         return mapStoragePath.StartsWith(Prefix());
     }
     [JsonIgnore] public bool IsMain => Path == null;
@@ -107,6 +107,7 @@ public class MapLibrary
     public int RecursiveDepth;
     public bool ScanBjson;
     public bool ScanDtx;
+    public bool ScanSongIni;
     public bool Disabled;
 
     public static MapLibrary Main => new();
@@ -156,6 +157,10 @@ public class MapLibrary
         if (ScanDtx)
             foreach (var file in directory.GetFiles("*.dtx", enumerationOptions))
                 dict.Add($"{prefix}{file.FullName[rootPathLength..]}", file.LastWriteTimeUtc.Ticks);
+
+        if (ScanSongIni)
+            foreach (var file in directory.GetFiles("song.ini", enumerationOptions))
+                dict.Add($"{prefix}{file.FullName[rootPathLength..]}", file.LastWriteTimeUtc.Ticks);
     }
     EnumerationOptions GetEnumerationOptions() => new()
     {
@@ -180,28 +185,33 @@ public class MapLibrary
             res = res.Concat(Directory.GetFiles(Path, "*.bjson", enumerationOptions).Select(e => $"{prefix}{e[rootPathLength..]}"));
         if (ScanDtx)
             res = res.Concat(Directory.GetFiles(Path, "*.dtx", enumerationOptions).Select(e => $"{prefix}{e[rootPathLength..]}"));
+        if (ScanSongIni)
+            res = res.Concat(Directory.GetFiles(Path, "song.ini", enumerationOptions).Select(e => $"{prefix}{e[rootPathLength..]}"));
         return res;
     }
 
-    public (int?, int?) CountMaps() // works even when disabled
+    public (int?, int?, int?) CountMaps() // works even when disabled
     {
         try
         {
             if (IsMain)
-                return (Directory.GetFiles(Util.MapStorage.AbsolutePath, "*.bjson").Length, null);
+                return (Directory.GetFiles(Util.MapStorage.AbsolutePath, "*.bjson").Length, null, null);
             var enumerationOptions = GetEnumerationOptions();
             int? bjsonCount = null;
             int? dtxCount = null;
+            int? songIniCount = null;
             if (ScanBjson)
                 bjsonCount = Directory.GetFiles(Path, "*.bjson", enumerationOptions).Length;
             if (ScanDtx)
                 dtxCount = Directory.GetFiles(Path, "*.dtx", enumerationOptions).Length;
-            return (bjsonCount, dtxCount);
+            if (ScanSongIni)
+                songIniCount = Directory.GetFiles(Path, "song.ini", enumerationOptions).Length;
+            return (bjsonCount, dtxCount, songIniCount);
         }
         catch (Exception e)
         {
             Logger.Error(e, $"Error loading {Name}");
-            return (null, null);
+            return (null, null, null);
         }
     }
 }

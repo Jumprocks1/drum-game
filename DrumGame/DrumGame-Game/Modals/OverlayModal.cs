@@ -14,7 +14,7 @@ public interface IHasOverlayModalConfig
 public class OverlayModal<T> : CompositeDrawable, IModal where T : Drawable, new()
 {
     public Action CloseAction { get; set; }
-    void Close() => CloseAction?.Invoke();
+    public void Close() => CloseAction?.Invoke();
     public readonly T Child;
     public OverlayModal()
     {

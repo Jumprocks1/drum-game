@@ -63,6 +63,9 @@ public class FFTSettings
 // not thread safe, make sure to call from consistent thread
 public class FFTProvider : IDisposable
 {
+    public static string AutoMapperSettingsPath => Util.Resources.GetAbsolutePath("auto-mapper.json");
+
+
     public AutoMapperSettings LatestSettings;
     public FileWatcher<AutoMapperSettings> Watcher;
 

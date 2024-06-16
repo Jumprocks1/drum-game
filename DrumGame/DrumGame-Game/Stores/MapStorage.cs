@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using DrumGame.Game.Beatmaps;
+using DrumGame.Game.Beatmaps.Formats;
 using DrumGame.Game.Beatmaps.Loaders;
 using DrumGame.Game.Browsers;
 using DrumGame.Game.Browsers.BeatmapSelection;
@@ -31,21 +32,10 @@ public class MetadataCache
         Maps = new()
     };
 }
-
-public enum BeatmapDifficulty
-{
-    Unknown,
-    Easy,
-    Normal,
-    Hard,
-    Insane,
-    Expert,
-    ExpertPlus
-}
 public class BeatmapMetadata
 {
     public string Id;
-    public const int Version = 4;
+    public const int Version = 5;
     public string Title;
     public string RomanTitle;
     public string RomanArtist;
@@ -63,6 +53,7 @@ public class BeatmapMetadata
     public double Duration;
     public double BPM;
     public string BpmRange;
+    public string MapSetId;
     [JsonIgnore] public bool HasAudio; // depends on if the user has the audio files or not, loaded during runtime (not cached)
     // this is loaded from replay information. If we eventually upgrade to database metadata, we should be able to store this in the database
     // we don't want to store it in .cache.json since that gets deleted occasionally
@@ -76,6 +67,7 @@ public class BeatmapMetadata
     public void Update(Beatmap beatmap, long writeTime)
     {
         Id = beatmap.Id;
+        MapSetId = beatmap.MapSetIdNonNull;
         Title = beatmap.Title ?? beatmap.Source.FilenameNoExt;
         Artist = beatmap.Artist;
         Mapper = beatmap.Mapper;
@@ -100,7 +92,7 @@ public class BeatmapMetadata
         Duration = beatmap.PlayableDuration;
         BPM = beatmap.MedianBPM;
         BpmRange = beatmap.BpmRange;
-        if (beatmap.Source.MapStoragePath != null && beatmap.Source.MapStoragePath.StartsWith("$"))
+        if (beatmap.Source.MapStoragePath != null && beatmap.Source.MapStoragePath.StartsWith('$'))
         {
             // for .dtx files we go up 2 layers for this field
             // this is because the filename is not very useful (ie. mstr.dtx)
@@ -119,8 +111,9 @@ public class BeatmapMetadata
     {
         Update(beatmap, writeTime);
     }
-    public string[] SplitTags() => Tags?.Split(' ', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries) ?? new string[0];
+    public string[] SplitTags() => Tags?.Split(' ', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries) ?? [];
 
+    public string GetDtxLevel() => Beatmap.GetDtxLevel(SplitTags());
 }
 public class MapStorage : NativeStorage, IDisposable
 {
@@ -130,6 +123,7 @@ public class MapStorage : NativeStorage, IDisposable
     private MetadataCache CachedMetadata; // nullable
     public MapLibraries MapLibraries => Util.ConfigManager.MapLibraries.Value;
     public List<MapLibrary> ValidLibraries => MapLibraries.ValidLibraries;
+    public MapSetDictionary MapSets = new(); // should be adjusted in sync with CachedMetadata
     MetadataCache LoadedMetadata
     {
         get
@@ -140,6 +134,7 @@ public class MapStorage : NativeStorage, IDisposable
     }
     public void PurgeCache()
     {
+        MapSets.Clear();
         CachedMetadata = MetadataCache.New();
         dirty = true;
     }
@@ -148,11 +143,12 @@ public class MapStorage : NativeStorage, IDisposable
         if (CachedMetadata != null && !force) return;
         try
         {
-            // this only takes 15ms on my machine, it will take longer with more maps/metadata, but overall it's pretty fast
+            // this only takes 25ms on my machine, it will take longer with more maps/metadata, but overall it's pretty fast
             // 95% of the time is spent in the deserialize method (file read is ~0.5ms)
             // if we ever wanted this to be faster, we would need our own file format
             using var file = File.OpenText(FullCachePath);
             var serializer = new JsonSerializer();
+            MapSets.Clear();
             CachedMetadata = (MetadataCache)serializer.Deserialize(file, typeof(MetadataCache));
             if (CachedMetadata.Version != BeatmapMetadata.Version)
             {
@@ -160,6 +156,8 @@ public class MapStorage : NativeStorage, IDisposable
                 PurgeCache();
             }
             else CheckWriteTimes();
+            foreach (var map in CachedMetadata.Maps)
+                MapSets.Add(map.Key, map.Value); // 0.5ms on 1000+ maps
         }
         catch (Exception e)
         {
@@ -179,7 +177,10 @@ public class MapStorage : NativeStorage, IDisposable
         {
             dirty = true;
             foreach (var r in remove)
-                CachedMetadata.Maps.Remove(r);
+            {
+                if (CachedMetadata.Maps.Remove(r, out var meta))
+                    MapSets.Remove(meta);
+            }
         }
     }
     public void ForceReloadMetadata(MapLibrary provider)
@@ -204,13 +205,15 @@ public class MapStorage : NativeStorage, IDisposable
             yield return (file, GetMetadata(file));
     }
     public BeatmapMetadata GetMetadata(BeatmapSelectorMap map) => GetMetadata(map?.MapStoragePath);
-    public BeatmapMetadata GetMetadata(string filename)
+    public BeatmapMetadata GetMetadata(Beatmap map) => GetMetadata(map?.Source.MapStoragePath);
+    public BeatmapMetadata GetMetadata(string mapStoragePath)
     {
-        if (filename == null) return null;
-        var o = LoadedMetadata.Maps.GetValueOrDefault(filename);
+        if (mapStoragePath == null) return null;
+        var o = LoadedMetadata.Maps.GetValueOrDefault(mapStoragePath);
         if (o == null)
         {
-            LoadedMetadata.Maps[filename] = o = new BeatmapMetadata(DeserializeMap(filename, skipNotes: true), GetWriteTime(filename));
+            LoadedMetadata.Maps[mapStoragePath] = o = new BeatmapMetadata(LoadForQuickMetadata(mapStoragePath), GetWriteTime(mapStoragePath));
+            MapSets.Add(mapStoragePath, o);
             dirty = true;
         }
         return o;
@@ -225,7 +228,7 @@ public class MapStorage : NativeStorage, IDisposable
         dirty = false;
     }
     bool playTimesLoaded = false;
-    public void LoadPlayTimes()
+    public void LoadPlayTimes() // this doesn't work for maps not in the cache
     {
         if (playTimesLoaded) return;
         using (var context = Util.GetDbContext())
@@ -240,17 +243,15 @@ public class MapStorage : NativeStorage, IDisposable
     Task loadingRatings;
     public bool RatingsLoaded { get; private set; } // set after all ratings are safely loaded
     public Task LoadRatings() => loadingRatings ??= loadRatingsAsync();
-    Task loadRatingsAsync() => Task.Run(() =>
+    Task loadRatingsAsync() => Task.Run(() => // this doesn't work for maps not in the cache
     {
-        using (var context = Util.GetDbContext())
-        {
-            var dict = context.Beatmaps.Select(e => new { e.Id, e.Rating }) // this helps performance a lot
-                .Where(e => e.Rating != 0) // this doesn't seem to impact performance really
-                .ToDictionary(e => e.Id, e => e.Rating);
-            foreach (var metadata in LoadedMetadata.Maps.Values)
-                metadata.Rating = dict.GetValueOrDefault(metadata.Id);
-            RatingsLoaded = true;
-        }
+        using var context = Util.GetDbContext();
+        var dict = context.Beatmaps.Select(e => new { e.Id, e.Rating }) // this helps performance a lot
+            .Where(e => e.Rating != 0) // this doesn't seem to impact performance really
+            .ToDictionary(e => e.Id, e => e.Rating);
+        foreach (var metadata in LoadedMetadata.Maps.Values)
+            metadata.Rating = dict.GetValueOrDefault(metadata.Id);
+        RatingsLoaded = true;
     });
 
     static HashSet<string> audio;
@@ -270,14 +271,18 @@ public class MapStorage : NativeStorage, IDisposable
     }
 
     public void Dispose() => SaveMapCache();
-    public long GetWriteTime(string map) => Directory.GetLastWriteTimeUtc(GetFullPath(map)).Ticks;
-    public void ReplaceMetadata(string map, Beatmap beatmap)
+    public long GetWriteTime(string mapStoragePath) => Directory.GetLastWriteTimeUtc(GetFullPath(mapStoragePath)).Ticks;
+    public void ReplaceMetadata(string mapStoragePath, Beatmap beatmap)
     {
-        if (string.IsNullOrWhiteSpace(map)) return;
-        if (LoadedMetadata.Maps.TryGetValue(map, out var v))
-            v.Update(beatmap, GetWriteTime(map));
+        if (string.IsNullOrWhiteSpace(mapStoragePath)) return;
+        if (LoadedMetadata.Maps.TryGetValue(mapStoragePath, out var v))
+        {
+            var oldMapSetId = v.MapSetId;
+            v.Update(beatmap, GetWriteTime(mapStoragePath));
+            MapSets.MapSetIdChanged(mapStoragePath, v, oldMapSetId);
+        }
         else
-            LoadedMetadata.Maps[map] = new BeatmapMetadata(beatmap, GetWriteTime(map));
+            LoadedMetadata.Maps[mapStoragePath] = new BeatmapMetadata(beatmap, GetWriteTime(mapStoragePath));
         dirty = true;
     }
     public readonly string AbsolutePath;
@@ -321,80 +326,53 @@ public class MapStorage : NativeStorage, IDisposable
 
     public Beatmap LoadMap(BeatmapMetadata metadata) => LoadMapFromId(metadata.Id);
     public void Save(Beatmap beatmap) => beatmap.SaveToDisk(this);
-    public Beatmap LoadMap(string path)
+    public Beatmap LoadMapFromId(string mapId) => LoadMapForPlay(LoadedMetadata.Maps.FirstOrDefault(e => e.Value.Id == mapId).Key);
+    public Beatmap LoadMapForPlay(string mapStoragePath)
     {
         try
         {
-            return BeatmapLoader.From(GetStream(path), GetFullPath(path), path);
+            var fullPath = GetFullPath(mapStoragePath);
+            using var stream = GetStream(mapStoragePath) ?? throw new FileNotFoundException(fullPath);
+            foreach (var format in BeatmapFormat.Formats)
+            {
+                if (format.CanReadFile(fullPath))
+                    return format.Load(stream, mapStoragePath, fullPath, false, true);
+            }
         }
         catch (Exception ex)
         {
-            var msg = $"Failed to load beatmap {path}";
+            var msg = $"Failed to load beatmap {mapStoragePath}";
             Logger.Error(ex, msg);
             Util.Palette.ShowMessage(msg);
         }
         return null;
     }
-    public Beatmap LoadMapFromId(string mapId) => LoadMap(LoadedMetadata.Maps.FirstOrDefault(e => e.Value.Id == mapId).Key);
-    // use when we want the raw JSON instead of a loaded beatmap
-    // absolute is used when loading a map from a random location. Currently this is just when someone drops in a .bjson file
-    // skipNotes should be true whenever we don't need the notes and we don't intend to save the map
-    // if we intend to modified + save the map, we need the notes so they don't get overwritten when we save the map
-    public Beatmap DeserializeMap(string path, bool absolute = false, bool skipNotes = false)
+    Beatmap LoadMapForMetadata(string mapStoragePath, bool savingPlanned)
     {
-        var fullPath = absolute ? path : GetFullPath(path);
+        var fullPath = GetFullPath(mapStoragePath);
         var stream = File.Open(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read);
-        Beatmap o;
-        if (path.EndsWith(".dtx", true, CultureInfo.InvariantCulture))
-        {
-            if (!skipNotes) throw new NotImplementedException("Cannot load a DTX file for editing");
-            try
-            {
-                o = DtxLoader.LoadMounted(stream, fullPath, true);
-            }
-            catch (Exception e)
-            {
-                o = Beatmap.Create();
-                o.Description = $"Failed to load DTX file.\n{e}";
-                o.Title = path;
-                o.Tags = "dtx-failed-load";
-                Logger.Error(e, $"Failed to load {path}");
-            }
-        }
-        else
-        {
-            try
-            {
-                o = DeserializeBjson(stream, skipNotes);
-            }
-            catch (Exception e)
-            {
-                o = Beatmap.Create();
-                o.Description = $"Failed to load BJson file.\n{e}";
-                o.Title = path;
-                o.Tags = "bjson-failed-load";
-                Logger.Error(e, $"Failed to load {path}");
-            }
-        }
-        o.Source = new BJsonSource(fullPath) { MapStoragePath = absolute ? null : path };
-        return o;
-    }
-    public bool CanEdit(string filename) => filename.EndsWith(".bjson", true, CultureInfo.InvariantCulture);
-    public bool CanEdit(BeatmapSelectorMap map) => CanEdit(map.MapStoragePath);
-    // make sure to set Beatmap.Source after this
-    public Beatmap DeserializeBjson(Stream stream, bool skipNotes)
-    {
-        using (stream)
-        using (var sr = new StreamReader(stream))
-        {
-            var serializer = new JsonSerializer
-            {
-                ContractResolver = skipNotes ? BeatmapMetadataContractResolver.Default : BeatmapContractResolver.Default
-            };
-            return (Beatmap)serializer.Deserialize(sr, typeof(Beatmap)); // can't use generic because of sr
-        }
-    }
+        var metadataOnly = !savingPlanned; // don't need to load notes if we are just reading metadata without saving
 
+        foreach (var format in BeatmapFormat.Formats)
+        {
+            if (format.CanReadFile(mapStoragePath))
+            {
+                if (!format.CanSave && savingPlanned)
+                    throw new NotImplementedException($"Cannot load a {format.Name} file for editing");
+                return format.TryLoad(stream, mapStoragePath, fullPath, metadataOnly, false);
+            }
+        }
+
+        var failed = Beatmap.Create();
+        failed.Description = "File not recognized";
+        failed.Title = fullPath;
+        Logger.Log($"File not recognized: {fullPath}", level: LogLevel.Error);
+        return failed;
+    }
+    // Used for quick edits, typically done on the selection screen
+    public Beatmap LoadForQuickEdit(string mapStoragePath) => LoadMapForMetadata(mapStoragePath, true);
+    public Beatmap LoadForQuickMetadata(string mapStoragePath) => LoadMapForMetadata(mapStoragePath, false);
+    public bool CanEdit(BeatmapSelectorMap map) => BJsonFormat.Instance.CanReadFile(map.MapStoragePath);
 
     public override void Delete(string path)
     {
@@ -404,8 +382,11 @@ public class MapStorage : NativeStorage, IDisposable
 
         if (CachedMetadata != null)
         {
-            if (CachedMetadata.Maps.Remove(relativePath))
+            if (CachedMetadata.Maps.Remove(relativePath, out var meta))
+            {
                 dirty = true;
+                MapSets.Remove(meta);
+            }
         }
 
         if (File.Exists(path))
@@ -451,21 +432,11 @@ public class MapStorage : NativeStorage, IDisposable
         return relativePath;
     }
 
-    public List<(string, BeatmapMetadata)> GetMapSet(Beatmap beatmap)
-    {
-        var set = new List<(string, BeatmapMetadata)>();
-        foreach (var (file, metadata) in LoadedMetadata.Maps)
-        {
-            if (metadata.Artist == beatmap.Artist && metadata.Mapper == beatmap.Mapper
-                && metadata.Audio == beatmap.Audio)
-                set.Add((file, metadata));
-        }
-        return set;
-    }
+    public IReadOnlyList<MapSetEntry> GetMapSet(Beatmap beatmap) => MapSets[beatmap];
 }
 public class BeatmapMetadataContractResolver : CamelCasePropertyNamesContractResolver
 {
-    public static readonly BeatmapMetadataContractResolver Default = new BeatmapMetadataContractResolver();
+    public static readonly BeatmapMetadataContractResolver Default = new();
     protected override IList<JsonProperty> CreateProperties(Type type, MemberSerialization memberSerialization)
     {
         if (type == typeof(Beatmap)) type = typeof(BJson);
@@ -474,7 +445,7 @@ public class BeatmapMetadataContractResolver : CamelCasePropertyNamesContractRes
     protected override JsonProperty CreateProperty(MemberInfo member,
                                      MemberSerialization memberSerialization)
     {
-        JsonProperty property = base.CreateProperty(member, memberSerialization);
+        var property = base.CreateProperty(member, memberSerialization);
         if (property.DeclaringType == typeof(BJson) && property.PropertyName == "Notes")
         {
             property.ShouldSerialize = _ => false;

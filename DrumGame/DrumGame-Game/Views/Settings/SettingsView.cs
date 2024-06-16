@@ -24,11 +24,6 @@ public class SettingsView : ModalBase, IModal
     [Resolved] DrumGameConfigManager Config { get; set; }
     [Resolved] FrameworkConfigManager FrameworkConfig { get; set; }
     [Resolved] CommandController Command { get; set; }
-    // SearchTextBox SearchBox;
-    protected override bool OnMouseDown(MouseDownEvent e)
-    {
-        return CloseControls() || base.OnMouseDown(e);
-    }
 
     IModal Modal;
     void CloseModal()
@@ -48,19 +43,6 @@ public class SettingsView : ModalBase, IModal
         AddInternal(drawable);
     }
 
-    bool CloseControls()
-    {
-        var closed = false;
-        foreach (var control in ScrollContainer.OfType<SettingControl>())
-        {
-            if (control.Info.Open)
-            {
-                control.Close();
-                closed = true;
-            }
-        }
-        return closed;
-    }
     public Action CloseAction { get; set; }
 
     DrumScrollContainer ScrollContainer;
@@ -70,7 +52,7 @@ public class SettingsView : ModalBase, IModal
     {
         RelativeSizeAxes = Axes.Both;
         AddInternal(new ModalBackground(() => CloseAction?.Invoke()));
-        var inner = new ClickableContainer(() => CloseControls())
+        var inner = new ClickBlockingContainer
         {
             RelativeSizeAxes = Axes.Both,
             Width = 0.8f,
@@ -121,15 +103,9 @@ public class SettingsView : ModalBase, IModal
         var depth = 0;
         foreach (var setting in settings)
         {
-            SettingControl control = null;
-            control = new SettingControl(setting, even)
+            var control = new SettingControl(setting, even)
             {
                 Y = y,
-                Action = () =>
-                {
-                    CloseControls();
-                    control.Info.OnClick(control);
-                },
                 Depth = depth++
             };
             ScrollContainer.Add(control);
@@ -154,18 +130,11 @@ public class SettingsView : ModalBase, IModal
             CloseModal();
             return true;
         }
-        return CloseControls();
+        return false;
     }
 
     [CommandHandler] public void RevealInFileExplorer() => Config.RevealInFileExplorer();
     [CommandHandler] public void OpenExternally() => Config.OpenExternally();
 
     // public void Focus(InputManager _) => SearchBox.TakeFocus();
-
-    class ClickableContainer : Container
-    {
-        readonly Action action;
-        public ClickableContainer(Action action) { this.action = action; }
-        protected override bool OnMouseDown(MouseDownEvent e) { action(); return true; }
-    }
 }

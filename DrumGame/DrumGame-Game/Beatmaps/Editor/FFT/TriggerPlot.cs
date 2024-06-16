@@ -134,14 +134,22 @@ public class TriggerPlot : CompositeDrawable, IHasMarkupTooltip
             {
                 if (Plots[j] != null)
                 {
-                    var s = triggers[j].LowBin;
-                    var e = triggers[j].HighBin;
+                    var v = triggers[j];
+                    var s = v.LowBin;
+                    var e = v.HighBin;
                     var sum = 0f;
-                    var chunk = FFT.ChunkAt(t - triggers[j].TimeCorrectionMs);
+                    var chunk = FFT.ChunkAt(t - v.TimeCorrectionMs);
                     var fft = FFT.FFTAtChunk(chunk);
                     for (var k = s; k <= e; k++)
                         sum += fft[k];
-                    sum *= triggers[j].Multiplier;
+                    sum *= v.Multiplier;
+
+                    var sub = v.Subtract;
+                    if (sub != null)
+                    {
+                        for (var k = sub.LowBin; k <= sub.HighBin; k++)
+                            sum -= fft[k] * sub.Multiplier;
+                    }
 
                     if (sum > NextMaxValue) NextMaxValue = sum;
 

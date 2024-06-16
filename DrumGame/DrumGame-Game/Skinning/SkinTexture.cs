@@ -3,6 +3,7 @@ using DrumGame.Game.Utils;
 using Newtonsoft.Json;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 
@@ -28,9 +29,12 @@ public class AnimatedSprite : Sprite
 
 public class SkinTexture
 {
+    public TextureFilteringMode FilteringMode = TextureFilteringMode.Nearest;
     public float AspectRatio;
     public string File;
 
+    public WrapMode WrapModeS; // horizontal
+    public WrapMode WrapModeT; // vertical
     public RectangleF Crop;
     public float AnimateX;
     public float AnimateY;
@@ -75,9 +79,11 @@ public class SkinTexture
     }
     [JsonIgnore]
     public SkinTexture Prepared { get { PrepareForDraw(); return this; } }
+    public string FragmentShader;
+    IShader LoadedShader;
     bool Ready;
     BlendingParameters Blending;
-    public void PrepareForDraw()
+    public void PrepareForDraw() // sometimes called on draw thread, sometimes on update thread
     {
         if (Ready) return;
 
@@ -116,6 +122,14 @@ public class SkinTexture
             Blending = BlendingParameters.Additive;
         else
             Blending = BlendingParameters.Mixture;
+        if (!string.IsNullOrEmpty(FragmentShader))
+        {
+            try
+            {
+                LoadedShader = Util.Skin.ShaderManager.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShader);
+            }
+            catch { LoadedShader = null; }
+        }
     }
     Texture _texture;
     Texture _getTexture()
@@ -124,7 +138,7 @@ public class SkinTexture
         // we can have this rotate based on the current time
         // note that in DTXManiaNX, they use 70ms per frame
         // pretty bad
-        var t = Util.Resources.GetAssetTexture(File);
+        var t = Util.Resources.GetAssetTexture(File, FilteringMode, WrapModeS, WrapModeT);
         if (t == null) return null;
         if (Animated) return t;
         var area = Crop.Area;
@@ -134,10 +148,12 @@ public class SkinTexture
     }
 
     // WARNING: this sets the blend mode. Make sure to reset it before drawing again
+    // We also bind to shader
     public void DrawCentered(CanvasNode node, float x, float y, float w, float h) => Draw(node, x, y, w, h, true);
     public void Draw(CanvasNode node, float x, float y, float w, float h, bool center = false)
     {
         PrepareForDraw();
+        node.DesiredShader = LoadedShader ?? node.TextureShader;
         node.Color = Color;
         w *= ScaleX;
         h *= ScaleY;
@@ -147,14 +163,16 @@ public class SkinTexture
             var frame = ((int)(node.Time / FrameDuration)) % AnimatedTextures.Length;
             texture = AnimatedTextures[frame];
         }
-        if (Texture != null)
+        if (texture != null)
         {
-
             if (Fill == FillMode.Fill)
             {
-                var ratioAdjustment = AspectRatio / w * h / node.RelativeAspectRatio;
-                if (ratioAdjustment < 1) h /= ratioAdjustment;
-                else w *= ratioAdjustment;
+                if (texture.WrapModeT == default && texture.WrapModeS == default)
+                {
+                    var ratioAdjustment = AspectRatio / w * h / node.RelativeAspectRatio;
+                    if (ratioAdjustment < 1) h /= ratioAdjustment;
+                    else w *= ratioAdjustment;
+                }
             }
             else if (Fill == FillMode.Fit)
             {

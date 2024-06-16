@@ -21,7 +21,6 @@ public class ManiaSkinInfo
 {
     public static double ScrollRate => Util.ConfigManager.Get<double>(DrumGameSetting.ManiaScrollMultiplier) * 0.25d / 1000; // measured in vertical screens per millisecond
 
-    public float Width = 0.55f;
     public float GhostNoteWidth = 0.7f;
     public float JudgementPosition = 0.15f;
     public Colour4 JudgementColor = DrumColors.Yellow;
@@ -30,6 +29,7 @@ public class ManiaSkinInfo
     public Colour4 BeatLineColor = new(200, 200, 200, 255);
     public Colour4 MeasureLineColor;
     public Colour4 BackgroundColor = new(16, 16, 16, 255);
+    public Colour4 BackgroundFontColor;
     public float BeatLineThickness = 0.002f;
     public float MeasureLineThickness;
     public Colour4 BorderColor = new(100, 100, 100, 255);
@@ -37,6 +37,7 @@ public class ManiaSkinInfo
     public AdjustableSkinData HitErrorDisplay;
     public Beatmaps.Display.Mania.ManiaTimeline.PositionData PositionIndicator;
     public AdjustableSkinData PracticeInfoPanel;
+    public AdjustableSkinData LaneContainer;
     public void LoadDefaults()
     {
         foreach (var lane in Lanes.LaneList)
@@ -47,10 +48,13 @@ public class ManiaSkinInfo
             MeasureLineThickness = BeatLineThickness * 3;
         if (MeasureLineColor == default)
             MeasureLineColor = BeatLineColor;
+        if (BackgroundFontColor == default)
+            BackgroundFontColor = DrumColors.ContrastText(BackgroundColor);
         SongInfoPanel?.LoadDefaults();
         HitErrorDisplay?.LoadDefaults();
         PositionIndicator?.LoadDefaults();
         PracticeInfoPanel?.LoadDefaults();
+        LaneContainer?.LoadDefaults();
     }
 
     public class ManiaSkinInfo_Lane : IChipInfo

@@ -30,6 +30,14 @@ public class KeybindModalCloseEvent
 }
 public class KeybindModal : CompositeDrawable, IModal
 {
+    class CenterContainer : Container
+    {
+        protected override bool OnScroll(ScrollEvent e)
+        {
+            Util.GetParent<KeybindModal>(this)?.UpdateBindingContainer(new KeyCombo(e));
+            return true;
+        }
+    }
     public override bool HandleNonPositionalInput => true;
     public override bool RequestsFocus => true;
     public override bool AcceptsFocus => true;
@@ -37,7 +45,7 @@ public class KeybindModal : CompositeDrawable, IModal
     protected override void LoadComplete()
     {
         base.LoadComplete();
-        GetContainingInputManager().ChangeFocus(this);
+        GetContainingFocusManager().ChangeFocus(this);
     }
 
     public const float Spacing = 8f;
@@ -69,7 +77,7 @@ public class KeybindModal : CompositeDrawable, IModal
             Colour = DrumColors.DarkBorder
         });
         AddInternal(outer);
-        outer.Add(Center = new Container
+        outer.Add(Center = new CenterContainer
         {
             RelativeSizeAxes = Axes.X,
             Padding = new MarginPadding(2)
@@ -252,16 +260,19 @@ public class KeybindModal : CompositeDrawable, IModal
         currentCombo = new KeyCombo(mainKey);
         HotkeyDisplay.RenderHotkey(newBindingContainer, currentCombo);
     }
-    public void UpdateBindingContainer(InputState state)
+    public void UpdateBindingContainer(KeyCombo combo)
     {
         newBindingContainer.Clear();
-        var modifiers = ModifierKey.None;
+        currentCombo = combo;
+        HotkeyDisplay.RenderHotkey(newBindingContainer, currentCombo);
+    }
+    public void UpdateBindingContainer(osu.Framework.Input.States.KeyboardState keyboard, InputKey mainKey)
+        => UpdateBindingContainer(new KeyCombo(keyboard.Modifier(), mainKey));
+    public void UpdateBindingContainer(InputState state)
+    {
         var keyboard = state.Keyboard;
-        if (keyboard.ControlPressed) modifiers |= ModifierKey.Ctrl;
-        if (keyboard.AltPressed) modifiers |= ModifierKey.Alt;
-        if (keyboard.ShiftPressed) modifiers |= ModifierKey.Shift;
         var mainKey = InputKey.None;
-        foreach (var key in state.Keyboard.Keys)
+        foreach (var key in keyboard.Keys)
         {
             if (key != Key.ShiftLeft && key != Key.ShiftRight && key != Key.AltLeft && key != Key.AltRight &&
                 key != Key.ControlLeft && key != Key.ControlRight)
@@ -270,8 +281,7 @@ public class KeybindModal : CompositeDrawable, IModal
                 break;
             }
         }
-        currentCombo = new KeyCombo(modifiers, mainKey);
-        HotkeyDisplay.RenderHotkey(newBindingContainer, currentCombo);
+        UpdateBindingContainer(keyboard, mainKey);
     }
 
     public Action CloseAction { get; set; }

@@ -1,0 +1,39 @@
+{
+    "files.exclude": {
+        "**/bin/": true,
+        "**/obj/": true,
+        "resources/database.db-shm": true,
+        "resources/database.db-wal": true
+    },
+    "git.autoRepositoryDetection": false,
+    "json.schemas": [
+        {
+            "fileMatch": [
+                "resources/collections/*.json"
+            ],
+            "url": "../collection-schema.json"
+        },
+        {
+            "fileMatch": [
+                "resources/repositories/*.json"
+            ],
+            "url": "./resources/repositories/repository-schema.json"
+        },
+        {
+            "fileMatch": [
+                "resources/filters/*.json"
+            ],
+            "url": "./resources/filters/filter-schema.json"
+        },
+        {
+            "fileMatch": [
+                "*.bjson"
+            ],
+            "url": "../bjson-schema.json"
+        }
+    ],
+    "dotnet.server.useOmnisharp": true,
+    "search.exclude": {
+        "resources/maps": true
+    },
+}

@@ -1,0 +1,76 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Desktop Attach",
+            "type": "coreclr",
+            "request": "attach",
+            "processName": "DrumGame.exe",
+            "linux": {
+                "processName": "DrumGame"
+            }
+        },
+        {
+            "name": "Test Attach",
+            "type": "coreclr",
+            "request": "attach",
+            "processName": "DrumGame.Game.Tests.exe"
+        },
+        {
+            "name": "VisualTests (Debug)",
+            "type": "coreclr",
+            "request": "launch",
+            "program": "dotnet",
+            "args": [
+                "${workspaceRoot}/DrumGame.Game.Tests/bin/Debug/net8.0/DrumGame.Game.Tests.dll",
+            ],
+            "cwd": "${workspaceRoot}",
+            "preLaunchTask": "Build (Tests, Debug)",
+            "linux": {
+                "env": {
+                    "LD_LIBRARY_PATH": "${workspaceRoot}/DrumGame.Game.Tests/bin/Debug/net8.0:${env:LD_LIBRARY_PATH}",
+                    "DISPLAY": ":0"
+                },
+            },
+            "console": "internalConsole"
+        },
+        {
+            "name": "DrumGame (Debug)",
+            "type": "coreclr",
+            "request": "launch",
+            "program": "dotnet",
+            "args": [
+                "${workspaceRoot}/DrumGame.Desktop/bin/Debug/net8.0/DrumGame.dll",
+            ],
+            "cwd": "${workspaceRoot}",
+            "preLaunchTask": "Build (Desktop, Debug)",
+            "linux": {
+                "env": {
+                    "LD_LIBRARY_PATH": "${workspaceRoot}/DrumGame.Desktop/bin/Debug/net8.0:${env:LD_LIBRARY_PATH}"
+                }
+            },
+            "console": "internalConsole",
+            "logging": {
+                "moduleLoad": false
+            }
+        },
+        {
+            "name": "Debug Gen",
+            "type": "coreclr",
+            "request": "launch",
+            "program": "dotnet",
+            "args": [
+                "${workspaceRoot}/DrumGame.Gen/bin/Debug/net8.0/DrumGame.Gen.dll",
+            ],
+            "cwd": "${workspaceRoot}",
+            "preLaunchTask": "Build Gen",
+            "console": "internalConsole",
+            "logging": {
+                "moduleLoad": false
+            }
+        }
+    ]
+}

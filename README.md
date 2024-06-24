@@ -23,6 +23,9 @@ To download maps, I recommend using the in-game repository browser. This can be 
 
 You can also load an existing map library of `.dtx` files by running the command `Configure Map Libraries`. This should work for thousands of files.
 
+## Running/Compiling from Source
+See [running from source](DrumGame/README.md#running-from-source)
+
 ## Android/iOS
 If you are interested in getting Drum Game on one of these platforms, please [create an issue](https://github.com/Jumprocks1/drum-game/issues) and I will set up a build for that platform. The source code is already cross-platform, so it should just be a matter of building and testing.
 

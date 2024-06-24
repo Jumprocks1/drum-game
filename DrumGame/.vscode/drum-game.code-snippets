@@ -1,0 +1,15 @@
+{
+    "load": {
+        "scope": "csharp",
+        "prefix": "load",
+        "body": [
+            "[BackgroundDependencyLoader]",
+            "private void load()",
+            "{",
+            "\t$0",
+            "}"
+        ],
+        "description": "Adds load method with BackgroundDependencyLoader attribute"
+    }
+    // note, you can also use https://code.visualstudio.com/updates/v1_65#_surround-with-snippet
+}

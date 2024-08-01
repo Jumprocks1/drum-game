@@ -40,25 +40,45 @@
               "right"
             ]
           },
+          "preset": {
+            "type": "string"
+          },
           "channel": {
-            "enum": [
-              "snare",
-              "bass",
-              "hihat",
-              "crash",
-              "open-hihat",
-              "half-hihat",
-              "ride",
-              "ride-bell",
-              "sidestick",
-              "high-tom",
-              "mid-tom",
-              "low-tom",
-              "hihat-pedal",
-              "splash",
-              "china",
-              "rim"
-            ]
+            "$ref": "#/$defs/channel"
+          }
+        }
+      }
+    },
+    "notePresets": {
+      "patternProperties": {
+        ".*": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "channel": {
+              "$ref": "#/$defs/channel"
+            },
+            "keybind": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "sample": {
+              "type": "string"
+            },
+            "size": {
+              "type": "number"
+            },
+            "volume": {
+              "type": "number"
+            },
+            "pan": {
+              "type": "number"
+            }
           }
         }
       }
@@ -332,6 +352,27 @@
           "type": "number"
         }
       }
+    },
+    "channel": {
+      "type": "string",
+      "enum": [
+        "snare",
+        "bass",
+        "hihat",
+        "crash",
+        "open-hihat",
+        "half-hihat",
+        "ride",
+        "ride-bell",
+        "sidestick",
+        "high-tom",
+        "mid-tom",
+        "low-tom",
+        "hihat-pedal",
+        "splash",
+        "china",
+        "rim"
+      ]
     }
   }
 }

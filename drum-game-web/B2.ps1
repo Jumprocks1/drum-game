@@ -61,7 +61,7 @@ $dtxJson.maps = @(@{
     filename = $BjsonName;
     downloadUrl = $downloadUrl;
     date = get-date -Format "yyyy-M-d";
-}) + $dtxJson.maps
+}) + ($dtxJson.maps |? {$_.filename -ne $BjsonName})
 $dtxJson | ConvertTo-Json -depth 10 | Out-File $dtxJsonPath -NoNewLine
 
 # force git to recheck the file

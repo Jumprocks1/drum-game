@@ -61,8 +61,9 @@ public class AutoplayModifier : BeatmapModifier
                 var v = HitObjectData.ComputeVelocity(o.Data.Modifiers);
                 if (volumeMultiplier != 1)
                     v = (byte)Math.Clamp(Math.Floor(v * volumeMultiplier), 0, 127);
-
-                play(new DrumChannelEvent(beatmap.MillisecondsFromTick(o.Time), o.Data.Channel, v));
+                var t = beatmap.MillisecondsFromTick(o.Time);
+                // t += Util.RNGNormal(0, 50);
+                play(new DrumChannelEvent(t, o.Data.Channel, v));
             }
         })
         {

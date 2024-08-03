@@ -1,3 +1,4 @@
+using DrumGame.Game.Beatmaps.Data;
 using DrumGame.Game.Channels;
 using DrumGame.Game.Interfaces;
 using DrumGame.Game.Modifiers;
@@ -39,6 +40,7 @@ public enum Command
     AddBeatToOffset,
     TimingWizard,
     OffsetWizard,
+    ConfigureNotePresets,
     ListenToDrumOnlyAudio,
     AutoMapperPlot,
     FrequencyImage,
@@ -54,6 +56,7 @@ public enum Command
     CreateNewBeatmap,
     JumpToMap,
     SetEditorSnapping,
+    EditorMouse,
     ToggleSnapIndicator,
     ToggleSongCursor,
     ModifyCurrentBPM,
@@ -67,6 +70,7 @@ public enum Command
     SetLeftBassSticking,
     SimplifyNotes,
     StackDrumChannel,
+    InsertPresetNote,
     InsertRoll,
     EditTiming,
     EditBeatsPerMeasure,
@@ -232,7 +236,8 @@ public static class CommandList
         controller.RegisterCommand(Command.OpenKeyboardView, new KeyCombo(ModifierKey.Shift, InputKey.F1));
         controller.RegisterCommand(Command.OpenKeyboardDrumEditor);
         controller.RegisterCommand(Command.ViewDrumLegend);
-        controller.RegisterCommand(Command.ViewMidi);
+        controller.RegisterCommand(Command.ViewMidi)
+            .HelperMarkup = "Allows viewing the currently connected MIDI devices.\nAlso allows setting preferred input and output devices.";
         controller.RegisterCommand(Command.ViewRepositories);
         controller.RegisterCommand(Command.ConfigureMapLibraries);
         controller.RegisterCommand(Command.Notifications);
@@ -262,6 +267,7 @@ public static class CommandList
         controller.RegisterCommand(Command.AddBeatToOffset);
         controller.RegisterCommand(Command.TimingWizard, new KeyCombo(ModifierKey.Ctrl, InputKey.T));
         controller.RegisterCommand(Command.OffsetWizard, new KeyCombo(ModifierKey.CtrlShift, InputKey.T));
+        controller.RegisterCommand(Command.ConfigureNotePresets, InputKey.Semicolon);
         controller.RegisterCommand(Command.ListenToDrumOnlyAudio);
         controller.RegisterCommand(Command.AutoMapperPlot);
         controller.RegisterCommand(Command.FrequencyImage);
@@ -314,6 +320,9 @@ public static class CommandList
             Parameters = [6.0]
         });
 
+        controller.RegisterCommand(Command.EditorMouse, InputKey.M)
+            .HelperMarkup = "Hold to enable single note selection in the editor using the mouse.";
+
         controller.RegisterCommand(Command.ToggleSnapIndicator);
         controller.RegisterCommand(Command.ToggleSongCursor);
         controller.RegisterCommand(Command.ModifyCurrentBPM, "Modify Current BPM", InputKey.B);
@@ -328,6 +337,8 @@ public static class CommandList
         controller.RegisterCommand(Command.SimplifyNotes);
         controller.RegisterCommand(Command.StackDrumChannel);
         controller.SetParameterInfo(Command.StackDrumChannel, typeof(DrumChannel));
+        controller.RegisterCommand(Command.InsertPresetNote);
+        controller.SetParameterInfo(Command.InsertPresetNote, typeof(string), typeof(NotePreset));
         controller.RegisterCommand(Command.InsertRoll, InputKey.R);
         controller.RegisterCommand(Command.EditTiming, InputKey.T)
             .SearchTags = "bpm";
@@ -376,6 +387,7 @@ public static class CommandList
         controller.RegisterCommand(Command.SeekToEnd, new KeyCombo(ModifierKey.Ctrl, InputKey.End));
         controller.RegisterCommand(Command.SeekToTime, new KeyCombo(ModifierKey.Ctrl, InputKey.G));
         controller.RegisterCommand(Command.SeekToBeat);
+        controller.SetParameterInfo(Command.SeekToBeat, typeof(double));
         controller.RegisterCommand(Command.ShowEndScreen);
 
         controller.RegisterCommand(Command.SelectAll, new KeyCombo(ModifierKey.Ctrl, InputKey.A));
@@ -524,7 +536,8 @@ public static class CommandList
         controller.RegisterCommand(Command.RevealAudioInFileExplorer);
         controller.RegisterCommand(Command.OpenResourcesFolder);
         controller.RegisterCommand(Command.OpenLogFolder);
-        controller.RegisterCommand(Command.OpenDrumGameDiscord);
+        controller.RegisterCommand(Command.OpenDrumGameDiscord)
+            .HelperMarkup = "Discord is the easiest way to get help if you find anything missing/wrong with the game.";
         controller.RegisterCommand(Command.ExportMap);
         controller.RegisterCommand(Command.ExportToMidi);
         controller.RegisterCommand(Command.ExportToDtx);
@@ -540,7 +553,8 @@ public static class CommandList
         controller.RegisterCommand(Command.ReloadKeybindsFromFile);
         controller.RegisterCommand(Command.Screenshot);
         controller.RegisterCommand(Command.About);
-        controller.RegisterCommand(Command.SubmitFeedback);
+        controller.RegisterCommand(Command.SubmitFeedback)
+            .HelperMarkup = "GitHub can be used to report issues/requests.\nThe source for Drum Game is also available on GitHub.\nFor general help and support, check out the Discord.";
         controller.RegisterCommand(Command.ToggleScreencastMode);
         controller.RegisterCommand(Command.RecordVideo);
         controller.RegisterCommand(Command.GenerateThumbnail);

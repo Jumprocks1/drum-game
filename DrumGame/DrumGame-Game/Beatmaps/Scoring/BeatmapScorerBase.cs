@@ -68,7 +68,8 @@ public class BeatmapScorerBase : IDisposable
     {
         Channel = ev.Channel,
         Rating = HitScoreRating.Ignored,
-        Time = ev.Time
+        Time = ev.Time,
+        InputEvent = ev
     });
     public static int RatingValue(HitScoreRating rating) => rating switch
     {
@@ -164,11 +165,12 @@ public class BeatmapScorerBase : IDisposable
         {
             Channel = hitObject.Data.Channel,
             Rating = HitScoreRating.Miss,
-            ObjectTime = hitObject.Time
+            ObjectTime = hitObject.Time,
+            OriginalObjectIndex = hitObject.OriginalObjectIndex
         });
     }
 
-    public void ActivateHit(int hitIndex, double t)
+    public void ActivateHit(DrumChannelEvent ev, int hitIndex, double t)
     {
         var hit = HitObjects[hitIndex];
         // move the hit note to the front of it's note group (excluding already hit notes)
@@ -184,7 +186,7 @@ public class BeatmapScorerBase : IDisposable
             hitIndex = swapTarget;
         }
         // we have hit through candidateIndex now, so we need to mark everything between as a miss
-        for (int i = HitThrough + 1; i < hitIndex; i++)
+        for (var i = HitThrough + 1; i < hitIndex; i++)
         {
             TriggerMissEvent(HitObjects[i]);
             RehitNotes.Add(HitObjects[i]);
@@ -195,7 +197,9 @@ public class BeatmapScorerBase : IDisposable
             Channel = hit.Data.Channel,
             Rating = rating,
             Time = t,
-            ObjectTime = hit.Time
+            ObjectTime = hit.Time,
+            OriginalObjectIndex = hit.OriginalObjectIndex,
+            InputEvent = ev
         });
         // if we were in the early bad window, add to recently skipped
         if (t - hit.Time < -HitWindows.GoodWindow) RehitNotes.Add(hit);
@@ -219,6 +223,7 @@ public class BeatmapScorerBase : IDisposable
                         Channel = ev.Channel,
                         Rating = HitScoreRating.Perfect,
                         Time = ev.Time,
+                        InputEvent = ev
                     }, true);
                     return true;
                 }
@@ -345,7 +350,7 @@ public class BeatmapScorerBase : IDisposable
                     return;
                 }
             }
-            ActivateHit(hitIndex.Value, t);
+            ActivateHit(ev, hitIndex.Value, t);
         }
         else
         {

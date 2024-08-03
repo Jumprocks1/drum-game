@@ -191,7 +191,7 @@ public class BeatmapCard : CompositeDrawable, IHasContextMenu
         invalid = true; // forces a metadata reload on next load
     }
 
-    public void LoadMap(BeatmapSelectorMap map, bool force = false)
+    public void LoadMap(BeatmapSelectorMap map, bool force = false) // update/load thread only
     {
         Alpha = 1;
         if (Map == map && !force && !invalid) return;
@@ -283,21 +283,24 @@ public class BeatmapCard : CompositeDrawable, IHasContextMenu
                 });
             }
         }
-        ratingText.SetCurrent(metadata.Rating);
-        waitingForRating = !metadata.RatingLoaded;
-        if (waitingForRating) Util.MapStorage.LoadRatings();
+        if (!metadata.RatingLoaded)
+        {
+            waitingForRating = metadata;
+            Util.MapStorage.LoadRatings();
+        }
+        else ratingText.SetCurrent(metadata.Rating);
     }
 
-    bool waitingForRating;
+    BeatmapMetadata waitingForRating;
 
     protected override void Update()
     {
-        if (waitingForRating && Util.MapStorage.RatingsLoaded)
+        if (waitingForRating != null && waitingForRating.RatingLoaded)
         {
-            waitingForRating = false;
-            var metadata = Util.MapStorage.GetMetadata(Map);
-            if (metadata != null)
-                ratingText.SetCurrent(metadata.Rating);
+            // make sure we're still waiting for the right map
+            if (waitingForRating == Util.MapStorage.GetMetadata(Map))
+                ratingText.SetCurrent(waitingForRating.Rating);
+            waitingForRating = null;
         }
     }
 }

@@ -19,7 +19,7 @@ public class StringSettingInfo : SettingInfo
         Anchor = Anchor.TopRight,
         Origin = Anchor.TopRight,
         X = -SettingControl.SideMargin,
-        Text = Binding.Value.ToString(),
+        Text = Binding.Value?.ToString() ?? "",
         CommitOnFocusLost = true,
         Current = Binding
     });

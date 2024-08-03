@@ -1,4 +1,4 @@
-using DrumGame.Game.Utils;
+using DrumGame.Game.Components;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
@@ -9,37 +9,22 @@ public class BooleanSettingInfo : SettingInfo
 {
     public Bindable<bool> Binding;
     public override string Description => Binding.Description;
-    Box Box;
     public BooleanSettingInfo(string label, Bindable<bool> binding) : base(label)
     {
         Binding = binding;
     }
     public override void Render(SettingControl control)
     {
-        control.Add(new Box
+        control.Add(new DrumCheckbox(24)
         {
             Anchor = Anchor.CentreRight,
             Origin = Anchor.CentreLeft,
             X = -SettingControl.SideMargin - 300,
-            Height = 24,
-            Width = 24,
-            Colour = DrumColors.CheckboxBackground
+            Current = Binding,
         });
-        control.Add(Box = new Box
-        {
-            Anchor = Anchor.CentreRight,
-            Origin = Anchor.CentreLeft,
-            X = -SettingControl.SideMargin - 300 + 2,
-            Height = 20,
-            Width = 20
-        });
-        UpdateBoxColor();
     }
-    public void UpdateBoxColor() =>
-        Box.Colour = Binding.Value ? DrumColors.ActiveCheckbox : DrumColors.CheckboxBackground;
     public override void OnClick(SettingControl control)
     {
         Binding.Value = !Binding.Value;
-        UpdateBoxColor();
     }
 }

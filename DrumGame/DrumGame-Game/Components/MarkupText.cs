@@ -63,6 +63,7 @@ public class MarkupText : TextFlowContainer, IHasText
     {
         return s.Replace("\\", "\\\\").Replace("<", "\\<");
     }
+    public static string Escape(object s) => Escape(s.ToString());
 
     void Validate()
     {

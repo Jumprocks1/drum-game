@@ -21,8 +21,9 @@ public interface IHasCommand : IHasCommandInfo
     public static string GetMarkupHotkeyString(Command command) => GetMarkupHotkeyString(Util.CommandController[command], true);
 }
 
-public interface IHasCommandInfo : IHasMarkupTooltip
+public interface IHasCommandInfo : IHasMarkupTooltip, IHasCursor
 {
+    SDL2.SDL.SDL_SystemCursor? IHasCursor.Cursor => DisableClick ? null : SDL2.SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_HAND;
     CommandInfo CommandInfo { get; }
     bool DisableClick => false;
     string IHasMarkupTooltip.MarkupTooltip => GetMarkupTooltip(CommandInfo);

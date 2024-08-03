@@ -5,7 +5,8 @@ using DrumGame.Game.Utils;
 using System;
 using System.Linq;
 using System.Globalization;
-using System.Collections.Generic;
+using osu.Framework.Graphics;
+using DrumGame.Game.Commands;
 
 namespace DrumGame.Desktop;
 
@@ -14,8 +15,7 @@ public static class Program
     static LogLevel LogLevel = LogLevel.Important;
     static bool AntiAliasing = true;
     public static bool Discord { get; private set; } = true;
-    static bool Sync;
-    static List<string> OpenFiles;
+    static event Action<Drawable> OnLoad;
     [STAThread]
     public static void Main(string[] args)
     {
@@ -34,10 +34,7 @@ public static class Program
         {
             Util.Host = host;
             using var game = new DrumGameDesktop();
-            if (Sync)
-                game.OnLoadComplete += _ => Util.CommandController.ActivateCommand(Game.Commands.Command.SyncMaps, Game.Browsers.BeatmapSelector.SyncOptions.Local);
-            if (OpenFiles != null)
-                game.OnLoadComplete += _ => Util.CommandController.ActivateCommand(Game.Commands.Command.OpenFile, parameters: OpenFiles.ToArray());
+            game.OnLoadComplete += OnLoad;
             host.Run(game);
         }
         if (AntiAliasing)
@@ -47,8 +44,20 @@ public static class Program
     static bool ParseCL(string[] args)
     {
         var exit = false;
-        foreach (var arg in args)
+        for (var i = 0; i < args.Length; i++)
         {
+            var arg = args[i];
+            bool nextArg(out string o)
+            {
+                if (args.Length > i + 1)
+                {
+                    o = args[++i];
+                    return true;
+                }
+                Console.WriteLine($"Expected another argument after {arg}");
+                o = null;
+                return false;
+            }
             if (arg == "-v" || arg == "--version")
             {
                 Console.WriteLine(Util.VersionString);
@@ -57,9 +66,22 @@ public static class Program
             else if (arg == "--verbose") LogLevel = (LogLevel)Math.Max(0, (int)LogLevel - 1);
             else if (arg == "--no-aa") AntiAliasing = false;
             else if (arg == "--no-discord") Discord = false;
-            else if (arg == "--sync") Sync = true;
-            else if (!arg.StartsWith("-")) (OpenFiles ??= new()).Add(arg);
-            else if (arg == "--wait-for-debugger") Util.WaitForDebugger();
+            else if (arg == "--sync")
+                OnLoad += _ => Util.CommandController.ActivateCommand(Command.SyncMaps, Game.Browsers.BeatmapSelector.SyncOptions.Local);
+            else if (!arg.StartsWith('-'))
+                OnLoad += _ => Util.CommandController.ActivateCommand(Command.OpenFile, arg);
+            else if (arg == "--wait-for-debugger" || arg == "--debug" || arg == "-d") Util.WaitForDebugger();
+            else if (arg == "--command" || arg == "-c")
+            {
+                if (nextArg(out var command))
+                {
+                    OnLoad += _ =>
+                    {
+                        var commandInfo = CommandInfo.FromString(command);
+                        Util.CommandController.ActivateCommand(commandInfo);
+                    };
+                }
+            }
             else Console.WriteLine($"Unrecognized argument: {arg}");
         }
         return exit;

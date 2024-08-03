@@ -22,7 +22,7 @@ public class RandomSelector<T> where T : class
         queue.Add(e);
     }
 
-    public int Previous(List<T> options, int current)
+    public int Previous(IReadOnlyList<T> options, int current)
     {
         while (queue.Count > 0)
         {
@@ -32,7 +32,7 @@ public class RandomSelector<T> where T : class
         return Next(options, current); // couldn't find any previous, so just go to random
     }
 
-    public int Next(List<T> options, int current)
+    public int Next(IReadOnlyList<T> options, int current)
     {
         if (options.Count == 0) return -1;
         if (options.Count == 1) return 0;

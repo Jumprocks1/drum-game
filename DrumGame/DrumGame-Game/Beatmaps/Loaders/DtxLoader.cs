@@ -94,40 +94,75 @@ public partial class DtxLoader
     // start time is in ticks
     record DtxSample
     {
-        public string Path;
+        string _path;
+        public string Path { get => _path; set { setPath(value); } }
+
+        public string Label;
         public int? StartTime;
-        public double Volume = 1; // 0 to 1
-        public (char, char) Id;
+        public float Volume = 1; // 0 to 1
+        public float? Pan; // -1 to 1
+        public float? Size; // 0 to 1
+        public readonly (char, char) Id;
+        public string StringId => $"{Id.Item1}{Id.Item2}";
         public bool Bass;
         public bool SideStick;
         public bool Bell;
         public bool Ride;
         public bool Splash;
         public bool Open;
-        public DtxSample(string path, int? startTime, (char, char) id)
+        public NotePreset NotePreset; // set after being converted to bjson, only set when not MetadataOnly
+        void setPath(string path)
         {
-            Path = path; StartTime = startTime; Id = id;
-            if (path.Contains("rim", StringComparison.InvariantCultureIgnoreCase) || path.Contains("SideStick", StringComparison.InvariantCultureIgnoreCase)
+            _path = path;
+            if (path.Contains("SideStick", StringComparison.InvariantCultureIgnoreCase)
                  || path.Contains("Xstick", StringComparison.InvariantCultureIgnoreCase))
-                if (!path.Contains("RimShot") && !path.Contains("Rim_Shot")) // usually this doesn't sound like a side stick
-                    SideStick = true;
+                SideStick = true;
             if (path.Contains("Ride", StringComparison.CurrentCultureIgnoreCase)) Ride = true;
             if (path.Contains("Bell", StringComparison.CurrentCultureIgnoreCase)) Bell = true;
             if (path.Contains("Splash", StringComparison.CurrentCultureIgnoreCase) ||
                 path.Contains("Spl", StringComparison.CurrentCultureIgnoreCase)) Splash = true;
-            if (path.Contains("Open", StringComparison.InvariantCultureIgnoreCase)
-                && !path.Contains("Half", StringComparison.InvariantCultureIgnoreCase)) Open = true;
+
+            // Most of these are for old DTX imports which didn't distinguish open/close
+            // Many of these are also for the GITADORA releases from APPROVED, which never have open/close
+
+            // no idea what these numbers are, but they sounded open to me
+            if (path == "_override_clipped_108_103_hh3_.ogg" ||
+                path == "_override_clipped_110_103_hh3_.ogg") Open = true;
+
+            if (path.Contains("Open", StringComparison.InvariantCultureIgnoreCase)) Open = true;
             if (path.Contains("OHH", StringComparison.InvariantCultureIgnoreCase)) Open = true;
             if (path.Contains("HHO", StringComparison.InvariantCultureIgnoreCase)) Open = true;
-            if (path.Contains("106")) Open = true;
+            // half open feels better as full open for now
+            if (path.Contains("HHhalf", StringComparison.InvariantCultureIgnoreCase)) Open = true;
+            if (path.Contains("hh_op", StringComparison.InvariantCultureIgnoreCase)) Open = true;
+            if (path.Contains("hh1_op", StringComparison.InvariantCultureIgnoreCase)) Open = true;
+            if (path.Contains("hh2_op", StringComparison.InvariantCultureIgnoreCase)) Open = true;
+            if (path.Contains("hh3_op", StringComparison.InvariantCultureIgnoreCase)) Open = true;
+            if (path.Contains("hihat_op", StringComparison.InvariantCultureIgnoreCase)) Open = true;
+            // not sure what these actually mean
             if (path == "69.xa" || path == "6A.xa") Open = true; // for GITADORA imports
+        }
+        public DtxSample((char, char) id)
+        {
+            Id = id;
         }
     }
     // extra info we can't fit in the Beatmap
     class DtxInfo
     {
         public List<DtxSample> BGMs = new();
-        public Dictionary<(char, char), DtxSample> Samples = new();
+        public readonly Dictionary<(char, char), DtxSample> SamplesDict = new();
+        public DtxSample SampleOrNull((char, char) id) => SamplesDict.GetValueOrDefault(id);
+        public DtxSample Sample(char a, char b) => Sample((a, b));
+        public DtxSample Sample((char, char) id)
+        {
+            if (!SamplesDict.TryGetValue(id, out var o))
+            {
+                o = new(id);
+                SamplesDict[id] = o;
+            }
+            return o;
+        }
         public DtxSample GetMainBgm()
         {
             DtxSample mainBgm = null;
@@ -148,6 +183,11 @@ public partial class DtxLoader
         public string MapSet;
         public Dictionary<char, DtxDef> DtxDefs = new();
     }
+    class Avi
+    {
+        public string Path;
+        public int? StartTick; // this will be relative to the first measure
+    }
 
     (Beatmap, DtxInfo) ImportDtxStream(Stream stream)
     {
@@ -167,11 +207,12 @@ public partial class DtxLoader
             o.MapSourceUrl = Context.Url;
 
         var bpmLookups = new Dictionary<int, Tempo>();
+        var aviLookups = new Dictionary<(char, char), Avi>();
         var finalMeasure = 0; // used to calculate duration metadata
 
         // we have to do 2 passes in case the measure length changes out of order
         var secondPass = new List<(int measure, string channel, string value)>();
-        foreach (var (code, value) in ReadDtxLines(stream))
+        foreach (var (code, value, comment) in ReadDtxLines(stream))
         {
             if (code == "TITLE") o.Title = value;
             else if (code == "PREIMAGE")
@@ -208,17 +249,29 @@ public partial class DtxLoader
                 if (int.TryParse(value, out var v))
                     o.Difficulty = DifficultyMap(v);
             }
-            else if (code == "BGMWAV") info.BGMs.Add(info.Samples[(value[0], value[1])]);
-            else if (code == "COMMENT") o.Description = value;
+            else if (code == "BGMWAV") info.BGMs.Add(info.Sample(value[0], value[1]));
+            else if (code == "COMMENT")
+            {
+                o.Description = value;
+                ReadCharter(o, value);
+            }
             else if (code.StartsWith("WAV"))
             {
-                var id = (code[3], code[4]);
-                info.Samples[id] = new DtxSample(value, null, id);
+                var sample = info.Sample(code[3], code[4]);
+                sample.Path = value;
+                sample.Label = comment;
             }
             else if (code.StartsWith("VOLUME"))
             {
-                var id = (code[6], code[7]);
-                info.Samples[id].Volume = ParseDouble(value) / 100;
+                info.Sample(code[6], code[7]).Volume = ParseFloat(value) / 100;
+            }
+            else if (code.StartsWith("PAN"))
+            {
+                info.Sample(code[3], code[4]).Pan = ParseFloat(value) / 100;
+            }
+            else if (code.StartsWith("SIZE"))
+            {
+                info.Sample(code[4], code[5]).Size = ParseFloat(value) / 100;
             }
             else if (code.StartsWith("BPM"))
             {
@@ -232,6 +285,8 @@ public partial class DtxLoader
                 }
                 else bpmLookups[base36(rem)] = tempo;
             }
+            else if (code.StartsWith("AVI"))
+                aviLookups[(code[3], code[4])] = new() { Path = value };
             else if (char.IsDigit(code[0]) && code.Length == 5)
             {
                 var measure = int.Parse(code[0..3]);
@@ -244,7 +299,6 @@ public partial class DtxLoader
                 var channelInt = hex(channel);
                 // https://github.com/limyz/DTXmaniaNX/blob/master/DTXMania/Code/Score%2CSong/EChannel.cs
                 if (channel == "53") { } // cheer section
-                else if (channel == "54") { } // movie timing, not needed
                 else if (channel == "02") // measure length
                 {
                     // if these come out of order, we are screwed
@@ -261,6 +315,24 @@ public partial class DtxLoader
                 else secondPass.Add((measure, channel, value.Replace("_", "")));
             }
             else Logger.Log($"Unknown DTX code: {code} {value}", level: LogLevel.Important);
+        }
+
+        // have to load these before second pass so we can use the `NotePreset` field
+        if (!Config.MetadataOnly)
+        {
+            o.NotePresets ??= new();
+            foreach (var e in info.SamplesDict.Values)
+            {
+                o.NotePresets.AddInternal(e.NotePreset = new NotePreset
+                {
+                    Key = e.StringId,
+                    Name = e.Label,
+                    Volume = e.Volume,
+                    Size = e.Size ?? 1,
+                    Pan = e.Pan,
+                    Sample = e.Path
+                });
+            }
         }
 
         foreach (var (measure, channel, value) in secondPass)
@@ -286,7 +358,7 @@ public partial class DtxLoader
                     if (value[i] != '0' || value[i + 1] != '0')
                     {
                         var id = (value[i], value[i + 1]);
-                        var sample = info.Samples.GetValueOrDefault(id);
+                        var sample = info.SampleOrNull(id);
                         if (sample == null) Logger.Log($"Failed to locate sample for {id.Item1}{id.Item2}");
                         handler(measureTick + ticksPerI * i, id, sample);
                     }
@@ -300,53 +372,56 @@ public partial class DtxLoader
                     mod = NoteModifiers.Left;
                 else if (channel == "16") // 16 is right/main crash
                     mod = NoteModifiers.Right;
-                var data = new HitObjectData(dc, mod);
+                void add(int tick, DrumChannel channel, NoteModifiers modifiers, DtxSample sample)
+                {
+                    o.HitObjects.Add(new HitObject(tick, new HitObjectData(channel, modifiers, sample.NotePreset)));
+                }
                 if (dc == DrumChannel.BassDrum) // for the bass channel, we have to mark the samples as bass drum samples
                     s((tick, id, sample) =>
                     {
                         if (sample != null) sample.Bass = true;
-                        o.HitObjects.Add(new HitObject(tick, data));
+                        add(tick, dc, mod, sample);
                     });
                 else if (dc == DrumChannel.HiHatPedal) // older maps use the HiHat channel for double bass, so we have to check for bass samples
                     s((tick, id, sample) =>
                     {
                         if (sample != null && sample.Bass)
-                            o.HitObjects.Add(new HitObject(tick, new HitObjectData(DrumChannel.BassDrum, NoteModifiers.Left)));
+                            add(tick, DrumChannel.BassDrum, NoteModifiers.Left, sample);
                         else
-                            o.HitObjects.Add(new HitObject(tick, data));
+                            add(tick, dc, mod, sample);
                     });
                 else if (dc == DrumChannel.Snare)
                     s((tick, id, sample) =>
                     {
                         if (sample != null && sample.SideStick)
-                            o.HitObjects.Add(new HitObject(tick, DrumChannel.SideStick));
+                            add(tick, DrumChannel.SideStick, mod, sample);
                         else
-                            o.HitObjects.Add(new HitObject(tick, data));
+                            add(tick, dc, mod, sample);
                     });
                 else if (dc == DrumChannel.Crash || dc == DrumChannel.China || dc == DrumChannel.Ride)
                     s((tick, id, sample) =>
                     {
                         if (sample != null && sample.Bell)
-                            o.HitObjects.Add(new HitObject(tick, DrumChannel.RideBell));
+                            add(tick, DrumChannel.RideBell, NoteModifiers.None, sample);
                         else if (sample != null && sample.Ride)
-                            o.HitObjects.Add(new HitObject(tick, DrumChannel.Ride));
+                            add(tick, DrumChannel.Ride, NoteModifiers.None, sample);
                         else if (sample != null && sample.Splash)
                             // splash can be L/R, so we include mod
-                            o.HitObjects.Add(new HitObject(tick, new HitObjectData(DrumChannel.Splash, mod)));
+                            add(tick, DrumChannel.Splash, mod, sample);
                         else
                             // this includes the modifier for L/R cymbals
-                            o.HitObjects.Add(new HitObject(tick, data));
+                            add(tick, dc, mod, sample);
                     });
                 else if (dc == DrumChannel.OpenHiHat || dc == DrumChannel.ClosedHiHat)
                     s((tick, id, sample) =>
                     {
                         if (sample != null && sample.Open)
-                            o.HitObjects.Add(new HitObject(tick, DrumChannel.OpenHiHat));
+                            add(tick, DrumChannel.OpenHiHat, mod, sample);
                         else
-                            o.HitObjects.Add(new HitObject(tick, data));
+                            add(tick, dc, mod, sample);
                     });
                 else
-                    f((tick, _) => o.HitObjects.Add(new HitObject(tick, data)));
+                    s((tick, id, sample) => add(tick, dc, mod, sample));
             }
             else if (channel == "01")
                 f((tick, id) =>
@@ -354,7 +429,7 @@ public partial class DtxLoader
                     var found = info.BGMs.Find(e => e.Id == id);
                     if (found == null)
                     {
-                        if (info.Samples.TryGetValue(id, out var sample)) // found a chart with an invalid chip on the BGM lane
+                        if (info.SamplesDict.TryGetValue(id, out var sample)) // found a chart with an invalid chip on the BGM lane
                             info.BGMs.Add(found = sample);
                         else Logger.Log($"Failed to locate sample for {id.Item1}{id.Item2}", level: LogLevel.Important);
                     }
@@ -363,6 +438,14 @@ public partial class DtxLoader
                 });
             else if (channel == "08")
                 f((tick, v) => o.TempoChanges.Add(new TempoChange(tick, bpmLookups[base36(v)])));
+            else if (channel == "54") // avi timing
+            {
+                f((tick, id) =>
+                {
+                    if (aviLookups.TryGetValue(id, out var found))
+                        found.StartTick = tick;
+                });
+            }
             else Logger.Log($"Unknown channel code: {measure} {channel} {value}", level: LogLevel.Important);
         }
 
@@ -390,6 +473,13 @@ public partial class DtxLoader
                 o.Audio = mainBgm.Path;
             }
             else Logger.Log($"No BGM found for {o.Title}");
+            if (!Config.MetadataOnly && aviLookups.Count > 0)
+            {
+                var video = aviLookups.Values.FirstOrDefault(e => e.StartTick != null)
+                    ?? aviLookups.Values.First();
+                o.Video = video.Path;
+                o.VideoOffset = -o.MillisecondsFromTick(video.StartTick.Value) + ImportOffset;
+            }
             o.HashId();
         }
 
@@ -451,6 +541,8 @@ public partial class DtxLoader
                     drumStems.Add("bgmd.ogg");
                 if (mainBgm.Path.Contains("(No Drums)"))
                     drumStems.Add(mainBgm.Path.Replace("(No Drums)", "(Drums)"));
+                if (mainBgm.Path == "BG.ogg")
+                    drumStems.Add("DR.ogg");
                 foreach (var file in drumStems)
                 {
                     if (Provider.Exists(file))
@@ -532,7 +624,7 @@ public partial class DtxLoader
         var lastPartOfPath = Path.GetFileName(folderName);
         var o = new List<Def>();
         Def def = null;
-        foreach (var (code, value) in ReadDtxLines(stream))
+        foreach (var (code, value, comment) in ReadDtxLines(stream))
         {
             if (code == "TITLE") o.Add(def = new Def
             {

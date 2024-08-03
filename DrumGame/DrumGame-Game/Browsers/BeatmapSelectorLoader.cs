@@ -32,7 +32,6 @@ public class BeatmapSelectorLoader : CompositeDrawable
     public BeatmapSelectorState SelectorState = new();
     [Resolved] MapStorage MapStorage { get; set; }
     [Resolved] CommandController Command { get; set; }
-    [Resolved] DrumGameGameBase Game { get; set; }
     private class BeatmapScene : CompositeDrawable
     {
         public BeatmapPlayer Player;
@@ -195,7 +194,7 @@ public class BeatmapSelectorLoader : CompositeDrawable
             scene.Dispose();
             scene = null;
         }
-        AddInternal(selector = new BeatmapSelector(map => LoadMap(MapStorage.LoadMapForPlay(map)), ref SelectorState)
+        AddInternal(selector = new BeatmapSelector(map => LoadMap(MapStorage.LoadMapForPlay(map)) != null, ref SelectorState)
         {
             RelativeSizeAxes = Axes.Both
         });

@@ -7,6 +7,7 @@ using DrumGame.Game.Midi;
 using DrumGame.Game.Utils;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
+using osu.Framework.Input.States;
 using osu.Framework.Logging;
 
 namespace DrumGame.Game.Commands;
@@ -33,7 +34,7 @@ public class CommandController
     public readonly List<CommandInfo>[] ParameterCommands;
     public readonly Dictionary<KeyCombo, List<CommandInfo>> KeyBindings = new(256);
     readonly List<Command> PriorityCommands = new(); // we don't allow prioritizing CommandInfos for now
-    public List<CommandInfo> OrderedCommands = new(256); // 227 used as pf 9/10/2023
+    public List<CommandInfo> OrderedCommands = new(256); // 227 used as of 9/10/2023
     public void ReRegister()
     {
         // ParameterInfo is just an array so it gets fixed up in RegisterCommands
@@ -96,6 +97,19 @@ public class CommandController
                 KeyBindings[key] = target = new List<CommandInfo>();
             }
             target.Add(c);
+        }
+    }
+
+    // this should work I think
+    public void RemoveCommandInfo(CommandInfo c)
+    {
+        OrderedCommands.Remove(c);
+        if (c.Parameters != null)
+            ParameterCommands[(int)c.Command]?.Remove(c);
+        foreach (var key in c.Bindings)
+        {
+            if (KeyBindings.TryGetValue(key, out var target))
+                target.Remove(c);
         }
     }
 
@@ -220,6 +234,15 @@ public class CommandController
         }
     }
 
+    public bool IsHeld(Command command, InputState state = null) => IsHeld(this[command], state);
+    public bool IsHeld(CommandInfo commandInfo, InputState state = null)
+    {
+        foreach (var binding in commandInfo.Bindings)
+        {
+            if (binding.IsHeld(state)) return true;
+        }
+        return false;
+    }
     public bool ActivateCommand(Command command) => ActivateCommand(DefaultCommandInfos[(int)command]);
     public bool ActivateCommand(Command command, CommandContext context) => ActivateCommand(DefaultCommandInfos[(int)command], context);
     public bool ActivateCommand(Command command, params object[] parameters) =>

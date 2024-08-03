@@ -21,14 +21,14 @@ public class MapSetDisplay : CompositeDrawable
         var selected = mapSet[selectedIndex].Metadata;
 
 
-        List<(BeatmapMetadata Meta, string DtxLevel)> list = mapSet.Select(e => (e.Metadata, e.Metadata.GetDtxLevel()))
-            .OrderBy(e => e.Item2).ToList();
+        List<(BeatmapMetadata Meta, string DtxLevel)> list = mapSet.Select(e => (e.Metadata, e.Metadata.DtxLevel))
+            .OrderBy(e => e.DtxLevel).ToList();
 
         for (var i = 0; i < list.Count; i++)
         {
             var (Meta, DtxLevel) = list[i];
             builder.Append(Meta.DifficultyString);
-            if (DtxLevel != null) builder.Append(" - " + Beatmap.FormatDtxLevel(DtxLevel));
+            if (DtxLevel != null) builder.Append(" - " + DtxLevel);
             DrumButton button = null;
             button = new DrumButton
             {

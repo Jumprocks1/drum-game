@@ -64,6 +64,7 @@ public class FilterAccessor
 {
     public readonly Delegate Delegate;
     public bool Time;
+    public bool TimeSpan;
     public FilterAccessor EnumStringAccessor;
     public Type ReturnType => Delegate.Method.ReturnType;
     public FilterAccessor(Delegate del)
@@ -85,11 +86,13 @@ public static class GenericFilterer<T> where T : ISearchable<T>
         public override IEnumerable<T> Apply(IEnumerable<T> exp, FilterAccessor accessor, string _)
         {
             if (accessor.Delegate is Func<T, string> s)
-                return desc ? exp.OrderByDescending(e => s(e)?.ToLower()) : exp.OrderBy(e => s(e)?.ToLower());
+                return desc ? exp.OrderByDescending(e => s(e), StringComparer.OrdinalIgnoreCase) : exp.OrderBy(e => s(e), StringComparer.OrdinalIgnoreCase);
             else if (accessor.Delegate is Func<T, long> l)
                 return desc ? exp.OrderByDescending(l) : exp.OrderBy(l);
             else if (accessor.Delegate is Func<T, int> i)
                 return desc ? exp.OrderByDescending(i) : exp.OrderBy(i);
+            else if (accessor.Delegate is Func<T, double> d)
+                return desc ? exp.OrderByDescending(d) : exp.OrderBy(d);
             else
             {
                 var ret = accessor.ReturnType;
@@ -121,6 +124,22 @@ public static class GenericFilterer<T> where T : ISearchable<T>
                 if (int.TryParse(value, out var valueNumber))
                     return exp.Where(e => Invert ^ (i(e) == valueNumber));
             }
+            else if (accessor.Delegate is Func<T, double> d)
+            {
+                if (accessor.TimeSpan)
+                {
+                    if (NumericOp.TryParseTimeSpan(value, out var span))
+                    {
+                        var ticks = span.Ticks;
+                        return exp.Where(e => Invert ^ ((long)(d(e) * TimeSpan.TicksPerMillisecond) == ticks));
+                    }
+                }
+                else
+                {
+                    if (double.TryParse(value, out var valueNumber))
+                        return exp.Where(e => Invert ^ (d(e) == valueNumber));
+                }
+            }
             else if (accessor.Delegate is Func<T, bool> b)
             {
                 var valueBool = !("false".StartsWith(value) || value == "0");
@@ -138,7 +157,7 @@ public static class GenericFilterer<T> where T : ISearchable<T>
                     {
                         if (accessor.EnumStringAccessor != null)
                             return Apply(exp, accessor.EnumStringAccessor, value);
-                        return exp.Where(e => Invert ^ (del.DynamicInvoke(e).ToString().ToLower().Contains(value)));
+                        return exp.Where(e => Invert ^ (del.DynamicInvoke(e).ToString().Contains(value, StringComparison.OrdinalIgnoreCase)));
                     }
                 }
             }
@@ -152,7 +171,7 @@ public static class GenericFilterer<T> where T : ISearchable<T>
     }
     class NumericOp : FilterOperator<T>
     {
-        public static long ParseLongTime(string value)
+        public static bool TryParseTimeSpan(string value, out TimeSpan span)
         {
             var i = 0;
             while (i < value.Length - 1 && char.IsLetter(value, value.Length - i - 1)) i++;
@@ -162,10 +181,45 @@ public static class GenericFilterer<T> where T : ISearchable<T>
                 try
                 {
                     // these can throw out of range exceptions, ex `w>99999999d`
-                    if (units == "s") return DateTimeOffset.UtcNow.AddSeconds(-d).UtcTicks;
-                    if (units == "m") return DateTimeOffset.UtcNow.AddMinutes(-d).UtcTicks;
-                    if (units == "h") return DateTimeOffset.UtcNow.AddHours(-d).UtcTicks;
-                    if (units == "d") return DateTimeOffset.UtcNow.AddDays(-d).UtcTicks;
+                    if (units == "s")
+                    {
+                        span = TimeSpan.FromSeconds(d);
+                        return true;
+                    }
+                    if (units == "m")
+                    {
+                        span = TimeSpan.FromMinutes(d);
+                        return true;
+                    }
+                    if (units == "h")
+                    {
+                        span = TimeSpan.FromHours(d);
+                        return true;
+                    }
+                    if (units == "d")
+                    {
+                        span = TimeSpan.FromDays(d);
+                        return true;
+                    }
+                    if (units == "ms" || units == "")
+                    {
+                        span = TimeSpan.FromMilliseconds(d);
+                        return true;
+                    }
+                }
+                catch { }
+            }
+            span = default;
+            return false;
+        }
+        public static long ParseLongTime(string value)
+        {
+            if (TryParseTimeSpan(value, out var span))
+            {
+                try
+                {
+                    // this can throw out of range exceptions, ex `w>99999999d`
+                    return DateTimeOffset.UtcNow.Add(-span).UtcTicks;
                 }
                 catch { }
             }
@@ -174,23 +228,40 @@ public static class GenericFilterer<T> where T : ISearchable<T>
                 return dto.UtcTicks;
             return 0;
         }
-        readonly Func<long, long, bool> Operate;
+        readonly Func<long, long, bool> OperateLong;
+        readonly Func<int, bool> OperateComparable;
         public override IEnumerable<T> Apply(IEnumerable<T> exp, FilterAccessor accessor, string value)
         {
             if (accessor.Delegate is Func<T, long> l)
             {
-                if (long.TryParse(value, out var valueNumber))
-                    return exp.Where(e => Operate(l(e), valueNumber));
-                else if (accessor.Time)
+                if (accessor.Time)
                 {
                     var t = ParseLongTime(value);
-                    return exp.Where(e => Operate(l(e), t));
+                    return exp.Where(e => OperateLong(l(e), t));
                 }
+                else if (long.TryParse(value, out var valueNumber))
+                    return exp.Where(e => OperateLong(l(e), valueNumber));
             }
             else if (accessor.Delegate is Func<T, int> i)
             {
                 if (long.TryParse(value, out var valueNumber))
-                    return exp.Where(e => Operate(i(e), valueNumber));
+                    return exp.Where(e => OperateLong(i(e), valueNumber));
+            }
+            else if (accessor.Delegate is Func<T, double> d)
+            {
+                if (accessor.TimeSpan)
+                {
+                    if (TryParseTimeSpan(value, out var span))
+                    {
+                        var ms = span.TotalMilliseconds;
+                        return exp.Where(e => OperateComparable(d(e).CompareTo(ms)));
+                    }
+                }
+                else
+                {
+                    if (double.TryParse(value, out var valueNumber))
+                        return exp.Where(e => OperateComparable(d(e).CompareTo(valueNumber)));
+                }
             }
             else if (accessor.Delegate is Func<T, DateTimeOffset?> dto)
             {
@@ -199,32 +270,43 @@ public static class GenericFilterer<T> where T : ISearchable<T>
                 {
                     var v = dto(e);
                     if (v is DateTimeOffset dtoV)
-                        return Operate(dtoV.UtcTicks, t);
+                        return OperateLong(dtoV.UtcTicks, t);
                     return false;
                 });
             }
-            else
+            else if (accessor.Delegate is Func<T, string> st)
             {
-                var ret = accessor.ReturnType;
-                if (ret.IsEnum)
+                return exp.Where(e =>
                 {
-                    var del = accessor.Delegate;
-                    if (int.TryParse(value, out var valueNumber))
-                        return exp.Where(e => Operate((int)del.DynamicInvoke(e), valueNumber));
-                }
+                    var v = st(e);
+                    if (v == null) return false; // null never matches
+                    return OperateComparable(StringComparer.OrdinalIgnoreCase.Compare(v, value));
+                });
+            }
+            else if (accessor.ReturnType.IsEnum)
+            {
+                var del = accessor.Delegate;
+                if (int.TryParse(value, out var valueNumber))
+                    return exp.Where(e => OperateLong((int)del.DynamicInvoke(e), valueNumber));
             }
             return Enumerable.Empty<T>();
         }
-        public NumericOp(string identifier, Func<long, long, bool> f) { Identifier = identifier; Operate = f; }
+
+        public NumericOp(string identifier, Func<long, long, bool> f, Func<int, bool> f2)
+        {
+            Identifier = identifier;
+            OperateLong = f;
+            OperateComparable = f2;
+        }
     }
     static FilterOperator<T>[] Operators = [
         // order matters slightly (for > vs >=)
         new NotEqualsOp(),
         new EqualsOp(),
-        new NumericOp(">=", (a,b) => a >= b),
-        new NumericOp(">", (a,b) => a > b),
-        new NumericOp("<=", (a,b) => a <= b),
-        new NumericOp("<", (a,b) => a < b),
+        new NumericOp(">=", (a,b) => a >= b, i => i >= 0),
+        new NumericOp(">", (a,b) => a > b, i => i > 0),
+        new NumericOp("<=", (a,b) => a <= b, i => i <= 0),
+        new NumericOp("<", (a,b) => a < b, i => i < 0),
         new SortOp("^^", true),
         new SortOp("^", false),
     ];

@@ -121,7 +121,7 @@ public class DrumGameGameBase : osu.Framework.Game
         resLocation = Path.GetFullPath(resLocation);
         FileSystemResources = new FileSystemResources(resLocation, new NativeStorage(resLocation, Host));
 
-        var musicFontStore = new FontStore(Host.Renderer, null, 800);
+        var musicFontStore = new FontStore(Host.Renderer, null, 800); // TODO why this hardcoded?
         Fonts.AddStore(musicFontStore);
         AddFont(FileSystemResources.ResourceStore, "fonts/Bravura", musicFontStore);
 
@@ -133,6 +133,7 @@ public class DrumGameGameBase : osu.Framework.Game
         AddFont(FileSystemResources.ResourceStore, "fonts/Noto/Noto-Thai");
 
         dependencies.Cache(FileSystemResources);
+        LocalConfig.MapLibraries.Value.InitAfterResources();
         dependencies.Cache(DbStorage = new DbStorage(FileSystemResources, "database.db"));
         dependencies.Cache(MapStorage = new MapStorage(Path.Join(resLocation, "maps"), Host));
         command.RegisterHandler(Command.CleanStorage, MapStorage.Clean);

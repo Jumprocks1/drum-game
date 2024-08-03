@@ -56,12 +56,15 @@ public class MidiFile
                     Console.WriteLine($"Unknown chunk type: {typeString}");
                     continue;
                 }
-                return type switch
+                Chunk read = type switch
                 {
                     ChunkType.Header => MidiHeader.Read(reader),
+                    // returns null for skipped tracks, we should keep reading in that case
                     ChunkType.Track => MidiTrack.Read(reader, length),
                     _ => throw new NotImplementedException()
                 };
+                if (read == null) continue;
+                return read;
             }
         }
     }

@@ -2,8 +2,10 @@ using System;
 using DrumGame.Game.Commands;
 using DrumGame.Game.Interfaces;
 using DrumGame.Game.Stores;
+using DrumGame.Game.Utils;
 using DrumGame.Game.Views.Settings.SettingInfos;
 using osu.Framework.Configuration;
+using osu.Framework.Graphics.Sprites;
 
 namespace DrumGame.Game.Views.Settings;
 
@@ -19,6 +21,7 @@ public abstract class SettingInfo : IDisposable
     {
         Label = label;
     }
+    public Action<SettingControl> AfterRender;
     public virtual void Render(SettingControl control) { } // could be abstract
     public virtual void OnClick(SettingControl control) { }
 
@@ -34,7 +37,8 @@ public static class SettingsList
             Tooltip = "Highly recommend using VSync"
         },
         new ModalSettingInfo<MidiMappingView>("MIDI Mapping") {
-            Tooltip = "Use this if any of your hits don't register as the correct drum"
+            Tooltip = "Use this if any of your hits don't register as the correct drum",
+            AfterRender = control => control.AddCommandIconButton(Command.ViewMidi, FontAwesome.Solid.Music)
         },
         new DoubleSettingInfo("MIDI Input Offset", config.MidiInputOffset) {
             Tooltip = "This value (ms) is subtracted from the time on every MIDI input event"
@@ -43,28 +47,14 @@ public static class SettingsList
             Tooltip = $"MIDI output events are queued earlier (or later) based on this value.\nNegative values cause output events to be delayed.\n\nOutput events occur when using some form of autoplay (replays, autoplay mod, or editor autoplay).\nYou can view connected MIDI output devices with the {IHasCommand.GetMarkupTooltipIgnoreUnbound(Command.ViewMidi)} command."
         },
         new SkinSetting("Skin"),
-        new BooleanSettingInfo("Smooth Scroll", config.SmoothScroll) {
-            Tooltip = "Smooth scroll makes the notes move towards a static cursor/judgement line."
-        },
-        // TODO we should try making these nice sliders with manual override if you click the number value
-        // default range can be like 50%-200% - could even make it logarithmic
-        new DoubleSettingInfo("Note Spacing Multiplier", config.GetBindable<double>(DrumGameSetting.NoteSpacingMultiplier)) {
-            Tooltip = "Increases or decreases spacing between notes. Higher values will make denser maps easier to read. Recommended between 1 and 2. Defaults to 1."
-        },
-        new DoubleSettingInfo("Zoom Multiplier", config.GetBindable<double>(DrumGameSetting.ZoomMultiplier)) {
-            Tooltip = "Increases or decreases default zoom of the in-game staff. Defaults to 1. Recommended between 0.5 and 2."
-        },
-        new DoubleSettingInfo("Cursor Inset", config.CursorInset) {
-            Tooltip = "Distance (in beats) between the cursor and the left edge of the screen. Defaults to 4. Smaller values are recommended when at higher zoom or note spacing."
-        },
-        new DoubleSettingInfo("Mania Scroll Multiplier", config.GetBindable<double>(DrumGameSetting.ManiaScrollMultiplier)) {
-            Tooltip = "Increases or decreases spacing between mania chips. Only applies when display mode set to Mania.\nHigher values will make faster maps easier to read.\nThe numbers here should match scroll rates in DTXmania."
-        },
         new ModalSettingInfo<ChannelEquivalentsView>("Channel Equivalents") {
             Tooltip = "This can be helpful if you do not have a trigger for every channel in Drum Game. Especially useful for cymbals."
         },
+        new BooleanSettingInfo("Automatically Load BG Video", config.GetBindable<bool>(DrumGameSetting.AutoLoadVideo)) {
+            Tooltip = $"Some maps include background videos. If this setting is enabled, videos will be shown if they exists.\nYou can manually toggle the video with {IHasCommand.GetMarkupTooltipNoModify(Command.ToggleVideo)}"
+        },
         new DoubleSettingInfo("Minimum Lead-In", config.GetBindable<double>(DrumGameSetting.MinimumLeadIn)) {
-            Tooltip = "Minimum time in seconds before the first note of a song. Default to 1 second."
+            Tooltip = "Minimum time in seconds before the first note of a song. Defaults to 1 second."
         },
         new IntSettingInfo("MIDI Threshold", config.MidiThreshold) {
             Tooltip = "MIDI events with a velocity less than or equal to this value will be completely ignored by the game.\nMIDI events typically have velocities between 0 and 127. Recommended to set this to 0 and configure your module for adjusting specific pads.\nPrimarily useful for excluding velocity 0 events since some modules always output these events."
@@ -73,7 +63,8 @@ public static class SettingsList
             Tooltip = "This moves the input display off to the side so you can overlay a camera."
         },
         new EnumSettingInfo<RendererType>("Preferred Renderer", fConfig.GetBindable<RendererType>(FrameworkSetting.Renderer)) {
-            Tooltip = $"Requires rebooting the game to take effect.\nTo see the current renderer, activate {IHasCommand.GetMarkupTooltipIgnoreUnbound(Command.CycleFrameStatistics)}"
+            Tooltip = $"Requires rebooting the game to take effect.\nTo see the current renderer, activate {IHasCommand.GetMarkupTooltipIgnoreUnbound(Command.CycleFrameStatistics)}",
+            GetLabel = e => Util.Description(e)
         },
         new SliderSettingInfo("Sample Volume", config.SampleVolume) {
             Tooltip = "Volume of samples/sound effects. Currently only applies to metronome and autoplay notes."

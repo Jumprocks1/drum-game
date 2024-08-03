@@ -233,6 +233,7 @@ public class BeatmapPlayer : CompositeDrawable
         void AddVt()
         {
             var vt = Resources.Tracks.GetVirtual(0);
+            Beatmap.UpdateLength();
             void UpdateVt() => vt.Length = Beatmap.MillisecondsFromBeat(Beatmap.QuarterNotes) + 3000;
             // should probably unbind these, but also doesn't matter much
             Beatmap.TempoUpdated += UpdateVt;
@@ -364,7 +365,7 @@ public class BeatmapPlayer : CompositeDrawable
         // this handles swapping the audio track
         var change = new AudioBeatmapChange(Beatmap, newAudioPath, this);
         if (ed != null) ed.PushChange(change);
-        else change.Do();
+        else change.Do(null);
         // we don't want to save in edit mode, since they need to save manually
         // in edit mode they will also be asked to save on exit
         if (ed == null)

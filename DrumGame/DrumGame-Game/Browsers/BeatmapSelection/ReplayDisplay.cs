@@ -21,8 +21,9 @@ using osuTK.Input;
 
 namespace DrumGame.Game.Browsers.BeatmapSelection;
 
-public class ReplayDisplay : CompositeDrawable, IHasMarkupTooltip, IHasContextMenu
+public class ReplayDisplay : CompositeDrawable, IHasMarkupTooltip, IHasContextMenu, IHasCursor
 {
+    public SDL2.SDL.SDL_SystemCursor? Cursor => SDL2.SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_HAND;
     FontUsage Font => FrameworkFont.Regular;
     FontUsage FontCondensed => FrameworkFont.Condensed;
     public new const float Height = 48;
@@ -146,7 +147,7 @@ public class ReplayDisplay : CompositeDrawable, IHasMarkupTooltip, IHasContextMe
             Children = new Drawable[]{
                 new SpriteText
                 {
-                    Text = $"Score: {ReplayInfo.Score} ({ReplayInfo.MaxCombo})",
+                    Text = $"Score: {ReplayInfo.Score:N0} ({ReplayInfo.MaxCombo})",
                     Font = FontCondensed.With(size: 21),
                 },
                 new SpriteText

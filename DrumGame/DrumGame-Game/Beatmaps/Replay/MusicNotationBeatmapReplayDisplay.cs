@@ -27,19 +27,18 @@ public class MusicNotationBeatmapReplayDisplay : MusicNotationBeatmapDisplay
     private void load()
     {
         Util.CommandController.RegisterHandlers(this);
+        RemoveInternal(InfoPanel, true);
         Replay.Player = Player;
         Track.RegisterEvents(Replay);
         if (Replay.Video != null)
         {
             VolumeControls.Alpha = 0;
             StatusContainer.Alpha = 0; // hide status text (zoom, speed, etc.)
-            ZoomLevel = 0.8;
+            ZoomLevel = 0.9;
             LoadCamera();
         }
         if (Beatmap.Video != null)
             AuxDisplay.LoadVideo();
-        else if (Beatmap.Image != null)
-            AuxDisplay.ShowImage();
     }
 
     SyncedVideo Camera;
@@ -66,7 +65,10 @@ public class MusicNotationBeatmapReplayDisplay : MusicNotationBeatmapDisplay
         // we do know where CompleteTime occurs at, so that's why we use this
         var startTime = replayEndTime - TimeSpan.FromMilliseconds(trackEndLength);
 
-        var format = "yyyy-MM-dd HH-mm-ss";
+        var formats = new string[] {
+            "yyyy-MM-dd HH-mm-ss",
+            "yyyy-MM-dd_HH-mm-ss"
+        };
         var enUS = new CultureInfo("en-US");
 
         // algorithm:
@@ -75,21 +77,24 @@ public class MusicNotationBeatmapReplayDisplay : MusicNotationBeatmapDisplay
         //   write time should be after the replay end
         foreach (var file in files.OrderByDescending(e => e.Name))
         {
-            if (DateTime.TryParseExact(Path.GetFileNameWithoutExtension(file.Name), format, enUS, DateTimeStyles.None, out var date))
+            foreach (var format in formats)
             {
-                if (date < replayEndTime)
+                if (DateTime.TryParseExact(Path.GetFileNameWithoutExtension(file.Name), format, enUS, DateTimeStyles.None, out var date))
                 {
-                    if (file.LastWriteTime > replayEndTime)
+                    if (date < replayEndTime)
                     {
-                        Logger.Log($"Found video: {file.Name}", level: LogLevel.Important);
-                        Replay.Video = file.FullName;
-                        Replay.VideoOffset = (startTime - date).TotalMilliseconds;
-                        LoadCamera();
-                        return true;
-                    }
-                    else
-                    {
-                        Logger.Log($"Found video: {file.Name}, write time not correct", level: LogLevel.Important);
+                        if (file.LastWriteTime > replayEndTime)
+                        {
+                            Logger.Log($"Found video: {file.Name}", level: LogLevel.Important);
+                            Replay.Video = file.FullName;
+                            Replay.VideoOffset = (startTime - date).TotalMilliseconds;
+                            LoadCamera();
+                            return true;
+                        }
+                        else
+                        {
+                            Logger.Log($"Found video: {file.Name}, write time not correct", level: LogLevel.Important);
+                        }
                     }
                 }
             }

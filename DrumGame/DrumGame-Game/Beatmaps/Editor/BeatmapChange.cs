@@ -9,39 +9,39 @@ namespace DrumGame.Game.Beatmaps.Editor;
 // Classes for handling history for beatmaps
 public class BeatmapChange : IHistoryChange
 {
-    protected readonly Func<bool> action;
-    protected readonly Action undo;
+    protected readonly Func<BeatmapEditor, bool> action;
+    protected readonly Action<BeatmapEditor> undo;
     public string Description { get; }
-    public BeatmapChange(Action action, Action undo, string description) : this(() => { action(); return true; }, undo, description) { }
-    public BeatmapChange(Func<bool> action, Action undo, string description)
+    public BeatmapChange(Action<BeatmapEditor> action, Action<BeatmapEditor> undo, string description) : this(e => { action(e); return true; }, undo, description) { }
+    public BeatmapChange(Action action, Action undo, string description) : this(_ => { action(); return true; }, _ => undo(), description) { }
+    public BeatmapChange(Func<bool> action, Action undo, string description) : this(_ => action(), _ => undo(), description) { }
+    public BeatmapChange(Func<BeatmapEditor, bool> action, Action<BeatmapEditor> undo, string description)
     {
         Description = description;
         this.action = action;
         this.undo = undo;
     }
-    public virtual void OnChange() { }
-    public bool Do()
+    public virtual void OnChange(BeatmapEditor editor) { }
+    public bool Do(BeatmapEditor editor)
     {
-        var res = action();
-        if (res) OnChange();
+        var res = action(editor);
+        if (res) OnChange(editor);
         return res;
     }
-    public void Undo()
+    public void Undo(BeatmapEditor editor)
     {
-        undo();
-        OnChange();
+        undo(editor);
+        OnChange(editor);
     }
 }
 public class MetadataChange : BeatmapChange
 {
-    readonly BeatmapEditor Editor;
-    public MetadataChange(BeatmapEditor editor, Action action, Action undo, string description) : base(action, undo, description)
+    public MetadataChange(Action action, Action undo, string description) : base(action, undo, description)
     {
-        Editor = editor;
     }
-    public override void OnChange()
+    public override void OnChange(BeatmapEditor editor)
     {
-        Editor?.Display.InfoPanel.UpdateData();
+        editor?.Display.InfoPanel.UpdateData();
     }
 }
 public class OffsetBeatmapChange : PropertyChange<double>
@@ -106,7 +106,7 @@ public abstract class PropertyChange<T> : IHistoryChange where T : IEquatable<T>
     public abstract string Description { get; }
     public abstract T Property { get; set; }
 
-    public bool Do()
+    public bool Do(BeatmapEditor editor)
     {
         // have to call this here instead of in constructor since it's virtual
         OldValue = Property;
@@ -114,13 +114,45 @@ public abstract class PropertyChange<T> : IHistoryChange where T : IEquatable<T>
         Property = NewValue;
         return true;
     }
-    public void Undo() => Property = OldValue;
+    public void Undo(BeatmapEditor editor) => Property = OldValue;
+}
+// not actually used much yet
+public class PresetBeatmapChange : BeatmapChange
+{
+    NotePreset Preset;
+    public PresetBeatmapChange(Action<BeatmapEditor> action, Action<BeatmapEditor> undo, string description) : base(action, undo, description)
+    {
+    }
+    public PresetBeatmapChange(NotePreset preset, Action action, Action undo, string description) : base(action, undo, description)
+    {
+        Preset = preset;
+    }
+    public bool ReloadNoteDisplay;
+    public override void OnChange(BeatmapEditor editor)
+    {
+        if (ReloadNoteDisplay)
+        {
+            var display = editor.Display;
+            var start = int.MaxValue;
+            var end = int.MinValue;
+            foreach (var hitObject in editor.Beatmap.HitObjects)
+            {
+                if (hitObject.Preset == Preset)
+                {
+                    if (start == int.MaxValue) start = hitObject.Time;
+                    end = hitObject.Time;
+                }
+            }
+            if (start < end)
+            {
+                display.ReloadNoteRange(new AffectedRange(start, end + 1));
+            }
+        }
+    }
 }
 public class NoteBeatmapChange : IHistoryChange
 {
     Func<AffectedRange> action;
-    // TODO we should only need to accept Beatmap here then trigger a hitObjects change event off of Beatmap
-    BeatmapDisplay display;
     string description;
     public string Description => description;
     ViewTarget viewTarget;
@@ -128,20 +160,20 @@ public class NoteBeatmapChange : IHistoryChange
     {
         description = s;
     }
-    public NoteBeatmapChange(BeatmapDisplay display, Action action, string description, ViewTarget viewTarget = null) :
-        this(display, () => { action(); return true; }, description, viewTarget)
+    public NoteBeatmapChange(Action action, string description, ViewTarget viewTarget = null) :
+        this(() => { action(); return true; }, description, viewTarget)
     { }
-    public NoteBeatmapChange(BeatmapDisplay display, Func<AffectedRange> action, string description, ViewTarget viewTarget = null)
+    public NoteBeatmapChange(Func<AffectedRange> action, string description, ViewTarget viewTarget = null)
     {
         this.action = action;
-        this.display = display;
         this.description = description;
         this.viewTarget = viewTarget;
     }
     List<HitObject> Clone;
     AffectedRange Range;
-    public bool Do()
+    public bool Do(BeatmapEditor editor)
     {
+        var display = editor.Display;
         Clone = new List<HitObject>(display.Beatmap.HitObjects);
         Range = action();
         if (Range.HasChange)
@@ -156,8 +188,9 @@ public class NoteBeatmapChange : IHistoryChange
             return false;
         }
     }
-    public void Undo()
+    public void Undo(BeatmapEditor editor)
     {
+        var display = editor.Display;
         display.Beatmap.HitObjects = Clone;
         display.ReloadNoteRange(Range);
         display.PullView(viewTarget);
@@ -201,14 +234,14 @@ public abstract class ListBeatmapChange<T> : IHistoryChange
     public abstract List<T> List { get; set; }
     public abstract void FireUpdate();
     List<T> Clone;
-    public bool Do()
+    public bool Do(BeatmapEditor editor)
     {
         Clone = new List<T>(List);
         action();
         FireUpdate();
         return true;
     }
-    public void Undo()
+    public void Undo(BeatmapEditor editor)
     {
         List = Clone;
         FireUpdate();

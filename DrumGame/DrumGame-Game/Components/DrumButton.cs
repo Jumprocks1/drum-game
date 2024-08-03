@@ -14,9 +14,9 @@ using osuTK.Graphics;
 
 namespace DrumGame.Game.Components;
 
-public class DrumButton : Button, IHasMarkupTooltip
+public class DrumButton : Button, IHasMarkupTooltip, IHasCursor
 {
-
+    public SDL2.SDL.SDL_SystemCursor? Cursor => Action == null ? null : SDL2.SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_HAND;
     LocalisableString _text;
     public LocalisableString Text
     {

@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using DrumGame.Game.Beatmaps.Data;
 using DrumGame.Game.Beatmaps.Loaders;
-using DrumGame.Game.Stores;
 using DrumGame.Game.Utils;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -27,10 +27,10 @@ public class BJsonFormat : BeatmapFormat
         using (stream)
         using (var sr = new StreamReader(stream))
         {
-            var serializer = new JsonSerializer
-            {
-                ContractResolver = metadataOnly ? BeatmapMetadataContractResolver.Default : BeatmapContractResolver.Default
-            };
+            var settings = Beatmap.SerializerSettings;
+            if (metadataOnly)
+                settings.ContractResolver = BeatmapMetadataContractResolver.Default;
+            var serializer = JsonSerializer.Create(settings);
             var o = (Beatmap)serializer.Deserialize(sr, typeof(Beatmap)); // can't use generic because of sr
 
             if (prepareForPlay)
@@ -45,6 +45,10 @@ public class BJsonFormat : BeatmapFormat
 
 public class BeatmapContractResolver : CamelCasePropertyNamesContractResolver
 {
+    public BeatmapContractResolver()
+    {
+        NamingStrategy.ProcessDictionaryKeys = false;
+    }
     public static readonly BeatmapContractResolver Default = new();
     protected override IList<JsonProperty> CreateProperties(Type type, MemberSerialization memberSerialization)
     {
@@ -52,6 +56,22 @@ public class BeatmapContractResolver : CamelCasePropertyNamesContractResolver
         return base.CreateProperties(type, memberSerialization);
     }
 }
+
+public class BeatmapMetadataContractResolver : BeatmapContractResolver
+{
+    public new static readonly BeatmapMetadataContractResolver Default = new();
+    protected override JsonProperty CreateProperty(MemberInfo member,
+                                     MemberSerialization memberSerialization)
+    {
+        var property = base.CreateProperty(member, memberSerialization);
+        if (property.DeclaringType == typeof(BJson) && property.PropertyName == "Notes")
+        {
+            property.ShouldSerialize = _ => false;
+        }
+        return property;
+    }
+}
+
 
 public static class BJsonLoadHelpers
 {

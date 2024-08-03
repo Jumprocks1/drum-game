@@ -32,7 +32,7 @@ public class CommandPaletteContainer : Container
     public List<IModal> ModalStack = new();
     public CommandPalette Palette;
     IFocusManager focusManager;
-    public CommandController CommandController;
+    public CommandController CommandController => Util.CommandController;
     public RequestModal Request(RequestConfig config) => Push(new RequestModal(config), unique: false);
     public RequestModal RequestNumber(string title, string label, double value, Action<double> callback, string description = null)
         => RequestNullableNumber(title, label, value, e => { if (e != null) callback(e.Value); }, description);
@@ -63,13 +63,8 @@ public class CommandPaletteContainer : Container
         {
             Depth = -1 // need to set depth for palette since it is always inside the container
         });
-    }
-    [BackgroundDependencyLoader]
-    private void load(CommandController command)
-    {
-        CommandController = command;
-        command.Palette = this;
-        command.RegisterHandlers(this);
+        CommandController.Palette = this;
+        CommandController.RegisterHandlers(this);
     }
     protected override void Dispose(bool isDisposing)
     {

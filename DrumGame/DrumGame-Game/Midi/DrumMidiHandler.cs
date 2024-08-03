@@ -28,8 +28,32 @@ public class MidiSampleHandler : ISampleHandler
 
 public static class DrumMidiHandler
 {
-    public static bool PreferredInput(string name)
-        => name != "Midi Through Port-0";
+    public static int InputPreference(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return -5;
+        name = name.Trim();
+        var r = 0;
+        if (name == "Midi Through Port-0")
+            r -= 1;
+        if (name == Util.ConfigManager.Get<string>(Stores.DrumGameSetting.PreferredMidiInput)?.Trim())
+            r += 100;
+        return r;
+    }
+    public static int OutputPreference(string name, string inputName)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return -5;
+        name = name.Trim();
+        var r = 0;
+        if (name == "Midi Through Port-0")
+            r -= 1;
+        if (name == Util.ConfigManager.Get<string>(Stores.DrumGameSetting.PreferredMidiInput)?.Trim())
+            r += 2;
+        if (name == inputName?.Trim())
+            r += 5;
+        if (name == Util.ConfigManager.Get<string>(Stores.DrumGameSetting.PreferredMidiOutput)?.Trim())
+            r += 100;
+        return r;
+    }
     public static List<IMidiPortDetails> Inputs { get; private set; }
     public static List<IMidiPortDetails> Outputs { get; private set; }
     public static IMidiInput Input;
@@ -41,24 +65,27 @@ public static class DrumMidiHandler
     {
         get
         {
-            var o = "Input: ";
+            var o = "Inputs: ";
 
             var i = Inputs; // cache these so we know they won't change during iteration
             var os = Outputs;
+            var currentInput = Input?.Details?.Id;
+            var currentOutput = Output?.Details?.Id;
 
             if (i == null || i.Count == 0) o += "N/A";
-            else o += string.Join(", ", i.Select(e => e.Name));
-            o += " | Output: ";
+            else o += string.Join(", ", i.Select(e => currentInput != null && e.Id == currentInput ? $"[{e.Name}]" : e.Name));
+            o += " | Outputs: ";
             if (os == null || os.Count == 0) o += "N/A";
-            else o += string.Join(", ", os.Select(e => e.Name));
+            else o += string.Join(", ", os.Select(e => currentOutput != null && e.Id == currentOutput ? $"[{e.Name}]" : e.Name));
             return o;
         }
     }
 
-    public static void RefreshMidi() => Util.Host.InputThread.Scheduler.Add(() => UpdateInputConnection(true));
+    public static void RefreshMidi() => Util.Host.UpdateThread.Scheduler.Add(() => _ = UpdateInputConnectionAsync(true));
 
     // could probably use some locks here, but it's probably fine :)
-    public static void UpdateInputConnection(bool force, bool quiet = false)
+    // try to call only on update thread
+    public static async Task UpdateInputConnectionAsync(bool force, bool quiet = false)
     {
         var i = Input;
         Inputs = MidiAccessManager.Default.Inputs.ToList();
@@ -66,7 +93,7 @@ public static class DrumMidiHandler
             Logger.Log($"Found {Inputs.Count} MIDI input devices", level: LogLevel.Important);
         if (Inputs.Count > 0)
         {
-            var target = Inputs.FirstOrDefault(e => PreferredInput(e.Name)) ?? Inputs[0];
+            var target = Inputs.MaxBy(e => InputPreference(e.Name));
             if (i?.Details.Id != target.Id || force) // if we force, we always disconnect the existing input
             {
                 if (i != null)
@@ -79,20 +106,18 @@ public static class DrumMidiHandler
                 InputFound = true;
                 try
                 {
-                    MidiAccessManager.Default.OpenInputAsync(target.Id).ContinueWith(e =>
-                    {
-                        Logger.Log($"Connected input to {e.Result.Details.Name}", level: LogLevel.Important);
-                        Input = e.Result;
-                        ResetInputState();
-                        e.Result.MessageReceived += onMessage;
-                    });
+                    var newInput = await MidiAccessManager.Default.OpenInputAsync(target.Id);
+                    Logger.Log($"Connected input to {newInput.Details.Name}", level: LogLevel.Important);
+                    Input = newInput;
+                    ResetInputState();
+                    newInput.MessageReceived += onMessage;
                 }
                 catch (Exception e) { Logger.Error(e, "Failed to open MIDI input device"); }
             }
         }
     }
 
-    public static void UpdateOutputConnection()
+    public static async Task UpdateOutputConnectionAsync()
     {
         var inputName = Input?.Details?.Name;
         var o = Output;
@@ -109,18 +134,23 @@ public static class DrumMidiHandler
 
         if (Outputs.Count == 0) return;
         if (inputName != null) Logger.Log($"Searching for output named {inputName}", level: LogLevel.Important);
-        var target = inputName != null ? Outputs.FirstOrDefault(e => e.Name == inputName) ?? Outputs[0] : Outputs[0];
+        var target = Outputs.MaxBy(e => OutputPreference(e.Name, inputName));
         OutputFound = true;
-        MidiAccessManager.Default.OpenOutputAsync(target.Id).ContinueWith(e =>
+        try
         {
-            Logger.Log($"Connected output to {e.Result.Details.Name}", level: LogLevel.Important);
-            Output = e.Result;
+            var newOutput = await MidiAccessManager.Default.OpenOutputAsync(target.Id);
+            Logger.Log($"Connected output to {newOutput.Details.Name}", level: LogLevel.Important);
+            Output = newOutput;
             if (OutputBuffer != null)
             {
                 while (OutputBuffer.TryDequeue(out var res)) SendBytes(res);
                 OutputBuffer = null;
-            }
-        });
+            };
+        }
+        catch (Exception e)
+        {
+            Logger.Error(e, "Failed to open MIDI output device");
+        }
     }
 
     static byte? previousEventType = null;
@@ -329,7 +359,7 @@ public static class DrumMidiHandler
         {
             OutputBuffer ??= new();
             OutputBuffer.Enqueue(bytes);
-            if (!OutputFound) UpdateOutputConnection();
+            if (!OutputFound) _ = UpdateOutputConnectionAsync();
         }
         else Output.Send(bytes, 0, bytes.Length, 0);
     }

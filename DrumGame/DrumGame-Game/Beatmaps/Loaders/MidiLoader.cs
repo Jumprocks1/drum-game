@@ -44,7 +44,7 @@ public static class MidiLoader
             var t = 0;
             foreach (var ev in track.events)
             {
-                t += ev.delta;
+                t = ev.time;
                 if (ev is MidiTrack.MidiEvent me)
                 {
                     if (me.type == 9) // note on event
@@ -67,15 +67,15 @@ public static class MidiLoader
                                 // if (me.parameter2 >= 120)
                                 //     modifiers = NoteModifiers.Accented;
                                 // if (me.parameter2 <= 40)
-                                    // modifiers = NoteModifiers.Ghost;
+                                // modifiers = NoteModifiers.Ghost;
 
                                 // if (me.parameter1 == 57)
-                                    // modifiers |= NoteModifiers.Left;
+                                // modifiers |= NoteModifiers.Left;
 
                                 // if (me.parameter2 > 20)
-                                    hitObjects.Add(new HitObject(t, new HitObjectData(channel, modifiers)));
+                                hitObjects.Add(new HitObject(t, new HitObjectData(channel, modifiers)));
                                 // else
-                                    // Console.WriteLine($"Skipping low velocity: {me.parameter1} at {(double)t / tickRate} {me.parameter2}");
+                                // Console.WriteLine($"Skipping low velocity: {me.parameter1} at {(double)t / tickRate} {me.parameter2}");
                             }
                             else
                             {

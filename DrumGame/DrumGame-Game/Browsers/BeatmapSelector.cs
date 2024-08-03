@@ -105,10 +105,10 @@ public partial class BeatmapSelector : CompositeDrawable
 {
     public const float HeaderHeight = 50;
     public BeatmapOpenMode OpenMode => State.OpenMode;
-    readonly Action<string> OnSelect;
+    readonly Func<string, bool> OnSelect;
     public readonly BeatmapSelectorState State;
-    public BeatmapSelector(Action<string> onSelect) : this(onSelect, new BeatmapSelectorState()) { }
-    private BeatmapSelector(Action<string> onSelect, BeatmapSelectorState state)
+    public BeatmapSelector(Func<string, bool> onSelect) : this(onSelect, new BeatmapSelectorState()) { }
+    private BeatmapSelector(Func<string, bool> onSelect, BeatmapSelectorState state)
     {
         OnSelect = onSelect;
         State = state;
@@ -117,7 +117,7 @@ public partial class BeatmapSelector : CompositeDrawable
     // All it lets us do is pass in null for the state and still have it work
     // If we pass null into the state above then it will be sad without the ref
     // Could probably just use a static default selector state for null but this is fun too
-    public BeatmapSelector(Action<string> onSelect, ref BeatmapSelectorState state) : this(onSelect, state ??= new BeatmapSelectorState()) { }
+    public BeatmapSelector(Func<string, bool> onSelect, ref BeatmapSelectorState state) : this(onSelect, state ??= new BeatmapSelectorState()) { }
     BeatmapCarousel Carousel;
     [Resolved] public CollectionStorage CollectionStorage { get; private set; }
     [Resolved] public MapStorage MapStorage { get; private set; }
@@ -128,7 +128,12 @@ public partial class BeatmapSelector : CompositeDrawable
         Maps = MapStorage.GetMaps().Select(e => new BeatmapSelectorMap(e)).ToList();
     }
     public BeatmapDetailContainer DetailContainer;
+    // FilteredMaps contains all maps that match our collection + search filter
     public List<BeatmapSelectorMap> FilteredMaps;
+    // CarouselMaps is a grouping of FilteredMaps. Maps with the same MapSet Id are combined into 1 BeatmapSelectorMap
+    // We will have to store the selected map as more than just an index,
+    //  since the carousel index would only show which map set is selected
+    public List<BeatmapSelectorMap> CarouselMaps => FilteredMaps;
     public List<BeatmapSelectorMap> CollectionMaps;
     string loadedCollection;
     Collection collection;
@@ -270,7 +275,7 @@ public partial class BeatmapSelector : CompositeDrawable
             var task = new BackgroundTask(_ => { })
             {
                 Name = provider == null ? "Loading metadata" : $"Loading metadata for {provider.FriendlyName}",
-                NameTooltip = provider?.Path
+                NameTooltip = provider?.AbsolutePath
             };
             reader.OnComplete = () =>
             {
@@ -300,11 +305,12 @@ public partial class BeatmapSelector : CompositeDrawable
     }
     void OnCommit(TextBox _, bool __) => Carousel.Select();
     public void SelectMap(bool autoplay) => SelectMap(TargetMap, autoplay);
-    public void SelectMap(BeatmapSelectorMap map, bool autoplay)
+    public void SelectMap(BeatmapSelectorMap map, bool autoplay) => SelectMap(map?.MapStoragePath, autoplay);
+    public bool SelectMap(string mapStoragePath, bool autoplay)
     {
-        if (map == null) return;
+        if (mapStoragePath == null) return false;
         State.Autoplay = autoplay;
-        OnSelect(State.Filename = map.MapStoragePath);
+        return OnSelect(State.Filename = mapStoragePath);
     }
     public void EditMap(BeatmapSelectorMap map)
     {
@@ -704,6 +710,11 @@ public partial class BeatmapSelector : CompositeDrawable
         if (oldRequest != null) Schedule(oldRequest.Close);
         FileRequest = context.GetFile(file =>
         {
+            if (MapStorage.Exists(file))
+            {
+                if (SelectMap(file, false))
+                    return;
+            }
             if (Util.DrumGame.OpenFile(context)) return;
             var extension = Path.GetExtension(file);
             if (Util.AudioExtension(extension) || Util.ArchiveExtension(extension))

@@ -155,7 +155,7 @@ public class DtxExporter
     {
         var baseVolume = CurrentBeatmap.GetVolumeMultiplier(VolumeEvents, ho);
         var channel = ho.Channel;
-        if (channel == DrumChannel.OpenHiHat || channel == DrumChannel.ClosedHiHat)
+        if (channel == DrumChannel.OpenHiHat || channel == DrumChannel.ClosedHiHat || channel == DrumChannel.Ride)
         {
             var beatStartTick = CurrentBeatmap.BeatStartTickFromTick(ho.Time);
             if (beatStartTick != ho.Time)
@@ -370,7 +370,7 @@ public class DtxExporter
                     var sticking = forceStick == NoteModifiers.None ?
                         (i & 1) == 0 ? NoteModifiers.Right : NoteModifiers.Left
                         : forceStick;
-                    hitObjects.Add(new HitObject(tickTime, new HitObjectData(ho.Channel, ho.Data.Modifiers | sticking | NoteModifiers.Roll)));
+                    hitObjects.Add(new HitObject(tickTime, new HitObjectData(ho.Channel, ho.Data.Modifiers | sticking | NoteModifiers.Roll, ho.Data.Preset)));
                 }
             }
             else
@@ -473,6 +473,7 @@ public class DtxExporter
     {
         public double Volume;
         public double Pan;
+        public double EncodingOffset;
     }
 
     HashSet<string> ArchivedFiles = new();
@@ -515,7 +516,7 @@ public class DtxExporter
         HiHatHits = new();
         foreach (var ho in beatmap.HitObjects.Where(e =>
             e.Channel == DrumChannel.OpenHiHat || e.Channel == DrumChannel.ClosedHiHat ||
-            e.Channel == DrumChannel.HalfOpenHiHat || e.Channel == DrumChannel.HiHatPedal))
+            e.Channel == DrumChannel.HalfOpenHiHat || e.Channel == DrumChannel.HiHatPedal || e.Channel == DrumChannel.Ride))
         {
             HiHatHits.Add(ho.Time, ho.Channel);
         }
@@ -523,6 +524,7 @@ public class DtxExporter
         MakeBgmChip();
         WriteDtx(CurrentBeatmap, Output.OpenCreate(dtxOutputName));
         EncodeBgmAndPreview();
+        SaveChipInfo();
 
         if (Config.OutputFormat == OutputFormat.Zip)
         {
@@ -579,9 +581,17 @@ public class DtxExporter
 
     void EncodeBgmAndPreview()
     {
-        var bgmPath = Output.BuildPath("bgm.ogg");
+        var bgmName = "bgm.ogg";
+        var bgmPath = Output.BuildPath(bgmName);
+        if (File.Exists(bgmPath))
+        {
+            if (ChipInfo.TryGetValue(bgmName, out var o))
+                if (o.EncodingOffset != BgmEncodingOffset)
+                    File.Delete(bgmPath);
+        }
         if (!File.Exists(bgmPath))
         {
+            ChipInfo[bgmName] = new() { EncodingOffset = BgmEncodingOffset };
             // TODO this will allow opus ogg, which I think is okay
             if (Path.GetExtension(CurrentBeatmap.Audio) == ".ogg" && BgmEncodingOffset == 0)
                 File.Copy(CurrentBeatmap.FullAudioPath(), bgmPath);
@@ -660,23 +670,34 @@ public class DtxExporter
         }
     }
 
+    Dictionary<string, SampleInfo> _chipInfo;
+    Dictionary<string, SampleInfo> ChipInfo
+    {
+        get
+        {
+            if (_chipInfo != null) return _chipInfo;
+
+            Dictionary<string, SampleInfo> res;
+            var chipInfoFile = ChipInfoPath;
+            if (File.Exists(chipInfoFile))
+                res = JsonConvert.DeserializeObject<Dictionary<string, SampleInfo>>(File.ReadAllText(chipInfoFile));
+            else
+                res = new();
+            return _chipInfo = res;
+        }
+    }
+    void SaveChipInfo() => File.WriteAllText(ChipInfoPath, JsonConvert.SerializeObject(ChipInfo));
+    string ChipInfoPath => Output.BuildPath("samples.json");
     void MakeSamples()
     {
         using var renderer = BassUtil.HasMidi ? new SoundFontRenderer("soundfonts/main.sf2") : null;
-        var chipInfoFile = Output.BuildPath("samples.json");
-        Dictionary<string, SampleInfo> chipInfo;
-        if (File.Exists(chipInfoFile))
-            chipInfo = JsonConvert.DeserializeObject<Dictionary<string, SampleInfo>>(File.ReadAllText(chipInfoFile));
-        else
-            chipInfo = new();
-
         var hitSampleChips = new List<WavChip>();
         foreach (var sample in Samples)
         {
             var key = sample.Key;
             if (key.Channel == DrumChannel.None) continue; // skip bgm
             hitSampleChips.Add(sample);
-            if (chipInfo.TryGetValue(sample.Filename, out var v))
+            if (ChipInfo.TryGetValue(sample.Filename, out var v))
             {
                 sample.Pan = v.Pan;
                 sample.Volume = v.Volume;
@@ -695,19 +716,18 @@ public class DtxExporter
                 var chip = hitSampleChips[i];
                 chip.Volume = 100 / r.Boost;
                 chip.Pan = r.Pan;
-                chipInfo[chip.Filename] = new SampleInfo { Volume = chip.Volume, Pan = chip.Pan };
+                ChipInfo[chip.Filename] = new SampleInfo { Volume = chip.Volume, Pan = chip.Pan };
             }
             else
             {
                 var chip = hitSampleChips[i];
-                chip.Volume = chipInfo[chip.Filename].Volume;
-                chip.Pan = chipInfo[chip.Filename].Pan;
+                chip.Volume = ChipInfo[chip.Filename].Volume;
+                chip.Pan = ChipInfo[chip.Filename].Pan;
             }
         }
 
         var boost = 3.8d; // this is just what I decided on
         foreach (var sample in hitSampleChips) sample.Volume *= boost;
-        File.WriteAllText(chipInfoFile, JsonConvert.SerializeObject(chipInfo));
     }
 
     Dictionary<string, string> Filenames = new();
@@ -746,14 +766,16 @@ public class DtxExporter
 
     void Export()
     {
-        var set = MapStorage.GetMapSet(TargetBeatmap);
-        var commonString = GetCommonString(set.Select(e => Path.GetFileNameWithoutExtension(e.MapStoragePath)).ToList());
+        var set = Config.ExportMapSet ? MapStorage.GetMapSet(TargetBeatmap) : [];
+
+        string commonString;
+        if (set.Count > 1)
+            commonString = GetCommonString(set.Select(e => Path.GetFileNameWithoutExtension(e.MapStoragePath)).ToList());
+        else
+            commonString = Path.GetFileNameWithoutExtension(TargetBeatmap.MapStoragePath);
 
         var basename = Util.Resources.GetAbsolutePath(Path.Join("dtx-exports", commonString + "-dtx"));
         Output = new FileProvider(Directory.CreateDirectory(basename));
-
-        if (!Config.ExportMapSet)
-            set = [];
 
         if (set.Count > 1)
             MakeSetDef(set);
@@ -837,7 +859,7 @@ public class DtxExporter
             .Add(new StringFieldConfig { Label = "Ghost Note Width", DefaultValue = "80", Key = nameof(ExportConfig.GhostNoteWidth) })
             .Add(new StringFieldConfig { Label = "Zip Name", DefaultValue = zipName.ToString(), Key = nameof(ExportConfig.ExportName) })
             .Add(new BoolFieldConfig { Label = "Encode Offset", DefaultValue = true, Key = nameof(ExportConfig.EncodeOffset) })
-            .Add(new StringFieldConfig { Label = "Offbeat hihat volume", DefaultValue = "92", Key = nameof(ExportConfig.OffbeatHiHatVolume) })
+            .Add(new StringFieldConfig { Label = "Offbeat hihat/ride volume", DefaultValue = "92", Key = nameof(ExportConfig.OffbeatHiHatVolume) })
             .Add(new BoolFieldConfig { Label = "Include Video", DefaultValue = beatmap.YouTubeID != null, Key = nameof(ExportConfig.IncludeVideo) });
 
         var hasRolls = beatmap.HitObjects.Any(e => e.Roll);
@@ -867,22 +889,12 @@ public class DtxExporter
                 Export(beatmap, config);
             }
         });
-        void addWarning(string message)
-        {
-            var y = req.InnerContent.Children.Sum(e => e.Height);
-            var s = new SpriteText
-            {
-                Text = message,
-                Colour = DrumColors.WarningText,
-                Font = FrameworkFont.Regular,
-                Y = y
-            };
-            req.Add(s);
-        }
         if (beatmap.PreviewTime == null)
-            addWarning("Warning: No preview time set");
+            req.AddWarning("Warning: No preview time set");
         if (beatmap.GetDtxLevel() == null)
-            addWarning("Warning: No DTX level tag set");
+            req.AddWarning("Warning: No DTX level tag set");
+        if (beatmap.YouTubeOffset == default && !string.IsNullOrWhiteSpace(beatmap.YouTubeID))
+            req.AddWarning("Warning: YouTube offset not set");
         return true;
     }
 

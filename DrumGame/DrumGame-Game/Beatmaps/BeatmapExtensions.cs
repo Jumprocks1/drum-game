@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
 using DrumGame.Game.API;
 using DrumGame.Game.Beatmaps.Data;
 using DrumGame.Game.Beatmaps.Display;
@@ -16,6 +17,8 @@ using DrumGame.Game.Stores;
 using DrumGame.Game.Timing;
 using DrumGame.Game.Utils;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Serialization;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Logging;
 
@@ -239,18 +242,19 @@ public partial class Beatmap
         }
         var s = stream as FileStream;
         Logger.Log($"Saving to {s.Name}", level: LogLevel.Important);
-        var serializer = new JsonSerializer
-        {
-            ContractResolver = BeatmapContractResolver.Default,
-            NullValueHandling = NullValueHandling.Ignore,
-            Formatting = Formatting.Indented,
-        };
-        serializer.Serialize(writer, this);
+        JsonSerializer.Create(SerializerSettings).Serialize(writer, this);
         mapStorage.ReplaceMetadata(Source.MapStoragePath, this);
         // Logger.Log($"Save complete", level: LogLevel.Important); // expected that the caller will log this
         return s.Name;
     }
 
+    public static JsonSerializerSettings SerializerSettings => new()
+    {
+        ContractResolver = BeatmapContractResolver.Default,
+        Converters = [new Skinning.SkinManager.ColorHexConverter(), new StringEnumConverter(new CamelCaseNamingStrategy())],
+        DefaultValueHandling = DefaultValueHandling.Ignore, // some fields have this set to include on a case-by-case
+        Formatting = Formatting.Indented,
+    };
     public static readonly HashSet<DrumChannel> Cymbols = new()
     {
         DrumChannel.ClosedHiHat,
@@ -692,6 +696,7 @@ public partial class Beatmap
             {
                 var rt = new HitObjectRealTime(realTime, ho);
                 if (ev is RollHitObject roll) rt.Duration = MillisecondsFromTick(ev.Time + roll.Duration) - realTime;
+                rt.OriginalObjectIndex = o.Count;
                 o.Add(rt);
             }
             lastEvent = ev.Time;
@@ -820,7 +825,7 @@ public partial class Beatmap
     }
 
     int SnapFromTick(ITickTime e) => TickRate / Util.GCD(e.Time % TickRate, TickRate);
-    public void SetDoubleBassSticking(BeatSelection selection, DoubleBassStickingSettings settings)
+    public AffectedRange SetDoubleBassSticking(BeatSelection selection, DoubleBassStickingSettings settings)
     {
         var divisor = settings.Divisor;
         var minStreak = Math.Max(settings.Streak, 2); // can't be less than 2
@@ -865,13 +870,17 @@ public partial class Beatmap
             }
             currentStreak.Clear();
         }
-
+        var lastCloseHH = int.MinValue / 2;
         for (var i = 0; i < HitObjects.Count; i++)
         {
             var e = HitObjects[i];
             if (selection == null || selection.Contains(TickRate, e))
             {
-                if (e.Channel == DrumChannel.BassDrum)
+                if (e.Channel == DrumChannel.ClosedHiHat || e.Channel == DrumChannel.HiHatPedal)
+                {
+                    lastCloseHH = e.Time;
+                }
+                else if (e.Channel == DrumChannel.BassDrum)
                 {
                     var time = e.Time;
                     if (removeExisting)
@@ -879,12 +888,18 @@ public partial class Beatmap
 
                     if (lastBass != null && time - lastBass > threshold)
                         EndStreak();
-                    currentStreak.Add(i);
-                    lastBass = time;
+
+                    // we ignore bass hits that are too close to hi-hat hits/pedals
+                    if (time - lastCloseHH >= threshold * 2)
+                    {
+                        currentStreak.Add(i);
+                        lastBass = time;
+                    }
                 }
             }
         }
         EndStreak();
+        return AffectedRange.FromSelectionOrEverything(selection, this);
     }
 
     public string Simplify(BeatSelection selection)

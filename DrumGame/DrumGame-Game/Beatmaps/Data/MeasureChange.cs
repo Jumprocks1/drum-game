@@ -15,6 +15,8 @@ public class MeasureChange : IBeatmapChangePoint<MeasureChange>, IMidiEvent
         Time = time;
         Beats = beats;
     }
+    public int Ticks(Beatmap beatmap) => Ticks(beatmap.TickRate);
+    public int Ticks(int tickRate) => (int)(Beats * tickRate);
     int ITickTime.Time => Time;
     public static MeasureChange Default => new MeasureChange(0, DefaultBeats);
     public const double DefaultBeats = 4;
@@ -35,4 +37,6 @@ public class MeasureChange : IBeatmapChangePoint<MeasureChange>, IMidiEvent
         return new MidiEvent(Commons.Music.Midi.MidiEvent.Meta, MidiMetaType.TimeSignature, 4,
             new byte[] { (byte)num, den, 24, 8 }, 0, 4);
     }
+
+    public override string ToString() => $"{Beats}beats/measure at {Time}";
 }

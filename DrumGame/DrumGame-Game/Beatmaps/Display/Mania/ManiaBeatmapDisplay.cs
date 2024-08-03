@@ -33,27 +33,33 @@ using LaneInfo = ManiaSkinInfo.ManiaSkinInfo_Lane;
 public partial class ManiaBeatmapDisplay : BeatmapDisplay
 {
     Colour4 TextColor = Colour4.White;
-    public class ManiaCanvasData
-    {
-        public (int Start, int End) VisibleChips;
-        public (int Start, int End) VisibleLines;
-        public float Offset;
-    }
-    void ApplyState(ManiaCanvasData data)
+    void ApplyState(ManiaCanvas.Data data)
     {
         var time = Track.CurrentTime;
         var heightOfDisplayInMs = 1 / ScrollRate;
         var overdraw = ManiaConfig.ChipThickness * 2; // the "perfect" overdraw is ChipThickness / 2, we add extra for safety
 
-        var startTime = time - heightOfDisplayInMs * (ManiaConfig.JudgementPosition + overdraw);
-        var endTime = time + heightOfDisplayInMs * (1 - ManiaConfig.JudgementPosition + overdraw);
+        var startTime = time - heightOfDisplayInMs * (ManiaConfig.JudgementLinePosition + overdraw);
+        var endTime = time + heightOfDisplayInMs * (1 - ManiaConfig.JudgementLinePosition + overdraw);
 
         data.VisibleChips = Chips.FindRangeContinuous(startTime, endTime);
         data.VisibleLines = Lines.FindRangeContinuous(startTime, endTime);
         data.Offset = ScoreEventContainer.Y;
+        data.RecentJudgements ??= new ManiaCanvas.Data.JudgementEvent[Lanes.Length];
+        data.TrackTime = time;
+        data.UpdateTime = Clock.CurrentTime;
+
+        var start = data.VisibleChips.Start;
+        var end = data.VisibleChips.End;
+        data.HiddenChips.Clear();
+        for (var i = start; i < end; i++)
+            if (Chips[i].Hide) data.HiddenChips.Add(i);
+
+        for (var i = 0; i < Lanes.Length; i++)
+            data.RecentJudgements[i] = Lanes[i].RecentJudgement;
     }
 
-    void DrawCanvas(Canvas<ManiaCanvasData>.Node node, ManiaCanvasData data)
+    void DrawCanvas(ManiaCanvas.Node node, ManiaCanvas.Data data)
     {
         foreach (var lane in Lanes)
         {
@@ -66,6 +72,7 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
         node.Color = lane1.Config.BorderColor;
         node.Box(1, 0, -lane1.LeftBorderWidth, 1);
 
+        var defaultMatrix = node.Matrix;
         node.Translate(new Vector2(0, node.State.Offset));
 
         var end = node.State.VisibleLines.End;
@@ -78,8 +85,11 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
         // we split into 2 loops to prevent swapping blend modes
         // swapping blend modes forces a flush of the draw buffer
         node.Alpha = 1;
+        var nextHidden = 0;
+        var hidden = data.HiddenChips;
         for (var i = start; i < end; i++)
         {
+            if (nextHidden < hidden.Count && hidden[nextHidden] == i) { nextHidden++; continue; }
             if (PracticeMode != null)
             {
                 var contained = Chips[i].HitTime > PracticeMode.StartTime && Chips[i].HitTime < PracticeMode.EndTime;
@@ -87,8 +97,10 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
             }
             Chips[i].DrawAdornment(node);
         }
+        nextHidden = 0;
         for (var i = start; i < end; i++)
         {
+            if (nextHidden < hidden.Count && data.HiddenChips[nextHidden] == i) { nextHidden++; continue; }
             if (PracticeMode != null)
             {
                 var contained = Chips[i].HitTime > PracticeMode.StartTime && Chips[i].HitTime < PracticeMode.EndTime;
@@ -97,6 +109,38 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
             Chips[i].DrawChip(node);
         }
         node.Alpha = 1;
+
+        node.Matrix = defaultMatrix;
+        var time = node.Time;
+        var judgements = ManiaConfig.Judgements;
+        for (var i = 0; i < data.RecentJudgements.Length; i++)
+        {
+            var lane = Lanes[i];
+            var judgement = data.RecentJudgements[i];
+            if (judgement != null)
+            {
+                var texture = judgements.TextureForJudgement(judgement.Rating);
+                if (texture != null)
+                {
+                    node.Time = data.UpdateTime - judgement.UpdateTime;
+                    if (texture.FrameDuration == 0 || (int)(node.Time / texture.FrameDuration) < texture.FrameCount)
+                    {
+                        if (texture.FragmentShader != null)
+                        {
+                            node.SetLaneParameters(lane);
+                            node.SetJudgementParameters(judgement);
+                            texture.DrawCentered(node, lane.X + lane.Width / 2, 1 - lane.Config.JudgementTextPosition, 1, 0);
+                            node.Flush(); // required since setting the uniform doesn't flush
+                        }
+                        else
+                        {
+                            texture.DrawCentered(node, lane.X + lane.Width / 2, 1 - lane.Config.JudgementTextPosition, 1, 0);
+                        }
+                    }
+                }
+            }
+        }
+        node.Time = time;
         node.ResetShader();
     }
 
@@ -112,7 +156,7 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
         float Height;
         double HitTime;
         bool Measure;
-        public void Draw(Canvas<ManiaCanvasData>.Node node)
+        public void Draw(ManiaCanvas.Node node)
         {
             node.Color = Measure ? ManiaConfig.MeasureLineColor : ManiaConfig.BeatLineColor;
             node.Box(0, Y, 1, Height);
@@ -128,36 +172,58 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
     }
     public class Chip : IComparable<double>
     {
-        public LaneInfo Lane;
-        public IChipInfo ChipInfo;
-        float X;
-        float Y;
-        float Width;
-        float Height;
-        float ChipWidth;
-        public void DrawAdornment(Canvas<ManiaCanvasData>.Node node) => ChipInfo.Adornment?.DrawCentered(node, X, Y, Width, Height);
-        public void DrawChip(Canvas<ManiaCanvasData>.Node node)
+        public readonly Lane Lane;
+        public readonly IChipInfo ChipInfo;
+        public readonly float X;
+        public readonly float Y;
+        public readonly float Width; // width of the parent lane. Could actually just make this => Lane.Width
+        public readonly float Height;
+        public readonly float ChipWidth; // 0-1, typically 1. Like 0.8 for ghost notes.
+        public readonly DrumChannel Channel;
+        public readonly NoteModifiers Modifiers;
+        public bool Hide; // hide chip after it is hit
+        public void DrawAdornment(ManiaCanvas.Node node)
+        {
+            var adornment = ChipInfo.Adornment;
+            if (adornment != null)
+            {
+                node.SetLaneParameters(Lane);
+                node.SetNoteParameters(this, true);
+                adornment.DrawCentered(node, X, Y, Width, Height);
+                node.Flush();
+            }
+        }
+        public void DrawChip(ManiaCanvas.Node node)
         {
             if (ChipInfo.Chip == null)
             {
                 node.Color = ChipInfo.Color;
+                node.ResetShader();
                 node.CenterBox(X, Y, Width * ChipWidth, Height);
             }
             else
             {
-                ChipInfo.Chip?.DrawCentered(node, X, Y, Width * ChipWidth, Height);
+                // probably don't actually need to set this, we'll see if it ever gets used, remove if not
+                node.SetLaneParameters(Lane);
+                node.SetNoteParameters(this, false);
+                ChipInfo.Chip.DrawCentered(node, X, Y, Width * ChipWidth, Height);
+                node.Flush(); // required since setting the uniform doesn't flush
             }
         }
         public Chip(ManiaBeatmapDisplay display, HitObjectRealTime ho)
         {
-            var lane = display.GetLane(ho.Data);
-            var laneConfig = lane.Config;
+            Channel = ho.Channel;
+            Modifiers = ho.Data.Modifiers;
+            Lane = display.GetLane(ho.Data);
+            var laneConfig = Lane.Config;
             HitTime = ho.Time;
-            Width = lane.Width;
+            Width = Lane.Width;
             Height = ManiaConfig.ChipThickness;
-            X = lane.X + Width / 2;
+            X = Lane.X + Width / 2;
             Y = (float)(-HitTime * display.ScrollRate) + 1;
             ChipWidth = ho.Data.Modifiers.HasFlag(NoteModifiers.Ghost) ? Util.Skin.Mania.GhostNoteWidth : 1f;
+            if (ho.Data.Preset != null)
+                ChipWidth *= ho.Data.Preset.Size;
 
             var channel = ho.Channel;
             if (laneConfig.Channel != channel)
@@ -173,19 +239,26 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
     {
         public readonly LaneInfo Config;
         public SkinTexture Background => Config.Background;
+        public ManiaJudgementErrorNumbers ErrorNumbers;
         public ManiaIcon Icon;
         public ColourInfo BackgroundColor;
         public float X;
         public float LeftBorderWidth;
         public float Width;
+        public ManiaCanvas.Data.JudgementEvent RecentJudgement;
         public Lane(LaneInfo laneConfig)
         {
             Config = laneConfig;
             BackgroundColor = laneConfig.Color.MultiplyAlpha(0.05f);
         }
-        public void DrawBackground(CanvasNode node)
+        public void DrawBackground(ManiaCanvas.Node node)
         {
-            if (Background != null) Background.Draw(node, X, 0, Width, 1);
+            if (Background != null)
+            {
+                node.SetLaneParameters(this);
+                Background.Draw(node, X, 0, Width, 1);
+                node.Flush(); // required since setting the uniform doesn't flush
+            }
             else
             {
                 node.Color = BackgroundColor;
@@ -209,7 +282,6 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
             return o;
         return GetLane(channel);
     }
-    public Lane GetLane(DrumChannelEvent ev) => GetLane(ev.Channel);
     public Lane GetLane(DrumChannel channel)
     {
         if (PrimaryLaneLookup.TryGetValue(channel, out var o) || SecondaryLaneLookup.TryGetValue(channel, out o))
@@ -225,13 +297,23 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
     Container ScoreEventContainer = new();
     ManiaTimeline Timeline;
 
-    List<Chip> Chips;
+    // these are sorted for extra safety, don't use with OriginalObjectIndex
+    // could use an array here but half our extension methods only work with lists, oops
+    List<Chip> Chips = [];
+    Chip[] OriginalChips; // has default ordering. Safe to use with OriginalObjectIndex
 
     void LoadChips()
     {
-        Chips = new();
-        foreach (var hitObject in Beatmap.GetRealTimeHitObjects())
-            Chips.Add(new Chip(this, hitObject));
+        var hitObjects = Beatmap.GetRealTimeHitObjects();
+        Chips.Clear();
+        Chips.EnsureCapacity(hitObjects.Count);
+        OriginalChips = new Chip[hitObjects.Count];
+        for (var i = 0; i < hitObjects.Count; i++)
+        {
+            var chip = new Chip(this, hitObjects[i]);
+            Chips.Add(chip);
+            OriginalChips[i] = chip;
+        }
         Chips.Sort((a, b) => a.HitTime.CompareTo(b.HitTime));
 
         Lines.Clear();
@@ -242,11 +324,13 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
     [BackgroundDependencyLoader]
     private void load()
     {
+        Track.AfterSeek += AfterSeek;
         SkinManager.RegisterTarget(SkinAnchorTarget.LaneContainer, LaneContainer);
         AddInternal(Timeline = new(this));
         SkinManager.RegisterTarget(SkinAnchorTarget.PositionIndicator, Timeline);
         AddInternal(new SongInfoPanel(Beatmap, true));
-        LaneContainer.Add(new Canvas<ManiaCanvasData>
+        AddInternal(new ManiaVideo(Player));
+        LaneContainer.Add(new ManiaCanvas(this)
         {
             RelativeSizeAxes = Axes.Both,
             Draw = DrawCanvas,
@@ -264,9 +348,9 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
         });
         LaneContainer.Add(new Box
         {
-            Colour = ManiaConfig.JudgementColor,
-            Y = -ManiaConfig.JudgementPosition,
-            Height = ManiaConfig.JudgementThickness,
+            Colour = ManiaConfig.JudgementLineColor,
+            Y = -ManiaConfig.JudgementLinePosition + (float)(-ManiaConfig.JudgementLineOffset * ScrollRate),
+            Height = ManiaConfig.JudgementLineThickness,
             RelativeSizeAxes = Axes.Both,
             RelativePositionAxes = Axes.Y,
             Anchor = Anchor.BottomLeft,
@@ -278,10 +362,10 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
             var d = ManiaConfig.Shutter.Texture?.MakeSprite() ?? new Box { Colour = ManiaConfig.BackgroundColor };
             d.RelativeSizeAxes = Axes.Both;
             d.RelativePositionAxes = Axes.Both;
-            d.Height = ManiaConfig.JudgementPosition;
+            d.Height = ManiaConfig.JudgementLinePosition;
             d.Anchor = Anchor.BottomLeft;
             d.Origin = Anchor.TopLeft;
-            d.Y = -ManiaConfig.JudgementPosition;
+            d.Y = -ManiaConfig.JudgementLinePosition;
             d.Depth = -2; // icons are -3
             LaneContainer.Add(d);
         }
@@ -344,7 +428,7 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
                 icon.Depth = -3;
                 icon.X = laneObject.X;
                 icon.Width = laneObject.Width;
-                icon.Height = ManiaConfig.JudgementPosition;
+                icon.Height = ManiaConfig.JudgementLinePosition;
                 icon.Anchor = Anchor.BottomLeft;
                 icon.Origin = Anchor.BottomLeft;
                 LaneContainer.Add(icon);
@@ -355,7 +439,7 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
     protected override void Update()
     {
         if (Dragging) UpdateDrag();
-        ScoreEventContainer.Y = (float)(Track.CurrentTime * ScrollRate - ManiaConfig.JudgementPosition);
+        ScoreEventContainer.Y = (float)(Track.CurrentTime * ScrollRate - ManiaConfig.JudgementLinePosition);
     }
 
     SpriteText StatsText;
@@ -381,33 +465,70 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
             StatsText.Text = $"{Scorer.Accuracy}  {Scorer.ReplayInfo.Combo}x";
     }
 
+
+    void AfterSeek(double t)
+    {
+        if (Chips != null && HiddenChips)
+        {
+            foreach (var chip in Chips) chip.Hide = false;
+            HiddenChips = false;
+        }
+    }
+    bool HiddenChips; // set if there are any chips in Chips list with Hide == true
     public override void DisplayScoreEvent(ScoreEvent e)
     {
         if (HideJudgements) return;
-        var lane = GetLane(e.Channel);
+        Chip chip = null;
         var hitTime = e.Time ?? e.ObjectTime ?? 0;
-
-        var h = new Box
+        if (e.OriginalObjectIndex >= 0 && e.OriginalObjectIndex < OriginalChips.Length && ManiaConfig.Judgements.HideHitChips)
         {
-            Width = lane.Width,
-            Height = ManiaConfig.ChipThickness,
-            X = lane.X,
-            Y = (float)(-hitTime * ScrollRate),
-            Depth = -4,
-            Colour = e.Colour,
-            RelativePositionAxes = Axes.Both,
-            RelativeSizeAxes = Axes.Both,
-            Anchor = Anchor.BottomLeft,
-            Origin = Anchor.CentreLeft
-        };
-        ScoreEventContainer.Add(h);
-        h.FadeOut(1000).Expire();
+            chip = OriginalChips[e.OriginalObjectIndex];
+            chip.Hide = true;
+        }
+        HiddenChips = true;
+
+        var lane = chip?.Lane ?? GetLane(e.Channel);
+        if (lane == null) return;
+
+        if (e.InputEvent != null)
+            lane.Icon.Hit(e.InputEvent.ComputedVelocity);
+
+
+        if (Util.Skin.Mania.Judgements.ErrorNumbers.Show && e.HitError is double he)
+        {
+            var errorNumberLane = lane;
+            if (ManiaConfig.Judgements.ErrorNumbers.SingleLane is DrumChannel singleLane)
+                errorNumberLane = GetLane(singleLane);
+            if (errorNumberLane.ErrorNumbers == null)
+                LaneContainer.Add(errorNumberLane.ErrorNumbers = new(errorNumberLane));
+            errorNumberLane.ErrorNumbers.DisplayError(he);
+        }
+
+        if (ManiaConfig.Judgements.Chips)
+        {
+            var h = new Box
+            {
+                Width = lane.Width,
+                Height = ManiaConfig.ChipThickness,
+                X = lane.X,
+                Y = (float)(-hitTime * ScrollRate),
+                Depth = -4,
+                Colour = e.Colour,
+                RelativePositionAxes = Axes.Both,
+                RelativeSizeAxes = Axes.Both,
+                Anchor = Anchor.BottomLeft,
+                Origin = Anchor.CentreLeft
+            };
+            ScoreEventContainer.Add(h);
+            h.FadeOut(1000).Expire();
+        }
+        if (ManiaConfig.Judgements.Textures && e.Rating != HitScoreRating.Ignored)
+            lane.RecentJudgement = new(e, Clock.CurrentTime);
     }
 
-    public override void OnDrumTrigger(DrumChannelEvent ev)
-    {
-        GetLane(ev).Icon.Hit(ev.ComputedVelocity);
-    }
+    // we don't use this since it's hard to get the lane from the DrumChannelEvent
+    // instead we use DisplayScoreEvent which has the DrumChannelEvent anyways
+    public override void OnDrumTrigger(DrumChannelEvent ev) { }
 
     public override void ReloadNoteRange(AffectedRange range)
     {
@@ -416,6 +537,7 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
 
     protected override void Dispose(bool isDisposing)
     {
+        Track.AfterSeek -= AfterSeek;
         Player.ModeChanged -= UpdateModeText;
         SkinManager.UnregisterTarget(LaneContainer);
         SkinManager.UnregisterTarget(Timeline);

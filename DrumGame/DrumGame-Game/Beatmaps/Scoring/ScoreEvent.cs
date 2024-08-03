@@ -8,11 +8,13 @@ public record ScoreEvent
 {
     public HitScoreRating Rating;
     public DrumChannel Channel;
+    public int OriginalObjectIndex = -1;
     public double? Time; // Time of event ms, can be ignored for misses
     public double? ObjectTime; // Intended time of event ms, for ignored and rolls this is null
     public double? HitError => Time - ObjectTime;
     public bool IsMiss => Rating == HitScoreRating.Miss;
     public bool Ignored => Rating == HitScoreRating.Ignored;
+    public DrumChannelEvent InputEvent; // this will be null for some miss events since they aren't triggered by hitting a drum
     // Could do smooth colors outside of perfect
     public Colour4 Colour
     {
@@ -53,11 +55,11 @@ public record ScoreEvent
 
     public override string ToString() => $"{Channel} {Rating} hit at {Time}{(Rating != HitScoreRating.Miss ? $" ({HitError})" : "")}";
 }
-public enum HitScoreRating
+public enum HitScoreRating // integer values are used for shaders
 {
-    Miss,
-    Ignored,
-    Perfect,
-    Good,
-    Bad,
+    Ignored = 0,
+    Perfect = 1,
+    Good = 2,
+    Bad = 3,
+    Miss = 4,
 }

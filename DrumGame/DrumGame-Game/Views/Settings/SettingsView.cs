@@ -23,7 +23,6 @@ public class SettingsView : ModalBase, IModal
 {
     [Resolved] DrumGameConfigManager Config { get; set; }
     [Resolved] FrameworkConfigManager FrameworkConfig { get; set; }
-    [Resolved] CommandController Command { get; set; }
 
     IModal Modal;
     void CloseModal()
@@ -52,35 +51,50 @@ public class SettingsView : ModalBase, IModal
     {
         RelativeSizeAxes = Axes.Both;
         AddInternal(new ModalBackground(() => CloseAction?.Invoke()));
-        var inner = new ClickBlockingContainer
+        var inner = new ModalForeground(Axes.None)
         {
-            RelativeSizeAxes = Axes.Both,
-            Width = 0.8f,
+            Width = 800,
             Height = 0.9f,
             Anchor = Anchor.Centre,
-            Origin = Anchor.Centre
+            Origin = Anchor.Centre,
+            RelativeSizeAxes = Axes.Y
         };
-        inner.Add(new Box
-        {
-            Colour = DrumColors.DarkBackground,
-            RelativeSizeAxes = Axes.Both
-        });
         var headerSize = 90;
+        var y = 5f;
         inner.Add(new SpriteText
         {
             Text = "Settings",
             Anchor = Anchor.TopCentre,
             Origin = Anchor.TopCentre,
             Font = FrameworkFont.Regular.With(size: 40),
-            Y = 5
+            Y = y
         });
-        inner.Add(new CommandIconButton(Commands.Command.EditKeybinds, FontAwesome.Regular.Keyboard, 40)
+        var x = -10f;
+        const float spacing = 6;
+        inner.Add(new CommandIconButton(Command.EditKeybinds, FontAwesome.Regular.Keyboard, 40)
         {
             Anchor = Anchor.TopRight,
             Origin = Anchor.TopRight,
-            Y = 5,
-            X = -10
+            Y = y,
+            X = x
         });
+        x -= 40 + spacing;
+        inner.Add(new CommandIconButton(Command.RevealInFileExplorer, FontAwesome.Solid.FolderOpen, 32)
+        {
+            Anchor = Anchor.TopRight,
+            Origin = Anchor.TopRight,
+            X = x,
+            Y = 4 + y
+        });
+        x -= 32 + spacing;
+        inner.Add(new CommandIconButton(Command.OpenExternally, FontAwesome.Solid.FileAlt, 24)
+        {
+            Anchor = Anchor.TopRight,
+            Origin = Anchor.TopRight,
+            X = x,
+            Y = 8 + y
+        });
+        x -= 24 + spacing;
         // inner.Add(SearchBox = new SearchTextBox
         // {
         //     RelativeSizeAxes = Axes.X,
@@ -97,7 +111,8 @@ public class SettingsView : ModalBase, IModal
             Padding = new MarginPadding { Top = headerSize },
             RelativeSizeAxes = Axes.Both,
         });
-        var y = 0f;
+
+        y = 0f;
         var even = true;
         var settings = SettingsList.GetSettings(Config, FrameworkConfig);
         var depth = 0;
@@ -113,12 +128,12 @@ public class SettingsView : ModalBase, IModal
             even = !even;
         }
         AddInternal(inner);
-        Command.RegisterHandlers(this);
+        Util.CommandController.RegisterHandlers(this);
     }
 
     protected override void Dispose(bool isDisposing)
     {
-        Command.RemoveHandlers(this);
+        Util.CommandController.RemoveHandlers(this);
         base.Dispose(isDisposing);
     }
 

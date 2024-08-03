@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using DrumGame.Game.Beatmaps.Data;
 using DrumGame.Game.Beatmaps.Formats;
 using DrumGame.Game.Channels;
 using DrumGame.Game.Stores;
@@ -17,10 +18,12 @@ namespace DrumGame.Game.Beatmaps.Loaders;
 
 public class BJsonNote
 {
+    [JsonProperty(DefaultValueHandling = DefaultValueHandling.Include)]
     public double Time { get; set; } // in quarter notes/beats. Will be multiplied by TickRate and cast to integer
     public string Channel { get; set; }
     public string Modifier { get; set; }
     public string Sticking { get; set; }
+    public string Preset { get; set; }
     public double? Duration;
     public HitObjectData ToHitObjectData()
     {
@@ -68,7 +71,7 @@ public class BJsonNote
     static readonly Lazy<Dictionary<DrumChannel, string>> InverseMap = new(() =>
         ChannelMapping.ToDictionary(g => g.Value, g => g.Key));
     public static DrumChannel GetDrumChannel(string channel) => ChannelMapping.TryGetValue(channel, out var dc) ? dc
-        : Enum.TryParse<DrumChannel>(channel, out var dc2) ? dc2 : DrumChannel.Snare;
+        : Enum.TryParse<DrumChannel>(channel, true, out var dc2) ? dc2 : DrumChannel.Snare;
     public DrumChannel GetDrumChannel() => GetDrumChannel(Channel);
     public static string GetChannelString(DrumChannel channel) => InverseMap.Value.GetValueOrDefault(channel) ?? channel.ToString();
 }
@@ -116,6 +119,7 @@ public class BJsonSource
 }
 public class Bookmark : IBeatTime
 {
+    [JsonProperty(DefaultValueHandling = DefaultValueHandling.Include)]
     public readonly double Time;
     public readonly string Title;
     public Bookmark(double time, string title)
@@ -128,6 +132,7 @@ public class Bookmark : IBeatTime
 }
 public class Annotation : IBeatTime
 {
+    [JsonProperty(DefaultValueHandling = DefaultValueHandling.Include)]
     public readonly double Time;
     public readonly string Text;
     public Annotation(double time, string text)
@@ -152,24 +157,26 @@ public abstract class BJson
     public string Description { get; set; }
     [JsonProperty(Order = 1)] // move to end since this is like 99% of the map
     public List<BJsonNote> Notes;
+    public NotePresets NotePresets = new();
+    public bool ShouldSerializeNotePresets() => NotePresets != null && NotePresets.Count > 0;
     public List<Bookmark> Bookmarks;
+    public bool ShouldSerializeBookmarks() => Bookmarks != null && Bookmarks.Count > 0;
     public List<Annotation> Annotations;
+    public bool ShouldSerializeAnnotations() => Annotations != null && Annotations.Count > 0;
     public double? RelativeVolume { get; set; }
     public string Audio { get; set; }
     public string DrumOnlyAudio { get; set; }
     public string PreviewAudio { get; set; }
     public string Video { get; set; }
     public string Shader { get; set; }
-    [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
     public double VideoOffset { get; set; }
     public string Image { get; set; }
     public string ImageUrl { get; set; }
     public string Id { get; set; }
     // if this is null, it gets hashed based on title, artist, and mapper
     public string MapSetId { get; set; }
-    [JsonProperty("offset")]
+    [JsonProperty("offset", DefaultValueHandling = DefaultValueHandling.Include)]
     public virtual double StartOffset { get; set; }
-    [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
     public virtual double LeadIn { get; set; }
     public float? SpacingMultiplier { get; set; }
     public JToken BPM { get; set; }
@@ -188,7 +195,6 @@ public abstract class BJson
     public double? PreviewTime { get; set; }
     public string Spotify { get; set; }
     public string YouTubeID { get; set; }
-    [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
     // we may eventually want to make this nullable
     // in the event that we want an offset of 0, it's nice to explicity say "hey, I tried to set this, but it really is truly 0"
     public double YouTubeOffset { get; set; } // this is additional offset applied to correct the offset for YouTube audio

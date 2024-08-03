@@ -117,8 +117,16 @@ public class PreviewLoader : Component
         lock (quickLock)
         {
             target = previewTarget;
-            if (target == Loading) return;
-            if (Loaded == target) return;
+            // if we have a leased track, Loading/Loaded are typically null
+            // we don't want to accidentally return from those 2 checks
+            if (leasedTrack != null && target == null)
+            {
+            }
+            else
+            {
+                if (target == Loading) return;
+                if (Loaded == target) return;
+            }
             if (leasedTrack != null && leasedTrack == target?.AudioPath) return;
             Loading = target;
         }

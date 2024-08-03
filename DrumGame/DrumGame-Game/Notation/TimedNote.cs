@@ -1,4 +1,5 @@
 using DrumGame.Game.Beatmaps;
+using DrumGame.Game.Beatmaps.Data;
 using DrumGame.Game.Utils;
 
 namespace DrumGame.Game.Notation;
@@ -8,6 +9,7 @@ public class TimedNote
 {
     public double Time; // in quarter notes
     public double Duration; // used for rolls
+    public NotePreset Preset;
     public SkinNote Note;
     public NoteModifiers Modifiers;
     public TimedNote(int tickRate, HitObject hitObject)
@@ -17,5 +19,6 @@ public class TimedNote
             Duration = (double)roll.Duration / tickRate;
         Note = Util.Skin.Notation.Channels[hitObject.Data.Channel];
         Modifiers = hitObject.Data.Modifiers;
+        Preset = hitObject.Data.Preset;
     }
 }

@@ -18,7 +18,7 @@ public class WindowModeSetting : EnumSettingInfo<WindowMode>
     public WindowModeSetting(Bindable<WindowMode> binding) : base("Window Mode", binding) { }
     public override void Render(SettingControl control)
     {
-        control.Command = Commands.Command.ToggleFullscreen;
+        control.Command = Command.ToggleFullscreen;
         base.Render(control);
     }
 }
@@ -27,7 +27,7 @@ public class FrameSyncSetting : EnumSettingInfo<FrameSync>
     public FrameSyncSetting(Bindable<FrameSync> binding) : base("Frame Sync", binding) { }
     public override void Render(SettingControl control)
     {
-        control.Command = Commands.Command.CycleFrameSync;
+        control.Command = Command.CycleFrameSync;
         base.Render(control);
     }
 }
@@ -99,15 +99,16 @@ public class EnumSettingInfo<T> : SettingInfo where T : struct, Enum
         // for example, users can change fullscreen with F11
         Binding = binding;
     }
+    public Func<T, string> GetLabel;
     public override void Render(SettingControl control)
     {
-        control.Add(new EnumAutocomplete<T>(Binding)
+        control.Add(new EnumAutocomplete<T>(Binding, GetLabel)
         {
             Width = 300,
             Height = Height,
             Anchor = Anchor.TopRight,
             Origin = Anchor.TopRight,
-            X = -SettingControl.SideMargin,
+            X = -SettingControl.SideMargin
         });
     }
 }

@@ -16,6 +16,23 @@ public class NotationSkinInfo
     public Colour4 NoteColor;
     [Description("Enable to show measures lines in the notation view while playing")]
     public bool MeasureLines;
+
+    [Description("Increases or decreases spacing between notes. Higher values will make denser maps easier to read.\nRecommended between 1 and 2. Defaults to 1.")]
+    [DefaultValue(1d)]
+    public double NoteSpacingMultiplier = 1;
+
+    [Description("Increases or decreases default zoom of the in-game staff. Defaults to 1. Recommended between 0.5 and 2.")]
+    [DefaultValue(1d)]
+    public double ZoomMultiplier = 1;
+
+    [Description("Distance (in beats) between the cursor and the left edge of the screen. Defaults to 4. Smaller values are recommended when at higher zoom or note spacing.")]
+    [DefaultValue(4d)]
+    public double CursorInset = 4;
+
+    [Description("Smooth scroll makes the notes move towards a static cursor/judgement line.")]
+    [DefaultValue(true)]
+    public bool SmoothScroll = true;
+
     public Colour4 MeasureLineColor;
     public Colour4 StaffLineColor;
     public Colour4 PlayfieldBackground = Colour4.White;

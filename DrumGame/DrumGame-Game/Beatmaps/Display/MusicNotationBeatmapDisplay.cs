@@ -55,7 +55,7 @@ public partial class MusicNotationBeatmapDisplay : BeatmapDisplay
     protected FileSystemResources Resources { get; private set; }
     public MusicFont Font;
     (int, int) DisplayRange = (0, 0);
-    public float Inset = 4;
+    public float Inset;
     internal NoteContainer NoteContainer;
     Container AnnotationsContainer;
     [Resolved] DrumInputManager InputManager { get; set; }
@@ -84,8 +84,10 @@ public partial class MusicNotationBeatmapDisplay : BeatmapDisplay
     {
         RelativeSizeAxes = Axes.Both;
         AddInternal(new Box { RelativeSizeAxes = Axes.Both, Colour = Util.Skin.Notation.PlayfieldBackground, Depth = 1000 });
-        SmoothScroll = Util.ConfigManager.SmoothScroll.Value;
-        Util.ConfigManager.CursorInset.BindValueChanged(InsetChanged, true);
+        SmoothScroll = Util.Skin.Notation.SmoothScroll;
+        var skinInset = Util.Skin.Notation.CursorInset;
+        Inset = (float)(SmoothScroll ? skinInset : skinInset / 2);
+        HotReloadCallbackReceiver.CompilationFinished += _ => Schedule(() => ReloadNoteRange(true));
     }
     OutsideNoteContainer OutsideNoteContainer;
     Container NoteGroupContainerContainer;
@@ -380,14 +382,13 @@ public partial class MusicNotationBeatmapDisplay : BeatmapDisplay
         Beatmap.MeasuresUpdated -= MeasuresUpdated;
         Beatmap.LengthChanged -= UpdateNoteContainerLength;
         Beatmap.AnnotationsUpdated -= LoadAnnotations;
-        Util.ConfigManager.CursorInset.ValueChanged -= InsetChanged;
         foreach (var e in NoteGroupContainers) e.Dispose();
         base.Dispose(isDisposing);
     }
     public void LogEvent(EventLog eventLog) => EventContainer.Add(eventLog);
     public virtual void UpdateLayout()
     {
-        _staffHeight = (float)(DefaultStaffHeight * _zoomLevel * Util.ConfigManager.Get<double>(DrumGameSetting.ZoomMultiplier));
+        _staffHeight = (float)(DefaultStaffHeight * _zoomLevel * Util.Skin.Notation.ZoomMultiplier);
         var y = StaffHeight * NoteContainerTopPadding + TopbarHeight;
         NoteContainer.Y = y;
         NoteContainer.Scale = new osuTK.Vector2(StaffHeight / 4); // set scale to size of a single staff cell
@@ -410,6 +411,7 @@ public partial class MusicNotationBeatmapDisplay : BeatmapDisplay
     private int Floor(double v) => (int)Math.Floor(v);
     protected override void Update()
     {
+        UpdateHover();
         if (Dragging)
         {
             var pos = ToLocalSpace(InputManager.CurrentState.Mouse.Position);
@@ -509,10 +511,9 @@ public partial class MusicNotationBeatmapDisplay : BeatmapDisplay
         {
             var dependencies = new DependencyContainer(baseDep);
             Font = baseDep.Get<Lazy<MusicFont>>().Value;
-            Font.Spacing = Beatmap.SpacingMultiplier.HasValue ?
-                MusicFont.DefaultSpacing * Beatmap.SpacingMultiplier.Value :
-                MusicFont.DefaultSpacing;
-            Font.Spacing = (float)(Font.Spacing * Util.ConfigManager.Get<double>(DrumGameSetting.NoteSpacingMultiplier));
+            Font.Spacing = (float)(MusicFont.DefaultSpacing
+                * (Beatmap.SpacingMultiplier ?? 1)
+                * Util.Skin.Notation.NoteSpacingMultiplier);
             dependencies.Cache(Font);
             return dependencies;
         }
@@ -600,7 +601,6 @@ public partial class MusicNotationBeatmapDisplay : BeatmapDisplay
         }
     }
     [CommandHandler] public void ToggleSongCursor() => SongCursorVisible = !SongCursorVisible;
-    void InsetChanged(ValueChangedEvent<double> e) => Inset = (float)(SmoothScroll ? e.NewValue : e.NewValue / 2);
     public (double, double) CurrentView()
     {
         var left = Track.CurrentBeat - Inset;
@@ -640,14 +640,14 @@ public partial class MusicNotationBeatmapDisplay : BeatmapDisplay
             Width = 1.5f,
             Height = 1.5f,
             Origin = Anchor.Centre,
-            X = (float)Beatmap.BeatFromMilliseconds(xTime) * Font.Spacing + 0.5f,
+            X = (float)Beatmap.BeatFromMilliseconds(xTime) * Font.Spacing + MainNoteheadWidth / 2,
             Y = (float)Util.Skin.Notation.Channels[e.Channel].Position / 2,
             Depth = -2 // make sure we're on top of notes
         };
         NoteContainer.Add(h);
         h.FadeOut(1000).Expire();
     }
-
+    float MainNoteheadWidth => Font.MainNoteheadWidth;
     public override void OnDrumTrigger(DrumChannelEvent ev) => AuxDisplay.InputDisplay?.Hit(ev);
 }
 public class MeasureLine : Box

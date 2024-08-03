@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.ComponentModel;
+using DrumGame.Game.Stores;
 using DrumGame.Game.Utils;
 using Newtonsoft.Json;
 using osu.Framework.Graphics;
@@ -74,7 +75,7 @@ public class Skin
     [JsonIgnore] public string Source;
     [JsonIgnore] public string SourceFolder;
     [JsonIgnore] public IResourceStore<TextureUpload> LoaderStore;
-    [JsonIgnore] public ShaderManager ShaderManager;
+    [JsonIgnore] public DrumShaderManager ShaderManager;
     [JsonIgnore] public List<string> DirtyPaths;
     [JsonIgnore] public bool Dirty => DirtyPaths != null && DirtyPaths.Count > 0;
     public void AddDirtyPath(string path)
@@ -118,8 +119,9 @@ public class Skin
             var shaderStore = new ResourceStore<byte[]>();
             shaderStore.AddStore(new NamespacedResourceStore<byte[]>(Util.DrumGame.Resources, @"Shaders"));
             shaderStore.AddStore(assetStore);
+            shaderStore.AddStore(Util.Resources);
 
-            ShaderManager = new ShaderManager(Util.Host.Renderer, shaderStore);
+            ShaderManager = new DrumShaderManager(shaderStore);
             Util.Resources.LinearAssetTextureStore.AddTextureSource(LoaderStore);
             Util.Resources.NearestAssetTextureStore.AddTextureSource(LoaderStore);
         }

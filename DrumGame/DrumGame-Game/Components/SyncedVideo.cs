@@ -14,7 +14,7 @@ using osuTK.Input;
 
 namespace DrumGame.Game.Components;
 
-public class SyncedVideo : Video, IHasTooltip, IHasCommand
+public class SyncedVideo : Video, IHasCommand
 {
     public bool DisableClick => true;
     public readonly TrackClock Track;
@@ -89,8 +89,17 @@ public class SyncedVideo : Video, IHasTooltip, IHasCommand
         dragChange = c;
         Offset.Value = dragOffset + c;
     }
-    public LocalisableString TooltipText => IsDragged ? $"{dragChange:+0;-#}ms" : "Hold right click to adjust offset";
 
+    string IHasMarkupTooltip.MarkupTooltip
+    {
+        get
+        {
+            var res = IsDragged ? $"{dragChange:+0;-#}ms" : "Hold right click to adjust offset";
+            if (Command != Command.None)
+                return $"{IHasCommand.GetMarkupTooltipNoModify(Command)}\n{res}";
+            return res;
+        }
+    }
     public Command Command { get; set; }
 
     protected override void Dispose(bool isDisposing)

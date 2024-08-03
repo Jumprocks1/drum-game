@@ -138,7 +138,7 @@ public class HitErrorDisplay : AdjustableSkinElement, IHasMarkupTooltip
         Height = 40
     };
     public override Expression<Func<Skin, AdjustableSkinData>> SkinPathExpression =>
-        Mania ? e => e.Mania.SongInfoPanel : e => null;
+        Mania ? e => e.Mania.HitErrorDisplay : e => e.Notation.HitErrorDisplay;
     bool Mania;
     void HandleSeek(double _) => Clear();
     BeatmapDisplay Display;

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
-using DrumGame.Game.Commands;
+using System.Linq;
 using DrumGame.Game.Components;
+using DrumGame.Game.Components.Basic.Autocomplete;
 using DrumGame.Game.Modals;
 using DrumGame.Game.Utils;
 using osu.Framework.Allocation;
@@ -44,6 +45,49 @@ public class MidiView : CompositeDrawable, IHasOverlayModalConfig
             Y = Spacing * 2 + 25,
             Font = FrameworkFont.Regular.With(size: 20),
         });
+        AddInternal(new DrumButton
+        {
+            Text = "Set MIDI Input/Output Devices",
+            AutoSize = true,
+            Action = () =>
+            {
+                DrumMidiHandler.UpdateInputConnectionAsync(false, true).Wait(100);
+                DrumMidiHandler.UpdateOutputConnectionAsync().Wait(100);
+                UpdateText();
+                var midiInput = Util.ConfigManager.GetBindable<string>(Stores.DrumGameSetting.PreferredMidiInput);
+                var preferredInput = string.IsNullOrWhiteSpace(midiInput.Value) ? null : midiInput.Value;
+                preferredInput ??= DrumMidiHandler.Input?.Details?.Name;
+                var inputs = DrumMidiHandler.Inputs;
+                var inputField = AutocompleteFieldConfig.FromOptions(DrumMidiHandler.Inputs.Select(e => e.Name), preferredInput);
+                inputField.Label = "Input";
+
+                var midiOutput = Util.ConfigManager.GetBindable<string>(Stores.DrumGameSetting.PreferredMidiOutput);
+                var preferredOutput = string.IsNullOrWhiteSpace(midiOutput.Value) ? null : midiOutput.Value;
+                preferredOutput ??= DrumMidiHandler.Output?.Details?.Name ?? preferredInput;
+                var outputs = DrumMidiHandler.Outputs;
+                var outputField = AutocompleteFieldConfig.FromOptions(DrumMidiHandler.Outputs.Select(e => e.Name), preferredOutput);
+                outputField.Label = "Output";
+
+                var req = Util.Palette.Request(new RequestConfig
+                {
+                    Title = "Setting MIDI Devices",
+                    CommitText = "Save",
+                    AutoFocus = false,
+                    OnCommit = e =>
+                    {
+                        midiInput.Value = e.GetValue<BasicAutocompleteOption>(0).Name;
+                        midiOutput.Value = e.GetValue<BasicAutocompleteOption>(1).Name;
+                        DrumMidiHandler.UpdateInputConnectionAsync(false, true).Wait(100);
+                        DrumMidiHandler.UpdateOutputConnectionAsync().Wait(100);
+                        UpdateText();
+                    },
+                    Fields = [inputField, outputField]
+                });
+                if (DrumMidiHandler.Outputs.Count == 0 && DrumMidiHandler.Inputs.Count == 0)
+                    req.AddWarning("Warning: No MIDI devices found");
+            },
+            Y = DeviceText.Y + 20
+        });
 
         var textBox = new DrumTextBox
         {
@@ -79,7 +123,7 @@ public class MidiView : CompositeDrawable, IHasOverlayModalConfig
     {
         if (Clock.CurrentTime > nextRefresh)
         {
-            DrumMidiHandler.UpdateInputConnection(false, true);
+            DrumMidiHandler.UpdateInputConnectionAsync(false, true).Wait(100);
             UpdateText();
             nextRefresh = Clock.CurrentTime + RefreshMs;
         }
@@ -112,7 +156,7 @@ public class MidiView : CompositeDrawable, IHasOverlayModalConfig
             Texts[0] = new SpriteText
             {
                 Text = text,
-                Y = Spacing * 3 + 25 + 20,
+                Y = Spacing * 3 + 25 + 20 + 30,
                 X = Spacing,
                 Font = FrameworkFont.Condensed.With(size: bigFont)
             };

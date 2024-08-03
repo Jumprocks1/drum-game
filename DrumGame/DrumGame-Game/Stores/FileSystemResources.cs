@@ -35,12 +35,14 @@ public class FileSystemResources : StorageBackedResourceStore
                 // nearest helps prevent fringing on edges, there may be a better way though
                 true, TextureFilteringMode.Nearest, true, 1);
             LinearAssetTextureStore = new TextureStore(Util.Host.Renderer, Util.Host.CreateTextureLoaderStore(assetStore),
-                // nearest helps prevent fringing on edges, there may be a better way though
                 true, TextureFilteringMode.Linear, true, 1);
+            AssetTextureStoreNoAtlas = new TextureStore(Util.Host.Renderer, Util.Host.CreateTextureLoaderStore(assetStore),
+                false, TextureFilteringMode.Linear, true, 1);
         }
     }
     public TextureStore NearestAssetTextureStore;
     public TextureStore LinearAssetTextureStore;
+    public TextureStore AssetTextureStoreNoAtlas;
     public Track GetTrack(string path) // simple wrapper so we can load webm
     {
         if (string.IsNullOrWhiteSpace(path)) return null;
@@ -131,6 +133,9 @@ public class FileSystemResources : StorageBackedResourceStore
         WrapMode wrapModeS = default, WrapMode wrapModeT = default)
         => (filteringMode == TextureFilteringMode.Linear ? LinearAssetTextureStore : NearestAssetTextureStore)
             .Get(filename, wrapModeS, wrapModeT);
+    public Texture GetAssetTextureNoAtlas(string filename,
+        WrapMode wrapModeS = default, WrapMode wrapModeT = default)
+        => AssetTextureStoreNoAtlas.Get(filename, wrapModeS, wrapModeT);
 }
 
 class AbsoluteStorage : NativeStorage

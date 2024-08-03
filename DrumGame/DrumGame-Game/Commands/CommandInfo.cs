@@ -30,7 +30,7 @@ public class CommandInfo
     public string SearchTags;
     public string HelperMarkup { get => HelperMarkupAction?.Invoke(); set => HelperMarkupAction = () => value; }
     public Func<string> HelperMarkupAction;
-    public List<KeyCombo> Bindings = new();
+    public readonly List<KeyCombo> Bindings = new();
     public CommandInfo(Command command, string name)
     {
         Command = command;
@@ -119,5 +119,30 @@ public class CommandInfo
         {
             return $"{Command}";
         }
+    }
+
+    public static CommandInfo FromString(string s)
+    {
+        var paramIndex = s.IndexOf('{');
+        if (paramIndex == -1)
+            return Util.CommandController[Enum.Parse<Command>(s)];
+
+        var enumString = s[..paramIndex];
+        var commandE = Enum.Parse<Command>(enumString);
+        var paramString = s[(paramIndex + 1)..s.IndexOf('}')];
+        var parameters = CommandParameters.Parse(paramString, Util.CommandController.ParameterInfo[(int)commandE]?.Types);
+
+        var parameterCommands = Util.CommandController.ParameterCommands[(int)commandE];
+        if (parameterCommands != null)
+        {
+            foreach (var c in parameterCommands)
+            {
+                if (c.ParametersEqual(parameters))
+                    return c;
+            }
+        }
+
+        return From(commandE, parameters);
+
     }
 }

@@ -72,6 +72,7 @@ public class RequestConfig
     public string Description;
     public string CommitText = "Okay";
     public string CloseText = "Close";
+    public bool AutoFocus = true;
     public string DisableCommit; // set to tooltip text for disable reason
     public bool HasCommit => OnCommit != null || (Fields != null && Fields.Any(e => e.HasCommit));
     public Action<RequestModal> OnCommit;
@@ -210,9 +211,7 @@ public class RequestModal : TabbableContainer, IModal, IAcceptFocus
                 AutoSizeAxes = Axes.Y,
                 RelativeSizeAxes = Axes.X,
                 Origin = Anchor.TopCentre,
-                Anchor = Anchor.TopCentre,
-                Children = new Drawable[] {
-            }
+                Anchor = Anchor.TopCentre
             };
             if (hasCloseButton)
             {
@@ -306,7 +305,8 @@ public class RequestModal : TabbableContainer, IModal, IAcceptFocus
                     label,
                     drawable
                 };
-                initialFocus ??= drawable;
+                if (Config.AutoFocus)
+                    initialFocus ??= drawable;
                 rows[i] = new Dimension(GridSizeMode.Absolute, i == len - 1 ? drawable.Height : drawable.Height + CommandPalette.Margin);
             }
             grid.Height = y - CommandPalette.Margin;
@@ -349,7 +349,23 @@ public class RequestModal : TabbableContainer, IModal, IAcceptFocus
     // this is probably kinda bad but who cares
     public static implicit operator bool(RequestModal _) => true;
 
+    // should try to stop using this one
     public void AddFooterButton(Drawable button) => FooterButtonContainer.Add(button);
+    public void AddFooterButtonSpaced(Drawable button, float spacing = 5)
+    {
+        var pos = 0f;
+        foreach (var child in FooterButtonContainer.Children)
+        {
+            if (child.Anchor.HasFlag(Anchor.x0))
+            {
+                var right = child.X + child.Width + spacing;
+                if (right > pos)
+                    pos = right;
+            }
+        }
+        button.X = pos;
+        FooterButtonContainer.Add(button);
+    }
     public void AddCommandButtons(Command command, Func<CommandInfo, string> text = null)
     {
         var container = new FillFlowContainer
@@ -373,5 +389,18 @@ public class RequestModal : TabbableContainer, IModal, IAcceptFocus
             });
         }
         Add(container);
+    }
+
+    public void AddWarning(string message)
+    {
+        var y = InnerContent.Children.Sum(e => e.Height);
+        var s = new SpriteText
+        {
+            Text = message,
+            Colour = DrumColors.WarningText,
+            Font = FrameworkFont.Regular,
+            Y = y
+        };
+        Add(s);
     }
 }

@@ -34,6 +34,12 @@ public class BeatmapAuxDisplay : Container
     private void load()
     {
         CommandController.RegisterHandlers(this);
+        if (Util.ConfigManager.Get<bool>(DrumGameSetting.AutoLoadVideo))
+        {
+            var videoPath = Beatmap.FullAssetPath(Beatmap.Video);
+            if (videoPath != null && File.Exists(videoPath))
+                LoadVideo();
+        }
     }
 
     bool validLayout = false; // could use a LayoutValue for this instead, but I prefer the override
@@ -50,13 +56,16 @@ public class BeatmapAuxDisplay : Container
         if (!validLayout)
         {
             validLayout = true;
+            var showInputDisplay = (!HasCamera || Video == null) && InputDisplay != null;
+            if (InputDisplay != null)
+                InputDisplay.Alpha = showInputDisplay ? 1 : 0;
             if (HasCamera)
             {
-                var bottomLeft = (Drawable)Video ?? Image;
-                var videoAndInput = InputDisplay != null && bottomLeft != null;
+                var bottomLeft = (Drawable)Video;
+                var videoAndInput = showInputDisplay && bottomLeft != null;
                 var areaSize = ChildSize;
                 var cameraSize = CameraFeed.DrawSize;
-                if (InputDisplay != null)
+                if (showInputDisplay)
                 {
                     InputDisplay.Anchor = Anchor.TopLeft;
                     InputDisplay.Origin = Anchor.TopLeft;
@@ -66,13 +75,26 @@ public class BeatmapAuxDisplay : Container
                 }
                 if (bottomLeft != null)
                 {
-                    bottomLeft.Anchor = Anchor.TopLeft;
-                    bottomLeft.Origin = Anchor.TopCentre;
-                    bottomLeft.RelativeSizeAxes = Axes.Both;
-                    bottomLeft.Width = (areaSize.X - cameraSize.X) / areaSize.X;
-                    bottomLeft.Height = videoAndInput ? 0.5f : 1f;
-                    bottomLeft.Y = videoAndInput ? ChildSize.Y / 2f : 0f;
-                    bottomLeft.X = (areaSize.X - cameraSize.X) / 2;
+                    if (videoAndInput)
+                    {
+                        bottomLeft.Anchor = Anchor.TopLeft;
+                        bottomLeft.Origin = Anchor.TopCentre;
+                        bottomLeft.RelativeSizeAxes = Axes.Both;
+                        bottomLeft.Width = (areaSize.X - cameraSize.X) / areaSize.X;
+                        bottomLeft.Height = 0.5f;
+                        bottomLeft.Y = ChildSize.Y / 2f;
+                        bottomLeft.X = (areaSize.X - cameraSize.X) / 2;
+                    }
+                    else
+                    {
+                        bottomLeft.Anchor = Anchor.CentreLeft;
+                        bottomLeft.Origin = Anchor.CentreLeft;
+                        bottomLeft.RelativeSizeAxes = Axes.Both;
+                        bottomLeft.Width = (areaSize.X - cameraSize.X) / areaSize.X;
+                        bottomLeft.Height = 1f;
+                        bottomLeft.Y = 0f;
+                        bottomLeft.X = 0;
+                    }
                 }
                 if (Replay != null) Replay.Alpha = 0;
             }
@@ -88,44 +110,26 @@ public class BeatmapAuxDisplay : Container
 
     // this is the video from the beatmap, such as an anime OP
     public SyncedVideo Video { get; private set; }
-    public void LoadVideo()
+    public void LoadVideo() => LoadVideo(Beatmap.FullAssetPath(Beatmap.Video));
+    public void LoadVideo(string videoPath)
     {
-        if (Video == null)
+        if (Video != null) return;
+        if (videoPath == null) return;
+        if (!File.Exists(videoPath))
         {
-            if (Beatmap.Video != null)
-            {
-                var videoPath = Beatmap.FullAssetPath(Beatmap.Video);
-                if (!File.Exists(videoPath))
-                {
-                    Logger.Log($"{videoPath} not found", level: LogLevel.Error);
-                    return;
-                }
-                AddInternal(Video = new SyncedVideo(Track, videoPath)
-                {
-                    RelativeSizeAxes = Axes.Both,
-                    Anchor = Anchor.Centre,
-                    Origin = Anchor.Centre,
-                    FillMode = FillMode.Fit
-                });
-                Video.Offset.Value = Beatmap.VideoOffset;
-                Video.Offset.BindValueChanged(e => Beatmap.VideoOffset = e.NewValue);
-            }
+            Util.Palette.UserError($"{videoPath} not found");
+            return;
         }
-    }
-    Sprite Image;
-    public void ShowImage()
-    {
-        if (Video != null) ToggleVideo();
-        var path = Util.MapStorage.GetFullPath(Beatmap.Image);
-        var texture = Util.Resources.LargeTextures.Get(path);
-        AddInternal(Image = new Sprite
+        AddInternal(Video = new SyncedVideo(Track, videoPath)
         {
             RelativeSizeAxes = Axes.Both,
             Anchor = Anchor.Centre,
             Origin = Anchor.Centre,
             FillMode = FillMode.Fit,
-            Texture = texture
+            Depth = -1 // video should be in front of hit display if possible
         });
+        Video.Offset.Value = Beatmap.VideoOffset;
+        Video.Offset.BindValueChanged(e => Beatmap.VideoOffset = e.NewValue);
         validLayout = false;
     }
     [CommandHandler]
@@ -169,7 +173,7 @@ public class BeatmapAuxDisplay : Container
             Anchor = Anchor.TopRight,
             Origin = Anchor.TopRight,
             FillMode = FillMode.Fit,
-            Depth = -1
+            Depth = -0.9f
         });
         CameraFeed.Offset.Value = offset;
         CameraFeed.SizeLoaded += () => validLayout = false;

@@ -106,7 +106,7 @@ public class DrumsetAudioPlayer : IDisposable
                 if (!MidiConnectionAttempted)
                 {
                     MidiConnectionAttempted = true;
-                    DrumMidiHandler.UpdateOutputConnection();
+                    _ = DrumMidiHandler.UpdateOutputConnectionAsync();
                 }
                 else return new RawMidiHandler();
             }
@@ -121,7 +121,7 @@ public class DrumsetAudioPlayer : IDisposable
                 if (!MidiConnectionAttempted)
                 {
                     MidiConnectionAttempted = true;
-                    DrumMidiHandler.UpdateOutputConnection();
+                    _ = DrumMidiHandler.UpdateOutputConnectionAsync();
                 }
                 if (DrumMidiHandler.OutputFound)
                     handler = MidiSampleHandler.Instance;

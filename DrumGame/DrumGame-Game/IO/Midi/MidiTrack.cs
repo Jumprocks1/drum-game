@@ -11,23 +11,27 @@ public class MidiTrack : MidiFile.Chunk
 {
     public string Name;
     public List<Event> events;
+    static HashSet<string> IgnoreTracks = ["PART VOCALS", "PART BASS", "PART GUITAR", "VENUE"];
     public static MidiTrack Read(MidiReader reader, int length)
     {
         var events = new List<Event>();
         var end = reader.BaseStream.Position + length;
         byte? previousEventType = null;
         var track = new MidiTrack { events = events };
+        var t = 0;
         while (reader.BaseStream.Position < end)
         {
-            var e = Event.Read(reader, track, ref previousEventType);
+            var e = Event.Read(reader, track, ref previousEventType, out var delta);
+            t += delta;
             if (e != null)
             {
+                e.time = t;
                 events.Add(e);
             }
-            if (track.Name == "PART VOCALS")
+            if (IgnoreTracks.Contains(track.Name))
             {
                 reader.BaseStream.Seek(end, SeekOrigin.Begin);
-                return track;
+                return null;
             }
         }
         return track;
@@ -63,15 +67,20 @@ public class MidiTrack : MidiFile.Chunk
     {
         public byte[] bytes;
     }
+    public class TextEvent : Event
+    {
+        public byte Type;
+        public string Text;
+    }
 
     public abstract class Event
     {
         public static int outputCount = 0;
         public static HashSet<int> midiEvents = new HashSet<int>();
-        public int delta;
-        public static Event Read(MidiReader reader, MidiTrack track, ref byte? previousEventType)
+        public int time;
+        public static Event Read(MidiReader reader, MidiTrack track, ref byte? previousEventType, out int delta)
         {
-            var delta = reader.ReadVInt32();
+            delta = reader.ReadVInt32();
             var eventType = reader.ReadByte();
             if (eventType <= 127)
             {
@@ -91,17 +100,12 @@ public class MidiTrack : MidiFile.Chunk
                 var length = reader.ReadVInt32();
                 var bytes = reader.ReadBytes(length);
                 // Console.WriteLine($"MIDI message {eventType:x} length {length} value {BitConverter.ToString(bytes)}");
-                return new SysExEvent { bytes = bytes, delta = delta };
+                return new SysExEvent { bytes = bytes };
             }
             else if (eventType == 0xFF) // meta-event
             {
                 var type = reader.ReadByte();
                 var length = reader.ReadVInt32();
-                if (delta > 0 && type != 47 && type != 88 && type != 81 && type != 5 && type != 100 && type != 102)
-                {
-                    // throw new NotImplementedException("Meta event delta");
-                    Console.WriteLine($"meta event with delta, type: {type} delta: {delta}");
-                }
                 if (type == 84 && length == 5)
                 {
                     var bytes = reader.ReadBytes(5);
@@ -115,12 +119,7 @@ public class MidiTrack : MidiFile.Chunk
                 else if (type == 81 && length == 3)
                 {
                     var micro = (reader.ReadByte() << 16) + reader.ReadUInt16();
-                    var e = new TempoEvent
-                    {
-                        delta = delta,
-                        MicrosecondsPerQuarterNote = micro
-                    };
-                    return e;
+                    return new TempoEvent { MicrosecondsPerQuarterNote = micro };
                 }
                 else if (type == 33 && length == 1)
                 {
@@ -137,7 +136,6 @@ public class MidiTrack : MidiFile.Chunk
                     if (n32 != 8) throw new Exception("32nd note not 8");
                     var e = new TimingEvent
                     {
-                        delta = delta,
                         Numerator = num,
                         Denominator = denom
                     };
@@ -163,6 +161,17 @@ public class MidiTrack : MidiFile.Chunk
                 else if (type == 4)
                     Console.WriteLine($"Instrument: {Encoding.ASCII.GetString(reader.ReadBytes(length))}");
                 else if (type == 5) { } // lyric event
+                else if (type == 1) // text event
+                {
+                    // These are usually not useful. Things like lighting events or section markers
+                    reader.BaseStream.Seek(length, SeekOrigin.Current);
+                    // return new TextEvent
+                    // {
+                    //     Text = Encoding.ASCII.GetString(reader.ReadBytes(length)),
+                    //     Type = type,
+                    //     delta = delta
+                    // };
+                }
                 else
                 {
                     // see https://www.music.mcgill.ca/~ich/classes/mumt306/StandardMIDIfileformat.html#BM3_
@@ -190,7 +199,6 @@ public class MidiTrack : MidiFile.Chunk
                 {
                     channel = midiChannel,
                     type = midiEventType,
-                    delta = delta,
                     parameter1 = parameter1,
                     parameter2 = parameter2,
                 };

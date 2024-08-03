@@ -48,6 +48,27 @@ public class ScoreTopBar : CompositeDrawable
 
     SpriteText statsText;
     ScoreText scoreText;
+
+    public class ScoreText : SpriteText
+    {
+        public long Target;
+        double Loaded;
+        protected override void Update()
+        {
+            var newDisplay = Util.ExpLerp(Loaded, Target, 0.995, Clock.TimeInfo.Elapsed, 0.01);
+            if (Loaded != newDisplay)
+            {
+                var i = (int)newDisplay;
+                if ((int)Loaded != i) Text = i.ToString("N0");
+                Loaded = newDisplay;
+            }
+            base.Update();
+        }
+        public ScoreText()
+        {
+            Text = "0";
+        }
+    }
 }
 public class StatsText : SpriteText, IHasTooltip
 {
@@ -56,25 +77,5 @@ public class StatsText : SpriteText, IHasTooltip
     {
         Colour = Util.Skin.Notation.NotationColor;
         Font = FrameworkFont.Regular.With(size: 24);
-    }
-}
-class ScoreText : SpriteText
-{
-    public long Target;
-    double Loaded;
-    protected override void Update()
-    {
-        var newDisplay = Util.ExpLerp(Loaded, Target, 0.995, Clock.TimeInfo.Elapsed, 0.01);
-        if (Loaded != newDisplay)
-        {
-            var i = (int)newDisplay;
-            if ((int)Loaded != i) Text = i.ToString();
-            Loaded = newDisplay;
-        }
-        base.Update();
-    }
-    public ScoreText()
-    {
-        Text = "0";
     }
 }

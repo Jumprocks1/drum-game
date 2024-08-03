@@ -24,7 +24,7 @@ public partial class BeatmapEditor
                 {
                     var beat = Math.Max(0, RoundBeat(Beatmap.BeatFromMilliseconds(ev.Time)));
                     var tick = Beatmap.TickFromBeat(beat);
-                    var change = new NoteBeatmapChange(Display, () =>
+                    var change = new NoteBeatmapChange(() =>
                     {
                         if (Beatmap.AddHit(tick, new HitObjectData(ev.Channel), false))
                         {

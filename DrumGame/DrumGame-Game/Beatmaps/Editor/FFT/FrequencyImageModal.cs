@@ -106,6 +106,7 @@ public class FrequencyImageModal : RequestModal
             AddInternal(RightBox);
             AddInternal(CenterBox);
             CenterBox.Alpha = 0.2f;
+            Colour = Colour4.Transparent; // hide boxes at first
         }
 
         int TextureWidth => Modal.TextureWidth;
@@ -224,10 +225,10 @@ public class FrequencyImageModal : RequestModal
     [BackgroundDependencyLoader]
     private void load(IRenderer renderer)
     {
-        Sprite1.Texture = renderer.CreateTexture(TextureWidth, TextureHeight, true, TextureFilteringMode.Nearest);
+        Sprite1.Texture = renderer.CreateTexture(TextureWidth, TextureHeight, true, TextureFilteringMode.Nearest, initialisationColour: Colour4.Transparent);
         Sprite1.Texture.BypassTextureUploadQueueing = true;
         Sprite1.Data = new float[TextureWidth * TextureHeight];
-        Sprite2.Texture = renderer.CreateTexture(TextureWidth, TextureHeight, true, TextureFilteringMode.Nearest);
+        Sprite2.Texture = renderer.CreateTexture(TextureWidth, TextureHeight, true, TextureFilteringMode.Nearest, initialisationColour: Colour4.Transparent);
         Sprite2.Texture.BypassTextureUploadQueueing = true;
         Sprite2.Data = new float[TextureWidth * TextureHeight];
         Add(SpriteContainer);

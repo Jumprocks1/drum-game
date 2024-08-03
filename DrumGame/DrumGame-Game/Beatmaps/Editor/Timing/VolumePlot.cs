@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using DrumGame.Game.Beatmaps.Data;
 using DrumGame.Game.Media;
 using ManagedBass;
@@ -43,7 +44,7 @@ public class VolumePlot : WaveformPlot
         // not sure how yet though
         // I think you take the slowest tempo and use that for the offsetoptions width
         // then you recenter the bins so they are based on the current offset
-        var tempo = Beatmap.TempoChanges[0];
+        var tempo = Beatmap.TempoChanges.FirstOrDefault() ?? TempoChange.Default;
         var bpm = tempo.BPM;
         var samplesPerBeat = 60 * Data.DataSampleRate / bpm;
         // couldn't find a way of doing this without binning each sample

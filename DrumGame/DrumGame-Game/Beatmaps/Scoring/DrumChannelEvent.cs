@@ -5,10 +5,12 @@ using Newtonsoft.Json;
 
 namespace DrumGame.Game.Beatmaps.Scoring;
 
+// probably better to name DrumInputEvent
 public class DrumChannelEvent : IReplayEvent
 {
     [JsonConverter(typeof(DrumChannelConverter))]
     public DrumChannel Channel;
+    // public NoteModifiers Modifiers; // TODO should add this for custom sticking event support
     public double Time { get; } // ms
     public byte Velocity;
     public byte[] MidiControl; // extra MIDI bytes to send before this event

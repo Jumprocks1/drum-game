@@ -90,6 +90,20 @@ public class AutocompleteFieldConfig : AutocompleteFieldConfig<BasicAutocomplete
     public new string[] Options { set => base.Options = value.Select(e => new BasicAutocompleteOption(e)).ToArray(); }
     public new string DefaultValue { set => base.DefaultValue = base.Options.FirstOrDefault(e => e.Name == value); }
     public new Action<string> OnCommit { set => base.OnCommit = e => value(e?.Name); }
+
+    public static AutocompleteFieldConfig FromOptions(IEnumerable<string> options, string current = null)
+    {
+        string[] basicOptions;
+        if (current == null || options.Contains(current))
+        {
+            basicOptions = options.AsArray();
+        }
+        else
+        {
+            basicOptions = options.Append(current).AsArray();
+        }
+        return new() { Options = basicOptions, DefaultValue = current };
+    }
 }
 public class AutocompleteFieldConfig<T> : FieldConfigBase<T> where T : class, IFilterable
 {

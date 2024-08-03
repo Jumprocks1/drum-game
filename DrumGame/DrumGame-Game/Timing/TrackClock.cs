@@ -21,7 +21,7 @@ public class TrackClock : IClock, IDisposable
     public double? PendingSeek { get; private set; }
     public double PercentAt(double t) => EndTime == 0 ? 0 : (t + LeadIn) / (EndTime + LeadIn);
     public double Percent => PercentAt(CurrentTime);
-    public double EndTime => Track.Length; // This is buffered in TrackBass, so not expensive
+    public double EndTime => Track?.Length ?? 0; // This is buffered in TrackBass, so not expensive
     protected int AsyncSeeking = 0; // this is to prevent updating CurrentTime while we are waiting on async seek
     public bool IsAsyncSeeking => AsyncSeeking > 0;
     public bool AtEnd { get; private set; }

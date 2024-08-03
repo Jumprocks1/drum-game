@@ -1,9 +1,13 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using DrumGame.Game.Channels;
 using DrumGame.Game.Utils;
+using Newtonsoft.Json;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
+using osu.Framework.Input.States;
+using osuTK.Input;
 
 namespace DrumGame.Game.Commands;
 
@@ -27,8 +31,20 @@ public static class ModifierKeyExtensions
         ((key == InputKey.Shift || key == InputKey.LShift || key == InputKey.RShift) && modifier.HasFlagFast(ModifierKey.Shift)) ||
         ((key == InputKey.Alt || key == InputKey.LAlt || key == InputKey.RAlt) && modifier.HasFlagFast(ModifierKey.Alt));
 }
+[JsonConverter(typeof(KeyComboConverter))]
 public readonly struct KeyCombo
 {
+    public bool IsHeld(InputState state = null)
+    {
+        state ??= Util.InputManager.CurrentState;
+        if (Modifier != ModifierKey.None && !state.Keyboard.Modifier().HasFlag(Modifier)) return false;
+        if (Key >= InputKey.Menu && Key <= InputKey.LastKey)
+        {
+            var key = (Key)Key;
+            if (state.Keyboard.Keys.IsPressed(key)) return true;
+        }
+        return false;
+    }
     public static readonly KeyCombo None = new(InputKey.None);
     public static string ToString(ModifierKey key) => key switch
     {
@@ -113,4 +129,18 @@ public readonly struct KeyCombo
     public override bool Equals(object obj) => obj is KeyCombo other && this.Equals(other);
     public bool Equals(KeyCombo p) => this == p;
     public override int GetHashCode() => (Modifier, Key).GetHashCode();
+}
+
+// could use IParsable instead
+public class KeyComboConverter : JsonConverter<KeyCombo>
+{
+    public override KeyCombo ReadJson(JsonReader reader, Type objectType, KeyCombo existingValue, bool hasExistingValue, JsonSerializer serializer)
+    {
+        return KeyCombo.Parse((string)reader.Value);
+    }
+
+    public override void WriteJson(JsonWriter writer, KeyCombo value, JsonSerializer serializer)
+    {
+        writer.WriteValue(value.ToString());
+    }
 }

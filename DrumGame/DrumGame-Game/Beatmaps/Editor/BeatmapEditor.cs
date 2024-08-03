@@ -99,7 +99,7 @@ public partial class BeatmapEditor : BeatmapPlayer
                 var s = Display.Selection.Clone(); // have to clone so that redo works
                 var desc = $"toggle {channel} notes {s.RangeString}";
                 var stride = TickStride;
-                PushChange(new NoteBeatmapChange(Display, () => Beatmap.AddHits(s, stride, data, true), desc, s));
+                PushChange(new NoteBeatmapChange(() => Beatmap.AddHits(s, stride, data, true), desc, s));
             }
             else
             {
@@ -115,7 +115,7 @@ public partial class BeatmapEditor : BeatmapPlayer
                 }
                 var added = false;
                 var desc = $"toggle {channel} note at {target}";
-                PushChange(new NoteBeatmapChange(Display, () =>
+                PushChange(new NoteBeatmapChange(() =>
                 {
                     added = Beatmap.AddHit(tickTarget, data);
                     return new AffectedRange(tickTarget);
@@ -174,6 +174,50 @@ public partial class BeatmapEditor : BeatmapPlayer
         return false;
     }
 
+    void PresetPressed(NotePreset preset)
+    {
+        if (preset == null || preset.Channel == DrumChannel.None) return;
+        var data = preset.GetData();
+        if (Display.Selection != null && Display.Selection.IsComplete)
+        {
+            var s = Display.Selection.Clone(); // have to clone so that redo works
+            var desc = $"toggle preset {preset} notes {s.RangeString}";
+            var stride = TickStride;
+            PushChange(new NoteBeatmapChange(() => Beatmap.AddHits(s, stride, data, true), desc, s));
+        }
+        else
+        {
+            var target = SnapTarget;
+            var tickTarget = Beatmap.TickFromBeat(target);
+            var desc = $"toggle preset {preset} note at {target}";
+            PushChange(new NoteBeatmapChange(() =>
+            {
+                Beatmap.AddHit(tickTarget, data);
+                return new AffectedRange(tickTarget);
+            }, desc, target));
+        }
+    }
+
+    [CommandHandler]
+    public bool InsertPresetNote(CommandContext context)
+    {
+        if (Editing)
+        {
+            if (!context.TryGetParameter<NotePreset>(out var preset))
+            {
+                if (context.TryGetParameter<string>(out var presetKey))
+                    preset = Beatmap.NotePresets.Get(presetKey);
+            }
+            if (preset != null)
+            {
+                PresetPressed(preset);
+                return true;
+            }
+            return false;
+        }
+        return false;
+    }
+
     FFTProvider _fft; // get with GetFFT() - understand that this is very expensive
     public FFTProvider GetFFT()
     {
@@ -191,6 +235,7 @@ public partial class BeatmapEditor : BeatmapPlayer
     private void load()
     {
         Command.RegisterHandlers(this);
+        Beatmap.NotePresets.Register();
         DrumMidiHandler.AddNoteHandler(OnMidiNote, true);
     }
     protected override void Dispose(bool isDisposing)
@@ -199,6 +244,11 @@ public partial class BeatmapEditor : BeatmapPlayer
         _fft = null;
         DrumOnlyAudio?.Dispose();
         DrumOnlyAudio = null;
+        if (Beatmap.NotePresets != null)
+        {
+            foreach (var (_, preset) in Beatmap.NotePresets)
+                preset.Unregister();
+        }
         Command.RemoveHandlers(this);
         DrumMidiHandler.RemoveNoteHandler(OnMidiNote, true);
         if (offsetWizard != null)
@@ -241,7 +291,7 @@ public partial class BeatmapEditor : BeatmapPlayer
             {
                 var data = Beatmap.HitObjects[i].Data;
                 var desc = $"add {data.Channel} roll {s.RangeString}";
-                PushChange(new NoteBeatmapChange(Display, () => Beatmap.AddRoll(s, data), desc, s));
+                PushChange(new NoteBeatmapChange(() => Beatmap.AddRoll(s, data), desc, s));
             }
         }
     }
@@ -255,7 +305,7 @@ public partial class BeatmapEditor : BeatmapPlayer
         // we have to clone so that if we undo + redo this operation, we have the CopyBuffer stored
         var paste = new List<HitObject>(CopyBuffer.hitObjects);
         var desc = $"paste at beat {toBeat}";
-        PushChange(new NoteBeatmapChange(Display, () =>
+        PushChange(new NoteBeatmapChange(() =>
         {
             var lastTick = to;
             foreach (var hit in paste)
@@ -278,7 +328,7 @@ public partial class BeatmapEditor : BeatmapPlayer
     {
         var (from, to) = GetCurrentRange();
         var beat = (double)from / Beatmap.TickRate;
-        var noteChange = new NoteBeatmapChange(Display, () =>
+        var noteChange = new NoteBeatmapChange(() =>
         {
             var replace = new List<HitObject>();
             foreach (var hit in Beatmap.HitObjects)
@@ -310,7 +360,7 @@ public partial class BeatmapEditor : BeatmapPlayer
         var beat = Beatmap.BeatFromMeasure(measure);
         var start = Beatmap.TickFromMeasure(measure);
         var gap = Beatmap.TickFromMeasure(measure + 1) - start;
-        var noteChange = new NoteBeatmapChange(Display, () =>
+        var noteChange = new NoteBeatmapChange(() =>
         {
             var replace = new List<HitObject>(Beatmap.HitObjects.Capacity);
             foreach (var hit in Beatmap.HitObjects)
@@ -365,7 +415,7 @@ public partial class BeatmapEditor : BeatmapPlayer
         {
             var beat = (double)from / Beatmap.TickRate;
             var desc = $"delete measure at beat {beat}";
-            PushChange(new NoteBeatmapChange(Display, () =>
+            PushChange(new NoteBeatmapChange(() =>
             {
                 Beatmap.HitObjects.RemoveRange(removeStart, removeCount);
                 return new AffectedRange(from, to);
@@ -449,7 +499,7 @@ public partial class BeatmapEditor : BeatmapPlayer
         return true;
     }
 
-    [CommandHandler] public void RemoveDuplicateNotes() => PushChange(new NoteBeatmapChange(Display, Beatmap.RemoveDuplicates, "remove duplicate notes"));
+    [CommandHandler] public void RemoveDuplicateNotes() => PushChange(new NoteBeatmapChange(Beatmap.RemoveDuplicates, "remove duplicate notes"));
 
     [CommandHandler]
     public bool MultiplySectionBPM(CommandContext context) => context.GetNumber(ChangeSectionTiming,
@@ -503,7 +553,7 @@ public partial class BeatmapEditor : BeatmapPlayer
                 }
             }
             Beatmap.RemoveExtras<TempoChange>();
-        }, null), new NoteBeatmapChange(Display, () =>
+        }, null), new NoteBeatmapChange(() =>
         {
             for (int i = 0; i < Beatmap.HitObjects.Count; i++)
             {

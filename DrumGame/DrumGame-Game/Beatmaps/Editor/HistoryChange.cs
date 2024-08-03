@@ -4,8 +4,8 @@ namespace DrumGame.Game.Beatmaps.Editor;
 public interface IHistoryChange
 {
     // returns true if the operation changed anything
-    public bool Do();
-    public void Undo();
+    public bool Do(BeatmapEditor editor);
+    public void Undo(BeatmapEditor editor);
     public string Description { get; }
 }
 public class CompositeHistoryChange : IHistoryChange
@@ -18,15 +18,15 @@ public class CompositeHistoryChange : IHistoryChange
         Description = description;
     }
 
-    public bool Do()
+    public bool Do(BeatmapEditor editor)
     {
         var o = false;
-        for (int i = 0; i < changes.Length; i++) o |= changes[i].Do();
+        for (int i = 0; i < changes.Length; i++) o |= changes[i].Do(editor);
         return o;
     }
 
-    public void Undo()
+    public void Undo(BeatmapEditor editor)
     {
-        for (int i = changes.Length - 1; i >= 0; i--) changes[i].Undo();
+        for (int i = changes.Length - 1; i >= 0; i--) changes[i].Undo(editor);
     }
 }

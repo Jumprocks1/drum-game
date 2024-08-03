@@ -7,6 +7,7 @@ namespace DrumGame.Game.Views.Settings.SettingInfos;
 public class DoubleSettingInfo : SettingInfo
 {
     public Bindable<double> Binding;
+    public override string Description => Binding.Description;
     public DoubleSettingInfo(string label, Bindable<double> binding) : base(label)
     {
         Binding = binding;

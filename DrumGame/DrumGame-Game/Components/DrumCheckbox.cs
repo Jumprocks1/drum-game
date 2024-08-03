@@ -1,3 +1,4 @@
+using DrumGame.Game.Interfaces;
 using DrumGame.Game.Utils;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -11,7 +12,7 @@ using osuTK;
 
 namespace DrumGame.Game.Components;
 
-public class DrumCheckbox : Checkbox
+public class DrumCheckbox : Checkbox, IHasHandCursor
 {
     protected override bool OnMouseDown(MouseDownEvent e) => true;
     public LocalisableString LabelText
@@ -21,8 +22,10 @@ public class DrumCheckbox : Checkbox
     }
 
     SpriteText labelSpriteText;
-    public DrumCheckbox()
+    new float Size;
+    public DrumCheckbox(float size = 30)
     {
+        Size = size;
         labelSpriteText = new SpriteText
         {
             Anchor = Anchor.CentreLeft,
@@ -37,28 +40,27 @@ public class DrumCheckbox : Checkbox
     {
         Drawable box;
 
-        var size = 30;
         var boxPad = 3;
 
         AutoSizeAxes = Axes.Both;
 
         Add(new Container
         {
-            Size = new Vector2(size),
+            Size = new Vector2(Size),
             Children = new Drawable[] {
                 new Box {
-                    Size = new Vector2(size),
+                    Size = new Vector2(Size),
                     Colour = DrumColors.CheckboxBackground
                 },
                 box = new SpriteIcon {
                     Icon = FontAwesome.Solid.Check,
-                    Size = new Vector2(size - boxPad * 2),
+                    Size = new Vector2(Size - boxPad * 2),
                     X = boxPad,
                     Y = boxPad
                 }
             }
         });
-        labelSpriteText.X = size + 10;
+        labelSpriteText.X = Size + 10;
         Add(labelSpriteText);
 
         Current.BindValueChanged(e => box.Alpha = e.NewValue ? 1 : 0, true);

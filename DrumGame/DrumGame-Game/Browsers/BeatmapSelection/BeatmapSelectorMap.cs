@@ -9,9 +9,7 @@ using DrumGame.Game.Utils;
 
 namespace DrumGame.Game.Browsers.BeatmapSelection;
 
-// this can't be a record since we store these in a HashSet
-// records do not provide stable hash functions
-public class BeatmapSelectorMap : ISearchable<BeatmapSelectorMap>
+public class BeatmapSelectorMap : ISearchable<BeatmapSelectorMap>, IBeatmapCarouselEntry
 {
     public string MapStoragePath;
     public int Position; // stores the current position in FilterMaps (-1 if not in the current filter)
@@ -50,21 +48,24 @@ public class BeatmapSelectorMap : ISearchable<BeatmapSelectorMap>
             "Filters by map difficulty\nExample: <code>difficulty=expert</>\n\nAlso supports numeric difficulties (based on color).\n"
             + "Unknown=0, <easy>Easy</>=1, <normal>Normal</>=2, <hard>Hard</>=3, <insane>Insane</>=4, <expert>Expert</>=5, <expertplus>ExpertPlus</>=6\n"
             + "Examples:\n<code>difficulty>=2</>\n<code>d^</> - sorts by difficulty"),
+        new("dtxlevel", "Filters by DTX difficulty level\nExamples:\n<code>dtx>=7 dtx^</> - shows maps with DTX level 7.00 or greater, sorted ascending"),
         new("tags", "Filters by map tags\nExample: <code>tags=dtx-import</>"),
         new("writetime", "Filters by the file's write time. Useful for showing newly added maps.\nExamples:\n"
             + "<code>writetime>1d</> - shows maps modified within the last 24 hours\n"
             + "<code>w>12-1-2023</> - shows maps modified on/after December 1st 2023\n"
             + "<code>w^</> - sorts by write time (with the newest maps at the bottom of the map list)"),
         new("playtime", "Filters by most recent play time. Uses the score database.\nExample: <code>play\\<30d</> - shows maps that don't have scores in the last 30 days."),
-        new("audio", "Filters for maps based on if they have audio or not. Currently only works with main library maps.\nExample: <code>audio=0</> - shows maps with missing audio"),
+        new("duration", "Filters by map length\nExample: <code>duration\\<2m</> - shows maps that are less than 2 minutes long\nNote: the duration is calculated as the time between the first and last notes."),
         new("rating", "Filters by map rating. To change a maps rating, click the up/down arrows on the selection card.\nExample: <code>rating>=2</> - shows maps with a rating of 2 or higher"),
         new("collection", "Filters based on if a map is in a collection.\nTo see the available collections, click the collections dropdown at the top of the map selector.\n"
         + "Examples:\n<code>col!=fav</> - excludes maps in the favorites collection."),
+        new("bpm", "Filters by median beats per minute\nExample: <code>bpm>120</>"),
         new("folder", "Filters by the folder a map was loaded from. Only set for maps outside of the main library."),
+        new("random", "Example: <code>random^</> - sorts maps in a random order"),
+        new("audio", "Filters for maps based on if they have audio or not. Currently only works with main library maps.\nExample: <code>audio=0</> - shows maps with missing audio"),
         new("imageurl", "Example: <code>imageurl=i.scdn.co</>"),
         new("image"),
-        new("random", "Example: <code>random^</> - sorts maps in a random order"),
-        new("mapstoragepath", "Filters by the file/path name.")
+        new("mapstoragepath", "Filters by the file/path name."),
     ];
     public static IEnumerable<BeatmapSelectorMap> ApplyFilter(IEnumerable<BeatmapSelectorMap> exp, FilterOperator<BeatmapSelectorMap> op,
         FilterFieldInfo<BeatmapSelectorMap> fieldInfo, string value)
@@ -115,7 +116,8 @@ public class BeatmapSelectorMap : ISearchable<BeatmapSelectorMap>
             var exp = Expression.Lambda(Expression.Field(metadata, field), parameter);
             var acc = new FilterAccessor(exp)
             {
-                Time = field.Name.Contains("Time")
+                Time = field.Name.Contains("Time"),
+                TimeSpan = field.Name.Contains("Duration"),
             };
 
             if (fieldName == "difficulty")
@@ -125,6 +127,17 @@ public class BeatmapSelectorMap : ISearchable<BeatmapSelectorMap>
 
             return acc;
         }
+        var prop = typeof(BeatmapMetadata).GetProperty(fieldName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase);
+        if (prop != null)
+        {
+            var parameter = Expression.Parameter(typeof(BeatmapSelectorMap));
+            var metadata = Expression.Field(parameter, "Metadata");
+            var exp = Expression.Lambda(Expression.Property(metadata, prop), parameter);
+            return new FilterAccessor(exp);
+        }
         return null;
     }
+
+    public BeatmapSelectorMap MapAtIndex(int index) => this;
+    public BeatmapSelectorMap PrimaryMap => this;
 }

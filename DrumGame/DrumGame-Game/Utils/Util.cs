@@ -417,6 +417,14 @@ public static class Util
         if (attr != null) return attr.Name;
         return s.FromPascalCase();
     }
+    public static string Description<T>(this T value) where T : struct, Enum
+    {
+        var s = value.ToString();
+        var f = typeof(T).GetField(s);
+        var descAttr = f.GetCustomAttribute<DescriptionAttribute>();
+        if (descAttr != null) return descAttr.Description;
+        return s;
+    }
     public static string MarkupDescription<T>(this T value) where T : struct, Enum
     {
         var s = value.ToString();
@@ -640,7 +648,8 @@ public static class Util
 
     public static void WaitForDebugger()
     {
-        while (!Debugger.IsAttached) System.Threading.Thread.Sleep(100);
+        Console.WriteLine("Waiting for debugger...");
+        while (!Debugger.IsAttached) Thread.Sleep(100);
     }
 
     public static Type GetNullableType(this Type type)
@@ -838,6 +847,21 @@ public static class Util
             (list[i], list[k]) = (list[k], list[i]);
         }
         return list;
+    }
+
+    public static double RNGNormal(double mean = 0, double stdDev = 1)
+    {
+        // https://en.wikipedia.org/wiki/Box%E2%80%93Muller_transform
+        var u1 = RNG.NextDouble();
+        var u2 = RNG.NextDouble();
+        var randStdNormal = Math.Sqrt(-2 * Math.Log(u1)) * Math.Sin(Math.Tau * u2);
+        return randStdNormal * stdDev + mean;
+    }
+    public static int IndexOf<T>(this IReadOnlyList<T> list, T item) where T : class
+    {
+        for (var i = 0; i < list.Count; i++)
+            if (list[i] == item) return i;
+        return -1;
     }
 }
 

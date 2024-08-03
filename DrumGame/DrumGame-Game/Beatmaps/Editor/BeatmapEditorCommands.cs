@@ -8,6 +8,7 @@ using DrumGame.Game.API;
 using DrumGame.Game.Beatmaps.Data;
 using DrumGame.Game.Beatmaps.Display;
 using DrumGame.Game.Beatmaps.Editor.Timing;
+using DrumGame.Game.Beatmaps.Editor.Views;
 using DrumGame.Game.Beatmaps.Loaders;
 using DrumGame.Game.Channels;
 using DrumGame.Game.Commands;
@@ -102,7 +103,7 @@ public partial class BeatmapEditor
         if (!Editing) return false;
         var target = GetSelectionOrCursor();
         var stride = TickStride;
-        PushChange(new NoteBeatmapChange(Display, () => action(target, stride), description + " at " + target, target));
+        PushChange(new NoteBeatmapChange(() => action(target, stride), description + " at " + target, target));
         return true;
     }
 
@@ -178,7 +179,7 @@ public partial class BeatmapEditor
         if (!Editing) return false;
         var s = GetSelectionOrCursor();
         var desc = $"delete notes {s.RangeString}";
-        PushChange(new NoteBeatmapChange(Display, () => Beatmap.RemoveHits(s), desc, s));
+        PushChange(new NoteBeatmapChange(() => Beatmap.RemoveHits(s), desc, s));
         return true;
     }
     [CommandHandler] public void SetBeatmapPreviewTime() => PushChange(new PreviewTimeChange(Beatmap, Math.Round(Track.CurrentTime)));
@@ -228,7 +229,7 @@ public partial class BeatmapEditor
         var range = AffectedRange.FromSelectionOrEverything(Display.Selection, Beatmap);
         var snap = (int)BeatSnap.Value;
         var description = $"snapping {range.ToString(Beatmap.TickRate)} to {snap} divisor";
-        PushChange(new NoteBeatmapChange(Display, () =>
+        PushChange(new NoteBeatmapChange(() =>
         {
             var remove = new List<int>();
             var me = 0;
@@ -318,7 +319,7 @@ public partial class BeatmapEditor
                 var desc = "setting left bass drum sticking";
                 if (range != null)
                     desc += $" {range}";
-                PushChange(new NoteBeatmapChange(Display, () => Beatmap.SetDoubleBassSticking(range, settings), desc));
+                PushChange(new NoteBeatmapChange(() => Beatmap.SetDoubleBassSticking(range, settings), desc, range));
             }
         });
         context.Palette.Push(req);
@@ -332,7 +333,7 @@ public partial class BeatmapEditor
         if (range != null)
             desc += $" {range.RangeString}";
         NoteBeatmapChange c = null;
-        PushChange(c = new NoteBeatmapChange(Display, () =>
+        PushChange(c = new NoteBeatmapChange(() =>
         {
             var res = Beatmap.Simplify(range);
             if (res != null)
@@ -351,7 +352,7 @@ public partial class BeatmapEditor
     {
         var maxGap = (int)(Beatmap.TickRate / divisor + 0.5);
         // should also keep notes that are at the end of rolls on down beat
-        PushChange(new NoteBeatmapChange(Display, () =>
+        PushChange(new NoteBeatmapChange(() =>
             {
                 var output = new List<HitObject>();
                 var recentHits = new Dictionary<HitObjectData, HitObject>();
@@ -427,7 +428,7 @@ public partial class BeatmapEditor
     {
         var maxGap = (int)(Beatmap.TickRate / divisor + 0.5);
         // should also keep notes that are at the end of rolls on down beat
-        PushChange(new NoteBeatmapChange(Display, () =>
+        PushChange(new NoteBeatmapChange(() =>
             {
                 var output = new List<HitObject>();
                 HitObject last = null;
@@ -476,7 +477,7 @@ public partial class BeatmapEditor
                     Beatmap.MeasureChanges[i] = new MeasureChange(t.Time * numer / denom, t.Beats * numer / denom);
                 }
             }, null),
-            new NoteBeatmapChange(Display, () =>
+            new NoteBeatmapChange(() =>
             {
                 for (int i = 0; i < Beatmap.HitObjects.Count; i++)
                 {
@@ -551,7 +552,7 @@ public partial class BeatmapEditor
         {
             BeatSnap = BeatSnap ?? 4
         };
-        PushChange(new NoteBeatmapChange(Display, () => new AutoMapper(this, settings).Run(range),
+        PushChange(new NoteBeatmapChange(() => new AutoMapper(this, settings).Run(range),
             $"auto mapper - snap: {settings.BeatSnap} {range?.RangeString}", range));
     }
 
@@ -614,4 +615,6 @@ public partial class BeatmapEditor
         else Track.ResumePrimary();
         Track.Track.Volume.Value = Beatmap.CurrentRelativeVolume;
     }
+
+    [CommandHandler] public void ConfigureNotePresets() => Command.Palette.Push(new NotePresetsView(this));
 }

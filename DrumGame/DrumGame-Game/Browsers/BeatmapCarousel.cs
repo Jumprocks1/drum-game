@@ -40,6 +40,8 @@ public class BeatmapCarousel : CompositeDrawable
 
     const float ItemSize = BeatmapCard.Margin * 2 + BeatmapCard.Height;
     double CarouselPosition = 0;
+    // this is a double instead of some sort of int or reference to SelectedIndex because
+    // the target can get set to halfway between a beatmap by using the mouse
     double _carouselTarget = 0;
     double CarouselTarget
     {
@@ -146,6 +148,7 @@ public class BeatmapCarousel : CompositeDrawable
         if (!dragging)
         {
             // pulls the target to the nearest card
+            // this doesn't just set to selected * ItemSize since it's fun to hit to scroll past the end of the maps with keyboard
             _carouselTarget = Util.ExpLerp(CarouselTarget, selected * ItemSize, 0.99, dt, 0.01);
         }
         CarouselPosition = Util.ExpLerp(CarouselPosition, CarouselTarget, 0.99, dt, 0.02);
@@ -238,19 +241,24 @@ public class BeatmapCarousel : CompositeDrawable
         context.GetString(e =>
         {
             var withExtension = e + ".bjson";
-            int target = -1;
-            for (var i = 0; i < FilteredMaps.Count; i++)
+            int find()
             {
-                var map = FilteredMaps[i];
-                if (map.MapStoragePath == e || map.MapStoragePath == withExtension)
+                var target = -1;
+                for (var i = 0; i < FilteredMaps.Count; i++)
                 {
-                    target = i;
-                    break;
+                    var map = FilteredMaps[i];
+                    if (map.MapStoragePath == e || map.MapStoragePath == withExtension) return i;
+                    if (map.MapStoragePath.StartsWith(e, StringComparison.OrdinalIgnoreCase)) target = i;
                 }
-                if (map.MapStoragePath.StartsWith(e, StringComparison.OrdinalIgnoreCase)) target = i;
+                if (target != -1) return target;
+                for (var i = 0; i < FilteredMaps.Count; i++)
+                    if (FilteredMaps[i].LoadedMetadata.Id.Equals(e, StringComparison.OrdinalIgnoreCase))
+                        return i;
+                return target;
             }
+            var target = find();
             if (target != -1) CarouselTarget = target * ItemSize;
-        }, "Jumping to Map", "Filename");
+        }, "Jumping to Map", "Filename", Util.ShortClipboard);
         return true;
     }
     public bool JumpToMap(BeatmapMetadata metadata)

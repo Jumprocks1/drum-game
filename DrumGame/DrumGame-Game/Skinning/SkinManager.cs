@@ -18,6 +18,7 @@ using osu.Framework.Development;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Primitives;
 using osu.Framework.Logging;
+using osuTK;
 
 namespace DrumGame.Game.Skinning;
 
@@ -396,6 +397,10 @@ public static class SkinManager
                 });
             }
             else if (type == typeof(RectangleF))
+            {
+                list = list.Where(e => e.Writable && e.PropertyType == typeof(float)).ToList();
+            }
+            else if (type == typeof(Vector2))
             {
                 list = list.Where(e => e.Writable && e.PropertyType == typeof(float)).ToList();
             }

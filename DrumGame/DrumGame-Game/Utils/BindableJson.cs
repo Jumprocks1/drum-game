@@ -5,7 +5,7 @@ using osu.Framework.Bindables;
 
 namespace DrumGame.Game.Utils;
 
-public class BindableJson<T> : Bindable<T> where T : class, IInit, IChangedEvent, new()
+public class BindableJson<T> : Bindable<T> where T : class, IChangedEvent, new()
 {
     public override void Parse(object input, IFormatProvider provider)
     {

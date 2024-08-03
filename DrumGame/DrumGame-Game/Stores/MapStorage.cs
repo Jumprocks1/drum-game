@@ -3,12 +3,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using DrumGame.Game.Beatmaps;
 using DrumGame.Game.Beatmaps.Formats;
-using DrumGame.Game.Beatmaps.Loaders;
-using DrumGame.Game.Browsers;
 using DrumGame.Game.Browsers.BeatmapSelection;
 using DrumGame.Game.Utils;
 using Newtonsoft.Json;
@@ -58,14 +55,17 @@ public class BeatmapMetadata
     // this is loaded from replay information. If we eventually upgrade to database metadata, we should be able to store this in the database
     // we don't want to store it in .cache.json since that gets deleted occasionally
     [JsonIgnore] public long PlayTime = -1; // -1 for not loaded, 0 for never played, otherwise UtcTicks
-    [JsonIgnore] public int Rating = int.MinValue; // MinValue for not loaded
+    [JsonIgnore] public int Rating = int.MinValue; // MinValue for not loaded, this is typically modified from a background thread
     [JsonIgnore] public bool RatingLoaded => Rating != int.MinValue;
+    string _dtxLevel;
+    [JsonIgnore] public string DtxLevel => _dtxLevel ??= Beatmap.FormatDtxLevel(GetDtxLevel()) ?? ""; // return empty string instead of null for caching
     // note, you can't search based on Difficulty right now
     // if we want to do that, we should create a BeatmapDifficulty => string mapping
     public string FilterString() => $"{Title} {Artist} {Mapper} {DifficultyString} {Tags} {RomanTitle} {RomanArtist}";
     public BeatmapMetadata() { } // used by Newtonsoft
     public void Update(Beatmap beatmap, long writeTime)
     {
+        _dtxLevel = null; // reset cache if needed
         Id = beatmap.Id;
         MapSetId = beatmap.MapSetIdNonNull;
         Title = beatmap.Title ?? beatmap.Source.FilenameNoExt;
@@ -113,7 +113,7 @@ public class BeatmapMetadata
     }
     public string[] SplitTags() => Tags?.Split(' ', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries) ?? [];
 
-    public string GetDtxLevel() => Beatmap.GetDtxLevel(SplitTags());
+    string GetDtxLevel() => Beatmap.GetDtxLevel(SplitTags());
 }
 public class MapStorage : NativeStorage, IDisposable
 {
@@ -213,6 +213,11 @@ public class MapStorage : NativeStorage, IDisposable
         if (o == null)
         {
             LoadedMetadata.Maps[mapStoragePath] = o = new BeatmapMetadata(LoadForQuickMetadata(mapStoragePath), GetWriteTime(mapStoragePath));
+            if (RatingsLoaded && !o.RatingLoaded)
+                // only issue with this is if we GetMetadata multiple times before this loads, it will schedule multiple loads
+                // this shouldn't really matter, but it should be kept in mind
+                // a workaround would be to assign int.MinValue + 1 to mean "Loading" to prevent duplicate loads
+                LoadRating(o);
             MapSets.Add(mapStoragePath, o);
             dirty = true;
         }
@@ -243,10 +248,25 @@ public class MapStorage : NativeStorage, IDisposable
     Task loadingRatings;
     public bool RatingsLoaded { get; private set; } // set after all ratings are safely loaded
     public Task LoadRatings() => loadingRatings ??= loadRatingsAsync();
+    public void LoadRating(BeatmapMetadata metadata)
+    {
+        if (metadata.RatingLoaded) return;
+        if (!RatingsLoaded && loadingRatings == null)
+        {
+            LoadRatings();
+            return;
+        }
+        Task.Run(() =>
+        {
+            using var db = Util.GetDbContext();
+            var dbMap = db.GetOrAddBeatmap(metadata.Id);
+            metadata.Rating = dbMap.Rating;
+        });
+    }
     Task loadRatingsAsync() => Task.Run(() => // this doesn't work for maps not in the cache
     {
         using var context = Util.GetDbContext();
-        var dict = context.Beatmaps.Select(e => new { e.Id, e.Rating }) // this helps performance a lot
+        var dict = context.Beatmaps.Select(e => new { e.Id, e.Rating }) // this helps query performance a lot
             .Where(e => e.Rating != 0) // this doesn't seem to impact performance really
             .ToDictionary(e => e.Id, e => e.Rating);
         foreach (var metadata in LoadedMetadata.Maps.Values)
@@ -288,8 +308,8 @@ public class MapStorage : NativeStorage, IDisposable
     public readonly string AbsolutePath;
     public MapStorage(string path, GameHost host) : base(path, host)
     {
-        Util.EnsureExists(path);
-        AbsolutePath = path;
+        AbsolutePath = Path.GetFullPath(path);
+        Util.EnsureExists(AbsolutePath);
     }
 
     Dictionary<string, long> GetWriteTimes()
@@ -433,23 +453,4 @@ public class MapStorage : NativeStorage, IDisposable
     }
 
     public IReadOnlyList<MapSetEntry> GetMapSet(Beatmap beatmap) => MapSets[beatmap];
-}
-public class BeatmapMetadataContractResolver : CamelCasePropertyNamesContractResolver
-{
-    public static readonly BeatmapMetadataContractResolver Default = new();
-    protected override IList<JsonProperty> CreateProperties(Type type, MemberSerialization memberSerialization)
-    {
-        if (type == typeof(Beatmap)) type = typeof(BJson);
-        return base.CreateProperties(type, memberSerialization);
-    }
-    protected override JsonProperty CreateProperty(MemberInfo member,
-                                     MemberSerialization memberSerialization)
-    {
-        var property = base.CreateProperty(member, memberSerialization);
-        if (property.DeclaringType == typeof(BJson) && property.PropertyName == "Notes")
-        {
-            property.ShouldSerialize = _ => false;
-        }
-        return property;
-    }
 }

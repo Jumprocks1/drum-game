@@ -1,11 +1,10 @@
 using System;
 using DrumGame.Game.Beatmaps;
-using DrumGame.Game.Utils;
-using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osuTK;
 
 namespace DrumGame.Game.Notation;
 
@@ -44,7 +43,7 @@ public partial class MusicFont
             // this is really bad for the ride-bell notehead
             // good example: bbbbb (sixteenth notes)
             //               s s s
-            // where b is ride bell, s is snare - the spacing on the ride notes will be awful
+            // where b is ride bell, s is snare - the spacing on the ride notes will be awful if we don't use noteheadBlack
             var bottomAnchor = (GetNoteheadAnchor(MusicGlyph.noteheadBlack, down).x,
                 GetNoteheadAnchor(flag.BottomNote.Note.Notehead, down).y);
 
@@ -60,11 +59,10 @@ public partial class MusicFont
             {
                 var skinNote = note.Note;
 
-                // we don't care about the y-anchor since that is only used for the bottom note drawing the stem
-                var anchor = GetNoteheadAnchor(skinNote.Notehead, down).x;
+                var (anchorX, anchorY) = GetNoteheadAnchor(skinNote.Notehead, down);
 
                 // left-most part of the notehead
-                var noteX = bottomX + bottomAnchor.x - anchor;
+                var noteX = bottomX + bottomAnchor.x - anchorX;
                 var l = note.Modifiers.HasFlag(NoteModifiers.Left);
                 var r = note.Modifiers.HasFlag(NoteModifiers.Right);
                 var ghost = note.Modifiers.HasFlag(NoteModifiers.Ghost);
@@ -83,7 +81,21 @@ public partial class MusicFont
                         noteheadColor = skinNote.RightColor;
                 }
 
-                container.Add(Notehead(skinNote, noteX, noteheadColor));
+                var nh = Notehead(skinNote, noteX, noteheadColor);
+                if (note.Preset != null && note.Preset.Size != 1)
+                {
+                    var s = note.Preset.Size; // could do sqrt here since the scale is applied in 2D
+                    // we want to calculate the scale relative to anchorX, anchorY
+                    nh.Scale = new Vector2(s);
+                    // default X/Y
+                    // X = x,
+                    // Y = -8 + note.Position / 2f,
+
+                    // I guessed and checked these formulas until it looked perfect
+                    nh.X = noteX + anchorX * (1 - s);
+                    nh.Y = -8 + skinNote.Position / 2f + (8 - anchorY) * (1 - s);
+                }
+                container.Add(nh);
                 if ((l || r) && !skinNote.StickingColorNotehead)
                 {
                     var hollow = skinNote.IsHollow();
@@ -105,7 +117,7 @@ public partial class MusicFont
                     {
                         Y = skinNote.Position / 2f - RollHeight / 2f,
                         // this is placed outside, so we can ignore groupOffset
-                        X = (float)(flag.Time * Spacing) + bottomAnchor.x - anchor + centerOffset,
+                        X = (float)(flag.Time * Spacing) + bottomAnchor.x - anchorX + centerOffset,
                         Height = RollHeight,
                         Width = (float)(note.Duration * Spacing) - centerOffset,
                         Colour = RollColour,
@@ -128,7 +140,7 @@ public partial class MusicFont
                 if (flag.EffectiveDuration == 0.75 || flag.EffectiveDuration == 0.375)
                 {
                     // right-most part of the notehead
-                    var rightSide = down ? GetAnchorValue(skinNote.Notehead, "stemUpSE")[0] : anchor;
+                    var rightSide = down ? GetAnchorValue(skinNote.Notehead, "stemUpSE")[0] : anchorX;
                     var dotY = skinNote.Position;
                     if ((dotY & 1) == 0) dotY += dir; // prevent dot being placed on a line
                     container.Add(new NoteSprite

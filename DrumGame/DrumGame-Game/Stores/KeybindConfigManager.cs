@@ -125,6 +125,8 @@ public class KeybindConfigManager : ConfigManager
                     var add = type == '+';
                     if (!add && type != '-') continue;
                     var key = line.AsSpan(0, equalsIndex - 1).Trim().ToString();
+                    // TODO we could use CommandInfo.FromString here
+                    // main issue was that it can't really handle AddCustomCommand
                     var val = KeyCombo.Parse(line.AsSpan(equalsIndex + 1).Trim().ToString());
 
                     var paramIndex = key.IndexOf('{');
@@ -133,7 +135,7 @@ public class KeybindConfigManager : ConfigManager
                     {
                         var enumString = key[..paramIndex];
                         var commandE = Enum.Parse<Command>(enumString);
-                        var paramString = key[(paramIndex + 1)..key.IndexOf("}")];
+                        var paramString = key[(paramIndex + 1)..key.IndexOf('}')];
                         var parameters = CommandParameters.Parse(paramString, CommandController.ParameterInfo[(int)commandE]?.Types);
 
                         var parameterCommands = CommandController.ParameterCommands[(int)commandE];

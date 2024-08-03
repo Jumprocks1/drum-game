@@ -97,15 +97,22 @@ public partial class Beatmap : BJson, IHasHitObjects
         if (TickRate <= 0)
             TickRate = DefaultTickRate;
         HitObjects = new List<HitObject>();
+        if (NotePresets != null)
+        {
+            foreach (var (key, value) in NotePresets)
+                value.Key = key;
+        }
+        var presets = NotePresets ??= new();
         double t = 0; // in beats
         foreach (var note in Notes)
         {
-            var mod = note.GetModifiers();
+            var modifiers = note.GetModifiers();
             t = note.Time;
             var roll = note.Duration.HasValue && note.Duration.Value > 0;
             if (roll)
-                mod |= NoteModifiers.Roll;
-            var data = new HitObjectData(note.GetDrumChannel(), modifiers: mod);
+                modifiers |= NoteModifiers.Roll;
+            var preset = (note.Preset != null && presets.TryGetValue(note.Preset, out var tempPreset)) ? tempPreset : null;
+            var data = new HitObjectData(note.GetDrumChannel(), modifiers, preset);
             if (roll)
             {
                 HitObjects.Add(new RollHitObject(TickFromBeat(t), data, TickFromBeat(note.Duration.Value)));
@@ -179,6 +186,11 @@ public partial class Beatmap : BJson, IHasHitObjects
         // This just updates ourself to make sure our BJson data matches our Beatmap data
         // Should basically be the inverse of Init()
         Notes = new();
+        if (NotePresets != null)
+        {
+            foreach (var (key, preset) in NotePresets)
+                preset.Key = key;
+        }
         // HitObjects = HitObjects.OrderBy(e => e.Channel).OrderBy(e => e.Time).ToList();
         foreach (var hitObject in HitObjects)
         {
@@ -188,6 +200,7 @@ public partial class Beatmap : BJson, IHasHitObjects
                 Channel = BJsonNote.GetChannelString(hitObject.Data.Channel),
                 Modifier = BJsonNote.ModifierString(hitObject.Data.Modifiers),
                 Sticking = BJsonNote.StickingString(hitObject.Data.Modifiers),
+                Preset = hitObject.Data.Preset?.Key,
                 Duration = hitObject is RollHitObject roll ? (double)roll.Duration / TickRate : null
             });
         }
@@ -240,6 +253,7 @@ public readonly struct HitObjectData
 {
     public readonly DrumChannel Channel;
     public readonly NoteModifiers Modifiers;
+    public readonly NotePreset Preset; // this might be a bit sketchy having ref in a struct, not sure
     public readonly NoteModifiers VelocityModifiers => Modifiers & (NoteModifiers.AccentedGhost | NoteModifiers.Roll);
     public static byte ComputeVelocity(NoteModifiers modifiers)
     {
@@ -254,20 +268,22 @@ public readonly struct HitObjectData
         return 92;
     }
     public byte Velocity => ComputeVelocity(Modifiers);
-    public HitObjectData(DrumChannel channel, NoteModifiers modifiers = NoteModifiers.None)
+    public HitObjectData(DrumChannel channel, NoteModifiers modifiers = NoteModifiers.None, NotePreset preset = null)
     {
         Channel = channel;
         Modifiers = modifiers;
+        Preset = preset;
     }
 
     public override bool Equals(object obj) => obj is HitObjectData other && this.Equals(other);
-    public bool Equals(HitObjectData other) => Channel == other.Channel && Modifiers == other.Modifiers;
+    public bool Equals(HitObjectData other) => Channel == other.Channel && Modifiers == other.Modifiers && other.Preset == Preset;
     public static bool operator ==(HitObjectData lhs, HitObjectData rhs) => lhs.Equals(rhs);
     public static bool operator !=(HitObjectData lhs, HitObjectData rhs) => !(lhs == rhs);
-    public override int GetHashCode() => (Channel, Modifiers, Velocity).GetHashCode();
+    // I don't think this is ever used
+    public override int GetHashCode() => (Channel, Modifiers, Preset, Velocity).GetHashCode();
 }
 [Flags]
-public enum NoteModifiers
+public enum NoteModifiers // these flags are used in shaders as ints, avoid changing the values
 {
     None = 0,
     Accented = 1,
@@ -281,6 +297,9 @@ public enum NoteModifiers
 public class HitObjectRealTime : IComparable<double>
 {
     public double Time;
+    // note, the beatmap scorer re-sorts these objects sometimes, so this index may not match the current list
+    // it should however match back to the HitObjects list on the Beatmap, as long as no changes were made
+    public int OriginalObjectIndex;
     public HitObjectData Data;
     public double Duration;
     public bool IsRoll => Duration > 0;
@@ -293,11 +312,13 @@ public class HitObjectRealTime : IComparable<double>
     public override string ToString() => $"{Data.Channel}:{Time}";
     public DrumChannel Channel => Data.Channel;
 }
-public record HitObject : ITickTime, IComparable<HitObject>, IMidiEvent
+// these are never directly serialized to Json, see BJsonNote
+public class HitObject : ITickTime, IComparable<HitObject>, IMidiEvent
 {
     public int Time { get; } // ticks
     public bool Roll => this is RollHitObject;
     public readonly HitObjectData Data;
+    public NotePreset Preset => Data.Preset;
     public DrumChannel Channel => Data.Channel;
     public NoteModifiers Modifiers => Data.Modifiers;
     public HitObject() { }
@@ -315,10 +336,10 @@ public record HitObject : ITickTime, IComparable<HitObject>, IMidiEvent
     public int CompareTo(HitObject other) => this.Time - other.Time;
     public int CompareTo(int other) => this.Time - other;
     public HitObject With(HitObjectData data) => new(Time, data);
-    public HitObject With(DrumChannel channel) => new(Time, new HitObjectData(channel, modifiers: Data.Modifiers));
-    public HitObject With(NoteModifiers modifiers) => new(Time, new HitObjectData(Data.Channel, modifiers: modifiers));
-    public HitObject Left() => new(Time, new HitObjectData(Data.Channel, modifiers: Modifiers & ~NoteModifiers.Right | NoteModifiers.Left));
-    public HitObject Right() => new(Time, new HitObjectData(Data.Channel, modifiers: Modifiers & ~NoteModifiers.Left | NoteModifiers.Right));
+    public HitObject With(DrumChannel channel) => new(Time, new HitObjectData(channel, Data.Modifiers, Data.Preset));
+    public HitObject With(NoteModifiers modifiers) => new(Time, new HitObjectData(Data.Channel, modifiers, Data.Preset));
+    public HitObject Left() => new(Time, new HitObjectData(Data.Channel, modifiers: Modifiers & ~NoteModifiers.Right | NoteModifiers.Left, Data.Preset));
+    public HitObject Right() => new(Time, new HitObjectData(Data.Channel, modifiers: Modifiers & ~NoteModifiers.Left | NoteModifiers.Right, Data.Preset));
     public virtual HitObject WithTime(int time) => new(time, Data);
     public byte MidiChannel => Data.Channel.MidiNote();
     public MidiEvent MidiEvent()
@@ -329,7 +350,7 @@ public record HitObject : ITickTime, IComparable<HitObject>, IMidiEvent
     public bool IsFoot => Data.Channel.IsFoot();
     public bool Voice => Data.Channel.IsFoot();
 }
-public record RollHitObject : HitObject
+public class RollHitObject : HitObject
 {
     public readonly int Duration;
     public RollHitObject(int time, HitObjectData data, int duration) : base(time, data)

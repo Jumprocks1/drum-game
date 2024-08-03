@@ -26,7 +26,7 @@ public partial class BeatmapEditor
     // index of the top element on the stack. Note that when pressing Redo, this will move up the stack
     public void PushChange(IHistoryChange change, bool triggerDo = true)
     {
-        var changed = !triggerDo || change.Do();
+        var changed = !triggerDo || change.Do(this);
         if (changed)
         {
             if (compositeTarget != null)
@@ -56,7 +56,7 @@ public partial class BeatmapEditor
         {
             var e = HistoryStack[TOS];
             Display.LogEvent($"Undoing change {e.Description}");
-            e.Undo();
+            e.Undo(this);
             TOS -= 1;
             Dirty = LastSave != TOS;
             OnHistoryChange?.Invoke();
@@ -71,7 +71,7 @@ public partial class BeatmapEditor
             Dirty = LastSave != TOS;
             var e = HistoryStack[TOS];
             Display.LogEvent($"Redoing change {e.Description}");
-            e.Do();
+            e.Do(this);
             OnHistoryChange?.Invoke();
         }
     }
@@ -105,7 +105,7 @@ public partial class BeatmapEditor
         if (TOS == -1) PushChange(change);
         else
         {
-            if (change.Do())
+            if (change.Do(this))
             {
                 Dirty = true;
                 if (LastSave >= TOS) LastSave = -2;

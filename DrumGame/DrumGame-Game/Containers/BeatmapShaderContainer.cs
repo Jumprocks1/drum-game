@@ -32,57 +32,24 @@ public class BeatmapShaderContainer : Container, IBufferedDrawable
     BeatmapPlayer Player;
 
     public readonly string FragmentShader;
-    FileWatcher Watcher;
-    ShaderManager ShaderManager;
+    DrumShaderManager.ShaderWatcher ShaderWatcher;
+    bool WatchShader;
     public BeatmapShaderContainer(BeatmapPlayer player, string fragmentShader, bool watchShader = true)
     {
+        WatchShader = watchShader;
         Player = player;
         AddInternal(player);
-        if (watchShader)
-        {
-            var fullPath = Util.Resources.GetAbsolutePath(fragmentShader);
-            Watcher = new FileWatcher(fullPath);
-            Watcher.Register();
-            Watcher.Changed += () => Schedule(ReloadShader);
-        }
         FragmentShader = fragmentShader;
         sharedData = new BufferedDrawNodeSharedData(null, false, true);
-    }
-
-    void ReloadShader()
-    {
-        var shaderStore = new ResourceStore<byte[]>();
-        shaderStore.AddStore(new NamespacedResourceStore<byte[]>(Util.DrumGame.Resources, @"Shaders"));
-        shaderStore.AddStore(Util.Resources);
-        var newShaderManager = new ShaderManager(Util.Host.Renderer, shaderStore);
-        try
-        {
-            var shader = newShaderManager.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShader);
-            TextureShader = shader;
-            ShaderManager?.Dispose();
-            ShaderManager = newShaderManager;
-        }
-        catch (Exception e)
-        {
-            newShaderManager?.Dispose();
-            Util.Palette.ShowMessage("Shader compilation failed, see console");
-            Logger.Error(e, "Shader compilation failed");
-        }
     }
 
     [BackgroundDependencyLoader]
     private void load(DrumShaderManager shaders)
     {
-        try
-        {
-            TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShader);
-        }
-        catch (Exception e)
-        {
-            Util.Palette.ShowMessage("Shader compilation failed, see console");
-            Logger.Error(e, "Shader compilation failed");
-            TextureShader = shaders.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
-        }
+        if (WatchShader)
+            ShaderWatcher = shaders.LoadHotWatch(FragmentShader, e => TextureShader = e);
+        else
+            TextureShader = shaders.LoadSafe(FragmentShader);
     }
 
     protected override DrawNode CreateDrawNode() => new ShaderContainerDrawNode(this, sharedData);
@@ -98,10 +65,8 @@ public class BeatmapShaderContainer : Container, IBufferedDrawable
     protected override void Dispose(bool isDisposing)
     {
         base.Dispose(isDisposing);
-        Watcher?.Dispose();
-        Watcher = null;
-        ShaderManager?.Dispose();
-        ShaderManager = null;
+        ShaderWatcher?.Dispose();
+        ShaderWatcher = null;
         sharedData.Dispose();
     }
 

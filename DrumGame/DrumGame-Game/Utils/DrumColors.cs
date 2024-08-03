@@ -25,6 +25,7 @@ public static class DrumColors
 
     public static readonly Colour4 Placeholder = Colour4.White.MultiplyAlpha(0.4f);
     public static readonly Colour4 Selection = Colour4.White.MultiplyAlpha(0.4f);
+    public static readonly Colour4 ObjectSelection = Colour4.SeaGreen;
     public static readonly Colour4 RowHighlight = Colour4.White.MultiplyAlpha(0.05f);
     public static readonly Colour4 RowHighlightSecondary = Colour4.White.MultiplyAlpha(0.02f);
 

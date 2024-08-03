@@ -81,7 +81,12 @@ public class SkinSettingsView : CompositeDrawable
             Height = footerButtonHeight,
             Y = -CommandPalette.Margin,
             // close will save in the dispose method
-            Action = () => Util.Palette.GetModal<OverlayModal<SkinSettingsView>>()?.Close()
+            Action = () =>
+            {
+                // some fields only save on focus drop
+                GetContainingFocusManager()?.ChangeFocus(null);
+                Util.Palette.GetModal<OverlayModal<SkinSettingsView>>()?.Close();
+            }
         });
         inner.Add(new DrumButton
         {
@@ -117,7 +122,7 @@ public class SkinSettingsView : CompositeDrawable
         Util.CommandController.RegisterHandlers(this);
     }
 
-    bool Even = true;
+    bool Even = true; // even fields have lighter background
     int NextDepth;
     float NextY;
     public void AddBlockHeader(string text)
@@ -134,6 +139,7 @@ public class SkinSettingsView : CompositeDrawable
         };
         ScrollContainer.Add(blockHeader);
         NextY += blockHeader.Height;
+        Even = true;
     }
     public void AddSetting(SettingInfo setting)
     {

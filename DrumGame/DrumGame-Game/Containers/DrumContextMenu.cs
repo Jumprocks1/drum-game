@@ -161,7 +161,7 @@ public static class ContextMenuBuilder
 public class ContextMenuBuilder<T>
 {
     List<DrumMenuItem> items = new();
-    readonly T Target;
+    public readonly T Target;
     public ContextMenuBuilder(T target)
     {
         Target = target;

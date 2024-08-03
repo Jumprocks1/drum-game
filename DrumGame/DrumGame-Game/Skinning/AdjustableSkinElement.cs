@@ -25,7 +25,8 @@ public enum SkinAnchorTarget
     ModeText,
     LaneContainer,
     PositionIndicator,
-    SongInfoPanel
+    SongInfoPanel,
+    Video
 }
 
 public class AdjustableSkinData // this should be serialized to the skin

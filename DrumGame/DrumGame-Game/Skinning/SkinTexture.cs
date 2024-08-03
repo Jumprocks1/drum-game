@@ -29,7 +29,7 @@ public class AnimatedSprite : Sprite
 
 public class SkinTexture
 {
-    public TextureFilteringMode FilteringMode = TextureFilteringMode.Nearest;
+    public TextureFilteringMode FilteringMode = TextureFilteringMode.Linear;
     public float AspectRatio;
     public string File;
 
@@ -41,6 +41,7 @@ public class SkinTexture
     public int FrameCount;
     public double FrameDuration;
 
+    [JsonIgnore] public double AnimationDuration => FrameCount * FrameDuration;
     bool Animated => !(FrameCount == 0 || FrameDuration == 0);
 
     // Texture _texture;
@@ -126,14 +127,17 @@ public class SkinTexture
         {
             try
             {
-                LoadedShader = Util.Skin.ShaderManager.Load(VertexShaderDescriptor.TEXTURE_2, FragmentShader);
+                LoadedShader = Util.Skin.ShaderManager.LoadSafeOrNull(FragmentShader);
             }
             catch { LoadedShader = null; }
         }
     }
+    bool TextureLoaded; // can't do simple null check since sometimes the Texture is legitimately null (file no found)
     Texture _texture;
     Texture _getTexture()
     {
+        if (TextureLoaded) return _texture;
+        TextureLoaded = true;
         if (string.IsNullOrWhiteSpace(File)) return GLUtil.Renderer.WhitePixel;
         // we can have this rotate based on the current time
         // note that in DTXManiaNX, they use 70ms per frame
@@ -161,7 +165,8 @@ public class SkinTexture
         if (AnimatedTextures != null && AnimatedTextures.Length > 0 && FrameDuration > 0)
         {
             var frame = ((int)(node.Time / FrameDuration)) % AnimatedTextures.Length;
-            texture = AnimatedTextures[frame];
+            if (frame >= 0)
+                texture = AnimatedTextures[frame];
         }
         if (texture != null)
         {
@@ -169,8 +174,9 @@ public class SkinTexture
             {
                 if (texture.WrapModeT == default && texture.WrapModeS == default)
                 {
-                    var ratioAdjustment = AspectRatio / w * h / node.RelativeAspectRatio;
-                    if (ratioAdjustment < 1) h /= ratioAdjustment;
+                    var newHeight = w * node.RelativeAspectRatio / AspectRatio;
+                    var ratioAdjustment = h / newHeight;
+                    if (ratioAdjustment < 1) h = newHeight;
                     else w *= ratioAdjustment;
                 }
             }

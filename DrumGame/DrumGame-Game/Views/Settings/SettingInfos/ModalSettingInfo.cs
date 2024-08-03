@@ -22,6 +22,7 @@ public class ModalSettingInfo<T> : SettingInfo where T : IModal, new()
             X = -SettingControl.SideMargin,
             Action = () => control.Dependencies.Get<SettingsView>().AddModal<T>(),
         });
+        AfterRender?.Invoke(control);
     }
     public override void OnClick(SettingControl control)
     {

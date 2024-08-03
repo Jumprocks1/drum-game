@@ -7,8 +7,9 @@ using osu.Framework.Input.Events;
 
 namespace DrumGame.Game.Components;
 
-public class IconButton : SpriteIcon, IHasMarkupTooltip
+public class IconButton : SpriteIcon, IHasMarkupTooltip, IHasCursor
 {
+    public SDL2.SDL.SDL_SystemCursor? Cursor => Action == null ? null : SDL2.SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_HAND;
     public Action Action;
 
     public string MarkupTooltip { get; set; }

@@ -284,6 +284,13 @@ public class SongIniLoader
         }
     }
 
+    public enum TrackType
+    {
+        None,
+        RealDrumsPS,
+        Drums
+    }
+
     // https://github.com/TheNathannator/GuitarGame_ChartFormats/blob/main/doc/FileFormats/.mid/Core%20Infrastructure.md
     void LoadMidi(Beatmap o)
     {
@@ -295,14 +302,22 @@ public class SongIniLoader
 
         var tickRate = midi.Header.quarterNote;
         o.TickRate = tickRate;
-        if (!midi.Tracks.Any(e => e.Name == "PART REAL_DRUMS_PS"))
-            Logger.Log($"Missing PART REAL_DRUMS_PS track, found: {string.Join(", ", midi.Tracks)}", level: LogLevel.Error);
+        var drumTracks = new string[] { "PART REAL_DRUMS_PS", "PART DRUMS" };
+        var targetTrackName = drumTracks.FirstOrDefault(name => midi.Tracks.Any(e => e.Name == name));
+        var trackType = TrackType.None;
+        if (targetTrackName == drumTracks[0])
+            trackType = TrackType.RealDrumsPS;
+        else if (targetTrackName == drumTracks[1])
+            trackType = TrackType.Drums;
+
+        if (targetTrackName == null)
+            Logger.Log($"Missing drum track track, found: {string.Join(", ", midi.Tracks.Select(e => e.Name))}", level: LogLevel.Error);
         var knownDiffs = new HashSet<int> {
             -2 // ignore
             // -1 is for all difficulties
             // 3 is for Expert+
         };
-
+        var noteQueue = new List<byte>();
         foreach (var track in midi.Tracks)
         {
             // Console.WriteLine($"track: {track.Name}");
@@ -310,47 +325,65 @@ public class SongIniLoader
             const int difficultyCount = 4;
             var phrases = new bool[difficultyCount, 0x13 + 1];
             // https://github.com/TheNathannator/GuitarGame_ChartFormats/blob/main/doc/FileFormats/.mid/Standard/Drums.md#track-notes
-            var markers = new bool[4]; // flam, yellow tom, blue tom, green tom
+            var markers = new bool[128];
+
+            // whenever the time changes, we clear queue
+            void handleQueue() // call before changing t
+            {
+                foreach (var note in noteQueue)
+                {
+                    var data = SongIniMapping.ToHitObjectData(note, default, phrases, markers, trackType);
+                    if (data.Channel == DrumChannel.None)
+                    {
+                        var phr = new StringBuilder();
+                        for (var i = 0; i <= 0x13; i++)
+                        {
+                            if (phrases[3, i])
+                                phr.Append($"{i:X2}");
+                        }
+                        Console.WriteLine($"No channel: t {(double)t / o.TickRate} n {note} {phr}");
+                    }
+                    else o.HitObjects.Add(new HitObject(t, data));
+                }
+                noteQueue.Clear();
+            }
             foreach (var ev in track.events)
             {
-                if (ev.delta > 0)
+                if (ev.time != t)
                 {
-                    t += ev.delta;
-                    Array.Fill(markers, false);
+                    handleQueue();
+                    t = ev.time;
                 }
                 if (ev is MidiTrack.MidiEvent me)
                 {
-                    if (track.Name != "PART REAL_DRUMS_PS") continue;
+                    var midiNote = me.parameter1;
+                    if (track.Name != targetTrackName) continue;
                     if (me.type == 9) // note on event
                     {
-                        if (me.parameter1 >= 109 && me.parameter1 <= 112)
+                        // https://github.com/TheNathannator/GuitarGame_ChartFormats/blob/main/doc/FileFormats/.mid/Standard/Drums.md#track-notes
+                        // https://github.com/TheNathannator/GuitarGame_ChartFormats/blob/main/doc/FileFormats/.mid/Miscellaneous/Rock%20Band/Drums.md
+                        if ((midiNote >= 24 && midiNote <= 51) || (midiNote >= 103 && midiNote <= 127))
                         {
-                            // https://github.com/TheNathannator/GuitarGame_ChartFormats/blob/main/doc/FileFormats/.mid/Standard/Drums.md#track-notes
-                            markers[me.parameter1 - 109] = true;
+                            markers[midiNote] = true;
                             continue;
                         }
+                        if (midiNote == 12 || midiNote == 13) continue;
                         if (me.parameter2 > 0)
                         {
-                            var diff = SongIniMapping.Difficulty(me.parameter1);
+                            var diff = SongIniMapping.Difficulty(midiNote);
                             if (diff != 3 && diff != -1)
                             {
                                 if (knownDiffs.Add(diff))
-                                    Logger.Log($"Unrecognized difficulty: {diff}, midi: {me.parameter1}", level: LogLevel.Error);
+                                    Logger.Log($"Unrecognized difficulty: {diff}, midi: {midiNote}", level: LogLevel.Error);
                                 continue;
                             }
-                            var data = SongIniMapping.ToHitObjectData(me.parameter1, me.parameter2, phrases, markers);
-                            if (data.Channel == Channels.DrumChannel.None)
-                            {
-                                var phr = new StringBuilder();
-                                for (var i = 0; i <= 0x13; i++)
-                                {
-                                    if (phrases[3, i])
-                                        phr.Append($"{i:X2}");
-                                }
-                                Console.WriteLine($"No channel: t {(double)t / o.TickRate} n {me.parameter1} {me.parameter2} {phr}");
-                            }
-                            else o.HitObjects.Add(new HitObject(t, data));
+                            noteQueue.Add(midiNote); // velocity not used
                         }
+                    }
+                    else if (me.type == 8) // note off
+                    {
+                        if ((midiNote >= 24 && midiNote <= 51) || (midiNote >= 103 && midiNote <= 127))
+                            markers[midiNote] = false;
                     }
                 }
                 else if (ev is MidiTrack.SysExEvent mes)
@@ -375,6 +408,7 @@ public class SongIniLoader
                     o.UpdateChangePoint<MeasureChange>(t, t => t.WithBeats(bpMeasure));
                 }
             }
+            handleQueue();
         }
     }
 }

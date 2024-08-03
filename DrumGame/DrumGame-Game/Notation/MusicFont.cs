@@ -105,6 +105,9 @@ public partial class MusicFont
         }
     }
 
+    float? _defaultNoteheadWidth;
+    public float MainNoteheadWidth => _defaultNoteheadWidth ??= GetNoteheadAnchor(MusicGlyph.noteheadBlack, false).x;
+
     Dictionary<(MusicGlyph, bool), (float x, float y)> AnchorCache;
     public (float x, float y) GetNoteheadAnchor(MusicGlyph notehead, bool down)
     {

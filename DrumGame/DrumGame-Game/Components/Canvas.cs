@@ -1,5 +1,6 @@
 using System;
-using System.Collections.Generic;
+using System.Linq.Expressions;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using DrumGame.Game.Utils;
 using osu.Framework.Allocation;
@@ -39,8 +40,6 @@ public class Canvas<State> : Canvas where State : new()
             base.ApplyState();
             Source.ApplyState(State);
         }
-        // TODO add opaque mode (not sure why we need, but I think it's good)
-        // only use when a full background is drawn
         protected override void Draw(IRenderer renderer)
         {
             base.Draw(renderer);
@@ -89,14 +88,30 @@ public abstract class CanvasNode : DrawNode // ~3 of these are instanced per Can
         shader.Bind();
         BoundShader = shader;
     }
-    protected void BindUniformResources(IShader shader, IRenderer renderer)
+    protected virtual void BindUniformResources(IShader shader, IRenderer renderer)
     {
         canvasParametersBuffer ??= renderer.CreateUniformBuffer<CanvasParameters>();
         var t = (float)Time;
         if (canvasParametersBuffer.Data.Time != t)
-            canvasParametersBuffer.Data = new() { Time = t };
+            canvasParametersBuffer.Data = new()
+            {
+                Time = t,
+                TrackTime = (float)TrackTime,
+                TrackBeat = (float)TrackBeat,
+                MsPerBeat = (float)MsPerBeat,
+            };
         shader.BindUniformBlock("m_CanvasParameters", canvasParametersBuffer);
     }
+
+    static Action<IRenderer> getFlusher()
+    {
+        var method = typeof(IRenderer).GetMethod("FlushCurrentBatch", BindingFlags.NonPublic | BindingFlags.Instance);
+        var parameter = Expression.Parameter(typeof(IRenderer));
+        return (Action<IRenderer>)Expression.Lambda(Expression.Call(parameter, method, [Expression.Constant(null, typeof(FlushBatchSource?))]), [parameter]).Compile();
+    }
+    static Action<IRenderer> _flusher;
+    // avoid using this iF possible. It's only here because of bugs with o!f
+    public void Flush() => (_flusher ??= getFlusher())(Renderer);
 
 
     private IUniformBuffer<CanvasParameters> canvasParametersBuffer;
@@ -104,12 +119,21 @@ public abstract class CanvasNode : DrawNode // ~3 of these are instanced per Can
     private record struct CanvasParameters
     {
         public UniformFloat Time;
-        private readonly UniformPadding12 Padding;
+        public UniformFloat TrackTime;
+        public UniformFloat TrackBeat;
+        public UniformFloat MsPerBeat;
+        // should also add measure beat and maybe beats per measure
     }
 
     public ColourInfo Color;
     public float Alpha = 1; // applied to color if != 1
+
     public double Time; // need so that the clock time is identical for the entire frame
+    // we don't actually set these in this class. They have to be supplied by an implementor
+    public double TrackTime;
+    public double TrackBeat;
+    public double MsPerBeat;
+
     public bool Relative;
     public float Width;
     public float Height;

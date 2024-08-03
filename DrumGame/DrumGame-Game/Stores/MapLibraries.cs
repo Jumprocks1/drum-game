@@ -11,7 +11,7 @@ using osu.Framework.Logging;
 namespace DrumGame.Game.Stores;
 
 // Only use with BindableJson
-public class MapLibraries : IInit, IChangedEvent
+public class MapLibraries : IChangedEvent
 {
     public List<MapLibrary> Sources; // name used in Json, avoid changing
 
@@ -48,7 +48,7 @@ public class MapLibraries : IInit, IChangedEvent
             {
                 Sources.Add(provider);
                 ValidLibraries.Add(provider);
-                PathMapping.Add(provider.Name, provider.Path);
+                PathMapping.Add(provider.Name, provider.AbsolutePath);
                 InvokeChanged(provider);
             }
         }
@@ -63,7 +63,7 @@ public class MapLibraries : IInit, IChangedEvent
         provider.Disabled = false;
         InvokeChanged(provider);
     }
-    public void Init()
+    public void InitAfterResources() // called after resources so we can handle relative paths
     {
         Sources ??= new();
         PathMapping ??= new();
@@ -81,7 +81,7 @@ public class MapLibraries : IInit, IChangedEvent
                 if (source.IsMain)
                     foundMain = true;
                 else
-                    PathMapping.Add(source.Name, source.Path);
+                    PathMapping.Add(source.Name, source.AbsolutePath);
             }
         }
         if (!foundMain)
@@ -110,20 +110,23 @@ public class MapLibrary
     public bool ScanSongIni;
     public bool Disabled;
 
+    string _absolutePath;
+    [JsonIgnore] public string AbsolutePath => _absolutePath ??= (Path == null ? null : Util.Resources.GetAbsolutePath(Path));
+
     public static MapLibrary Main => new();
 
     public string Prefix() => $"${Name}/";
-    public bool Exists() => IsMain || Directory.Exists(Path);
+    public bool Exists() => IsMain || Directory.Exists(AbsolutePath);
     public bool ValidateAndLog()
     {
         if (!IsMain && string.IsNullOrWhiteSpace(Name))
         {
-            Logger.Log($"Missing name for {Path}", level: LogLevel.Important);
+            Logger.Log($"Missing name for {AbsolutePath}", level: LogLevel.Important);
             return false;
         }
         if (!Exists())
         {
-            Logger.Log($"Directory not found: {Path} for {this}", level: LogLevel.Important);
+            Logger.Log($"Directory not found: {AbsolutePath} for {this}", level: LogLevel.Important);
             return false;
         }
         return true;
@@ -139,10 +142,10 @@ public class MapLibrary
                 dict.Add(file.Name, file.LastWriteTimeUtc.Ticks);
             return;
         }
-        var directory = new DirectoryInfo(Path);
+        var directory = new DirectoryInfo(AbsolutePath);
         var enumerationOptions = GetEnumerationOptions();
         // this is pretty dangerous, but I think it should work
-        var rootPathLength = System.IO.Path.GetFullPath(Path).Length + 1; // add 1 for the slash
+        var rootPathLength = AbsolutePath.Length + 1; // add 1 for the slash
         var prefix = Prefix();
         if (ScanBjson)
             foreach (var file in directory.GetFiles("*.bjson", enumerationOptions))
@@ -173,20 +176,20 @@ public class MapLibrary
         if (Disabled) return Enumerable.Empty<string>();
         if (IsMain)
         {
-            var path = System.IO.Path.GetFullPath(Util.MapStorage.AbsolutePath);
-            var pathLength = System.IO.Path.GetFullPath(path).Length + 1; // add 1 for the slash
+            var path = Util.MapStorage.AbsolutePath;
+            var pathLength = path.Length + 1; // add 1 for the slash
             return Directory.GetFiles(path, "*.bjson").Select(e => e[pathLength..]);
         }
         var res = Enumerable.Empty<string>();
         var enumerationOptions = GetEnumerationOptions();
-        var rootPathLength = System.IO.Path.GetFullPath(Path).Length + 1; // add 1 for the slash
+        var rootPathLength = AbsolutePath.Length + 1; // add 1 for the slash
         var prefix = Prefix();
         if (ScanBjson)
-            res = res.Concat(Directory.GetFiles(Path, "*.bjson", enumerationOptions).Select(e => $"{prefix}{e[rootPathLength..]}"));
+            res = res.Concat(Directory.GetFiles(AbsolutePath, "*.bjson", enumerationOptions).Select(e => $"{prefix}{e[rootPathLength..]}"));
         if (ScanDtx)
-            res = res.Concat(Directory.GetFiles(Path, "*.dtx", enumerationOptions).Select(e => $"{prefix}{e[rootPathLength..]}"));
+            res = res.Concat(Directory.GetFiles(AbsolutePath, "*.dtx", enumerationOptions).Select(e => $"{prefix}{e[rootPathLength..]}"));
         if (ScanSongIni)
-            res = res.Concat(Directory.GetFiles(Path, "song.ini", enumerationOptions).Select(e => $"{prefix}{e[rootPathLength..]}"));
+            res = res.Concat(Directory.GetFiles(AbsolutePath, "song.ini", enumerationOptions).Select(e => $"{prefix}{e[rootPathLength..]}"));
         return res;
     }
 
@@ -201,11 +204,11 @@ public class MapLibrary
             int? dtxCount = null;
             int? songIniCount = null;
             if (ScanBjson)
-                bjsonCount = Directory.GetFiles(Path, "*.bjson", enumerationOptions).Length;
+                bjsonCount = Directory.GetFiles(AbsolutePath, "*.bjson", enumerationOptions).Length;
             if (ScanDtx)
-                dtxCount = Directory.GetFiles(Path, "*.dtx", enumerationOptions).Length;
+                dtxCount = Directory.GetFiles(AbsolutePath, "*.dtx", enumerationOptions).Length;
             if (ScanSongIni)
-                songIniCount = Directory.GetFiles(Path, "song.ini", enumerationOptions).Length;
+                songIniCount = Directory.GetFiles(AbsolutePath, "song.ini", enumerationOptions).Length;
             return (bjsonCount, dtxCount, songIniCount);
         }
         catch (Exception e)

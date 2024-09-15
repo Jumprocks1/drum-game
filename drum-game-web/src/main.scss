@@ -153,7 +153,7 @@ $card-indent: $card-height + $s2;
         background: $DarkActiveBackground;
     }
 
-    .title {
+    .title, .artist, .bottom-line {
         position: absolute;
         left: $card-indent;
     }
@@ -181,14 +181,10 @@ $card-indent: $card-height + $s2;
 
     .artist {
         top: $title-height;
-        left: $card-indent;
-        position: absolute;
     }
 
     .bottom-line {
         bottom: $s2;
-        left: $card-indent;
-        position: absolute;
     }
 
     .date {
@@ -212,7 +208,8 @@ $card-indent: $card-height + $s2;
 }
 
 #dtx-page,
-#map-selector-page {
+#map-selector-page,
+#request-list-page {
     display: flex;
 
     @include sm {
@@ -246,5 +243,15 @@ $card-indent: $card-height + $s2;
             max-width: 300px;
             object-fit: cover;
         }
+    }
+}
+
+#request-list-page {
+    img {
+        display: none;
+    }
+    .title, .artist, .bottom-line {
+        // remove normal indent from thumbnail
+        left: $card-indent - $card-height;
     }
 }

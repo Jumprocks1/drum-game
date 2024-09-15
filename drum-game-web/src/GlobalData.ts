@@ -1,10 +1,11 @@
 import { fetchEndpoint } from "./api/network";
-import Cache from "./interfaces/Cache";
+import Cache, { CacheMap } from "./interfaces/Cache";
 import SMuFL from "./interfaces/SMuFL";
 
 interface CacheDef {
     mapList: Cache
     dtxMapList: Cache
+    requestList: CacheMap[]
     bravura: SMuFL
 }
 
@@ -30,6 +31,10 @@ class GlobalData {
 
     LoadMapList() {
         return this.LoadCacheItem("mapList", "/maps.json", GlobalData.ProcessMaps);
+    }
+
+    LoadRequestList() {
+        return this.LoadCacheItem("requestList", "/request-list.json");
     }
 
     private static ProcessMaps(res: Cache) {

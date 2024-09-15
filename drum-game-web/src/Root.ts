@@ -7,6 +7,7 @@ import TestPage from "./pages/TestPage";
 import BeatmapPlayerPage from "./pages/BeatmapPlayerPage";
 import DtxPage from "./pages/DtxPage";
 import LogoPage from "./pages/logo/LogoPage";
+import RequestListPage from "./pages/RequestListPage";
 
 const pages: PageType[] = [
     TestPage,
@@ -14,6 +15,7 @@ const pages: PageType[] = [
     BeatmapPlayerPage,
     DtxPage,
     LogoPage,
+    RequestListPage,
     MapSelectorPage,
 ]
 

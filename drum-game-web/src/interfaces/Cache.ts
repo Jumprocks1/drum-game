@@ -22,9 +22,9 @@ export interface CacheMap {
     RomanArtist?: string
     WriteTime: number
     Audio: string
-    FileName: string
+    FileName?: string
 }
 
 export function CacheMapLink(map: CacheMap) {
-    return map.FileName.substring(0, map.FileName.lastIndexOf("."));
+    return map.FileName?.substring(0, map.FileName.lastIndexOf("."));
 }

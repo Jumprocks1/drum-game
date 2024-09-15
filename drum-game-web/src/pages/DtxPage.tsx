@@ -21,7 +21,9 @@ export default class DtxPage extends PageComponent {
 
     LoadMap(map: CacheMap | undefined) {
         if (!map) return;
-        GlobalRouter?.NavigateTo({ page: BeatmapPlayerPage, parameters: [CacheMapLink(map)] });
+        const link = CacheMapLink(map)
+        if (link)
+            GlobalRouter?.NavigateTo({ page: BeatmapPlayerPage, parameters: [link] });
     }
 
     AfterParent() {
@@ -37,7 +39,7 @@ export default class DtxPage extends PageComponent {
                 if (newUrl !== this.MapUrl) {
                     const router = this.FindParent(Router);
                     this.MapUrl = newUrl;
-                    router.ReplaceRoute({ page: DtxPage, parameters: [this.MapUrl] })
+                    router.ReplaceRoute({ page: DtxPage, parameters: [this.MapUrl ?? ""] })
                 }
             }
         }

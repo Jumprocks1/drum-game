@@ -7,14 +7,15 @@ import BeatmapPlayerPage from "./BeatmapPlayerPage";
 import MapPreview from "../components/MapPreview";
 
 export default class MapSelectorPage extends PageComponent {
-    static Route = ".*"
-    static RouteUrl = ""
-    static PageId = "map-selector-page"
+    static Route = "request"
+    static PageId = "request-list-page"
+    static Title = "Jumprocks Request List"
 
     AfterParent() {
         super.AfterParent();
 
         const carousel = new MapCarousel();
+        carousel.OnMapOpen = () => { }
 
         const preview = new MapPreview();
         carousel.OnMapChange = e => {
@@ -24,23 +25,14 @@ export default class MapSelectorPage extends PageComponent {
         this.Add(preview);
         this.Add(carousel);
 
-        GlobalData.LoadMapList().then(maps => {
+        GlobalData.LoadRequestList().then(maps => {
             if (!this.Alive) return;
-            const o: CacheMap[] = Object.values(maps.Maps);
-            carousel.SetItems(o.sort((a, b) => a.Difficulty - b.Difficulty));
+            carousel.SetItems(Object.values(maps));
         })
     }
 
     AfterRemove() {
         super.AfterRemove();
         this.ChildrenAfterRemove();
-    }
-
-    LoadMap(map: CacheMap | undefined) {
-        if (!map || !this.Alive || !map.FileName) return;
-        GlobalData.LoadBravura(); // preload
-        const ext = ".bjson";
-        const target = map.FileName.endsWith(ext) ? map.FileName.substring(0, map.FileName.length - ext.length) : map.FileName
-        this.FindParent(Router).NavigateTo({ page: BeatmapPlayerPage, parameters: [target] }) // this will kill us
     }
 }

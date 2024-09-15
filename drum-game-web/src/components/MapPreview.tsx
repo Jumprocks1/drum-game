@@ -78,17 +78,20 @@ export default class MapPreview extends Component {
             this.Date.textContent = map.Date ?? "";
 
             let download = map.DownloadUrl;
-            if (!download) {
-                let fileName = map.FileName;
+            let fileName = map.FileName;
+            if (!download && fileName) {
                 if (!fileName.endsWith(".bjson")) fileName += ".bjson"
                 download = buildUrl(`/maps/${fileName}`)
             }
-
             this.Download.href = download ?? "";
-
             this.DownloadLine.replaceChildren(map.Date ? <>{this.Download} - {this.Date}</> : this.Download);
+            this.Download.style.display = download ? "" : "none"
 
-            (this.Preview.Component as RouteLink).Parameters = [CacheMapLink(map)]
+            const link = CacheMapLink(map);
+            const routeLink = (this.Preview.Component as RouteLink)
+            routeLink.HTMLElement.style.display = link ? "" : "none"
+            if (link)
+                routeLink.Parameters = [link];
         }
     }
 }

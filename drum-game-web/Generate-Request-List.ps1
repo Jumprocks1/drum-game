@@ -48,6 +48,7 @@ $filenameLeaf = Split-Path $uploadTarget -Leaf
 $headers["X-Bz-File-Name"] = [uri]::EscapeUriString($filenameLeaf)
 $headers["Content-Type"] = "b2/x-auto"
 $headers["X-Bz-Content-Sha1"] = $sha1
+$headers["X-Bz-Info-b2-cache-control"] = "max-age=3600"
 
 $uploadRes = irm -Uri $uploadUrl -Headers $headers -SkipHeaderValidation -Method Post -InFile $uploadTarget
 $uploadedFilename = [uri]::EscapeUriString($uploadRes.fileName)

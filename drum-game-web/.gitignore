@@ -2,7 +2,6 @@ node_modules/
 maps/*
 dist/*
 !dist/bravura_metadata.json
-!dist/request-list.json
 
 # backblaze api
 *.key 

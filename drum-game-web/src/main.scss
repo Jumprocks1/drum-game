@@ -254,4 +254,28 @@ $card-indent: $card-height + $s2;
         // remove normal indent from thumbnail
         left: $card-indent - $card-height;
     }
+
+    #map-preview {
+        h5 {
+            margin-bottom: 0.3em;
+        }
+
+        button {
+            font: inherit;
+            font-size: 0.7em;
+        }
+
+        #copy-button-container {
+            display: flex;
+            align-items: center;
+            div {
+                margin-left: $s2;
+            }
+        }
+    }
+}
+
+button {
+    display: block;
+    cursor: pointer;
 }

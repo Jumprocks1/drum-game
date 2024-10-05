@@ -34,7 +34,10 @@ class GlobalData {
     }
 
     LoadRequestList() {
-        return this.LoadCacheItem("requestList", "https://f005.backblazeb2.com/file/DrumGameDTX/request-list.json");
+        if (window.location.hostname === "localhost")
+            return this.LoadCacheItem("requestList", "/request-list.json");
+        else
+            return this.LoadCacheItem("requestList", "https://f005.backblazeb2.com/file/DrumGameDTX/request-list.json");
     }
 
     private static ProcessMaps(res: Cache) {

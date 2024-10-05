@@ -2,8 +2,10 @@ import { buildUrl } from "../api/network";
 import { getUrl } from "../api/spotify";
 import Component from "../framework/Component";
 import { RouteLink } from "../framework/RouteButton";
+import { GlobalRouter } from "../framework/Router";
 import { CacheMap, CacheMapLink } from "../interfaces/Cache";
 import BeatmapPlayerPage from "../pages/BeatmapPlayerPage";
+import RequestListPage from "../pages/RequestListPage";
 
 function formatDuration(duration: number | undefined) {
     if (duration === undefined) return 0
@@ -21,6 +23,7 @@ export default class MapPreview extends Component {
     Download = <a target="_blank" rel="noreferrer noopener"></a> as HTMLAnchorElement
     Date = <span />
     DownloadLine = <div></div>
+    CopyResultText: HTMLElement | undefined
 
     Preview = <RouteLink page={BeatmapPlayerPage}>Preview Sheet Music</RouteLink>
     SpotifyPreview = <a className="clickable-text" target="_blank" rel="noreferrer noopener">Listen on Spotify</a> as HTMLAnchorElement
@@ -29,16 +32,31 @@ export default class MapPreview extends Component {
     constructor(dtx = false) {
         super();
         this.Dtx = dtx;
+
+
+        const requestListPage = GlobalRouter?.State?.page === RequestListPage
+
         if (dtx) {
             this.Download.innerText = "Download DTX"
         } else {
             this.Download.innerText = "Download .bjson file"
+        }
+        let requestListButton: HTMLElement | undefined = undefined
+        if (requestListPage) {
+            this.CopyResultText = <div></div>
+            requestListButton = <div id="copy-button-container">
+                <button onclick={() => this.copyRequestCommand()}>
+                    Copy request command
+                </button>
+                {this.CopyResultText}
+            </div>
         }
         this.HTMLElement = <div id="map-preview">
             {this.Image}
             {this.Title}
             {this.Description}
             {this.DownloadLine}
+            {requestListButton}
             <div style={{ fontSize: "0.7em" }}>
                 <div>{this.SpotifyPreview}</div>
                 {this.Preview}
@@ -47,13 +65,31 @@ export default class MapPreview extends Component {
     }
     Map?: CacheMap;
 
+    async copyRequestCommand() {
+        const map = this.Map;
+        if (map) {
+            const copy = `!rq ${map.Artist} - ${map.Title}`
+            await navigator.clipboard.writeText(copy)
+            if (this.CopyResultText)
+                this.CopyResultText.innerText = " - Copied to clipboard"
+        }
+    }
+
     SetMap(map: CacheMap | undefined) {
         this.Map = map;
         if (!map) {
             this.HTMLElement.style.visibility = "hidden";
         } else {
             this.HTMLElement.style.visibility = "unset";
+            if (this.CopyResultText)
+                this.CopyResultText.innerText = ""
+
+            const requestListPage = GlobalRouter?.State?.page === RequestListPage
+
             let imageUrl = map.ImageUrl;
+            // ignore images on request list page for now
+            if (requestListPage)
+                imageUrl = undefined
 
             // get slightly higher resolution
             const check = "_SS400_.jpg";

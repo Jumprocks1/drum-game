@@ -1,3 +1,5 @@
+extern alias OriginalManagedBass;
+
 using System;
 using System.Diagnostics;
 using DrumGame.Game.Beatmaps.Scoring;
@@ -10,6 +12,8 @@ using ManagedBass.Midi;
 using osu.Framework.Bindables;
 using osu.Framework.Development;
 using osu.Framework.Logging;
+
+using BassFlags = OriginalManagedBass::ManagedBass.BassFlags;
 
 namespace DrumGame.Game.Media;
 

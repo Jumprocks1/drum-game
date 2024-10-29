@@ -4,6 +4,9 @@ resources/*
 !resources/Fonts
 resources/Fonts/Noto
 
+# Libraries
+!resources/lib
+
 # Maps
 !resources/maps
 resources/maps/audio

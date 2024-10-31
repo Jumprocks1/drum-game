@@ -3,8 +3,9 @@ This folder contains the source for the primary desktop application for Drum Gam
 
 
 ## Running From Source
-On Windows, you can run `Start.ps1`. As of 6-24-2024, the game is using [2024.523.0](https://www.nuget.org/packages/ppy.osu.Framework/2024.523.0) for the framework. The version directly from NuGet will not work since they switched to a fork of `ManagedBass`. To get it working, clone the correct version from [GitHub](https://github.com/ppy/osu-framework) and swap out the forked references for ManagedBass in `osu.Framework.csproj` so they look like this: `<PackageReference Include="ManagedBass" Version="3.1.0" />`. This is required because DrumGame uses the `ManagedBass.Midi` package, but the framework developers did not fork the MIDI package. This breaks many of the references when the forked version of ManagedBass is used. I would like to try fixing this in the future, but I couldn't figure out how to correct the reference errors.
-If you're using a `resources` folder from a release version, you may also need to copy the contents of `resources/lib` from this repository. The game should run without the extra dll's, but some audio features will not work.
+On Windows, you can run `Start.ps1`. The game should boot with no further changes, but there may be missing resources files, these can be copied from a release version.
+
+If you're directly using a `resources` folder from a release version, you may also need to copy the contents of `resources/lib` from this repository. The game should run without the extra dll's, but some audio features will not work.
 
 ## Contributing
 Currently there's not much set up for other contributors. I personally use the VSCode C# extension with C# Dev Kit disabled. The "Dev Kit" includes AI and closed source components that I don't use. I have a better experience with `"dotnet.server.useOmnisharp": true` set, but the default language server should also be fine.

@@ -4,7 +4,7 @@ $par = New-Object System.Collections.Generic.List[string]
 $par.Add("-c")
 $par.Add("ClearSearch")
 $par.Add("-c")
-$par.Add("SelectCollection{Stream TODO}")
+$par.Add("SelectCollection{Playable}")
 $par.Add("-c")
 $par.Add("ExportSearchToFile{RequestListJson,true}")
 $par.Add("-c")
@@ -22,9 +22,6 @@ mv $newFile "request-list.json"
 
 $uploadTarget = "request-list.json"
 
-
-# Note, this does work for uploading updates to maps, just make sure to adjust dtx.json as necessary.
-# It adds a second entry at the top for the new file.
 
 $authUrl = "https://api.backblazeb2.com/b2api/v3/b2_authorize_account"
 $key = Get-Content backblaze-b2.key

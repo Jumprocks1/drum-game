@@ -1,38 +1,25 @@
 {
-  "bookmarks": [],
-  "annotations": [],
-  "relativeVolume": 0.3,
+  "relativeVolume": 0.3106,
   "audio": "audio/07 月燈籠.mp3",
-  "image": "images/18eb9ea4772c7c03c4ce29b4226a1f95.jpg",
-  "imageUrl": "https://m.media-amazon.com/images/I/61kKuqQXFEL._SS400_.jpg",
-  "offset": 1588.78,
-  "leadIn": 0.0,
+  "drumOnlyAudio": "temp/tsukitourou.wav",
+  "image": "images/f6ef14b809319ebd2ccd52defa258c83",
+  "imageUrl": "https://i.scdn.co/image/ab67616d00001e028152c4360dd9da1b75104843",
+  "offset": 1589.51,
   "bpm": 191.0,
   "title": "月燈籠",
+  "romanTitle": "Tsukitourou",
   "artist": "かめりあ feat. ななひら",
+  "romanArtist": "Camellia feat. Nanahira",
   "mapper": "Jumprocks",
   "difficulty": "Insane",
-  "tags": "camellia nanahira",
-  "youTubeID": "Pdq3zYVk7TI",
-  "playableDuration": 287552.0,
+  "tags": "dtx-level-81 lantern-under-the-lunar",
+  "previewTime": 88841.0,
+  "spotify": "4sff9Enrh0kxG4DMT0ZvZq",
+  "youTubeID": "d9UGsayLwSM",
+  "youTubeOffset": -14.98,
+  "playableDuration": 286282.0,
   "medianBPM": 191.0,
   "notes": [
-    {
-      "time": 0.0,
-      "channel": "hihat"
-    },
-    {
-      "time": 1.0,
-      "channel": "hihat"
-    },
-    {
-      "time": 2.0,
-      "channel": "hihat"
-    },
-    {
-      "time": 3.0,
-      "channel": "hihat"
-    },
     {
       "time": 4.0,
       "channel": "open-hihat"
@@ -51,7 +38,8 @@
     },
     {
       "time": 6.666666666666667,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 6.833333333333333,
@@ -59,8 +47,11 @@
     },
     {
       "time": 7.0,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "snare"
+    },
+    {
+      "time": 7.083333333333333,
+      "channel": "snare"
     },
     {
       "time": 8.0,
@@ -68,7 +59,8 @@
     },
     {
       "time": 8.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 8.5,
@@ -76,7 +68,8 @@
     },
     {
       "time": 8.5,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 9.0,
@@ -84,7 +77,8 @@
     },
     {
       "time": 9.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 10.0,
@@ -112,8 +106,7 @@
     },
     {
       "time": 15.0,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "snare"
     },
     {
       "time": 15.25,
@@ -133,7 +126,8 @@
     },
     {
       "time": 16.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 16.5,
@@ -141,7 +135,8 @@
     },
     {
       "time": 16.5,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 17.0,
@@ -149,7 +144,8 @@
     },
     {
       "time": 17.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 18.0,
@@ -165,7 +161,7 @@
     },
     {
       "time": 20.0,
-      "channel": "hihat"
+      "channel": "open-hihat"
     },
     {
       "time": 20.5,
@@ -181,7 +177,7 @@
     },
     {
       "time": 21.5,
-      "channel": "hihat"
+      "channel": "open-hihat"
     },
     {
       "time": 22.0,
@@ -209,7 +205,8 @@
     },
     {
       "time": 24.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 24.5,
@@ -217,7 +214,8 @@
     },
     {
       "time": 24.5,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 25.0,
@@ -225,7 +223,8 @@
     },
     {
       "time": 25.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 26.0,
@@ -252,15 +251,11 @@
       "channel": "high-tom"
     },
     {
-      "time": 30.25,
+      "time": 30.333333333333332,
       "channel": "high-tom"
     },
     {
-      "time": 30.5,
-      "channel": "high-tom"
-    },
-    {
-      "time": 30.75,
+      "time": 30.666666666666668,
       "channel": "high-tom"
     },
     {
@@ -272,28 +267,26 @@
       "channel": "mid-tom"
     },
     {
-      "time": 31.25,
+      "time": 31.333333333333332,
       "channel": "mid-tom"
     },
     {
-      "time": 31.5,
-      "channel": "mid-tom"
-    },
-    {
-      "time": 31.75,
+      "time": 31.666666666666668,
       "channel": "mid-tom"
     },
     {
       "time": 32.0,
-      "channel": "crash"
+      "channel": "bass"
     },
     {
       "time": 32.0,
-      "channel": "snare"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 32.5,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 32.5,
@@ -301,7 +294,8 @@
     },
     {
       "time": 33.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 33.0,
@@ -317,7 +311,8 @@
     },
     {
       "time": 34.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 34.5,
@@ -325,7 +320,8 @@
     },
     {
       "time": 34.5,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 35.0,
@@ -333,7 +329,8 @@
     },
     {
       "time": 35.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 35.5,
@@ -341,15 +338,12 @@
     },
     {
       "time": 36.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 36.0,
       "channel": "snare"
-    },
-    {
-      "time": 36.5,
-      "channel": "crash"
     },
     {
       "time": 36.5,
@@ -361,11 +355,12 @@
     },
     {
       "time": 37.0,
-      "channel": "crash"
+      "channel": "snare"
     },
     {
-      "time": 37.0,
-      "channel": "snare"
+      "time": 37.5,
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 37.5,
@@ -385,7 +380,7 @@
     },
     {
       "time": 38.75,
-      "channel": "high-tom"
+      "channel": "bass"
     },
     {
       "time": 39.0,
@@ -393,7 +388,8 @@
     },
     {
       "time": 39.0,
-      "channel": "crash"
+      "channel": "china",
+      "sticking": "left"
     },
     {
       "time": 40.0,
@@ -401,27 +397,20 @@
     },
     {
       "time": 40.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 40.5,
       "channel": "bass"
-    },
-    {
-      "time": 40.5,
-      "channel": "crash"
     },
     {
       "time": 41.0,
-      "channel": "crash"
+      "channel": "low-tom"
     },
     {
       "time": 41.0,
       "channel": "snare"
-    },
-    {
-      "time": 41.0,
-      "channel": "bass"
     },
     {
       "time": 41.5,
@@ -429,11 +418,11 @@
     },
     {
       "time": 42.0,
-      "channel": "low-tom"
+      "channel": "bass"
     },
     {
       "time": 42.0,
-      "channel": "bass"
+      "channel": "low-tom"
     },
     {
       "time": 42.5,
@@ -589,7 +578,8 @@
     },
     {
       "time": 55.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 55.5,
@@ -597,11 +587,12 @@
     },
     {
       "time": 56.0,
-      "channel": "bass"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 56.0,
-      "channel": "low-tom"
+      "channel": "bass"
     },
     {
       "time": 56.5,
@@ -685,7 +676,8 @@
     },
     {
       "time": 63.0,
-      "channel": "open-hihat"
+      "channel": "splash",
+      "sticking": "right"
     },
     {
       "time": 63.5,
@@ -697,75 +689,72 @@
     },
     {
       "time": 64.0,
-      "channel": "crash"
+      "channel": "crash",
+      "modifier": "accent"
     },
     {
       "time": 65.0,
-      "channel": "high-tom",
+      "channel": "low-tom",
       "modifier": "ghost"
     },
     {
       "time": 65.0,
-      "channel": "mid-tom",
+      "channel": "snare",
       "modifier": "ghost"
     },
     {
       "time": 65.5,
-      "channel": "high-tom",
+      "channel": "low-tom",
       "modifier": "ghost"
     },
     {
       "time": 65.5,
-      "channel": "mid-tom",
+      "channel": "snare",
       "modifier": "ghost"
     },
     {
       "time": 66.0,
-      "channel": "high-tom"
+      "channel": "low-tom",
+      "modifier": "ghost"
     },
     {
       "time": 66.0,
-      "channel": "mid-tom"
+      "channel": "snare",
+      "modifier": "ghost"
     },
     {
       "time": 66.5,
-      "channel": "bass"
+      "channel": "low-tom",
+      "modifier": "ghost"
     },
     {
       "time": 66.5,
-      "channel": "high-tom"
-    },
-    {
-      "time": 66.5,
-      "channel": "mid-tom"
+      "channel": "snare",
+      "modifier": "ghost"
     },
     {
       "time": 67.0,
-      "channel": "bass"
+      "channel": "low-tom"
     },
     {
       "time": 67.0,
-      "channel": "high-tom"
-    },
-    {
-      "time": 67.0,
-      "channel": "mid-tom"
+      "channel": "snare"
     },
     {
       "time": 67.5,
-      "channel": "high-tom"
+      "channel": "low-tom"
     },
     {
       "time": 67.5,
-      "channel": "mid-tom"
+      "channel": "snare"
     },
     {
       "time": 68.0,
-      "channel": "mid-tom"
+      "channel": "low-tom"
     },
     {
       "time": 68.0,
-      "channel": "high-tom"
+      "channel": "snare"
     },
     {
       "time": 68.5,
@@ -829,7 +818,8 @@
     },
     {
       "time": 72.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 73.0,
@@ -949,7 +939,8 @@
     },
     {
       "time": 84.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 85.0,
@@ -957,7 +948,8 @@
     },
     {
       "time": 85.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 86.0,
@@ -973,11 +965,13 @@
     },
     {
       "time": 86.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 87.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 87.0,
@@ -989,7 +983,8 @@
     },
     {
       "time": 88.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 89.0,
@@ -1102,7 +1097,8 @@
     },
     {
       "time": 99.5,
-      "channel": "crash"
+      "channel": "china",
+      "sticking": "left"
     },
     {
       "time": 100.5,
@@ -1114,7 +1110,8 @@
     },
     {
       "time": 100.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 101.0,
@@ -1122,7 +1119,8 @@
     },
     {
       "time": 101.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 102.0,
@@ -1138,11 +1136,13 @@
     },
     {
       "time": 102.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 103.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 103.0,
@@ -1154,7 +1154,8 @@
     },
     {
       "time": 104.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 105.0,
@@ -1274,7 +1275,8 @@
     },
     {
       "time": 116.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 117.0,
@@ -1282,7 +1284,8 @@
     },
     {
       "time": 117.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 118.0,
@@ -1298,11 +1301,13 @@
     },
     {
       "time": 118.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 119.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 119.0,
@@ -1314,7 +1319,8 @@
     },
     {
       "time": 120.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 121.0,
@@ -1394,11 +1400,17 @@
     },
     {
       "time": 128.0,
-      "channel": "crash"
+      "channel": "bass"
+    },
+    {
+      "time": 128.0,
+      "channel": "splash",
+      "sticking": "right"
     },
     {
       "time": 128.25,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 128.5,
@@ -1406,11 +1418,17 @@
     },
     {
       "time": 128.75,
+      "channel": "bass",
+      "sticking": "left"
+    },
+    {
+      "time": 129.0,
       "channel": "bass"
     },
     {
       "time": 129.0,
-      "channel": "crash"
+      "channel": "splash",
+      "sticking": "right"
     },
     {
       "time": 129.0,
@@ -1418,7 +1436,8 @@
     },
     {
       "time": 129.25,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 129.5,
@@ -1426,7 +1445,12 @@
     },
     {
       "time": 129.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
+    },
+    {
+      "time": 130.0,
+      "channel": "low-tom"
     },
     {
       "time": 130.0,
@@ -1434,19 +1458,20 @@
     },
     {
       "time": 130.5,
-      "channel": "snare"
+      "channel": "low-tom"
     },
     {
-      "time": 131.0,
-      "channel": "bass"
-    },
-    {
-      "time": 131.5,
+      "time": 130.5,
       "channel": "snare"
     },
     {
       "time": 131.5,
-      "channel": "crash"
+      "channel": "snare"
+    },
+    {
+      "time": 131.5,
+      "channel": "china",
+      "sticking": "left"
     },
     {
       "time": 132.5,
@@ -1490,7 +1515,8 @@
     },
     {
       "time": 135.5,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 136.5,
@@ -1538,6 +1564,10 @@
     },
     {
       "time": 139.5,
+      "channel": "bass"
+    },
+    {
+      "time": 140.0,
       "channel": "bass"
     },
     {
@@ -1717,7 +1747,8 @@
     },
     {
       "time": 152.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 153.0,
@@ -1858,31 +1889,38 @@
     },
     {
       "time": 162.5,
-      "channel": "crash"
+      "channel": "splash",
+      "sticking": "right"
     },
     {
       "time": 162.5,
       "channel": "snare"
     },
     {
-      "time": 163.0,
-      "channel": "bass"
-    },
-    {
       "time": 163.5,
-      "channel": "crash"
+      "channel": "china",
+      "sticking": "left"
     },
     {
       "time": 163.5,
       "channel": "snare"
     },
     {
-      "time": 164.5,
+      "time": 164.0,
+      "channel": "high-tom"
+    },
+    {
+      "time": 164.25,
       "channel": "high-tom"
     },
     {
       "time": 164.5,
       "channel": "bass"
+    },
+    {
+      "time": 164.75,
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 165.0,
@@ -1894,11 +1932,12 @@
     },
     {
       "time": 165.5,
-      "channel": "mid-tom"
+      "channel": "bass"
     },
     {
       "time": 165.75,
-      "channel": "mid-tom"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 166.0,
@@ -1910,15 +1949,21 @@
     },
     {
       "time": 166.75,
-      "channel": "low-tom"
+      "channel": "mid-tom"
     },
     {
       "time": 167.0,
-      "channel": "low-tom"
+      "channel": "bass"
+    },
+    {
+      "time": 167.25,
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 167.5,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 167.5,
@@ -1934,7 +1979,8 @@
     },
     {
       "time": 169.0,
-      "channel": "hihat"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 169.5,
@@ -1970,6 +2016,10 @@
     },
     {
       "time": 171.5,
+      "channel": "bass"
+    },
+    {
+      "time": 172.0,
       "channel": "bass"
     },
     {
@@ -2149,7 +2199,8 @@
     },
     {
       "time": 184.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 185.0,
@@ -2157,11 +2208,8 @@
     },
     {
       "time": 185.0,
-      "channel": "ride"
-    },
-    {
-      "time": 185.5,
-      "channel": "ride"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 186.0,
@@ -2290,26 +2338,28 @@
     },
     {
       "time": 194.5,
-      "channel": "crash"
+      "channel": "splash",
+      "sticking": "left"
     },
     {
       "time": 194.5,
       "channel": "snare"
     },
     {
-      "time": 195.0,
-      "channel": "bass"
-    },
-    {
       "time": 195.5,
-      "channel": "crash"
+      "channel": "china",
+      "sticking": "left"
     },
     {
       "time": 195.5,
       "channel": "snare"
     },
     {
-      "time": 196.5,
+      "time": 196.0,
+      "channel": "high-tom"
+    },
+    {
+      "time": 196.25,
       "channel": "high-tom"
     },
     {
@@ -2317,9 +2367,13 @@
       "channel": "bass"
     },
     {
-      "time": 197.0,
-      "channel": "snare",
+      "time": 196.75,
+      "channel": "bass",
       "sticking": "left"
+    },
+    {
+      "time": 197.0,
+      "channel": "snare"
     },
     {
       "time": 197.25,
@@ -2327,15 +2381,20 @@
     },
     {
       "time": 197.5,
-      "channel": "mid-tom"
+      "channel": "bass"
     },
     {
       "time": 197.75,
-      "channel": "mid-tom"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 198.0,
       "channel": "snare"
+    },
+    {
+      "time": 198.25,
+      "channel": "high-tom"
     },
     {
       "time": 198.5,
@@ -2343,7 +2402,8 @@
     },
     {
       "time": 198.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 199.0,
@@ -2351,11 +2411,12 @@
     },
     {
       "time": 199.5,
-      "channel": "crash"
+      "channel": "bass"
     },
     {
       "time": 199.5,
-      "channel": "snare"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 200.0,
@@ -2363,22 +2424,15 @@
     },
     {
       "time": 200.0,
-      "channel": "crash"
-    },
-    {
-      "time": 200.5,
-      "channel": "bass"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 201.0,
-      "channel": "ride"
+      "channel": "ride-bell"
     },
     {
       "time": 201.0,
-      "channel": "bass"
-    },
-    {
-      "time": 201.5,
       "channel": "bass"
     },
     {
@@ -2387,7 +2441,7 @@
     },
     {
       "time": 203.0,
-      "channel": "ride"
+      "channel": "ride-bell"
     },
     {
       "time": 203.5,
@@ -2405,7 +2459,7 @@
     },
     {
       "time": 205.0,
-      "channel": "ride"
+      "channel": "ride-bell"
     },
     {
       "time": 205.0,
@@ -2417,7 +2471,8 @@
     },
     {
       "time": 205.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 206.0,
@@ -2429,7 +2484,7 @@
     },
     {
       "time": 207.0,
-      "channel": "ride"
+      "channel": "ride-bell"
     },
     {
       "time": 207.5,
@@ -2441,7 +2496,7 @@
     },
     {
       "time": 209.0,
-      "channel": "ride"
+      "channel": "ride-bell"
     },
     {
       "time": 209.0,
@@ -2453,7 +2508,7 @@
     },
     {
       "time": 211.0,
-      "channel": "ride"
+      "channel": "ride-bell"
     },
     {
       "time": 211.5,
@@ -2471,7 +2526,7 @@
     },
     {
       "time": 213.0,
-      "channel": "ride"
+      "channel": "ride-bell"
     },
     {
       "time": 213.0,
@@ -2483,7 +2538,12 @@
     },
     {
       "time": 213.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
+    },
+    {
+      "time": 214.0,
+      "channel": "open-hihat"
     },
     {
       "time": 214.0,
@@ -2491,7 +2551,15 @@
     },
     {
       "time": 214.75,
+      "channel": "open-hihat"
+    },
+    {
+      "time": 214.75,
       "channel": "snare"
+    },
+    {
+      "time": 215.5,
+      "channel": "open-hihat"
     },
     {
       "time": 215.5,
@@ -2499,15 +2567,16 @@
     },
     {
       "time": 216.0,
-      "channel": "bass"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 216.0,
-      "channel": "crash"
+      "channel": "bass"
     },
     {
       "time": 217.0,
-      "channel": "ride"
+      "channel": "ride-bell"
     },
     {
       "time": 217.0,
@@ -2519,7 +2588,7 @@
     },
     {
       "time": 219.0,
-      "channel": "ride"
+      "channel": "ride-bell"
     },
     {
       "time": 219.5,
@@ -2537,7 +2606,7 @@
     },
     {
       "time": 221.0,
-      "channel": "ride"
+      "channel": "ride-bell"
     },
     {
       "time": 221.0,
@@ -2549,11 +2618,16 @@
     },
     {
       "time": 221.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 222.0,
       "channel": "snare"
+    },
+    {
+      "time": 222.25,
+      "channel": "high-tom"
     },
     {
       "time": 222.5,
@@ -2561,7 +2635,8 @@
     },
     {
       "time": 222.66666666666666,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 222.83333333333334,
@@ -2573,11 +2648,8 @@
     },
     {
       "time": 223.0,
-      "channel": "open-hihat"
-    },
-    {
-      "time": 223.25,
-      "channel": "high-tom"
+      "channel": "splash",
+      "sticking": "right"
     },
     {
       "time": 223.5,
@@ -2589,7 +2661,8 @@
     },
     {
       "time": 224.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 224.5,
@@ -2605,7 +2678,7 @@
     },
     {
       "time": 225.5,
-      "channel": "crash"
+      "channel": "open-hihat"
     },
     {
       "time": 226.5,
@@ -2621,7 +2694,8 @@
     },
     {
       "time": 227.5,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 228.5,
@@ -2637,7 +2711,8 @@
     },
     {
       "time": 229.5,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 230.5,
@@ -2669,7 +2744,8 @@
     },
     {
       "time": 232.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 232.5,
@@ -2753,7 +2829,8 @@
     },
     {
       "time": 239.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 239.5,
@@ -2849,7 +2926,8 @@
     },
     {
       "time": 247.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 247.5,
@@ -2861,7 +2939,8 @@
     },
     {
       "time": 248.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 248.5,
@@ -2880,6 +2959,11 @@
       "channel": "bass"
     },
     {
+      "time": 249.75,
+      "channel": "bass",
+      "sticking": "left"
+    },
+    {
       "time": 250.0,
       "channel": "low-tom"
     },
@@ -2893,7 +2977,8 @@
     },
     {
       "time": 250.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 251.0,
@@ -2933,7 +3018,8 @@
     },
     {
       "time": 253.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 254.0,
@@ -2949,7 +3035,8 @@
     },
     {
       "time": 254.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 255.0,
@@ -2989,7 +3076,8 @@
     },
     {
       "time": 257.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 258.0,
@@ -3005,7 +3093,8 @@
     },
     {
       "time": 258.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 259.0,
@@ -3029,11 +3118,12 @@
     },
     {
       "time": 260.5,
-      "channel": "high-tom"
+      "channel": "bass"
     },
     {
       "time": 260.75,
-      "channel": "high-tom"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 261.0,
@@ -3045,11 +3135,12 @@
     },
     {
       "time": 261.5,
-      "channel": "mid-tom"
+      "channel": "bass"
     },
     {
       "time": 261.75,
-      "channel": "mid-tom"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 262.0,
@@ -3065,7 +3156,8 @@
     },
     {
       "time": 262.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 263.0,
@@ -3073,101 +3165,152 @@
     },
     {
       "time": 263.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 264.0,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "low-tom"
+    },
+    {
+      "time": 264.0,
+      "channel": "snare"
     },
     {
       "time": 264.5,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "low-tom"
+    },
+    {
+      "time": 264.5,
+      "channel": "snare"
     },
     {
       "time": 265.0,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "low-tom"
+    },
+    {
+      "time": 265.0,
+      "channel": "snare"
     },
     {
       "time": 265.5,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "low-tom"
+    },
+    {
+      "time": 265.5,
+      "channel": "snare"
     },
     {
       "time": 266.0,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "low-tom"
+    },
+    {
+      "time": 266.0,
+      "channel": "snare"
     },
     {
       "time": 267.0,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "low-tom"
+    },
+    {
+      "time": 267.0,
+      "channel": "snare"
     },
     {
       "time": 267.5,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "low-tom"
+    },
+    {
+      "time": 267.5,
+      "channel": "snare"
     },
     {
       "time": 268.5,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "low-tom"
+    },
+    {
+      "time": 268.5,
+      "channel": "snare"
     },
     {
       "time": 269.0,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "low-tom"
+    },
+    {
+      "time": 269.0,
+      "channel": "snare"
     },
     {
       "time": 270.0,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "low-tom"
+    },
+    {
+      "time": 270.0,
+      "channel": "snare"
     },
     {
       "time": 270.5,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "low-tom"
+    },
+    {
+      "time": 270.5,
+      "channel": "snare"
     },
     {
       "time": 271.0,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "snare"
+    },
+    {
+      "time": 271.0,
+      "channel": "low-tom"
     },
     {
       "time": 271.5,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "low-tom"
+    },
+    {
+      "time": 271.5,
+      "channel": "snare"
     },
     {
       "time": 272.0,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "low-tom"
+    },
+    {
+      "time": 272.0,
+      "channel": "snare"
     },
     {
       "time": 273.0,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "low-tom"
+    },
+    {
+      "time": 273.0,
+      "channel": "snare"
     },
     {
       "time": 273.5,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "low-tom"
+    },
+    {
+      "time": 273.5,
+      "channel": "snare"
     },
     {
       "time": 274.5,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "low-tom"
     },
     {
-      "time": 275.0,
-      "channel": "snare",
-      "modifier": "accent"
+      "time": 274.5,
+      "channel": "snare"
     },
     {
       "time": 275.0,
       "channel": "open-hihat"
+    },
+    {
+      "time": 275.0,
+      "channel": "snare"
     },
     {
       "time": 276.5,
@@ -3179,6 +3322,10 @@
     },
     {
       "time": 278.0,
+      "channel": "high-tom"
+    },
+    {
+      "time": 278.0,
       "channel": "bass"
     },
     {
@@ -3187,15 +3334,20 @@
     },
     {
       "time": 279.0,
+      "channel": "bass"
+    },
+    {
+      "time": 279.0,
       "channel": "mid-tom"
     },
     {
       "time": 280.0,
-      "channel": "bass"
+      "channel": "crash",
+      "modifier": "accent"
     },
     {
       "time": 280.0,
-      "channel": "crash"
+      "channel": "bass"
     },
     {
       "time": 281.0,
@@ -3319,7 +3471,8 @@
     },
     {
       "time": 292.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 293.0,
@@ -3327,7 +3480,8 @@
     },
     {
       "time": 293.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 294.0,
@@ -3343,11 +3497,13 @@
     },
     {
       "time": 294.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 295.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 295.0,
@@ -3355,11 +3511,12 @@
     },
     {
       "time": 296.0,
-      "channel": "bass"
+      "channel": "crash",
+      "modifier": "accent"
     },
     {
       "time": 296.0,
-      "channel": "crash"
+      "channel": "bass"
     },
     {
       "time": 297.0,
@@ -3475,7 +3632,8 @@
     },
     {
       "time": 308.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 308.0,
@@ -3487,12 +3645,12 @@
     },
     {
       "time": 308.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 309.0,
-      "channel": "snare",
-      "sticking": "left"
+      "channel": "snare"
     },
     {
       "time": 309.25,
@@ -3504,12 +3662,12 @@
     },
     {
       "time": 309.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 310.0,
-      "channel": "snare",
-      "sticking": "left"
+      "channel": "snare"
     },
     {
       "time": 310.25,
@@ -3520,28 +3678,35 @@
       "channel": "bass"
     },
     {
-      "time": 310.75,
+      "time": 310.6666666666667,
+      "channel": "bass",
+      "sticking": "left"
+    },
+    {
+      "time": 310.8333333333333,
       "channel": "bass"
+    },
+    {
+      "time": 311.0,
+      "channel": "low-tom"
     },
     {
       "time": 311.0,
       "channel": "snare"
     },
     {
-      "time": 311.5,
-      "channel": "bass"
+      "time": 312.0,
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 312.0,
       "channel": "bass"
-    },
-    {
-      "time": 312.0,
-      "channel": "crash"
     },
     {
       "time": 313.0,
-      "channel": "open-hihat"
+      "channel": "china",
+      "sticking": "left"
     },
     {
       "time": 313.0,
@@ -3656,16 +3821,13 @@
       "channel": "open-hihat"
     },
     {
-      "time": 324.0,
-      "channel": "bass"
-    },
-    {
       "time": 324.5,
       "channel": "bass"
     },
     {
       "time": 324.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 325.0,
@@ -3673,7 +3835,8 @@
     },
     {
       "time": 325.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 326.0,
@@ -3689,11 +3852,13 @@
     },
     {
       "time": 326.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 327.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 327.0,
@@ -3705,7 +3870,8 @@
     },
     {
       "time": 328.0,
-      "channel": "crash"
+      "channel": "crash",
+      "modifier": "accent"
     },
     {
       "time": 329.0,
@@ -3821,11 +3987,12 @@
     },
     {
       "time": 340.0,
-      "channel": "bass"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 340.0,
-      "channel": "crash"
+      "channel": "bass"
     },
     {
       "time": 340.5,
@@ -3833,12 +4000,12 @@
     },
     {
       "time": 340.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 341.0,
-      "channel": "snare",
-      "sticking": "left"
+      "channel": "snare"
     },
     {
       "time": 341.25,
@@ -3850,12 +4017,12 @@
     },
     {
       "time": 341.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 342.0,
-      "channel": "snare",
-      "sticking": "left"
+      "channel": "snare"
     },
     {
       "time": 342.25,
@@ -3866,24 +4033,34 @@
       "channel": "bass"
     },
     {
-      "time": 342.75,
+      "time": 342.6666666666667,
+      "channel": "bass",
+      "sticking": "left"
+    },
+    {
+      "time": 342.8333333333333,
       "channel": "bass"
+    },
+    {
+      "time": 343.0,
+      "channel": "low-tom"
     },
     {
       "time": 343.0,
       "channel": "snare"
     },
     {
-      "time": 343.5,
-      "channel": "bass"
-    },
-    {
       "time": 344.0,
       "channel": "bass"
     },
     {
       "time": 344.0,
-      "channel": "crash"
+      "channel": "snare"
+    },
+    {
+      "time": 344.0,
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 345.0,
@@ -3891,7 +4068,7 @@
     },
     {
       "time": 345.0,
-      "channel": "open-hihat"
+      "channel": "ride"
     },
     {
       "time": 345.5,
@@ -3903,7 +4080,7 @@
     },
     {
       "time": 346.0,
-      "channel": "hihat"
+      "channel": "ride"
     },
     {
       "time": 346.5,
@@ -3915,7 +4092,7 @@
     },
     {
       "time": 347.0,
-      "channel": "hihat"
+      "channel": "ride"
     },
     {
       "time": 347.5,
@@ -3923,7 +4100,7 @@
     },
     {
       "time": 348.0,
-      "channel": "hihat"
+      "channel": "ride"
     },
     {
       "time": 348.0,
@@ -3939,7 +4116,7 @@
     },
     {
       "time": 349.0,
-      "channel": "hihat"
+      "channel": "ride"
     },
     {
       "time": 349.5,
@@ -3951,11 +4128,16 @@
     },
     {
       "time": 350.0,
-      "channel": "hihat"
+      "channel": "ride"
     },
     {
       "time": 350.5,
       "channel": "bass"
+    },
+    {
+      "time": 350.75,
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 351.0,
@@ -3963,7 +4145,7 @@
     },
     {
       "time": 351.0,
-      "channel": "hihat"
+      "channel": "ride"
     },
     {
       "time": 351.5,
@@ -3971,7 +4153,7 @@
     },
     {
       "time": 352.0,
-      "channel": "hihat"
+      "channel": "ride"
     },
     {
       "time": 352.0,
@@ -3987,7 +4169,8 @@
     },
     {
       "time": 353.0,
-      "channel": "open-hihat"
+      "channel": "china",
+      "sticking": "left"
     },
     {
       "time": 353.5,
@@ -4011,15 +4194,11 @@
     },
     {
       "time": 355.0,
-      "channel": "bass"
+      "channel": "low-tom"
     },
     {
       "time": 355.0,
-      "channel": "low-tom"
-    },
-    {
-      "time": 355.25,
-      "channel": "low-tom"
+      "channel": "bass"
     },
     {
       "time": 355.5,
@@ -4027,15 +4206,21 @@
     },
     {
       "time": 355.75,
+      "channel": "bass",
+      "sticking": "left"
+    },
+    {
+      "time": 356.0,
+      "channel": "snare"
+    },
+    {
+      "time": 356.0,
       "channel": "bass"
     },
     {
       "time": 356.0,
-      "channel": "snare"
-    },
-    {
-      "time": 356.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 356.5,
@@ -4043,11 +4228,21 @@
     },
     {
       "time": 356.5,
-      "channel": "crash"
+      "channel": "bass"
+    },
+    {
+      "time": 356.5,
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 357.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
+    },
+    {
+      "time": 357.0,
+      "channel": "bass"
     },
     {
       "time": 357.0,
@@ -4059,7 +4254,8 @@
     },
     {
       "time": 360.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 361.0,
@@ -4179,7 +4375,8 @@
     },
     {
       "time": 372.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 373.0,
@@ -4187,7 +4384,8 @@
     },
     {
       "time": 373.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 374.0,
@@ -4203,11 +4401,13 @@
     },
     {
       "time": 374.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 375.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 375.0,
@@ -4219,7 +4419,8 @@
     },
     {
       "time": 376.0,
-      "channel": "crash"
+      "channel": "crash",
+      "modifier": "accent"
     },
     {
       "time": 377.0,
@@ -4299,11 +4500,17 @@
     },
     {
       "time": 384.0,
-      "channel": "open-hihat"
+      "channel": "bass"
+    },
+    {
+      "time": 384.0,
+      "channel": "splash",
+      "sticking": "right"
     },
     {
       "time": 384.25,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 384.5,
@@ -4311,19 +4518,26 @@
     },
     {
       "time": 384.75,
+      "channel": "bass",
+      "sticking": "left"
+    },
+    {
+      "time": 385.0,
       "channel": "bass"
+    },
+    {
+      "time": 385.0,
+      "channel": "splash",
+      "sticking": "right"
     },
     {
       "time": 385.0,
       "channel": "snare"
     },
     {
-      "time": 385.0,
-      "channel": "open-hihat"
-    },
-    {
       "time": 385.25,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 385.5,
@@ -4331,21 +4545,24 @@
     },
     {
       "time": 385.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 386.0,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "low-tom"
+    },
+    {
+      "time": 386.0,
+      "channel": "snare"
     },
     {
       "time": 386.5,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "low-tom"
     },
     {
-      "time": 387.0,
-      "channel": "bass"
+      "time": 386.5,
+      "channel": "snare"
     },
     {
       "time": 387.5,
@@ -4353,10 +4570,15 @@
     },
     {
       "time": 387.5,
-      "channel": "crash"
+      "channel": "china",
+      "sticking": "left"
     },
     {
       "time": 388.5,
+      "channel": "high-tom"
+    },
+    {
+      "time": 388.75,
       "channel": "high-tom"
     },
     {
@@ -4373,12 +4595,16 @@
     },
     {
       "time": 389.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 390.0,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "low-tom"
+    },
+    {
+      "time": 390.0,
+      "channel": "snare"
     },
     {
       "time": 390.5,
@@ -4394,7 +4620,8 @@
     },
     {
       "time": 391.5,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 392.5,
@@ -4478,7 +4705,7 @@
     },
     {
       "time": 399.0,
-      "channel": "hihat"
+      "channel": "open-hihat"
     },
     {
       "time": 399.0,
@@ -4490,10 +4717,6 @@
     },
     {
       "time": 399.5,
-      "channel": "open-hihat"
-    },
-    {
-      "time": 399.75,
       "channel": "hihat-pedal"
     },
     {
@@ -4546,7 +4769,8 @@
     },
     {
       "time": 403.5,
-      "channel": "crash"
+      "channel": "china",
+      "sticking": "left"
     },
     {
       "time": 404.0,
@@ -4558,7 +4782,8 @@
     },
     {
       "time": 404.5,
-      "channel": "open-hihat"
+      "channel": "splash",
+      "sticking": "right"
     },
     {
       "time": 405.0,
@@ -4566,7 +4791,8 @@
     },
     {
       "time": 405.0,
-      "channel": "open-hihat"
+      "channel": "splash",
+      "sticking": "right"
     },
     {
       "time": 405.5,
@@ -4610,7 +4836,8 @@
     },
     {
       "time": 408.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 409.0,
@@ -4778,6 +5005,10 @@
       "channel": "bass"
     },
     {
+      "time": 421.0,
+      "channel": "mid-tom"
+    },
+    {
       "time": 421.25,
       "channel": "bass"
     },
@@ -4786,15 +5017,15 @@
       "channel": "snare"
     },
     {
-      "time": 421.5,
-      "channel": "crash"
-    },
-    {
       "time": 422.0,
       "channel": "high-tom"
     },
     {
       "time": 422.25,
+      "channel": "bass"
+    },
+    {
+      "time": 422.5,
       "channel": "mid-tom"
     },
     {
@@ -4806,16 +5037,13 @@
       "channel": "open-hihat"
     },
     {
-      "time": 423.25,
-      "channel": "open-hihat"
+      "time": 423.5,
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 423.5,
       "channel": "snare"
-    },
-    {
-      "time": 423.5,
-      "channel": "crash"
     },
     {
       "time": 424.5,
@@ -4886,6 +5114,10 @@
     },
     {
       "time": 428.0,
+      "channel": "bass"
+    },
+    {
+      "time": 428.0,
       "channel": "hihat"
     },
     {
@@ -4952,7 +5184,7 @@
     },
     {
       "time": 432.0,
-      "channel": "hihat"
+      "channel": "ride-bell"
     },
     {
       "time": 432.5,
@@ -5002,7 +5234,8 @@
     },
     {
       "time": 435.5,
-      "channel": "crash"
+      "channel": "china",
+      "sticking": "left"
     },
     {
       "time": 435.5,
@@ -5018,7 +5251,8 @@
     },
     {
       "time": 437.0,
-      "channel": "crash"
+      "channel": "splash",
+      "sticking": "right"
     },
     {
       "time": 437.5,
@@ -5034,7 +5268,7 @@
     },
     {
       "time": 438.5,
-      "channel": "high-tom"
+      "channel": "snare"
     },
     {
       "time": 438.75,
@@ -5062,7 +5296,8 @@
     },
     {
       "time": 440.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 441.0,
@@ -5070,11 +5305,8 @@
     },
     {
       "time": 441.0,
-      "channel": "ride"
-    },
-    {
-      "time": 441.5,
-      "channel": "ride"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 442.0,
@@ -5203,19 +5435,17 @@
     },
     {
       "time": 450.5,
-      "channel": "crash"
+      "channel": "splash",
+      "sticking": "left"
     },
     {
       "time": 450.5,
       "channel": "snare"
     },
     {
-      "time": 451.0,
-      "channel": "bass"
-    },
-    {
       "time": 451.5,
-      "channel": "crash"
+      "channel": "china",
+      "sticking": "left"
     },
     {
       "time": 451.5,
@@ -5223,16 +5453,16 @@
     },
     {
       "time": 452.5,
-      "channel": "high-tom"
-    },
-    {
-      "time": 452.5,
       "channel": "bass"
     },
     {
-      "time": 453.0,
-      "channel": "snare",
+      "time": 452.75,
+      "channel": "bass",
       "sticking": "left"
+    },
+    {
+      "time": 453.0,
+      "channel": "snare"
     },
     {
       "time": 453.25,
@@ -5240,15 +5470,20 @@
     },
     {
       "time": 453.5,
-      "channel": "mid-tom"
+      "channel": "bass"
     },
     {
       "time": 453.75,
-      "channel": "mid-tom"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 454.0,
       "channel": "snare"
+    },
+    {
+      "time": 454.25,
+      "channel": "high-tom"
     },
     {
       "time": 454.5,
@@ -5256,11 +5491,13 @@
     },
     {
       "time": 454.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 455.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 455.0,
@@ -5272,15 +5509,16 @@
     },
     {
       "time": 456.0,
-      "channel": "bass"
+      "channel": "crash",
+      "modifier": "accent"
     },
     {
       "time": 456.0,
-      "channel": "crash"
+      "channel": "bass"
     },
     {
       "time": 457.0,
-      "channel": "ride"
+      "channel": "ride-bell"
     },
     {
       "time": 457.0,
@@ -5292,7 +5530,7 @@
     },
     {
       "time": 459.0,
-      "channel": "ride"
+      "channel": "ride-bell"
     },
     {
       "time": 459.5,
@@ -5310,7 +5548,7 @@
     },
     {
       "time": 461.0,
-      "channel": "ride"
+      "channel": "ride-bell"
     },
     {
       "time": 461.0,
@@ -5322,7 +5560,8 @@
     },
     {
       "time": 461.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 462.0,
@@ -5334,7 +5573,7 @@
     },
     {
       "time": 463.0,
-      "channel": "ride"
+      "channel": "ride-bell"
     },
     {
       "time": 463.5,
@@ -5346,7 +5585,7 @@
     },
     {
       "time": 465.0,
-      "channel": "ride"
+      "channel": "ride-bell"
     },
     {
       "time": 465.0,
@@ -5358,7 +5597,7 @@
     },
     {
       "time": 467.0,
-      "channel": "ride"
+      "channel": "ride-bell"
     },
     {
       "time": 467.5,
@@ -5388,7 +5627,8 @@
     },
     {
       "time": 469.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 470.0,
@@ -5396,7 +5636,8 @@
     },
     {
       "time": 470.0,
-      "channel": "open-hihat"
+      "channel": "splash",
+      "sticking": "right"
     },
     {
       "time": 470.3333333333333,
@@ -5404,7 +5645,8 @@
     },
     {
       "time": 470.6666666666667,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 471.0,
@@ -5412,7 +5654,8 @@
     },
     {
       "time": 471.3333333333333,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 471.6666666666667,
@@ -5420,15 +5663,17 @@
     },
     {
       "time": 472.0,
-      "channel": "bass"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 472.0,
-      "channel": "crash"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 473.0,
-      "channel": "ride"
+      "channel": "ride-bell"
     },
     {
       "time": 473.0,
@@ -5440,7 +5685,7 @@
     },
     {
       "time": 475.0,
-      "channel": "ride"
+      "channel": "ride-bell"
     },
     {
       "time": 475.5,
@@ -5458,7 +5703,7 @@
     },
     {
       "time": 477.0,
-      "channel": "ride"
+      "channel": "ride-bell"
     },
     {
       "time": 477.0,
@@ -5470,11 +5715,16 @@
     },
     {
       "time": 477.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 478.0,
       "channel": "snare"
+    },
+    {
+      "time": 478.25,
+      "channel": "high-tom"
     },
     {
       "time": 478.5,
@@ -5482,7 +5732,8 @@
     },
     {
       "time": 478.6666666666667,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 478.8333333333333,
@@ -5494,11 +5745,8 @@
     },
     {
       "time": 479.0,
-      "channel": "open-hihat"
-    },
-    {
-      "time": 479.25,
-      "channel": "high-tom"
+      "channel": "splash",
+      "sticking": "right"
     },
     {
       "time": 479.5,
@@ -5510,7 +5758,8 @@
     },
     {
       "time": 480.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 480.5,
@@ -5526,7 +5775,7 @@
     },
     {
       "time": 481.5,
-      "channel": "crash"
+      "channel": "open-hihat"
     },
     {
       "time": 482.5,
@@ -5542,7 +5791,8 @@
     },
     {
       "time": 483.5,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 484.5,
@@ -5558,7 +5808,8 @@
     },
     {
       "time": 485.5,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 486.5,
@@ -5590,7 +5841,8 @@
     },
     {
       "time": 488.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 488.5,
@@ -5674,7 +5926,8 @@
     },
     {
       "time": 495.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 495.5,
@@ -5770,7 +6023,8 @@
     },
     {
       "time": 503.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 503.5,
@@ -5782,7 +6036,8 @@
     },
     {
       "time": 504.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 504.5,
@@ -5801,6 +6056,11 @@
       "channel": "bass"
     },
     {
+      "time": 505.75,
+      "channel": "bass",
+      "sticking": "left"
+    },
+    {
       "time": 506.0,
       "channel": "low-tom"
     },
@@ -5814,7 +6074,8 @@
     },
     {
       "time": 506.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 507.0,
@@ -5854,7 +6115,8 @@
     },
     {
       "time": 509.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 510.0,
@@ -5870,7 +6132,8 @@
     },
     {
       "time": 510.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 511.0,
@@ -5910,11 +6173,12 @@
     },
     {
       "time": 513.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 514.0,
-      "channel": "high-tom"
+      "channel": "snare"
     },
     {
       "time": 514.25,
@@ -5922,26 +6186,32 @@
     },
     {
       "time": 514.5,
-      "channel": "high-tom"
-    },
-    {
-      "time": 514.75,
       "channel": "bass"
     },
     {
+      "time": 514.75,
+      "channel": "bass",
+      "sticking": "left"
+    },
+    {
       "time": 515.0,
-      "channel": "mid-tom"
+      "channel": "high-tom"
     },
     {
       "time": 515.25,
-      "channel": "mid-tom"
+      "channel": "high-tom"
     },
     {
       "time": 515.5,
       "channel": "bass"
     },
     {
-      "time": 515.75,
+      "time": 515.6666666666666,
+      "channel": "bass",
+      "sticking": "left"
+    },
+    {
+      "time": 515.8333333333334,
       "channel": "bass"
     },
     {
@@ -5950,35 +6220,50 @@
     },
     {
       "time": 516.0,
-      "channel": "open-hihat"
+      "channel": "china",
+      "sticking": "left"
     },
     {
       "time": 517.0,
+      "channel": "high-tom"
+    },
+    {
+      "time": 517.0,
+      "channel": "bass"
+    },
+    {
+      "time": 517.1666666666666,
       "channel": "snare"
     },
     {
-      "time": 517.5,
+      "time": 517.3333333333334,
       "channel": "snare"
+    },
+    {
+      "time": 517.6666666666666,
+      "channel": "snare",
+      "sticking": "left"
+    },
+    {
+      "time": 518.0,
+      "channel": "mid-tom"
     },
     {
       "time": 518.0,
       "channel": "bass"
     },
     {
-      "time": 518.25,
+      "time": 518.3333333333334,
       "channel": "high-tom"
     },
     {
-      "time": 518.5,
-      "channel": "mid-tom"
-    },
-    {
-      "time": 518.75,
-      "channel": "mid-tom"
+      "time": 518.6666666666666,
+      "channel": "high-tom"
     },
     {
       "time": 519.0,
-      "channel": "snare"
+      "channel": "snare",
+      "sticking": "left"
     },
     {
       "time": 519.3333333333334,
@@ -5990,97 +6275,147 @@
     },
     {
       "time": 520.0,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "low-tom"
+    },
+    {
+      "time": 520.0,
+      "channel": "snare"
     },
     {
       "time": 520.5,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "low-tom"
+    },
+    {
+      "time": 520.5,
+      "channel": "snare"
     },
     {
       "time": 521.0,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "low-tom"
+    },
+    {
+      "time": 521.0,
+      "channel": "snare"
     },
     {
       "time": 521.5,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "low-tom"
+    },
+    {
+      "time": 521.5,
+      "channel": "snare"
     },
     {
       "time": 522.0,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "low-tom"
+    },
+    {
+      "time": 522.0,
+      "channel": "snare"
     },
     {
       "time": 523.0,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "low-tom"
+    },
+    {
+      "time": 523.0,
+      "channel": "snare"
     },
     {
       "time": 523.5,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "low-tom"
+    },
+    {
+      "time": 523.5,
+      "channel": "snare"
     },
     {
       "time": 524.5,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "low-tom"
+    },
+    {
+      "time": 524.5,
+      "channel": "snare"
     },
     {
       "time": 525.0,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "low-tom"
+    },
+    {
+      "time": 525.0,
+      "channel": "snare"
     },
     {
       "time": 526.0,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "low-tom"
+    },
+    {
+      "time": 526.0,
+      "channel": "snare"
     },
     {
       "time": 526.5,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "low-tom"
+    },
+    {
+      "time": 526.5,
+      "channel": "snare"
     },
     {
       "time": 527.0,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "low-tom"
+    },
+    {
+      "time": 527.0,
+      "channel": "snare"
     },
     {
       "time": 527.5,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "low-tom"
+    },
+    {
+      "time": 527.5,
+      "channel": "snare"
     },
     {
       "time": 528.0,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "low-tom"
+    },
+    {
+      "time": 528.0,
+      "channel": "snare"
     },
     {
       "time": 529.0,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "low-tom"
+    },
+    {
+      "time": 529.0,
+      "channel": "snare"
     },
     {
       "time": 529.5,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "low-tom"
+    },
+    {
+      "time": 529.5,
+      "channel": "snare"
     },
     {
       "time": 530.5,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "low-tom"
     },
     {
-      "time": 531.0,
-      "channel": "snare",
-      "modifier": "accent"
+      "time": 530.5,
+      "channel": "snare"
     },
     {
       "time": 531.0,
       "channel": "open-hihat"
+    },
+    {
+      "time": 531.0,
+      "channel": "snare"
     },
     {
       "time": 532.5,
@@ -6108,6 +6443,14 @@
     },
     {
       "time": 534.0,
+      "channel": "high-tom"
+    },
+    {
+      "time": 534.0,
+      "channel": "bass"
+    },
+    {
+      "time": 535.0,
       "channel": "bass"
     },
     {
@@ -6120,11 +6463,12 @@
     },
     {
       "time": 536.0,
-      "channel": "bass"
+      "channel": "crash",
+      "modifier": "accent"
     },
     {
       "time": 536.0,
-      "channel": "crash"
+      "channel": "bass"
     },
     {
       "time": 537.0,
@@ -6248,7 +6592,8 @@
     },
     {
       "time": 548.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 549.0,
@@ -6256,7 +6601,8 @@
     },
     {
       "time": 549.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 550.0,
@@ -6272,11 +6618,13 @@
     },
     {
       "time": 550.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 551.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 551.0,
@@ -6288,7 +6636,8 @@
     },
     {
       "time": 552.0,
-      "channel": "crash"
+      "channel": "crash",
+      "modifier": "accent"
     },
     {
       "time": 553.0,
@@ -6404,7 +6753,8 @@
     },
     {
       "time": 564.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 564.0,
@@ -6416,7 +6766,8 @@
     },
     {
       "time": 564.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 565.0,
@@ -6432,12 +6783,12 @@
     },
     {
       "time": 565.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 566.0,
-      "channel": "high-tom",
-      "sticking": "left"
+      "channel": "high-tom"
     },
     {
       "time": 566.25,
@@ -6448,7 +6799,12 @@
       "channel": "bass"
     },
     {
-      "time": 566.75,
+      "time": 566.6666666666666,
+      "channel": "bass",
+      "sticking": "left"
+    },
+    {
+      "time": 566.8333333333334,
       "channel": "bass"
     },
     {
@@ -6456,8 +6812,8 @@
       "channel": "snare"
     },
     {
-      "time": 567.5,
-      "channel": "bass"
+      "time": 567.0833333333334,
+      "channel": "snare"
     },
     {
       "time": 568.0,
@@ -6465,11 +6821,13 @@
     },
     {
       "time": 568.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 569.0,
-      "channel": "open-hihat"
+      "channel": "china",
+      "sticking": "left"
     },
     {
       "time": 569.0,
@@ -6584,16 +6942,13 @@
       "channel": "open-hihat"
     },
     {
-      "time": 580.0,
-      "channel": "bass"
-    },
-    {
       "time": 580.5,
       "channel": "bass"
     },
     {
       "time": 580.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 581.0,
@@ -6601,7 +6956,8 @@
     },
     {
       "time": 581.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 582.0,
@@ -6617,11 +6973,13 @@
     },
     {
       "time": 582.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 583.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 583.0,
@@ -6633,7 +6991,8 @@
     },
     {
       "time": 584.0,
-      "channel": "crash"
+      "channel": "crash",
+      "modifier": "accent"
     },
     {
       "time": 585.0,
@@ -6753,7 +7112,8 @@
     },
     {
       "time": 596.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 596.5,
@@ -6761,12 +7121,12 @@
     },
     {
       "time": 596.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 597.0,
-      "channel": "snare",
-      "sticking": "left"
+      "channel": "snare"
     },
     {
       "time": 597.25,
@@ -6778,12 +7138,12 @@
     },
     {
       "time": 597.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 598.0,
-      "channel": "snare",
-      "sticking": "left"
+      "channel": "snare"
     },
     {
       "time": 598.25,
@@ -6794,16 +7154,25 @@
       "channel": "bass"
     },
     {
-      "time": 598.75,
+      "time": 598.6666666666666,
+      "channel": "bass",
+      "sticking": "left"
+    },
+    {
+      "time": 598.8333333333334,
       "channel": "bass"
+    },
+    {
+      "time": 599.0,
+      "channel": "low-tom"
     },
     {
       "time": 599.0,
       "channel": "snare"
     },
     {
-      "time": 599.5,
-      "channel": "bass"
+      "time": 600.0,
+      "channel": "snare"
     },
     {
       "time": 600.0,
@@ -6811,7 +7180,8 @@
     },
     {
       "time": 600.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 601.0,
@@ -6819,7 +7189,7 @@
     },
     {
       "time": 601.0,
-      "channel": "hihat"
+      "channel": "ride"
     },
     {
       "time": 601.5,
@@ -6831,7 +7201,7 @@
     },
     {
       "time": 602.0,
-      "channel": "hihat"
+      "channel": "ride"
     },
     {
       "time": 602.5,
@@ -6843,7 +7213,7 @@
     },
     {
       "time": 603.0,
-      "channel": "hihat"
+      "channel": "ride"
     },
     {
       "time": 603.5,
@@ -6851,7 +7221,7 @@
     },
     {
       "time": 604.0,
-      "channel": "hihat"
+      "channel": "ride"
     },
     {
       "time": 604.0,
@@ -6867,7 +7237,7 @@
     },
     {
       "time": 605.0,
-      "channel": "hihat"
+      "channel": "ride"
     },
     {
       "time": 605.5,
@@ -6879,7 +7249,7 @@
     },
     {
       "time": 606.0,
-      "channel": "hihat"
+      "channel": "ride"
     },
     {
       "time": 606.5,
@@ -6887,7 +7257,8 @@
     },
     {
       "time": 606.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 607.0,
@@ -6895,7 +7266,7 @@
     },
     {
       "time": 607.0,
-      "channel": "hihat"
+      "channel": "ride"
     },
     {
       "time": 607.5,
@@ -6927,10 +7298,6 @@
     },
     {
       "time": 610.0,
-      "channel": "high-tom"
-    },
-    {
-      "time": 610.0,
       "channel": "mid-tom"
     },
     {
@@ -6951,7 +7318,7 @@
     },
     {
       "time": 611.0,
-      "channel": "mid-tom"
+      "channel": "low-tom"
     },
     {
       "time": 611.5,
@@ -6963,7 +7330,12 @@
     },
     {
       "time": 612.0,
-      "channel": "crash"
+      "channel": "bass"
+    },
+    {
+      "time": 612.0,
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 612.5,
@@ -6971,11 +7343,21 @@
     },
     {
       "time": 612.5,
-      "channel": "crash"
+      "channel": "bass"
+    },
+    {
+      "time": 612.5,
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 613.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
+    },
+    {
+      "time": 613.0,
+      "channel": "bass"
     },
     {
       "time": 613.0,
@@ -6987,6 +7369,10 @@
     },
     {
       "time": 615.0,
+      "channel": "bass"
+    },
+    {
+      "time": 615.0,
       "channel": "low-tom"
     },
     {
@@ -6995,11 +7381,13 @@
     },
     {
       "time": 616.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 616.5,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 616.5,
@@ -7007,7 +7395,8 @@
     },
     {
       "time": 617.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 617.0,
@@ -7035,7 +7424,8 @@
     },
     {
       "time": 621.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 622.0,
@@ -7067,7 +7457,8 @@
     },
     {
       "time": 624.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 624.5,
@@ -7075,7 +7466,8 @@
     },
     {
       "time": 624.5,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 625.0,
@@ -7083,7 +7475,8 @@
     },
     {
       "time": 625.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 626.0,
@@ -7107,7 +7500,8 @@
     },
     {
       "time": 628.0,
-      "channel": "open-hihat"
+      "channel": "china",
+      "sticking": "left"
     },
     {
       "time": 628.75,
@@ -7115,7 +7509,8 @@
     },
     {
       "time": 628.75,
-      "channel": "open-hihat"
+      "channel": "china",
+      "sticking": "left"
     },
     {
       "time": 629.0,
@@ -7127,7 +7522,8 @@
     },
     {
       "time": 629.5,
-      "channel": "open-hihat"
+      "channel": "china",
+      "sticking": "left"
     },
     {
       "time": 630.0,
@@ -7139,7 +7535,8 @@
     },
     {
       "time": 630.25,
-      "channel": "open-hihat"
+      "channel": "china",
+      "sticking": "left"
     },
     {
       "time": 630.75,
@@ -7171,7 +7568,8 @@
     },
     {
       "time": 632.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 632.5,
@@ -7179,7 +7577,8 @@
     },
     {
       "time": 632.5,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 633.0,
@@ -7187,11 +7586,8 @@
     },
     {
       "time": 633.0,
-      "channel": "crash"
-    },
-    {
-      "time": 634.0,
-      "channel": "hihat-pedal"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 634.5,
@@ -7199,7 +7595,8 @@
     },
     {
       "time": 634.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 635.0,
@@ -7207,11 +7604,8 @@
     },
     {
       "time": 635.0,
-      "channel": "open-hihat"
-    },
-    {
-      "time": 635.5,
-      "channel": "bass"
+      "channel": "splash",
+      "sticking": "right"
     },
     {
       "time": 636.0,
@@ -7227,7 +7621,8 @@
     },
     {
       "time": 636.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 637.0,
@@ -7243,7 +7638,8 @@
     },
     {
       "time": 637.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 638.0,
@@ -7259,7 +7655,8 @@
     },
     {
       "time": 638.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 639.0,
@@ -7271,15 +7668,17 @@
     },
     {
       "time": 640.0,
-      "channel": "crash"
+      "channel": "bass"
     },
     {
       "time": 640.0,
-      "channel": "snare"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 640.5,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 640.5,
@@ -7287,7 +7686,8 @@
     },
     {
       "time": 641.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 641.0,
@@ -7303,7 +7703,8 @@
     },
     {
       "time": 642.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 642.5,
@@ -7311,7 +7712,8 @@
     },
     {
       "time": 642.5,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 643.0,
@@ -7319,7 +7721,8 @@
     },
     {
       "time": 643.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 643.5,
@@ -7327,15 +7730,12 @@
     },
     {
       "time": 644.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 644.0,
       "channel": "snare"
-    },
-    {
-      "time": 644.5,
-      "channel": "crash"
     },
     {
       "time": 644.5,
@@ -7347,11 +7747,12 @@
     },
     {
       "time": 645.0,
-      "channel": "crash"
+      "channel": "snare"
     },
     {
-      "time": 645.0,
-      "channel": "snare"
+      "time": 645.5,
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 645.5,
@@ -7371,7 +7772,7 @@
     },
     {
       "time": 646.75,
-      "channel": "high-tom"
+      "channel": "bass"
     },
     {
       "time": 647.0,
@@ -7379,7 +7780,8 @@
     },
     {
       "time": 647.0,
-      "channel": "crash"
+      "channel": "china",
+      "sticking": "left"
     },
     {
       "time": 648.0,
@@ -7387,19 +7789,12 @@
     },
     {
       "time": 648.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 648.5,
       "channel": "bass"
-    },
-    {
-      "time": 648.5,
-      "channel": "crash"
-    },
-    {
-      "time": 649.0,
-      "channel": "crash"
     },
     {
       "time": 649.0,
@@ -7407,7 +7802,7 @@
     },
     {
       "time": 649.0,
-      "channel": "bass"
+      "channel": "low-tom"
     },
     {
       "time": 649.5,
@@ -7575,7 +7970,8 @@
     },
     {
       "time": 663.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 663.5,
@@ -7583,11 +7979,12 @@
     },
     {
       "time": 664.0,
-      "channel": "bass"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 664.0,
-      "channel": "low-tom"
+      "channel": "bass"
     },
     {
       "time": 664.5,
@@ -7671,7 +8068,8 @@
     },
     {
       "time": 671.0,
-      "channel": "open-hihat"
+      "channel": "splash",
+      "sticking": "right"
     },
     {
       "time": 671.5,
@@ -7683,73 +8081,72 @@
     },
     {
       "time": 672.0,
-      "channel": "crash"
+      "channel": "crash",
+      "modifier": "accent"
     },
     {
       "time": 673.0,
-      "channel": "high-tom",
+      "channel": "low-tom",
       "modifier": "ghost"
     },
     {
       "time": 673.0,
-      "channel": "mid-tom",
+      "channel": "snare",
       "modifier": "ghost"
     },
     {
       "time": 673.5,
-      "channel": "high-tom"
+      "channel": "low-tom",
+      "modifier": "ghost"
     },
     {
       "time": 673.5,
-      "channel": "mid-tom"
+      "channel": "snare",
+      "modifier": "ghost"
     },
     {
       "time": 674.0,
-      "channel": "high-tom"
+      "channel": "low-tom",
+      "modifier": "ghost"
     },
     {
       "time": 674.0,
-      "channel": "mid-tom"
+      "channel": "snare",
+      "modifier": "ghost"
     },
     {
       "time": 674.5,
-      "channel": "bass"
+      "channel": "low-tom",
+      "modifier": "ghost"
     },
     {
       "time": 674.5,
-      "channel": "high-tom"
-    },
-    {
-      "time": 674.5,
-      "channel": "mid-tom"
+      "channel": "snare",
+      "modifier": "ghost"
     },
     {
       "time": 675.0,
-      "channel": "high-tom",
-      "modifier": "accent"
+      "channel": "low-tom"
     },
     {
       "time": 675.0,
-      "channel": "mid-tom",
-      "modifier": "accent"
+      "channel": "snare"
     },
     {
       "time": 675.5,
-      "channel": "high-tom",
-      "modifier": "accent"
+      "channel": "low-tom"
     },
     {
       "time": 675.5,
-      "channel": "mid-tom",
-      "modifier": "accent"
+      "channel": "snare"
     },
     {
       "time": 676.0,
-      "channel": "mid-tom"
+      "channel": "snare"
     },
     {
       "time": 676.0,
-      "channel": "high-tom"
+      "channel": "low-tom"
     },
     {
       "time": 676.5,
@@ -7813,7 +8210,8 @@
     },
     {
       "time": 680.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 682.0,
@@ -7861,15 +8259,16 @@
     },
     {
       "time": 695.0,
-      "channel": "high-tom"
+      "channel": "high-tom",
+      "sticking": "left"
     },
     {
       "time": 695.3333333333334,
-      "channel": "high-tom"
+      "channel": "mid-tom"
     },
     {
       "time": 695.6666666666666,
-      "channel": "high-tom"
+      "channel": "mid-tom"
     },
     {
       "time": 696.0,
@@ -7877,7 +8276,8 @@
     },
     {
       "time": 696.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 698.0,
@@ -7893,7 +8293,8 @@
     },
     {
       "time": 700.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 702.0,
@@ -7909,7 +8310,18 @@
     },
     {
       "time": 704.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
+    },
+    {
+      "time": 705.0,
+      "channel": "snare",
+      "modifier": "ghost"
+    },
+    {
+      "time": 705.0,
+      "channel": "low-tom",
+      "modifier": "ghost"
     },
     {
       "time": 705.0,
@@ -7917,11 +8329,18 @@
     },
     {
       "time": 705.5,
-      "channel": "snare"
+      "channel": "low-tom",
+      "modifier": "ghost"
     },
     {
       "time": 705.5,
-      "channel": "high-tom"
+      "channel": "snare",
+      "modifier": "ghost"
+    },
+    {
+      "time": 706.0,
+      "channel": "low-tom",
+      "modifier": "ghost"
     },
     {
       "time": 706.0,
@@ -7929,19 +8348,18 @@
     },
     {
       "time": 706.0,
-      "channel": "snare"
-    },
-    {
-      "time": 706.0,
-      "channel": "high-tom"
+      "channel": "snare",
+      "modifier": "ghost"
     },
     {
       "time": 706.5,
-      "channel": "snare"
+      "channel": "low-tom",
+      "modifier": "ghost"
     },
     {
       "time": 706.5,
-      "channel": "high-tom"
+      "channel": "snare",
+      "modifier": "ghost"
     },
     {
       "time": 707.0,
@@ -7949,19 +8367,27 @@
     },
     {
       "time": 707.0,
-      "channel": "high-tom"
+      "channel": "low-tom",
+      "modifier": "ghost"
     },
     {
       "time": 707.0,
-      "channel": "snare"
+      "channel": "snare",
+      "modifier": "ghost"
     },
     {
       "time": 707.5,
-      "channel": "snare"
+      "channel": "low-tom",
+      "modifier": "ghost"
     },
     {
       "time": 707.5,
-      "channel": "high-tom"
+      "channel": "snare",
+      "modifier": "ghost"
+    },
+    {
+      "time": 708.0,
+      "channel": "low-tom"
     },
     {
       "time": 708.0,
@@ -7972,24 +8398,20 @@
       "channel": "snare"
     },
     {
-      "time": 708.0,
-      "channel": "high-tom"
+      "time": 708.5,
+      "channel": "low-tom"
     },
     {
       "time": 708.5,
       "channel": "snare"
     },
     {
-      "time": 708.5,
-      "channel": "high-tom"
+      "time": 709.0,
+      "channel": "low-tom"
     },
     {
       "time": 709.0,
       "channel": "bass"
-    },
-    {
-      "time": 709.0,
-      "channel": "high-tom"
     },
     {
       "time": 709.0,
@@ -7997,11 +8419,11 @@
     },
     {
       "time": 709.5,
-      "channel": "snare"
+      "channel": "low-tom"
     },
     {
       "time": 709.5,
-      "channel": "high-tom"
+      "channel": "snare"
     },
     {
       "time": 710.0,
@@ -8009,19 +8431,19 @@
     },
     {
       "time": 710.0,
-      "channel": "snare"
+      "channel": "low-tom"
     },
     {
       "time": 710.0,
-      "channel": "high-tom"
-    },
-    {
-      "time": 710.5,
       "channel": "snare"
     },
     {
       "time": 710.5,
-      "channel": "high-tom"
+      "channel": "low-tom"
+    },
+    {
+      "time": 710.5,
+      "channel": "snare"
     },
     {
       "time": 711.0,
@@ -8045,120 +8467,155 @@
     },
     {
       "time": 712.0,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "bass"
     },
     {
       "time": 712.0,
-      "channel": "crash"
+      "channel": "snare"
     },
     {
       "time": 712.5,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "bass"
     },
     {
       "time": 712.5,
-      "channel": "crash"
+      "channel": "low-tom"
+    },
+    {
+      "time": 712.5,
+      "channel": "snare"
     },
     {
       "time": 713.0,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "low-tom"
     },
     {
       "time": 713.0,
-      "channel": "crash"
+      "channel": "bass"
+    },
+    {
+      "time": 713.0,
+      "channel": "snare"
     },
     {
       "time": 713.5,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "bass"
     },
     {
       "time": 713.5,
-      "channel": "crash"
+      "channel": "low-tom"
+    },
+    {
+      "time": 713.5,
+      "channel": "snare"
     },
     {
       "time": 714.0,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "low-tom"
     },
     {
       "time": 714.0,
-      "channel": "crash"
+      "channel": "bass"
+    },
+    {
+      "time": 714.0,
+      "channel": "snare"
     },
     {
       "time": 715.0,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "low-tom"
     },
     {
       "time": 715.0,
-      "channel": "crash"
+      "channel": "bass"
+    },
+    {
+      "time": 715.0,
+      "channel": "snare"
     },
     {
       "time": 715.5,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "low-tom"
     },
     {
       "time": 715.5,
-      "channel": "crash"
+      "channel": "bass"
+    },
+    {
+      "time": 715.5,
+      "channel": "snare"
     },
     {
       "time": 716.5,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "low-tom"
     },
     {
       "time": 716.5,
-      "channel": "crash"
+      "channel": "bass"
+    },
+    {
+      "time": 716.5,
+      "channel": "snare"
     },
     {
       "time": 717.0,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "low-tom"
     },
     {
       "time": 717.0,
-      "channel": "crash"
+      "channel": "bass"
+    },
+    {
+      "time": 717.0,
+      "channel": "snare"
     },
     {
       "time": 718.0,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "low-tom"
     },
     {
       "time": 718.0,
-      "channel": "crash"
+      "channel": "bass"
+    },
+    {
+      "time": 718.0,
+      "channel": "snare"
     },
     {
       "time": 718.5,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "bass"
     },
     {
       "time": 718.5,
-      "channel": "crash"
+      "channel": "low-tom"
+    },
+    {
+      "time": 718.5,
+      "channel": "snare"
     },
     {
       "time": 719.0,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "snare"
     },
     {
       "time": 719.0,
-      "channel": "crash"
+      "channel": "bass"
     },
     {
-      "time": 719.5,
-      "channel": "snare",
-      "modifier": "accent"
+      "time": 719.0,
+      "channel": "low-tom"
     },
     {
       "time": 719.5,
       "channel": "open-hihat"
+    },
+    {
+      "time": 719.5,
+      "channel": "bass"
+    },
+    {
+      "time": 719.5,
+      "channel": "snare"
     },
     {
       "time": 720.0,
@@ -8166,11 +8623,12 @@
     },
     {
       "time": 728.0,
-      "channel": "bass"
+      "channel": "crash",
+      "modifier": "accent"
     },
     {
       "time": 728.0,
-      "channel": "crash"
+      "channel": "bass"
     },
     {
       "time": 729.0,
@@ -8294,7 +8752,8 @@
     },
     {
       "time": 740.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 741.0,
@@ -8302,7 +8761,8 @@
     },
     {
       "time": 741.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 742.0,
@@ -8318,11 +8778,13 @@
     },
     {
       "time": 742.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 743.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 743.0,
@@ -8334,7 +8796,8 @@
     },
     {
       "time": 744.0,
-      "channel": "crash"
+      "channel": "crash",
+      "modifier": "accent"
     },
     {
       "time": 745.0,
@@ -8450,11 +8913,11 @@
     },
     {
       "time": 756.0,
-      "channel": "crash"
+      "channel": "snare"
     },
     {
-      "time": 756.0,
-      "channel": "bass"
+      "time": 756.25,
+      "channel": "high-tom"
     },
     {
       "time": 756.5,
@@ -8462,16 +8925,16 @@
     },
     {
       "time": 756.75,
-      "channel": "bass"
-    },
-    {
-      "time": 757.0,
-      "channel": "snare",
+      "channel": "bass",
       "sticking": "left"
     },
     {
+      "time": 757.0,
+      "channel": "snare"
+    },
+    {
       "time": 757.25,
-      "channel": "high-tom"
+      "channel": "mid-tom"
     },
     {
       "time": 757.5,
@@ -8479,16 +8942,16 @@
     },
     {
       "time": 757.75,
-      "channel": "bass"
-    },
-    {
-      "time": 758.0,
-      "channel": "snare",
+      "channel": "bass",
       "sticking": "left"
     },
     {
+      "time": 758.0,
+      "channel": "snare"
+    },
+    {
       "time": 758.25,
-      "channel": "mid-tom"
+      "channel": "high-tom"
     },
     {
       "time": 758.5,
@@ -8496,7 +8959,13 @@
     },
     {
       "time": 758.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
+    },
+    {
+      "time": 759.0,
+      "channel": "china",
+      "sticking": "right"
     },
     {
       "time": 759.0,
@@ -8512,11 +8981,13 @@
     },
     {
       "time": 760.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 761.0,
-      "channel": "open-hihat"
+      "channel": "china",
+      "sticking": "left"
     },
     {
       "time": 761.0,
@@ -8536,7 +9007,8 @@
     },
     {
       "time": 763.0,
-      "channel": "open-hihat"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 763.0,
@@ -8560,7 +9032,8 @@
     },
     {
       "time": 765.0,
-      "channel": "open-hihat"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 765.0,
@@ -8580,7 +9053,8 @@
     },
     {
       "time": 767.0,
-      "channel": "open-hihat"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 767.0,
@@ -8596,7 +9070,8 @@
     },
     {
       "time": 769.0,
-      "channel": "open-hihat"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 769.0,
@@ -8616,7 +9091,8 @@
     },
     {
       "time": 771.0,
-      "channel": "open-hihat"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 771.0,
@@ -8631,16 +9107,13 @@
       "channel": "open-hihat"
     },
     {
-      "time": 772.0,
-      "channel": "bass"
-    },
-    {
       "time": 772.5,
       "channel": "bass"
     },
     {
       "time": 772.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 773.0,
@@ -8648,7 +9121,8 @@
     },
     {
       "time": 773.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 774.0,
@@ -8664,11 +9138,13 @@
     },
     {
       "time": 774.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 775.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 775.0,
@@ -8680,11 +9156,13 @@
     },
     {
       "time": 776.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 777.0,
-      "channel": "open-hihat"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 777.0,
@@ -8704,7 +9182,8 @@
     },
     {
       "time": 779.0,
-      "channel": "open-hihat"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 779.0,
@@ -8728,7 +9207,8 @@
     },
     {
       "time": 781.0,
-      "channel": "open-hihat"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 781.0,
@@ -8748,15 +9228,12 @@
     },
     {
       "time": 783.0,
-      "channel": "open-hihat"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 783.0,
       "channel": "snare"
-    },
-    {
-      "time": 783.5,
-      "channel": "bass"
     },
     {
       "time": 784.0,
@@ -8768,7 +9245,15 @@
     },
     {
       "time": 784.5,
+      "channel": "high-tom"
+    },
+    {
+      "time": 784.5,
       "channel": "bass"
+    },
+    {
+      "time": 785.0,
+      "channel": "high-tom"
     },
     {
       "time": 785.0,
@@ -8784,7 +9269,15 @@
     },
     {
       "time": 786.0,
+      "channel": "mid-tom"
+    },
+    {
+      "time": 786.0,
       "channel": "bass"
+    },
+    {
+      "time": 786.5,
+      "channel": "mid-tom"
     },
     {
       "time": 786.5,
@@ -8792,34 +9285,37 @@
     },
     {
       "time": 787.0,
-      "channel": "snare"
+      "channel": "open-hihat"
     },
     {
       "time": 787.0,
-      "channel": "open-hihat"
+      "channel": "snare"
+    },
+    {
+      "time": 787.5,
+      "channel": "splash",
+      "sticking": "right"
     },
     {
       "time": 787.5,
       "channel": "bass"
     },
     {
-      "time": 788.0,
-      "channel": "bass"
+      "time": 788.5,
+      "channel": "china",
+      "sticking": "left"
     },
     {
       "time": 788.5,
       "channel": "snare"
-    },
-    {
-      "time": 788.5,
-      "channel": "crash"
     },
     {
       "time": 789.0,
-      "channel": "snare"
+      "channel": "china",
+      "sticking": "left"
     },
     {
-      "time": 789.25,
+      "time": 789.0,
       "channel": "snare"
     },
     {
@@ -8828,41 +9324,38 @@
     },
     {
       "time": 789.75,
-      "channel": "bass"
-    },
-    {
-      "time": 790.0,
-      "channel": "snare",
+      "channel": "bass",
       "sticking": "left"
     },
     {
-      "time": 790.25,
-      "channel": "high-tom"
+      "time": 790.0,
+      "channel": "crash",
+      "sticking": "right"
+    },
+    {
+      "time": 790.0,
+      "channel": "snare"
     },
     {
       "time": 790.5,
       "channel": "bass"
     },
     {
-      "time": 790.75,
+      "time": 790.6666666666666,
+      "channel": "bass",
+      "sticking": "left"
+    },
+    {
+      "time": 790.8333333333334,
       "channel": "bass"
     },
     {
       "time": 791.0,
-      "channel": "snare",
-      "sticking": "left"
+      "channel": "snare"
     },
     {
-      "time": 791.25,
-      "channel": "mid-tom"
-    },
-    {
-      "time": 791.5,
-      "channel": "bass"
-    },
-    {
-      "time": 791.75,
-      "channel": "bass"
+      "time": 791.0833333333334,
+      "channel": "snare"
     },
     {
       "time": 792.0,
@@ -8870,7 +9363,12 @@
     },
     {
       "time": 792.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
+    },
+    {
+      "time": 792.0,
+      "channel": "snare"
     },
     {
       "time": 793.0,
@@ -8945,6 +9443,11 @@
       "channel": "bass"
     },
     {
+      "time": 798.75,
+      "channel": "bass",
+      "sticking": "left"
+    },
+    {
       "time": 799.0,
       "channel": "snare"
     },
@@ -8958,7 +9461,7 @@
     },
     {
       "time": 800.0,
-      "channel": "crash"
+      "channel": "ride"
     },
     {
       "time": 800.0,
@@ -9014,7 +9517,8 @@
     },
     {
       "time": 804.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 805.0,
@@ -9022,11 +9526,17 @@
     },
     {
       "time": 805.0,
-      "channel": "crash"
+      "channel": "bass"
+    },
+    {
+      "time": 805.0,
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 805.25,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 805.5,
@@ -9034,7 +9544,8 @@
     },
     {
       "time": 805.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 806.0,
@@ -9042,11 +9553,17 @@
     },
     {
       "time": 806.0,
-      "channel": "crash"
+      "channel": "bass"
+    },
+    {
+      "time": 806.0,
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 806.25,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 806.5,
@@ -9054,7 +9571,8 @@
     },
     {
       "time": 806.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 807.0,
@@ -9062,7 +9580,8 @@
     },
     {
       "time": 807.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 808.0,
@@ -9070,7 +9589,12 @@
     },
     {
       "time": 808.0,
-      "channel": "crash"
+      "channel": "snare"
+    },
+    {
+      "time": 808.0,
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 809.0,
@@ -9078,7 +9602,7 @@
     },
     {
       "time": 809.0,
-      "channel": "open-hihat"
+      "channel": "ride"
     },
     {
       "time": 809.5,
@@ -9146,7 +9670,8 @@
     },
     {
       "time": 814.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 815.0,
@@ -9162,7 +9687,12 @@
     },
     {
       "time": 816.0,
-      "channel": "open-hihat"
+      "channel": "bass"
+    },
+    {
+      "time": 816.0,
+      "channel": "splash",
+      "sticking": "right"
     },
     {
       "time": 816.0,
@@ -9170,7 +9700,8 @@
     },
     {
       "time": 816.25,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 816.5,
@@ -9178,6 +9709,11 @@
     },
     {
       "time": 816.75,
+      "channel": "bass",
+      "sticking": "left"
+    },
+    {
+      "time": 817.0,
       "channel": "bass"
     },
     {
@@ -9186,11 +9722,13 @@
     },
     {
       "time": 817.0,
-      "channel": "open-hihat"
+      "channel": "splash",
+      "sticking": "right"
     },
     {
       "time": 817.25,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 817.5,
@@ -9198,23 +9736,28 @@
     },
     {
       "time": 817.75,
+      "channel": "bass",
+      "sticking": "left"
+    },
+    {
+      "time": 818.0,
+      "channel": "mid-tom"
+    },
+    {
+      "time": 818.0,
       "channel": "bass"
     },
     {
-      "time": 818.0,
-      "channel": "mid-tom"
-    },
-    {
-      "time": 818.0,
+      "time": 818.5,
       "channel": "high-tom"
     },
     {
-      "time": 818.5,
-      "channel": "mid-tom"
+      "time": 818.75,
+      "channel": "high-tom"
     },
     {
-      "time": 818.75,
-      "channel": "mid-tom"
+      "time": 819.0,
+      "channel": "low-tom"
     },
     {
       "time": 819.0,
@@ -9222,11 +9765,11 @@
     },
     {
       "time": 819.5,
-      "channel": "low-tom"
+      "channel": "mid-tom"
     },
     {
-      "time": 819.75,
-      "channel": "low-tom"
+      "time": 820.0,
+      "channel": "snare"
     },
     {
       "time": 820.0,
@@ -9234,7 +9777,12 @@
     },
     {
       "time": 820.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
+    },
+    {
+      "time": 820.5,
+      "channel": "snare"
     },
     {
       "time": 820.5,
@@ -9242,7 +9790,8 @@
     },
     {
       "time": 820.5,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 821.0,
@@ -9250,7 +9799,12 @@
     },
     {
       "time": 821.0,
-      "channel": "crash"
+      "channel": "snare"
+    },
+    {
+      "time": 821.0,
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 824.0,
@@ -9258,7 +9812,8 @@
     },
     {
       "time": 824.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 825.0,
@@ -9378,7 +9933,8 @@
     },
     {
       "time": 836.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 837.0,
@@ -9386,7 +9942,8 @@
     },
     {
       "time": 837.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 838.0,
@@ -9402,7 +9959,8 @@
     },
     {
       "time": 838.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 839.0,
@@ -9410,7 +9968,8 @@
     },
     {
       "time": 839.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 840.0,
@@ -9418,7 +9977,8 @@
     },
     {
       "time": 840.0,
-      "channel": "crash"
+      "channel": "crash",
+      "modifier": "accent"
     },
     {
       "time": 841.0,
@@ -9518,23 +10078,21 @@
     },
     {
       "time": 850.5,
+      "channel": "crash",
+      "sticking": "right"
+    },
+    {
+      "time": 850.5,
       "channel": "bass"
     },
     {
-      "time": 851.0,
-      "channel": "open-hihat"
-    },
-    {
       "time": 851.5,
       "channel": "snare"
     },
     {
       "time": 851.5,
-      "channel": "crash"
-    },
-    {
-      "time": 852.25,
-      "channel": "snare"
+      "channel": "china",
+      "sticking": "left"
     },
     {
       "time": 852.5,
@@ -9610,7 +10168,8 @@
     },
     {
       "time": 856.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 857.0,
@@ -9681,10 +10240,6 @@
       "channel": "snare"
     },
     {
-      "time": 863.0,
-      "channel": "crash"
-    },
-    {
       "time": 863.5,
       "channel": "ride"
     },
@@ -9722,7 +10277,7 @@
     },
     {
       "time": 867.5,
-      "channel": "crash"
+      "channel": "ride"
     },
     {
       "time": 868.5,
@@ -9734,7 +10289,8 @@
     },
     {
       "time": 868.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 869.0,
@@ -9742,7 +10298,8 @@
     },
     {
       "time": 869.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 870.0,
@@ -9757,20 +10314,27 @@
       "channel": "ride"
     },
     {
+      "time": 870.75,
+      "channel": "bass",
+      "sticking": "left"
+    },
+    {
       "time": 871.0,
       "channel": "snare"
     },
     {
       "time": 871.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
+    },
+    {
+      "time": 872.0,
+      "channel": "crash",
+      "modifier": "accent"
     },
     {
       "time": 872.0,
       "channel": "bass"
-    },
-    {
-      "time": 872.0,
-      "channel": "crash"
     },
     {
       "time": 873.0,
@@ -9842,7 +10406,8 @@
     },
     {
       "time": 879.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 880.0,
@@ -9850,11 +10415,17 @@
     },
     {
       "time": 880.0,
-      "channel": "open-hihat"
+      "channel": "bass"
+    },
+    {
+      "time": 880.0,
+      "channel": "splash",
+      "sticking": "right"
     },
     {
       "time": 880.25,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 880.5,
@@ -9862,7 +10433,8 @@
     },
     {
       "time": 880.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 881.0,
@@ -9870,11 +10442,17 @@
     },
     {
       "time": 881.0,
-      "channel": "open-hihat"
+      "channel": "bass"
+    },
+    {
+      "time": 881.0,
+      "channel": "splash",
+      "sticking": "right"
     },
     {
       "time": 881.25,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 881.5,
@@ -9882,11 +10460,20 @@
     },
     {
       "time": 881.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
+    },
+    {
+      "time": 882.0,
+      "channel": "low-tom"
     },
     {
       "time": 882.0,
       "channel": "snare"
+    },
+    {
+      "time": 882.5,
+      "channel": "low-tom"
     },
     {
       "time": 882.5,
@@ -9902,15 +10489,16 @@
     },
     {
       "time": 883.5,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 884.0,
-      "channel": "bass"
+      "channel": "low-tom"
     },
     {
       "time": 884.25,
-      "channel": "bass"
+      "channel": "mid-tom"
     },
     {
       "time": 884.5,
@@ -9918,11 +10506,16 @@
     },
     {
       "time": 884.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 885.0,
       "channel": "snare"
+    },
+    {
+      "time": 885.0,
+      "channel": "bass"
     },
     {
       "time": 885.0,
@@ -9930,7 +10523,8 @@
     },
     {
       "time": 885.25,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 885.5,
@@ -9938,11 +10532,20 @@
     },
     {
       "time": 885.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
+    },
+    {
+      "time": 886.0,
+      "channel": "low-tom"
     },
     {
       "time": 886.0,
       "channel": "snare"
+    },
+    {
+      "time": 886.5,
+      "channel": "low-tom"
     },
     {
       "time": 886.5,
@@ -9954,15 +10557,16 @@
     },
     {
       "time": 887.5,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 888.0,
-      "channel": "bass"
+      "channel": "low-tom"
     },
     {
       "time": 888.25,
-      "channel": "bass"
+      "channel": "mid-tom"
     },
     {
       "time": 888.5,
@@ -9970,7 +10574,8 @@
     },
     {
       "time": 888.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 889.0,
@@ -9978,11 +10583,17 @@
     },
     {
       "time": 889.0,
-      "channel": "open-hihat"
+      "channel": "bass"
+    },
+    {
+      "time": 889.0,
+      "channel": "splash",
+      "sticking": "right"
     },
     {
       "time": 889.25,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 889.5,
@@ -9990,7 +10601,8 @@
     },
     {
       "time": 889.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 890.0,
@@ -9998,7 +10610,8 @@
     },
     {
       "time": 890.0,
-      "channel": "open-hihat"
+      "channel": "splash",
+      "sticking": "right"
     },
     {
       "time": 890.5,
@@ -10006,7 +10619,8 @@
     },
     {
       "time": 890.5,
-      "channel": "open-hihat"
+      "channel": "splash",
+      "sticking": "right"
     },
     {
       "time": 891.5,
@@ -10014,78 +10628,101 @@
     },
     {
       "time": 891.5,
-      "channel": "crash"
+      "channel": "crash",
+      "modifier": "accent"
     },
     {
-      "time": 895.5,
-      "channel": "open-hihat"
+      "time": 894.5,
+      "channel": "open-hihat",
+      "modifier": "ghost"
+    },
+    {
+      "time": 895.0,
+      "channel": "open-hihat",
+      "modifier": "ghost"
+    },
+    {
+      "time": 895.3333333333334,
+      "channel": "open-hihat",
+      "modifier": "ghost"
+    },
+    {
+      "time": 896.1666666666666,
+      "channel": "open-hihat",
+      "modifier": "ghost"
     },
     {
       "time": 896.5,
-      "channel": "open-hihat"
+      "channel": "open-hihat",
+      "modifier": "ghost"
+    },
+    {
+      "time": 897.0,
+      "channel": "ride",
+      "modifier": "ghost"
     },
     {
       "time": 897.5,
-      "channel": "ride"
+      "channel": "ride",
+      "modifier": "ghost"
     },
     {
       "time": 898.0,
-      "channel": "ride"
+      "channel": "ride",
+      "modifier": "ghost"
     },
     {
-      "time": 898.5,
-      "channel": "ride"
+      "time": 898.5833333333334,
+      "channel": "ride",
+      "modifier": "ghost"
     },
     {
       "time": 899.5,
-      "channel": "ride"
-    },
-    {
-      "time": 900.5,
       "channel": "ride",
       "modifier": "ghost"
     },
     {
       "time": 901.0,
+      "channel": "crash",
+      "modifier": "ghost",
+      "sticking": "left"
+    },
+    {
+      "time": 902.5833333333334,
+      "channel": "crash",
+      "modifier": "ghost",
+      "sticking": "left"
+    },
+    {
+      "time": 903.25,
+      "channel": "crash",
+      "modifier": "ghost",
+      "sticking": "right"
+    },
+    {
+      "time": 905.0,
       "channel": "ride",
       "modifier": "ghost"
     },
     {
-      "time": 902.5,
-      "channel": "crash",
+      "time": 906.5,
+      "channel": "ride-bell",
       "modifier": "ghost"
-    },
-    {
-      "time": 903.375,
-      "channel": "crash",
-      "modifier": "ghost"
-    },
-    {
-      "time": 904.5,
-      "channel": "ride"
-    },
-    {
-      "time": 905.25,
-      "channel": "ride"
-    },
-    {
-      "time": 906.75,
-      "channel": "ride"
     },
     {
       "time": 912.5,
       "channel": "snare"
     },
     {
-      "time": 912.75,
+      "time": 912.6666666666666,
       "channel": "snare"
     },
     {
-      "time": 913.0,
-      "channel": "high-tom"
+      "time": 912.8333333333334,
+      "channel": "snare"
     },
     {
-      "time": 913.25,
+      "time": 913.5,
       "channel": "high-tom"
     },
     {
@@ -10094,11 +10731,19 @@
     },
     {
       "time": 914.25,
+      "channel": "mid-tom"
+    },
+    {
+      "time": 914.25,
       "channel": "bass"
     },
     {
-      "time": 915.375,
+      "time": 915.3333333333334,
       "channel": "bass"
+    },
+    {
+      "time": 915.3333333333334,
+      "channel": "low-tom"
     }
   ]
 }

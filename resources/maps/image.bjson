@@ -29,7 +29,6 @@
       "title": ""
     }
   ],
-  "annotations": [],
   "relativeVolume": 0.3346,
   "audio": "audio\\01 - image _____.mp3",
   "drumOnlyAudio": "temp/image.wav",
@@ -168,6 +167,10 @@
     {
       "time": 22.5,
       "channel": "bass"
+    },
+    {
+      "time": 23.0,
+      "channel": "sidestick"
     },
     {
       "time": 23.0,

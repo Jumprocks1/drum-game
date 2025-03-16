@@ -1,17 +1,18 @@
 {
-  "bookmarks": [],
-  "annotations": [],
-  "relativeVolume": 0.3,
+  "relativeVolume": 0.357,
   "audio": "audio/06.かくれんぼ.mp3",
-  "image": "images/798b3dd874e060600f59f8339242951f.jpg",
-  "imageUrl": "https://m.media-amazon.com/images/I/71F08GlCVyL._SS400_.jpg",
+  "image": "images/a24e5de4cbb1de5b9c0673ea6238c5f5",
+  "imageUrl": "https://i.scdn.co/image/ab67616d00001e021d19f0f1ff26230ef6ceca7a",
   "offset": 6023.44,
-  "leadIn": 0.0,
   "bpm": 180.0,
-  "title": "hide-and-seek",
+  "title": "かくれんぼ",
+  "romanTitle": "hide-and-seek",
   "artist": "AliA",
   "mapper": "Jumprocks",
   "difficulty": "Normal",
+  "tags": "dtx-level-65",
+  "previewTime": 59023.0,
+  "spotify": "4Zhuv5znO4SFdhPBVKoOs1",
   "youTubeID": "oi8ArKYLwBY",
   "amazonASIN": "B07NSVB9KS",
   "playableDuration": 285166.0,
@@ -319,7 +320,8 @@
     },
     {
       "time": 22.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 23.0,
@@ -6987,7 +6989,8 @@
     },
     {
       "time": 758.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 759.0,
@@ -7051,7 +7054,8 @@
     },
     {
       "time": 763.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 764.0,
@@ -7103,7 +7107,8 @@
     },
     {
       "time": 767.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 768.0,
@@ -7155,7 +7160,8 @@
     },
     {
       "time": 771.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 772.0,

@@ -13,14 +13,12 @@
       "title": "!v 80"
     }
   ],
-  "annotations": [],
   "relativeVolume": 0.32,
   "audio": "audio\\yuusha.ogg",
   "image": "images/25ede0b38f14dc55d26014883bdb27b5",
   "imageUrl": "https://i.scdn.co/image/ab67616d00001e02a9f9b6f07b43009f5b0216dc",
   "id": "79de6171-f5be-4969-bb02-adebf5db94e9",
   "offset": 382.36,
-  "leadIn": 0.0,
   "bpm": 208.0,
   "title": "勇者",
   "artist": "YOASOBI",
@@ -2964,6 +2962,10 @@
     {
       "time": 288.0,
       "channel": "low-tom"
+    },
+    {
+      "time": 288.5,
+      "channel": "hihat"
     },
     {
       "time": 289.0,

@@ -64,6 +64,8 @@
   "relativeVolume": 0.3291,
   "audio": "audio\\01 - ROLLING GIRL (ローリンガール).mp3",
   "drumOnlyAudio": "temp/rolling-girl.wav",
+  "video": "video/cHM2HKI3nPI.mp4",
+  "videoOffset": 2077.97,
   "image": "images/24e434111f0b1e7575f232bc50566005",
   "imageUrl": "https://i.scdn.co/image/ab67616d00001e025f53aeb0e1f6c92cdc885ad8",
   "id": "8aad2016-60f5-4a33-9c2d-9aa20e63a198",
@@ -7631,6 +7633,16 @@
       "channel": "bass"
     },
     {
+      "time": 552.5,
+      "channel": "bass",
+      "sticking": "left"
+    },
+    {
+      "time": 553.0,
+      "channel": "crash",
+      "sticking": "right"
+    },
+    {
       "time": 554.0,
       "channel": "crash",
       "sticking": "right"
@@ -7751,6 +7763,11 @@
     {
       "time": 568.0,
       "channel": "bass"
+    },
+    {
+      "time": 568.5,
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 569.0,

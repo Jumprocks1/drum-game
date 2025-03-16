@@ -61,6 +61,9 @@
             "channel": {
               "$ref": "#/$defs/channel"
             },
+            "modifiers": {
+              "type": "string"
+            },
             "keybind": {
               "type": "string"
             },

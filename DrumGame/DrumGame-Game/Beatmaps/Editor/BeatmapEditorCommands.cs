@@ -16,8 +16,10 @@ using DrumGame.Game.Commands.Requests;
 using DrumGame.Game.Components;
 using DrumGame.Game.Midi;
 using DrumGame.Game.Modals;
+using DrumGame.Game.Stores;
 using DrumGame.Game.Utils;
 using osu.Framework.Audio.Track;
+using osu.Framework.Graphics.Sprites;
 using osu.Framework.Logging;
 
 namespace DrumGame.Game.Beatmaps.Editor;
@@ -27,11 +29,8 @@ public partial class BeatmapEditor
     [CommandHandler] public void EditMode() => Mode = BeatmapPlayerMode.Edit;
     [CommandHandler] public void ToggleEditMode() => Mode = Mode == BeatmapPlayerMode.Edit ? BeatmapPlayerMode.Listening : BeatmapPlayerMode.Edit;
     [CommandHandler] public void ToggleFillMode() => Mode = Mode == BeatmapPlayerMode.Fill ? BeatmapPlayerMode.Edit : BeatmapPlayerMode.Fill;
-    [CommandHandler]
-    public void RevealInFileExplorer()
-    {
-        MapStorage.PresentFileExternally(Beatmap.Source.Filename);
-    }
+    [CommandHandler] public void RevealInFileExplorer() => MapStorage.PresentFileExternally(Beatmap.Source.Filename);
+    [CommandHandler] public void OpenExternally() => MapStorage.OpenFileExternally(Beatmap.Source.Filename);
     [CommandHandler]
     public void ExportToMidi()
     {
@@ -103,7 +102,7 @@ public partial class BeatmapEditor
         if (!Editing) return false;
         var target = GetSelectionOrCursor();
         var stride = TickStride;
-        PushChange(new NoteBeatmapChange(() => action(target, stride), description + " at " + target, target));
+        PushChange(new NoteBeatmapChange(() => action(target, stride), description + " at " + target));
         return true;
     }
 
@@ -179,11 +178,11 @@ public partial class BeatmapEditor
         if (!Editing) return false;
         var s = GetSelectionOrCursor();
         var desc = $"delete notes {s.RangeString}";
-        PushChange(new NoteBeatmapChange(() => Beatmap.RemoveHits(s), desc, s));
+        PushChange(new NoteBeatmapChange(() => Beatmap.RemoveHits(s), desc));
         return true;
     }
     [CommandHandler] public void SetBeatmapPreviewTime() => PushChange(new PreviewTimeChange(Beatmap, Math.Round(Track.CurrentTime)));
-    [CommandHandler] public void TimingWizard() => Command.Palette.Push(new TimingWizard(this));
+    [CommandHandler] public void TimingWizard() => Util.Palette.Push(new TimingWizard(this));
     OffsetWizard offsetWizard;
     public void ResetOffsetWizard()
     {
@@ -192,7 +191,7 @@ public partial class BeatmapEditor
         offsetWizard.Dispose();
         offsetWizard = null;
     }
-    [CommandHandler] public void OffsetWizard() => Command.Palette.Push(offsetWizard ??= new OffsetWizard(this), true);
+    [CommandHandler] public void OffsetWizard() => Util.Palette.Push(offsetWizard ??= new OffsetWizard(this), true);
     [CommandHandler]
     public void AutoMapperPlot()
     {
@@ -280,7 +279,8 @@ public partial class BeatmapEditor
             Fields = new IFieldConfig[] {
                 new NumberFieldConfig {
                     Label = "Minimum Divisor",
-                    DefaultValue = 3
+                    DefaultValue = 3,
+                    MarkupTooltip = "Notes with a divisor distance less than this will be ignored.\nFor example, eighth notes have a divisor of 2 since there are 2 per beat. Setting this to 3 will cause eighth notes to all be right pedals.\nThis prevents alternating bass pedals when the notes are slower."
                 },
                 new BoolFieldConfig {
                     Label = "Remove Existing Sticking",
@@ -293,12 +293,17 @@ public partial class BeatmapEditor
                 new BoolFieldConfig {
                     Label = "No Hands On Left",
                     DefaultValue = false,
-                    Tooltip = "Left pedal hits will only be set if there's no hands at the same time"
+                    MarkupTooltip = "Left pedal hits will only be set if there's no hands at the same time"
                 },
                 new BoolFieldConfig {
                     Label = "Allow Lead With Left",
                     DefaultValue = false,
-                    Tooltip = "Starts streaks with left foot when not on the primary beat.\nRecommended to only use this for certain parts of a song that are weird with right lead."
+                    MarkupTooltip = "Starts streaks with left foot when not on the primary beat.\nRecommended to only use this for certain parts of a song that are weird with right lead."
+                },
+                new NumberFieldConfig {
+                    Label = "Maximum Divisor",
+                    DefaultValue = 64,
+                    MarkupTooltip = "Notes with a divisor distance greater than this will be ignored.\nUseful if you want to set the sticking for faster notes later.\nCan typically be left at any high value."
                 },
             },
             OnCommit = e =>
@@ -314,12 +319,13 @@ public partial class BeatmapEditor
                     RemoveExistingSticking = e.GetValue<bool>(1),
                     Streak = (int)Math.Floor(streak.Value),
                     LeftLead = e.GetValue<bool>(4),
-                    NoHandsOnLeft = e.GetValue<bool>(3)
+                    NoHandsOnLeft = e.GetValue<bool>(3),
+                    MaximumDivisor = e.GetValue<double?>(5) ?? Beatmap.TickRate,
                 };
                 var desc = "setting left bass drum sticking";
                 if (range != null)
                     desc += $" {range}";
-                PushChange(new NoteBeatmapChange(() => Beatmap.SetDoubleBassSticking(range, settings), desc, range));
+                PushChange(new NoteBeatmapChange(() => Beatmap.SetDoubleBassSticking(range, settings), desc));
             }
         });
         context.Palette.Push(req);
@@ -416,7 +422,7 @@ public partial class BeatmapEditor
             {
                 var data = new HitObjectData(d);
                 SelectionStrideCommand((selection, stride) =>
-                    Beatmap.ApplyStrideAction(selection, stride, (a, b) => Beatmap.AddHit(a, data, b, true), false), $"force stack {d}");
+                    Beatmap.ApplyStrideAction(selection, stride, (a, toggle) => Beatmap.AddHit(a, data, toggle, true), false), $"force stack {d}");
             }
         }, "Force stacking drum channel");
         return true;
@@ -496,11 +502,15 @@ public partial class BeatmapEditor
         ));
     }
     BeatmapAutoDrumPlayer _drumPlayer;
+    CommandIconButton AutoPlayIcon;
     public bool AutoPlayHitSounds
     {
         get => _drumPlayer?.Enabled ?? false; set
         {
             _drumPlayer ??= new BeatmapAutoDrumPlayer(Beatmap, Track);
+            if (AutoPlayIcon == null)
+                Display.ModeContainer.Add(AutoPlayIcon = new(Commands.Command.ToggleAutoPlayHitSounds, FontAwesome.Solid.Bolt, 20));
+            AutoPlayIcon.Alpha = value ? 1 : 0;
             _drumPlayer.Enabled = value;
         }
     }
@@ -525,17 +535,22 @@ public partial class BeatmapEditor
             OnCommit = e =>
             {
                 var removeOld = e.GetValue<bool>(0);
-                var relativePath = "audio/" + Path.ChangeExtension(Path.GetFileName(Beatmap.Audio), ".ogg");
-                var process = new FFmpegProcess("converting bgm");
+                var newPath = "audio/" + Path.ChangeExtension(Path.GetFileName(Beatmap.Audio), ".ogg");
                 var oldAudio = Beatmap.FullAudioPath();
+                if (Beatmap.FullAssetPath(newPath) == Beatmap.FullAudioPath())
+                    newPath = "audio/" + Path.ChangeExtension(Path.GetFileNameWithoutExtension(Beatmap.Audio) + "_", ".ogg");
+                var process = new FFmpegProcess("converting bgm");
                 process.AddInput(oldAudio);
                 process.Vorbis(q: e.GetValue<int?>(1) ?? 8);
                 process.SimpleAudio();
                 if (e.GetValue<bool>(2)) process.SwapChannels();
-                process.AddOutput(Beatmap.FullAssetPath(relativePath));
+                process.AddOutput(Beatmap.FullAssetPath(newPath));
                 process.Run();
-                PushChange(new AudioBeatmapChange(Beatmap, relativePath, this));
-                if (removeOld) File.Delete(oldAudio);
+                if (process.Success)
+                {
+                    PushChange(new AudioBeatmapChange(Beatmap, newPath, this));
+                    if (removeOld) File.Delete(oldAudio);
+                }
             }
         });
         return true;
@@ -553,7 +568,7 @@ public partial class BeatmapEditor
             BeatSnap = BeatSnap ?? 4
         };
         PushChange(new NoteBeatmapChange(() => new AutoMapper(this, settings).Run(range),
-            $"auto mapper - snap: {settings.BeatSnap} {range?.RangeString}", range));
+            $"auto mapper - snap: {settings.BeatSnap} {range?.RangeString}"));
     }
 
     void SetRelativeVolume(double? value)
@@ -561,7 +576,8 @@ public partial class BeatmapEditor
         Beatmap.RelativeVolume = value;
         Track.Track.Volume.Value = Beatmap.CurrentRelativeVolume;
         // by setting this last, we can avoid triggering editor.Dirty()
-        Display.VolumeControls.RelativeSongVolume.Value = Beatmap.CurrentRelativeVolume;
+        if (Display.VolumeControls != null)
+            Display.VolumeControls.RelativeSongVolume.Value = Beatmap.CurrentRelativeVolume;
     }
 
     // this is -4.54 LUFS at 0.3 relative volume
@@ -577,12 +593,16 @@ public partial class BeatmapEditor
             {
                 var volume = Math.Round(Math.Pow(10, (TargetLufs - lufs) / 20), 4);
                 var oldVolume = Beatmap.RelativeVolume;
-                PushChange(() => SetRelativeVolume(volume), () => SetRelativeVolume(oldVolume), $"Set relative volume to {volume} (source: {lufs:0.00} LUFS)");
+                if (volume == oldVolume)
+                    Display.LogEvent($"Relative volume not changed {volume} (source: {lufs:0.00} LUFS)");
+                else
+                    PushChange(() => SetRelativeVolume(volume), () => SetRelativeVolume(oldVolume), $"Set relative volume to {volume} (source: {lufs:0.00} LUFS)");
             });
         });
     }
 
     Track DrumOnlyAudio;
+    CommandIconButton DrumOnlyAudioIcon;
     [CommandHandler]
     public void ListenToDrumOnlyAudio()
     {
@@ -597,24 +617,30 @@ public partial class BeatmapEditor
                 if (Util.Resources.Contains(e))
                     newDrumAudioPath = Util.Resources.GetRelativePath(e);
                 else
-                {
-                    var name = Path.GetFileNameWithoutExtension(e);
-                    var ext = Path.GetExtension(e);
-                    var outputPath = Util.Resources.GetTemp($"{name}-drums{ext}");
-                    newDrumAudioPath = Util.Resources.GetRelativePath(outputPath);
-                    if (!File.Exists(outputPath))
-                        File.Copy(e, outputPath);
-                }
+                    newDrumAudioPath = MapStorage.StoreOrHash(e, Util.Resources.AbsolutePath, "temp");
                 PushChange(() => Beatmap.DrumOnlyAudio = newDrumAudioPath,
                     () => Beatmap.DrumOnlyAudio = oldAudio, $"set drum only audio to {newDrumAudioPath}");
                 ListenToDrumOnlyAudio();
             });
             return;
         }
-        if (Track.PrimaryTrack == null) Track.TemporarySwap(DrumOnlyAudio);
-        else Track.ResumePrimary();
+        if (Track.PrimaryTrack == null)
+        {
+            Track.TemporarySwap(DrumOnlyAudio);
+            if (DrumOnlyAudioIcon == null)
+            {
+                Display.ModeContainer.Add(DrumOnlyAudioIcon = new(Commands.Command.ListenToDrumOnlyAudio, FontAwesome.Solid.Drum, 20));
+                Display.ModeContainer.SetLayoutPosition(DrumOnlyAudioIcon, 1); // make sure this icon appears last for now
+            }
+            DrumOnlyAudioIcon.Alpha = 1;
+        }
+        else
+        {
+            Track.ResumePrimary();
+            if (DrumOnlyAudioIcon != null) DrumOnlyAudioIcon.Alpha = 0;
+        }
         Track.Track.Volume.Value = Beatmap.CurrentRelativeVolume;
     }
 
-    [CommandHandler] public void ConfigureNotePresets() => Command.Palette.Push(new NotePresetsView(this));
+    [CommandHandler] public void ConfigureNotePresets() => Util.Palette.Push(new NotePresetsView(this));
 }

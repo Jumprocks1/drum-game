@@ -41,7 +41,7 @@ public partial class Beatmap : BJson, IHasHitObjects
         {
             // this does get triggered by Newtonsoft, but this is fine since OffsetUpdate is null at the start
             base.StartOffset = value;
-            OffsetUpdated?.Invoke();
+            FireOffsetUpdated();
         }
     }
 
@@ -57,7 +57,7 @@ public partial class Beatmap : BJson, IHasHitObjects
         get => base.LeadIn; set
         {
             base.LeadIn = value;
-            OffsetUpdated?.Invoke();
+            FireOffsetUpdated();
         }
     }
     public bool UseYouTubeOffset;
@@ -68,7 +68,14 @@ public partial class Beatmap : BJson, IHasHitObjects
     public new string Id { get => base.Id ?? Source.FilenameNoExt; set => base.Id = value; }
     public double CurrentRelativeVolume => RelativeVolume ?? BJson.DefaultRelativeVolume;
     public event Action OffsetUpdated;
-    public void FireOffsetUpdated() => OffsetUpdated?.Invoke();
+    public void FireOffsetUpdated()
+    {
+        OffsetUpdated?.Invoke();
+        // the "length" in milliseconds is typically affected by offset
+        // because of this, we make sure to update this length event
+        // an example of this is the "endTime" which is used to track when to show the end screen
+        LengthChanged?.Invoke();
+    }
     public event Action LengthChanged;
     public event Action AnnotationsUpdated;
     public void FireAnnotationsUpdated() => AnnotationsUpdated?.Invoke();
@@ -91,6 +98,16 @@ public partial class Beatmap : BJson, IHasHitObjects
             LengthChanged?.Invoke();
         }
     }
+    public void LoadMissingDefaults()
+    {
+        // this does not go inside Init since Init isn't even called when loading from non-bjson sources
+        Bookmarks ??= new();
+        Annotations ??= new();
+        HitObjects ??= new();
+        TempoChanges ??= new();
+        MeasureChanges ??= new();
+    }
+    // only used after loading from BJson deserialization
     public void Init()
     {
         if (Notes == null) throw new NotSupportedException();
@@ -191,7 +208,6 @@ public partial class Beatmap : BJson, IHasHitObjects
             foreach (var (key, preset) in NotePresets)
                 preset.Key = key;
         }
-        // HitObjects = HitObjects.OrderBy(e => e.Channel).OrderBy(e => e.Time).ToList();
         foreach (var hitObject in HitObjects)
         {
             Notes.Add(new BJsonNote
@@ -281,6 +297,8 @@ public readonly struct HitObjectData
     public static bool operator !=(HitObjectData lhs, HitObjectData rhs) => !(lhs == rhs);
     // I don't think this is ever used
     public override int GetHashCode() => (Channel, Modifiers, Preset, Velocity).GetHashCode();
+
+    public override string ToString() => $"{Channel}";
 }
 [Flags]
 public enum NoteModifiers // these flags are used in shaders as ints, avoid changing the values

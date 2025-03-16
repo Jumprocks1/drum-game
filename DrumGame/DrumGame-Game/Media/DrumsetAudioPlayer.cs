@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using DrumGame.Game.Beatmaps.Data;
 using DrumGame.Game.Beatmaps.Scoring;
 using DrumGame.Game.Channels;
 using DrumGame.Game.Commands;
@@ -52,11 +53,14 @@ public class DrumsetAudioPlayer : IDisposable
         }
     }
 
-    class BasicHandler : ISampleHandler
+    class BasicHandler : ISampleHandler, ISampleHandlerMixDelay
     {
         public double Latency => 0;
         public bool BassNative => true;
         Sample Sample;
+        public NotePreset Preset;
+        public double VolumeModifier => Preset?.Volume ?? 1;
+        public double PanModifier => Preset?.Pan ?? 0;
 
         public BasicHandler(Sample sample)
         {
@@ -65,28 +69,56 @@ public class DrumsetAudioPlayer : IDisposable
 
         VolumeController VolumeController => Util.DrumGame.VolumeController;
 
-        public void Play(DrumChannelEvent ev)
+        public void Play(DrumChannelEvent ev, double delay)
         {
-            var sampleHandle = Util.Get<int>(Sample, "SampleId");
-            if (sampleHandle != 0)
+            var timesChecked = 0;
+            void playInternal()
             {
-                // this should be timed perfect down to a singular sample
-                var channelHandle = Bass.SampleGetChannel(sampleHandle, BassFlags.SampleChannelStream | BassFlags.Decode);
-                // Bass.ChannelSetAttribute(channelHandle, ChannelAttribute.Pan, 1);
-                // can't use AggregateVolume here because sample isn't add to the mixer until you call Play()
-                var volume = VolumeController.SampleVolume.ComputedValue
-                    * VolumeController.MasterVolume.ComputedValue;
-                if (ev is Beatmaps.Practice.PracticeMetronomeEvent pme)
-                    volume *= pme.Volume;
-                else if (ev.Channel == DrumChannel.Metronome)
-                    volume *= VolumeController.MetronomeVolume.ComputedValue;
-                else
-                    volume *= VolumeController.HitVolume.ComputedValue;
-                Bass.ChannelSetAttribute(channelHandle, ChannelAttribute.Volume, volume);
-                BassMix.MixerAddChannel(Util.TrackMixerHandle, channelHandle, BassFlags.MixerChanBuffer | BassFlags.MixerChanNoRampin);
+                var sampleHandle = Util.Get<int>(Sample, "SampleId");
+                if (sampleHandle == 0)
+                {
+                    // if sample isn't loaded yet, we give it a chance by scheduling on the audio thread
+                    // I think it takes a maximum of 2 cycles to load
+                    if (timesChecked < 2)
+                    {
+                        Util.AudioThread.Scheduler.Add(playInternal, true);
+                        timesChecked += 1;
+                    }
+                    else
+                    {
+                        // should be very rare
+                        var channel = Sample.GetChannel();
+                        channel.Volume.Value = VolumeModifier;
+                        channel.Play();
+                    }
+                    return;
+                }
+                if (sampleHandle != 0)
+                {
+                    // this should be timed perfect down to a singular sample if queued with delay
+                    var channelHandle = Bass.SampleGetChannel(sampleHandle, BassFlags.SampleChannelStream | BassFlags.Decode);
+                    // Bass.ChannelSetAttribute(channelHandle, ChannelAttribute.Pan, 1);
+                    // can't use AggregateVolume here because sample isn't add to the mixer until you call Play()
+                    var volume = VolumeController.SampleVolume.ComputedValue
+                        * VolumeController.MasterVolume.ComputedValue
+                        * VolumeModifier;
+                    if (ev is Beatmaps.Practice.PracticeMetronomeEvent pme)
+                        volume *= pme.Volume;
+                    else if (ev.Channel == DrumChannel.Metronome)
+                        volume *= VolumeController.MetronomeVolume.ComputedValue;
+                    else
+                        volume *= VolumeController.HitVolume.ComputedValue;
+                    Bass.ChannelSetAttribute(channelHandle, ChannelAttribute.Volume, volume);
+                    var pan = PanModifier;
+                    if (pan != 0)
+                        Bass.ChannelSetAttribute(channelHandle, ChannelAttribute.Pan, pan);
+                    var mixer = Util.TrackMixerHandle;
+                    BassMix.MixerAddChannel(mixer, channelHandle, BassFlags.MixerChanBuffer | BassFlags.MixerChanNoRampin, Bass.ChannelSeconds2Bytes(mixer, delay), 0);
+                }
             }
-            else Sample.Play(); // should be very rare
+            playInternal();
         }
+        public void Play(DrumChannelEvent ev) => Play(ev, 0);
     }
 
     class RawMidiHandler : ISampleHandler
@@ -98,6 +130,11 @@ public class DrumsetAudioPlayer : IDisposable
 
     public ISampleHandler PreparePlay(DrumChannelEvent ev)
     {
+        // priority is
+        //   1. MIDI if the event is a control event
+        //   2. Sample file if the beatmap supplied one
+        //   3. MIDI out
+        //   4. Soundfont
         var channel = ev.Channel;
         if (channel == DrumChannel.None && ev.MIDI && ev.MidiControl != null) // raw MIDI bytes
         {
@@ -114,6 +151,18 @@ public class DrumsetAudioPlayer : IDisposable
         var velocity = ev.Velocity;
         if (velocity == 0) return null;
         ISampleHandler handler = null;
+        var preset = ev.HitObject?.Preset;
+        var presetSampleFile = preset?.Sample;
+        if (presetSampleFile != null && ev.CurrentBeatmap != null)
+        {
+            // TODO doesn't work for imported double crashes
+            if (!sampleCache.TryGetValue(presetSampleFile, out var sample))
+            {
+                sampleCache[presetSampleFile] = sample = Samples.Get(ev.CurrentBeatmap.Source.FullAssetPath(presetSampleFile));
+            }
+            if (sample != null)
+                return new BasicHandler(sample) { Preset = preset };
+        }
         if (channel != DrumChannel.Metronome && channel != DrumChannel.PracticeMetronome)
         {
             if (handler == null && TryMidi && (DrumMidiHandler.Output != null || !MidiConnectionAttempted))
@@ -129,39 +178,43 @@ public class DrumsetAudioPlayer : IDisposable
             handler ??= LoadedSoundFont;
         }
         if (handler != null) return handler;
-        if (!ChannelMapping.TryGetValue(channel, out var mapping)) return null;
-        // we subtract 1 so that velocity = 127 maps to 126 * x / 127 = x - 1
-        // it also helps giving the first sample a more "fair" balanced number of velocities
-        int sampleId;
-        if (channel == DrumChannel.Metronome || channel == DrumChannel.PracticeMetronome)
-            sampleId = ev.Velocity;
-        else
-            sampleId = (velocity - 1) * mapping.Item2 / 127 + 1;
-        var filename = mapping.Item1.Replace("*", sampleId.ToString());
-        var sample = sampleCache.GetValueOrDefault(filename);
-        if (sample == null)
+
+        // this part is only for metronome currently
         {
-            sample = Samples.Get(filename);
+            if (!ChannelMapping.TryGetValue(channel, out var mapping)) return null;
+            // we subtract 1 so that velocity = 127 maps to 126 * x / 127 = x - 1
+            // it also helps giving the first sample a more "fair" balanced number of velocities
+            int sampleId;
+            if (channel == DrumChannel.Metronome || channel == DrumChannel.PracticeMetronome)
+                sampleId = ev.Velocity;
+            else
+                sampleId = (velocity - 1) * mapping.Item2 / 127 + 1;
+            var filename = mapping.Item1.Replace("*", sampleId.ToString());
+            var sample = sampleCache.GetValueOrDefault(filename);
             if (sample == null)
             {
-                Logger.Log($"Failed to locate sample: {filename}", level: LogLevel.Error);
-                return null;
+                sample = Samples.Get(filename);
+                if (sample == null)
+                {
+                    Logger.Log($"Failed to locate sample: {filename}", level: LogLevel.Error);
+                    return null;
+                }
+                // the adjustments here don't really do much since we override them before playing the sample in BasicHandler
+                if (channel == DrumChannel.Metronome)
+                {
+                    // this could also use aggregate instead of level.
+                    // instead we use level to verify these events are triggered when muted
+                    sample.AddAdjustment(AdjustableProperty.Volume, volumeController.MetronomeVolume.Level);
+                    // sample.AddAdjustment(AdjustableProperty.Balance, new BindableDouble(1));
+                }
+                else
+                {
+                    sample.AddAdjustment(AdjustableProperty.Volume, volumeController.HitVolume.Aggregate);
+                }
+                sampleCache[filename] = sample;
             }
-            // the adjustments here don't really do much since we override them before playing the sample in BasicHandler
-            if (channel == DrumChannel.Metronome)
-            {
-                // this could also use aggregate instead of level.
-                // instead we use level to verify these events are triggered when muted
-                sample.AddAdjustment(AdjustableProperty.Volume, volumeController.MetronomeVolume.Level);
-                // sample.AddAdjustment(AdjustableProperty.Balance, new BindableDouble(1));
-            }
-            else
-            {
-                sample.AddAdjustment(AdjustableProperty.Volume, volumeController.HitVolume.Aggregate);
-            }
-            sampleCache[filename] = sample;
+            return new BasicHandler(sample);
         }
-        return new BasicHandler(sample);
     }
 
     public bool Play(DrumChannelEvent ev)
@@ -172,7 +225,7 @@ public class DrumsetAudioPlayer : IDisposable
         return true;
     }
 
-    public int PlayAt(DrumChannelEvent ev, TrackClock clock, double targetTime, ConcurrentHashSet<int> queue = null)
+    public int PlayAt(DrumChannelEvent ev, TrackClock clock, double targetTime, SyncQueue queue = null)
     {
         var track = clock.Track;
         var trackHandle = track is TrackBass tb ? Util.Get<int>(tb, "activeStream") : 0;
@@ -190,13 +243,13 @@ public class DrumsetAudioPlayer : IDisposable
             return 0;
         }
         var sync = 0;
-        var callback = new SyncCallback((_, _, _, _) =>
-        {
-            queue?.Remove(sync);
-            handler.Play(ev);
-        });
         if (!handler.BassNative) // if we aren't native, we should target the regular track (instead of the mix time track)
         {
+            var callback = new SyncCallback((_, _, _, _) =>
+            {
+                queue?.Remove((trackHandle, sync));
+                handler.Play(ev);
+            });
             targetTime -= handler.Latency * track.Rate;
             var nextPlayByte = Bass.ChannelSeconds2Bytes(trackHandle, targetTime / 1000);
             sync = BassMix.ChannelSetSync(trackHandle, SyncFlags.Position | SyncFlags.Onetime,
@@ -205,10 +258,21 @@ public class DrumsetAudioPlayer : IDisposable
         else
         {
             var nextPlayByte = Bass.ChannelSeconds2Bytes(trackHandle, targetTime / 1000);
+            var callback = new SyncCallback((_, _, _, _) =>
+            {
+                queue?.Remove((trackHandle, sync));
+                if (handler is ISampleHandlerMixDelay hMixDelay)
+                {
+                    var mixerHandle = BassMix.ChannelGetMixer(trackHandle);
+                    var rawTime = Bass.ChannelGetPosition(trackHandle);
+                    hMixDelay.Play(ev, Bass.ChannelBytes2Seconds(trackHandle, nextPlayByte - rawTime));
+                }
+                else handler.Play(ev);
+            });
             // this callback runs on the mixing thread, giving us perfect timing if we run natively
             sync = BassMix.ChannelSetSync(trackHandle, SyncFlags.Position | SyncFlags.Onetime | SyncFlags.Mixtime, nextPlayByte, callback.Callback, callback.Handle);
         }
-        queue?.Add(sync);
+        queue?.Add((trackHandle, sync));
         return sync;
     }
 

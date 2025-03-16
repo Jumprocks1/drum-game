@@ -16,10 +16,18 @@ public class NotePreset
     // this is used as the dictionary key and is also stored in the individual notes with the preset
     // in theory long names take up more storage, but in reality I don't think it matters
     [JsonIgnore] public string Key; // ignored because it is used as dictionary key
-    public string Name; // typically we can just use the key
+    string _name;
+    public string Name
+    {
+        get => _name; set
+        {
+            _name = value;
+            if (Registered) Register(); // reregister with new name
+        }
+    } // typically we can just use the key
     [JsonIgnore] public string NameOrKey => Name ?? Key;
     public string Description;
-    public string Sample;
+    public string Sample; // sample path
 
     [DefaultValue(1f)]
     public float Volume = 1; // 1 is default, can go above 1 in most cases
@@ -45,17 +53,18 @@ public class NotePreset
     // This probably has an issue where if they try to change it through the keybind interface it will create a weird override in the ini file that doesn't do anything
     public KeyCombo Keybind;
 
+    [JsonIgnore] public bool Registered => CommandInfo != null;
     public void Register() // safe to call multiple times
     {
-        if (CommandInfo != null) Unregister();
-        var commandName = $"Insert Preset {NameOrKey}";
-        CommandInfo = new CommandInfo(Command.InsertPresetNote, commandName) { Parameter = this };
-        CommandInfo.Bindings.Add(Keybind);
+        if (Registered) Unregister();
+        CommandInfo = new CommandInfo(Command.InsertPresetNote, CommandInfoName) { Parameter = this };
+        if (Keybind != default) CommandInfo.Bindings.Add(Keybind);
         Util.CommandController.RegisterCommandInfo(CommandInfo);
     }
+    string CommandInfoName => $"Insert Preset {NameOrKey}";
     public void Unregister()
     {
-        if (CommandInfo == null) throw new Exception($"Note preset not registered");
+        if (!Registered) throw new Exception($"Note preset not registered");
         Util.CommandController.RemoveCommandInfo(CommandInfo);
         CommandInfo = null;
     }
@@ -63,4 +72,12 @@ public class NotePreset
     public override string ToString() => NameOrKey;
 
     public HitObjectData GetData() => new(Channel, Modifiers, this);
+
+    // make sure to replace Key/Name
+    public NotePreset Clone()
+    {
+        var clone = (NotePreset)MemberwiseClone();
+        clone.CommandInfo = null;
+        return clone;
+    }
 }

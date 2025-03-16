@@ -14,6 +14,16 @@ public class IconButton : SpriteIcon, IHasMarkupTooltip, IHasCursor
 
     public string MarkupTooltip { get; set; }
 
+    Colour4 _buttonColor = Colour4.White;
+    public Colour4 ButtonColor
+    {
+        get => _buttonColor; set
+        {
+            _buttonColor = value;
+            Colour = value;
+        }
+    }
+
     public IconButton(Action action, IconUsage icon, float size)
     {
         Action = action;
@@ -28,16 +38,18 @@ public class IconButton : SpriteIcon, IHasMarkupTooltip, IHasCursor
         return true;
     }
 
+    public bool BlockHover = true;
+
     protected override bool OnMouseDown(MouseDownEvent e) => true;
     protected override bool OnHover(HoverEvent e)
     {
-        this.FadeColour(Colour4.White.Darken(0.3f), 200);
-        return true;
+        this.FadeColour(ButtonColor.Darken(0.3f), 200);
+        return BlockHover;
     }
 
     protected override void OnHoverLost(HoverLostEvent e)
     {
-        this.FadeColour(Colour4.White, 200);
+        this.FadeColour(ButtonColor, 200);
         base.OnHoverLost(e);
     }
 }

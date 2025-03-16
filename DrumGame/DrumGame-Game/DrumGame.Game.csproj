@@ -31,6 +31,12 @@
     
     <!-- <PackageReference Include="NAudio" Version="2.1.0" /> -->
     <!-- <ProjectReference Include="..\..\FFMediaToolkit\FFMediaToolkit\FFMediaToolkit.csproj" /> -->
-     <PackageReference Include="ppy.osu.Framework" Version="2024.523.0" />
+  </ItemGroup>
+  <!-- Local reference for o!f can be very helpful, but if it doesn't exist, the NuGet package should still work -->
+  <ItemGroup Condition="Exists('..\..\osu-framework\osu.Framework\osu.Framework.csproj')">
+    <ProjectReference Include="..\..\osu-framework\osu.Framework\osu.Framework.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition="!Exists('..\..\osu-framework\osu.Framework\osu.Framework.csproj')">
+    <PackageReference Include="ppy.osu.Framework" Version="2024.523.0" />
   </ItemGroup>
 </Project>

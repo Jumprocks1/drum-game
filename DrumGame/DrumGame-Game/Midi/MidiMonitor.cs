@@ -11,10 +11,10 @@ using osu.Framework.Graphics.Sprites;
 
 namespace DrumGame.Game.Midi;
 
-public class MidiView : CompositeDrawable, IHasOverlayModalConfig
+public class MidiMonitor : CompositeDrawable, IHasOverlayModalConfig
 {
     public Colour4 ModalBackgroundColor => new(0, 0, 0, 200);
-    public MidiView()
+    public MidiMonitor()
     {
         DrumMidiHandler.AddNoteHandler(OnMidiNote, true);
         RelativeSizeAxes = Axes.Both;
@@ -60,13 +60,16 @@ public class MidiView : CompositeDrawable, IHasOverlayModalConfig
                 var inputs = DrumMidiHandler.Inputs;
                 var inputField = AutocompleteFieldConfig.FromOptions(DrumMidiHandler.Inputs.Select(e => e.Name), preferredInput);
                 inputField.Label = "Input";
+                inputField.MarkupTooltip = "Used for passing MIDI inputs into the game for scoring.\nRequired for standard gameplay.";
 
                 var midiOutput = Util.ConfigManager.GetBindable<string>(Stores.DrumGameSetting.PreferredMidiOutput);
                 var preferredOutput = string.IsNullOrWhiteSpace(midiOutput.Value) ? null : midiOutput.Value;
                 preferredOutput ??= DrumMidiHandler.Output?.Details?.Name ?? preferredInput;
                 var outputs = DrumMidiHandler.Outputs;
-                var outputField = AutocompleteFieldConfig.FromOptions(DrumMidiHandler.Outputs.Select(e => e.Name), preferredOutput);
+                var outputField = AutocompleteFieldConfig.FromOptions(DrumMidiHandler.Outputs.Select(e => e.Name)
+                    .Append(DrumMidiHandler.Disabled), preferredOutput);
                 outputField.Label = "Output";
+                outputField.MarkupTooltip = "Allows hearing replays and autoplay through a MIDI device (instead of the in-game hitsounds).\nNot used during standard gameplay.";
 
                 var req = Util.Palette.Request(new RequestConfig
                 {
@@ -134,6 +137,7 @@ public class MidiView : CompositeDrawable, IHasOverlayModalConfig
     {
         Schedule(() =>
         {
+            // this layout code is awful
             Texts.Add(null);
             for (var i = Texts.Count - 2; i >= 0; i--)
             {
@@ -145,7 +149,7 @@ public class MidiView : CompositeDrawable, IHasOverlayModalConfig
                 else
                 {
                     if (i == 0) Texts[i].Font = FrameworkFont.Condensed.With(size: smallFont);
-                    Texts[i].Y = Spacing * 3 + 25 + 20 + bigFont + Spacing + (smallFont + Spacing) * i;
+                    Texts[i].Y = Spacing * 3 + 25 + 20 + 30 + bigFont + Spacing + (smallFont + Spacing) * i;
                     Texts[i + 1] = Texts[i];
                 }
             }
@@ -167,7 +171,7 @@ public class MidiView : CompositeDrawable, IHasOverlayModalConfig
 
     protected override void Dispose(bool isDisposing)
     {
-        DrumMidiHandler.RemoveNoteHandler(OnMidiNote, true);
+        DrumMidiHandler.RemoveNoteHandler(OnMidiNote);
         Util.CommandController.RemoveHandlers(this);
         base.Dispose(isDisposing);
     }

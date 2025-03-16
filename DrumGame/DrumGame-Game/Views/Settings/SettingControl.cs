@@ -1,18 +1,20 @@
+using System;
 using DrumGame.Game.Commands;
 using DrumGame.Game.Components;
 using DrumGame.Game.Components.Basic;
 using DrumGame.Game.Interfaces;
 using DrumGame.Game.Utils;
 using osu.Framework.Graphics;
-using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
-using osu.Framework.Localisation;
 
 namespace DrumGame.Game.Views.Settings;
 
-public class SettingControl : BasicButton, IHasCommand
+public class SettingControl : BasicButton, IHasCommand, IHasCursor
 {
+    public SDL2.SDL.SDL_SystemCursor? Cursor
+        => Info.GetType().GetMethod(nameof(SettingInfo.OnClick)).DeclaringType != typeof(SettingInfo) ?
+            SDL2.SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_HAND : null;
     public DrumScrollContainer ScrollContainer => Parent.Parent as DrumScrollContainer;
 
     string IHasMarkupTooltip.MarkupTooltip
@@ -21,7 +23,12 @@ public class SettingControl : BasicButton, IHasCommand
         {
             var tooltip = Info.Tooltip ?? Info.Description;
             if (tooltip != null && Command != Command.None)
-                return $"{tooltip} - {IHasCommand.GetMarkupTooltip(Command)}";
+            {
+                if (tooltip.Contains('\n'))
+                    return $"{tooltip}\n{IHasCommand.GetMarkupTooltip(Command)}";
+                else
+                    return $"{tooltip} - {IHasCommand.GetMarkupTooltip(Command)}";
+            }
             return tooltip ?? IHasCommand.GetMarkupTooltip(Command);
         }
     }
@@ -53,6 +60,7 @@ public class SettingControl : BasicButton, IHasCommand
         BackgroundColour = even ? DrumColors.RowHighlight : DrumColors.RowHighlightSecondary;
         Text = info.Label;
         info.Render(this);
+        info.AfterRender?.Invoke(this);
         Action = () => Info.OnClick(this);
     }
 
@@ -60,6 +68,16 @@ public class SettingControl : BasicButton, IHasCommand
     {
         Add(new CommandIconButton(command, icon, Height)
         {
+            Anchor = Anchor.TopRight,
+            Origin = Anchor.TopRight,
+            X = -SideMargin - InputWidth - 5
+        });
+    }
+    public void AddIconButton(Action action, IconUsage icon, string tooltip)
+    {
+        Add(new IconButton(action, icon, Height)
+        {
+            MarkupTooltip = tooltip,
             Anchor = Anchor.TopRight,
             Origin = Anchor.TopRight,
             X = -SideMargin - InputWidth - 5

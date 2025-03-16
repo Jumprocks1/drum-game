@@ -1,14 +1,15 @@
+using System;
 using DrumGame.Game.Components;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 
 namespace DrumGame.Game.Views.Settings.SettingInfos;
 
-public class DoubleSettingInfo : SettingInfo
+public class NullableParsableSettingInfo<T> : SettingInfo where T : struct, IParsable<T>
 {
-    public Bindable<double> Binding;
+    public Bindable<T?> Binding;
     public override string Description => Binding.Description;
-    public DoubleSettingInfo(string label, Bindable<double> binding) : base(label)
+    public NullableParsableSettingInfo(string label, Bindable<T?> binding) : base(label)
     {
         Binding = binding;
     }
@@ -17,8 +18,8 @@ public class DoubleSettingInfo : SettingInfo
         var textBox = new DrumTextBox
         {
             Width = 300,
-            Height = Height - 4,
-            Y = 2,
+            Height = Height - 6,
+            Y = 3,
             Anchor = Anchor.TopRight,
             Origin = Anchor.TopRight,
             X = -SettingControl.SideMargin,
@@ -28,15 +29,16 @@ public class DoubleSettingInfo : SettingInfo
         control.Add(textBox);
         textBox.OnCommit += (_, __) =>
         {
-            Binding.Value = double.TryParse(textBox.Current.Value, out var o) ? o : 0;
+            Binding.Value = T.TryParse(textBox.Current.Value, null, out var o) ? o : null;
             textBox.Current.Value = Binding.Value.ToString();
         };
     }
 }
-public class IntSettingInfo : SettingInfo
+public class ParsableSettingInfo<T> : SettingInfo where T : IParsable<T>
 {
-    public Bindable<int> Binding;
-    public IntSettingInfo(string label, Bindable<int> binding) : base(label)
+    public Bindable<T> Binding;
+    public override string Description => Binding.Description;
+    public ParsableSettingInfo(string label, Bindable<T> binding) : base(label)
     {
         Binding = binding;
     }
@@ -45,8 +47,8 @@ public class IntSettingInfo : SettingInfo
         var textBox = new DrumTextBox
         {
             Width = 300,
-            Height = Height - 4,
-            Y = 2,
+            Height = Height - 6,
+            Y = 3,
             Anchor = Anchor.TopRight,
             Origin = Anchor.TopRight,
             X = -SettingControl.SideMargin,
@@ -56,8 +58,21 @@ public class IntSettingInfo : SettingInfo
         control.Add(textBox);
         textBox.OnCommit += (_, __) =>
         {
-            Binding.Value = int.TryParse(textBox.Current.Value, out var o) ? o : 0;
+            Binding.Value = T.TryParse(textBox.Current.Value, null, out var o) ? o : default;
             textBox.Current.Value = Binding.Value.ToString();
         };
     }
+}
+
+public class DoubleSettingInfo : ParsableSettingInfo<double>
+{
+    public DoubleSettingInfo(string label, Bindable<double> binding) : base(label, binding) { }
+}
+public class FloatSettingInfo : ParsableSettingInfo<float>
+{
+    public FloatSettingInfo(string label, Bindable<float> binding) : base(label, binding) { }
+}
+public class IntSettingInfo : ParsableSettingInfo<int>
+{
+    public IntSettingInfo(string label, Bindable<int> binding) : base(label, binding) { }
 }

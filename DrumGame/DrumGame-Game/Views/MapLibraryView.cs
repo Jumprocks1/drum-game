@@ -137,6 +137,7 @@ public class MapLibraryView : RequestModal
         readonly MapLibrary Library;
 
         public MenuItem[] ContextMenuItems => ContextMenuBuilder.New(Library)
+            .Add("Reveal In File Explorer", e => Util.RevealInFileExplorer(e.AbsolutePath))
             .Add("Refresh", e =>
             {
                 Util.MapStorage.CheckWriteTimes();

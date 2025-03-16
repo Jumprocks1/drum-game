@@ -3,6 +3,8 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using DrumGame.Game.Skinning;
+using osuTK;
+using DrumGame.Game.Utils;
 
 namespace DrumGame.Game.Beatmaps.Display.Mania;
 
@@ -16,28 +18,62 @@ public abstract class ManiaIcon : Container
     public ManiaIcon(LaneInfo lane)
     {
         Config = lane;
+        CenterTarget = Config.IconPosition;
         RelativePositionAxes = Axes.Both;
         RelativeSizeAxes = Axes.Both;
         Inner.RelativeSizeAxes = Axes.Both;
+        // this is to keep Y distances consistent on any scaling.
+        // on super thin scalings, the Y axis lengthens so we have to
+        // rely on it being relative to be consistent.
+        Inner.RelativePositionAxes = Axes.Y;
         Inner.FillMode = FillMode.Fit;
         Inner.Anchor = Anchor.Centre;
         Inner.Origin = Anchor.Centre;
         AddInternal(Inner);
     }
-    protected float CenterTarget = 0.5f;
+    protected float CenterTarget;
     protected override void Update()
     {
         var centerPosition = (DrawHeight - Inner.DrawHeight) / 2;
         var targetPosition = CenterTarget * (DrawHeight - Inner.DrawHeight);
-        Inner.Y = targetPosition - centerPosition;
+        Inner.Y = (targetPosition - centerPosition) / DrawHeight;
     }
     public virtual void Hit(float velocity) // velocity is 0 to 127/159 (with hi-reso)
     {
         Inner.ClearTransforms();
         Inner.Colour = Config.Color;
-        Inner.FadeColour(Colour4.White, 300);
-        Inner.ScaleTo(1 + (velocity / 92f * 0.25f), 50, Easing.OutQuint)
-            .Then(e => e.ScaleTo(1, 150));
+
+        var normVelocity = velocity / 92f;
+        var IconAnimation = Util.Skin.Mania.IconAnimation;
+        if (IconAnimation != IconAnimationStyle.DtxBounceDown)
+            Inner.FadeColour(Colour4.White, 300);
+        else
+            Inner.FadeColour(Colour4.White, normVelocity * (15 * 7), Easing.InQuad);
+        switch (IconAnimation)
+        {
+            case IconAnimationStyle.Expand:
+                {
+                    Inner.ScaleTo(1 + (normVelocity * 0.25f), 50, Easing.OutQuint)
+                        .Then(e => e.ScaleTo(1, 150));
+                }
+                break;
+            case IconAnimationStyle.BounceDown:
+                {
+                    var animationDistance = 15f / DrawHeight;
+                    Inner.MoveToOffset(new Vector2(0, normVelocity * animationDistance), 50, Easing.OutQuint)
+                        .Then(e => e.MoveToOffset(new Vector2(0, normVelocity * -animationDistance), 150));
+                }
+                break;
+            case IconAnimationStyle.DtxBounceDown:
+                {
+                    var inOutRatio = 1d / 3d;
+                    var animationTime = 5 * (8 + 15);
+                    var animationDistance = 15f / DrawHeight;
+                    Inner.MoveToOffset(new Vector2(0, normVelocity * animationDistance), inOutRatio * animationTime)
+                        .Then(e => e.MoveToOffset(new Vector2(0, normVelocity * -animationDistance), (1 - inOutRatio) * animationTime));
+                }
+                break;
+        }
     }
 }
 

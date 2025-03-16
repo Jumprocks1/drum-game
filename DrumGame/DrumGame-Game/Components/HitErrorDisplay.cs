@@ -42,7 +42,7 @@ public class HitErrorDisplay : AdjustableSkinElement, IHasMarkupTooltip
     int HitErrorHead = 0; // where the next box will be inserted at
 
     Box AverageTick;
-    public readonly HitWindows Windows;
+    public HitWindows Windows => Display.Scorer?.HitWindows;
     public void Clear()
     {
         for (var i = 0; i < TickCount; i++)
@@ -143,14 +143,13 @@ public class HitErrorDisplay : AdjustableSkinElement, IHasMarkupTooltip
     void HandleSeek(double _) => Clear();
     BeatmapDisplay Display;
     bool Vertical => Layout == ElementLayout.Vertical;
-    public HitErrorDisplay(BeatmapDisplay display, HitWindows windows) : base(true)
+    public HitErrorDisplay(BeatmapDisplay display) : base(true)
     {
         Display = display;
         Mania = display is ManiaBeatmapDisplay;
         InitializeSkinData();
         Display.Track.OnSeekCommit += HandleSeek;
         Display.Scorer.OnScoreEvent += HandleScoreEvent;
-        Windows = windows;
         Generate();
     }
 
@@ -193,15 +192,5 @@ public class HitErrorDisplay : AdjustableSkinElement, IHasMarkupTooltip
                 AddTick((float)e.HitError.Value);
         }
     }
-    public string MarkupTooltip
-    {
-        get
-        {
-            var r = $"{MarkupText.Color("Pefect", Util.HitColors.Perfect)}: ±{Windows.PerfectWindow}ms";
-            r += $"\n{MarkupText.Color("Good", Util.HitColors.Good)}: ±{Windows.GoodWindow}ms";
-            r += $"\n{MarkupText.Color("Bad", Util.HitColors.Bad)}: ±{Windows.BadWindow}ms";
-            r += $"\n{MarkupText.Color("Miss", Util.HitColors.Miss)}: ±{Windows.HitWindow}ms";
-            return r;
-        }
-    }
+    public string MarkupTooltip => Windows?.MarkupTooltip;
 }

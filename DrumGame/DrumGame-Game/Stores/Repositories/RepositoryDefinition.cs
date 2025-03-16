@@ -30,6 +30,7 @@ public class RepositoryDefinition
     public string DownloadUrlPath { get; set; }
     public string PreviewUrlPath { get; set; }
     public string TitlePath { get; set; }
+    public string IndexPath { get; set; }
     public string ArtistPath { get; set; }
     public string SortPath { get; set; }
     public string Title { get; set; }
@@ -39,6 +40,8 @@ public class RepositoryDefinition
     public RegexDefinition[] TitleRegex { get; set; }
     public RegexDefinition[] IndexRegex { get; set; }
     public double Order { get; set; }
+
+    public Dictionary<string, string> RequestHeaders;
 
     public Dictionary<string, string> Mappers { get; set; }
     public string Mapper { get; set; }

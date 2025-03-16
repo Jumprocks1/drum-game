@@ -1,3 +1,4 @@
+using System;
 using DrumGame.Game.Beatmaps.Display;
 using osu.Framework.Extensions.EnumExtensions;
 
@@ -43,5 +44,13 @@ public partial class BeatmapEditor
             return clone ? sel.Clone() : sel;
         }
         else return null;
+    }
+
+    public ViewTarget ViewTargetFromAffectedRange(AffectedRange range)
+    {
+        if (!range.HasChange || range.Everything) return null;
+        var a = Beatmap.BeatFromTick(range.Start);
+        var b = Beatmap.BeatFromTick(range.End - 1);
+        return new ViewTarget(Math.Min(a, b), Math.Max(a, b));
     }
 }

@@ -14,7 +14,7 @@ namespace DrumGame.Game.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "6.0.1");
+            modelBuilder.HasAnnotation("ProductVersion", "8.0.2");
 
             modelBuilder.Entity("DrumGame.Game.Stores.DB.BeatmapInfo", b =>
                 {
@@ -61,6 +61,9 @@ namespace DrumGame.Game.Migrations
 
                     b.Property<int>("Good")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("HitWindows")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("MapId")
                         .HasColumnType("TEXT");

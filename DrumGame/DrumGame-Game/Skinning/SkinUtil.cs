@@ -13,10 +13,10 @@ namespace DrumGame.Game.Skinning;
 public static class SkinPathUtil
 {
     // this costs ~0.01ms, so it's safe to call each frame
-    public static (object Instance, MemberInfo Member) FinalMember<T>(this Expression<Func<Skin, T>> pathExpression)
+    static (object Instance, MemberInfo Member, object[] arguments) FinalMember<T>(this Expression<Func<Skin, T>> pathExpression, Skin skin)
     {
         if (pathExpression.Body.NodeType == ExpressionType.Constant && (pathExpression.Body as ConstantExpression).Value == null)
-            return (null, null);
+            return (null, null, null);
         // cleaner way to do this is with recursion, but I'm not a fan
 
         // the order is backwards, so we store and reverse
@@ -34,15 +34,25 @@ public static class SkinPathUtil
                 expressions.Add(exp);
                 exp = mce.Object;
             }
+            else if (exp is IndexExpression ie)
+            {
+                expressions.Add(ie);
+                exp = ie.Object;
+            }
             else throw new Exception($"Unexpected expression type: {exp.GetType()}");
         }
 
-        object instance = Util.Skin;
+        object instance = skin;
         for (var i = expressions.Count - 1; i >= 0; i--)
         {
             var e = expressions[i];
             // last part
-            if (i == 0) return (instance, ((MemberExpression)e).Member);
+            if (i == 0)
+            {
+                if (e is IndexExpression ie)
+                    return (instance, ie.Indexer, [((ConstantExpression)ie.Arguments[0]).Value]);
+                return (instance, ((MemberExpression)e).Member, null);
+            }
             if (e is MemberExpression me)
             {
                 var member = me.Member;
@@ -53,12 +63,15 @@ public static class SkinPathUtil
             }
             else if (e is MethodCallExpression mce)
                 instance = mce.Method.Invoke(instance, [((ConstantExpression)mce.Arguments[0]).Value]);
+            else if (e is IndexExpression ie)
+                instance = ie.Indexer.GetValue(instance, [((ConstantExpression)ie.Arguments[0]).Value]);
         }
         throw new Exception($"Skin path expression failed to resolve: {pathExpression}");
     }
-    public static T Get<T>(this Expression<Func<Skin, T>> pathExpression)
+    public static T Get<T>(this Expression<Func<Skin, T>> pathExpression) => Get(pathExpression, Util.Skin);
+    public static T Get<T>(this Expression<Func<Skin, T>> pathExpression, Skin skin)
     {
-        if (pathExpression.TryGet(out var o)) return o;
+        if (pathExpression.TryGet(skin, out var o)) return o;
         throw new KeyNotFoundException(pathExpression.ToString());
     }
 
@@ -84,10 +97,18 @@ public static class SkinPathUtil
                     // realistically there won't be many dictionary key types, so it's fine to hard-code the options
                     if (arg is DrumChannel dc)
                         members.Add($"['{BJsonNote.GetChannelString(dc)}']");
+                    else if (arg is int i)
+                        members.Add($"[{i}]");
                     else throw new NotImplementedException();
                 }
                 else throw new NotImplementedException();
                 exp = mce.Object;
+            }
+            else if (exp is IndexExpression ie)
+            {
+                var arg = ((ConstantExpression)ie.Arguments[0]).Value;
+                members.Add($"[{arg}]");
+                exp = ie.Object;
             }
             else throw new Exception($"Unexpected expression type: {exp.GetType()}");
         }
@@ -101,14 +122,15 @@ public static class SkinPathUtil
         }
         return o.ToString();
     }
-    public static T GetOrDefault<T>(this Expression<Func<Skin, T>> pathExpression)
-        => pathExpression.TryGet(out var o) ? o : default;
-    public static bool TryGet<T>(this Expression<Func<Skin, T>> pathExpression, out T v)
+    public static T GetOrDefault<T>(this Expression<Func<Skin, T>> pathExpression) => pathExpression.GetOrDefault(Util.Skin);
+    public static T GetOrDefault<T>(this Expression<Func<Skin, T>> pathExpression, Skin skin)
+        => pathExpression.TryGet(skin, out var o) ? o : default;
+    public static bool TryGet<T>(this Expression<Func<Skin, T>> pathExpression, Skin skin, out T v)
     {
-        var (instance, member) = pathExpression.FinalMember(); // if member is null, it will return null at the bottom
+        var (instance, member, arguments) = pathExpression.FinalMember(skin); // if member is null, it will return null at the bottom
         if (member is PropertyInfo pi)
         {
-            v = (T)pi.GetValue(instance);
+            v = (T)pi.GetValue(instance, arguments);
             return true;
         }
         else if (member is FieldInfo fi)
@@ -120,17 +142,19 @@ public static class SkinPathUtil
         return false;
     }
 
-    public static void Set<T>(this Expression<Func<Skin, T>> pathExpression, T value)
+    public static void Set<T>(this Expression<Func<Skin, T>> pathExpression, T value) => pathExpression.Set(Util.Skin, value);
+    public static void Set<T>(this Expression<Func<Skin, T>> pathExpression, Skin skin, T value)
     {
-        var (instance, member) = pathExpression.FinalMember(); // if member is null, it will skip setting
+        var (instance, member, arguments) = pathExpression.FinalMember(skin); // if member is null, it will skip setting
         if (member is PropertyInfo pi)
-            pi.SetValue(instance, value);
+            pi.SetValue(instance, value, arguments);
         else if (member is FieldInfo fi)
             fi.SetValue(instance, value);
     }
-    public static void SetAndDirty<T>(this Expression<Func<Skin, T>> pathExpression, T value)
+    public static void SetAndDirty<T>(this Expression<Func<Skin, T>> pathExpression, T value) => pathExpression.SetAndDirty(Util.Skin, value);
+    public static void SetAndDirty<T>(this Expression<Func<Skin, T>> pathExpression, Skin skin, T value)
     {
-        pathExpression.Set(value);
+        pathExpression.Set(skin, value);
         pathExpression.Dirty();
     }
     public static void Dirty<T>(this Expression<Func<Skin, T>> pathExpression)
@@ -139,10 +163,9 @@ public static class SkinPathUtil
     }
 
     public static string GetDescriptionFromExpression<T>(this Expression<Func<Skin, T>> pathExpression)
-    {
-        var member = ((MemberExpression)pathExpression.Body).Member;
-        return Util.MarkupDescription(member);
-    }
+        => Util.MarkupDescription(((MemberExpression)pathExpression.Body).Member);
+    public static string GetName<T>(this Expression<Func<Skin, T>> pathExpression)
+        => Util.DisplayName(((MemberExpression)pathExpression.Body).Member);
 
 
     // https://stackoverflow.com/questions/56427214/how-to-add-a-new-jproperty-to-a-json-based-on-path

@@ -85,7 +85,7 @@ public class SSHSync
         if (files.TryGetNonEnumeratedCount(out var c) && c == 0) return;
         var remote = Path.GetFullPath(directory, RemotePath);
         var startInfo = new ProcessStartInfo { FileName = "scp" };
-        startInfo.ArgumentList.Add("-T");
+        startInfo.ArgumentList.Add("-OT");
         foreach (var file in files) startInfo.ArgumentList.Add(Path.GetFullPath(Path.Join(directory, file), LocalPath));
         startInfo.ArgumentList.Add($"{Host}:{remote}");
         Execute(startInfo);
@@ -96,12 +96,15 @@ public class SSHSync
         startInfo.RedirectStandardOutput = true;
         var proc = Process.Start(startInfo);
         proc.WaitForExit();
-        if (proc.ExitCode != 0)
+        var error = proc.StandardError.ReadToEnd()?.Trim();
+        if (!string.IsNullOrWhiteSpace(error))
         {
-            var error = proc.StandardError.ReadToEnd();
-            // pretend we were successful
-            if (error.Contains("dbus_pending_call"))
-                return;
+            var bus = error.IndexOf("dbus");
+            if (bus != -1)
+                error = error[..bus].Trim();
+        }
+        if (!string.IsNullOrWhiteSpace(error))
+        {
             Logger.Log($"Failed to run with arguments: {string.Join(", ", proc.StartInfo.ArgumentList)}", level: LogLevel.Error);
             Logger.Log(proc.StandardOutput.ReadToEnd(), level: LogLevel.Error);
             Logger.Log(error, level: LogLevel.Error);
@@ -112,7 +115,7 @@ public class SSHSync
     {
         var fullRemote = Path.Join(RemotePath, remoteFile);
         var startInfo = new ProcessStartInfo { FileName = "scp" };
-        startInfo.ArgumentList.Add("-T");
+        startInfo.ArgumentList.Add("-OT");
         startInfo.ArgumentList.Add($"{Host}:\"{fullRemote}\"");
         startInfo.ArgumentList.Add(Path.GetFullPath(localFile, LocalPath));
         Execute(startInfo);
@@ -123,7 +126,7 @@ public class SSHSync
         if (files.TryGetNonEnumeratedCount(out var c) && c == 0) return;
         var local = Path.GetFullPath(directory, LocalPath);
         var startInfo = new ProcessStartInfo { FileName = "scp" };
-        startInfo.ArgumentList.Add("-T");
+        startInfo.ArgumentList.Add("-OT");
         var fileList = string.Join(' ', files.Select(e => $"\"{Path.Join(RemotePath, Path.Join(directory, e))}\""));
         startInfo.ArgumentList.Add($"{Host}:{fileList}");
         startInfo.ArgumentList.Add(local);

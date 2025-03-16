@@ -34,6 +34,8 @@ public class MidiTrack : MidiFile.Chunk
                 return null;
             }
         }
+        if (reader.BaseStream.Position != end)
+            Console.WriteLine($"Unexpected end position for track: {track.Name}. This likely indicates a problem with the MIDI parser.");
         return track;
     }
 
@@ -160,7 +162,7 @@ public class MidiTrack : MidiFile.Chunk
                 }
                 else if (type == 4)
                     Console.WriteLine($"Instrument: {Encoding.ASCII.GetString(reader.ReadBytes(length))}");
-                else if (type == 5) { } // lyric event
+                else if (type == 5) { reader.BaseStream.Seek(length, SeekOrigin.Current); } // lyric event
                 else if (type == 1) // text event
                 {
                     // These are usually not useful. Things like lighting events or section markers

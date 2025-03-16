@@ -66,6 +66,7 @@ public class BeatmapSelectorMap : ISearchable<BeatmapSelectorMap>, IBeatmapCarou
         new("imageurl", "Example: <code>imageurl=i.scdn.co</>"),
         new("image"),
         new("mapstoragepath", "Filters by the file/path name."),
+        new("playcount", "Filters by the number of scores in the score database.\nOnly updates once per game launch.\nExamples:\n<code>playcount=0</>\n<code>playcount>=5</code>"),
     ];
     public static IEnumerable<BeatmapSelectorMap> ApplyFilter(IEnumerable<BeatmapSelectorMap> exp, FilterOperator<BeatmapSelectorMap> op,
         FilterFieldInfo<BeatmapSelectorMap> fieldInfo, string value)

@@ -36,7 +36,8 @@ public class BeatmapScorerBase : IDisposable
 
     public event Action<ScoreEvent> OnScoreEvent;
     public event Action OnChange;
-    public readonly static HitWindows HitWindows = new(); // we can load this from the beatmap eventually
+    // TODO in some cases we should be pulling the HitWindows from replay info
+    public readonly HitWindows HitWindows = HitWindows.GetWindowsForCurrentPreference();
     protected List<HitObjectRealTime> HitObjects;
     readonly Beatmap Beatmap;
     // make sure to only update this after triggering all events
@@ -64,12 +65,13 @@ public class BeatmapScorerBase : IDisposable
     public MultiplierHandler MultiplierHandler = new();
     // Notes in here can be hit a second time. The second time will be inserted as an ignored hit
     public List<HitObjectRealTime> RehitNotes = new();
-    public void TriggerIgnore(DrumChannelEvent ev) => TriggerScoreEvent(new ScoreEvent
+    public void TriggerIgnore(DrumChannelEvent ev, HitObjectRealTime hitObject) => TriggerScoreEvent(new ScoreEvent
     {
         Channel = ev.Channel,
         Rating = HitScoreRating.Ignored,
         Time = ev.Time,
-        InputEvent = ev
+        InputEvent = ev,
+        OriginalObjectIndex = hitObject?.OriginalObjectIndex ?? -1
     });
     public static int RatingValue(HitScoreRating rating) => rating switch
     {
@@ -80,6 +82,44 @@ public class BeatmapScorerBase : IDisposable
     };
     public virtual void TriggerScoreEvent(ScoreEvent scoreEvent, bool roll = false)
     {
+        var inputEvent = scoreEvent.InputEvent;
+        if (inputEvent != null && inputEvent.NeedsSamplePlayback) // this should include everything except force triggered misses
+        {
+            // we need a sample to play, so we need to try to find a hit object
+            // this could definitely be slow for long maps
+            if (scoreEvent.OriginalObjectIndex < 0)
+            {
+                var t = inputEvent.Time;
+                int? hitIndex = null;
+                var hitError = 0d;
+                for (var target = 0; target < HitObjects.Count; target++)
+                {
+                    var ho = HitObjects[target];
+                    if (ChannelMatch(ho, inputEvent))
+                    {
+                        var error = Math.Abs(t - ho.Time);
+                        if (hitIndex.HasValue)
+                        {
+                            // we prefer hits that have less error
+                            if (error < hitError)
+                            {
+                                hitError = error;
+                                hitIndex = target;
+                            }
+                            else break; // if the error starts increasing, we can stop looking for candidates
+                        }
+                        else
+                        {
+                            hitError = error;
+                            hitIndex = target;
+                        }
+                    }
+                }
+                if (hitIndex.HasValue) scoreEvent.OriginalObjectIndex = HitObjects[hitIndex.Value].OriginalObjectIndex;
+            }
+            if (scoreEvent.OriginalObjectIndex >= 0)
+                scoreEvent.InputEvent.HitObject ??= Beatmap.HitObjects[scoreEvent.OriginalObjectIndex]; // used for sample playback if enabled
+        }
         SeekPracticeMode = false; // make sure seek practice is off after we hit a note
         if (PracticeMode != null)
         {
@@ -242,6 +282,7 @@ public class BeatmapScorerBase : IDisposable
 
     public void Hit(DrumChannelEvent ev)
     {
+        ev.CurrentBeatmap = Beatmap;
         int? hitIndex = null;
         double hitError = 0;
 
@@ -346,7 +387,7 @@ public class BeatmapScorerBase : IDisposable
                 if (remove != null)
                 {
                     RehitNotes.Remove(remove);
-                    TriggerIgnore(ev);
+                    TriggerIgnore(ev, remove);
                     return;
                 }
             }
@@ -355,7 +396,7 @@ public class BeatmapScorerBase : IDisposable
         else
         {
             if (CheckRolls(ev)) return;
-            TriggerIgnore(ev);
+            TriggerIgnore(ev, null);
         }
         CheckComplete();
     }

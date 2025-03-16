@@ -166,6 +166,11 @@ public class ContextMenuBuilder<T>
     {
         Target = target;
     }
+    public ContextMenuBuilder<T> Modify(Action<ContextMenuBuilder<T>> modify)
+    {
+        modify?.Invoke(this);
+        return this;
+    }
     public ContextMenuBuilder<T> Add(string name, Action<T> action)
     {
         items.Add(new DrumMenuItem(name, () => action(Target)));

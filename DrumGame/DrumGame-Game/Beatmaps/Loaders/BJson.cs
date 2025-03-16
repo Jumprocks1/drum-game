@@ -85,6 +85,7 @@ public class DrumChannelConverter : JsonConverter<DrumChannel>
 }
 public class BJsonSource
 {
+    public bool AssetExists(string asset) => File.Exists(FullAssetPath(asset));
     public string FullAssetPath(string asset)
     {
         if (asset == null) return null;
@@ -107,7 +108,7 @@ public class BJsonSource
     public readonly string OriginalAbsolutePath;
     public string FilenameNoExt => Path.GetFileNameWithoutExtension(AbsolutePath);
     public string FilenameWithExt => Path.GetFileName(AbsolutePath);
-    public MapLibrary Library => Util.MapStorage.MapLibraries.Sources.FirstOrDefault(e => e.IsInProvider(MapStoragePath));
+    public MapLibrary Library => Util.MapStorage.MapLibraries.ValidLibraries.FirstOrDefault(e => e.IsInProvider(MapStoragePath));
     // note, format should be the format we expect to save in
     // if we are fully importing a map, the format would be BJsonFormat.Instance
     public BJsonSource(string absolutePath, BeatmapFormat format)
@@ -155,8 +156,9 @@ public abstract class BJson
     [DefaultValue(DefaultTickRate)]
     public int TickRate { get; set; } = DefaultTickRate;
     public string Description { get; set; }
-    [JsonProperty(Order = 1)] // move to end since this is like 99% of the map
+    [JsonProperty(Order = 2)] // move to end since this is like 99% of the map
     public List<BJsonNote> Notes;
+    [JsonProperty(Order = 1)]
     public NotePresets NotePresets = new();
     public bool ShouldSerializeNotePresets() => NotePresets != null && NotePresets.Count > 0;
     public List<Bookmark> Bookmarks;
@@ -188,8 +190,8 @@ public abstract class BJson
     public string RomanArtist { get; set; } // typically romaji
     public string GetRomanArtist() => RomanArtist ?? Artist;
     public string Mapper { get; set; }
-    // this should probably be an enum
-    public string Difficulty { get; set; }
+    [JsonConverter(typeof(BeatmapDifficultyConverter))]
+    public BeatmapDifficulty Difficulty { get; set; }
     public string DifficultyName { get; set; }
     public string Tags { get; set; }
     public double? PreviewTime { get; set; }

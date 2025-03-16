@@ -29,6 +29,7 @@ public class BeatmapCard : CompositeDrawable, IHasContextMenu
         .Add(Commands.Command.UpvoteMap).Color(DrumColors.Upvote)
         .Add(Commands.Command.DownvoteMap).Color(DrumColors.Downvote)
         .Add(Commands.Command.RevealInFileExplorer)
+        .Add(Commands.Command.OpenExternally)
         .Add("Reveal Audio In File Explorer", e =>
         {
             var audio = e.LoadedMetadata.Audio;
@@ -67,6 +68,8 @@ public class BeatmapCard : CompositeDrawable, IHasContextMenu
         var textX = Math.Min(0, -x);
         ratingText.X = textX;
         durationText.X = textX - 4;
+
+        // artistText.MaxWidth = Width - artistText.X - durationText.Width + durationText.X;
     }
 
     public BeatmapCard(BeatmapCarousel carousel)
@@ -209,11 +212,11 @@ public class BeatmapCard : CompositeDrawable, IHasContextMenu
         {
             var duration = Util.FormatTime(metadata.Duration);
             var bpm = metadata.BPM != 0 ? $"{metadata.BPM:0.##} BPM" : null;
-            durationText.Text = $"{duration} - {bpm}";
+            durationText.Text = bpm == null ? duration : $"{duration} - {bpm}";
             durationText.Tooltip = metadata.BpmRange == null ? null : metadata.BpmRange + " BPM";
         }
 
-        artistText.MaxWidth = Width - artistText.X - durationText.Width;
+        artistText.MaxWidth = Width - artistText.X - durationText.Width - 4;
         artistText.Text = metadata.Artist;
 
         image.Target = (map.FullAssetPath(metadata.Image), metadata.ImageUrl);

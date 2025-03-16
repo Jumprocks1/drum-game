@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using DrumGame.Game.Beatmaps.Loaders;
@@ -25,7 +26,7 @@ namespace DrumGame.Game.Skinning;
 public static class SkinManager
 {
     static List<AdjustableSkinElement> Elements = new();
-    public readonly static List<(SkinAnchorTarget, Drawable)> AnchorTargets = new(); // this is intentionally not a dictionary
+    public readonly static List<(string, Drawable)> AnchorTargets = new(); // this is intentionally not a dictionary
     public static void RegisterElement(AdjustableSkinElement element)
     {
         Elements.Add(element);
@@ -37,13 +38,13 @@ public static class SkinManager
     // TODO should probably make a custom interface here instead of drawable
     // Interface would need UpdateTargets or something similar
     // We would then call that whenever we want to update our targets, potionally in OnInvalidate
-    public static void RegisterTarget(SkinAnchorTarget target, Drawable drawable) => AnchorTargets.Add((target, drawable));
+    public static void RegisterTarget(string target, Drawable drawable) => AnchorTargets.Add((target, drawable));
     public static void UnregisterTarget(Drawable drawable) => AnchorTargets.RemoveAll(e => e.Item2 == drawable);
-    public static void UnregisterTarget(SkinAnchorTarget target) => AnchorTargets.RemoveAll(e => e.Item1 == target);
-    public static Drawable GetTarget(SkinAnchorTarget target)
+    public static void UnregisterTarget(string target) => AnchorTargets.RemoveAll(e => e.Item1.Equals(target, StringComparison.OrdinalIgnoreCase));
+    public static Drawable GetTarget(string target)
     {
-        if (target == SkinAnchorTarget.Parent) return null;
-        return AnchorTargets.FirstOrDefault(e => e.Item1 == target).Item2;
+        if (target == null) return null;
+        return AnchorTargets.FirstOrDefault(e => e.Item1.Equals(target, StringComparison.OrdinalIgnoreCase)).Item2;
     }
     static bool AltState;
     public static void SetAltKey(bool altPressed)
@@ -61,6 +62,7 @@ public static class SkinManager
 
     // public static void ReloadSkin() => SkinChanged?.Invoke();
     static Bindable<string> Binding;
+    public static string CurrentSkin => Binding.Value;
 
     public static void ChangeSkinTo(string skinPath)
     {
@@ -145,10 +147,17 @@ public static class SkinManager
         return null;
     }
 
-    public static void ReloadSkin() // this will also start the hot watcher
+    // only use on update thread
+    static long LastReload;
+    public static void ReloadSkin() => ReloadSkin(false);
+    public static void ReloadSkin(bool throttle) // this will also start the hot watcher
     {
         Util.EnsureUpdateThread(() =>
         {
+            var now = Stopwatch.GetTimestamp();
+            // only allow 1 reload per second. This helps with the watcher
+            if (throttle && now - LastReload < Stopwatch.Frequency) return;
+            LastReload = now;
             var v = Binding.Value;
             if (v != null)
             {
@@ -233,7 +242,7 @@ public static class SkinManager
             {
                 ExtraFilters = ["*.fs"]
             };
-            FileWatcher.Changed += ReloadSkin;
+            FileWatcher.Changed += () => ReloadSkin(true);
             FileWatcher.Register();
         }
         else
@@ -243,7 +252,7 @@ public static class SkinManager
     public static void MarkDirty(Skin skin, string path) => skin.AddDirtyPath(path);
     public static void Cleanup()
     {
-        if (Util.Skin.Dirty)
+        if (Util.Skin != null && Util.Skin.Dirty)
             SavePartialSkin(Util.Skin);
     }
     public static void SavePartialSkin(Skin skin, string outPath = null)

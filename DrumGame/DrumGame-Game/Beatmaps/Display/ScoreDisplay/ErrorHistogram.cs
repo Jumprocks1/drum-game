@@ -2,19 +2,17 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics;
 using System;
 using DrumGame.Game.Beatmaps.Scoring;
-using DrumGame.Game.Stores.DB;
-using DrumGame.Game.Beatmaps.Replay;
 using osu.Framework.Graphics.Shapes;
 using DrumGame.Game.Utils;
 using osu.Framework.Graphics.Sprites;
-using DrumGame.Game.Skinning;
 using DrumGame.Game.Components;
+using DrumGame.Game.Components.Basic;
 
 namespace DrumGame.Game.Beatmaps.Display.ScoreDisplay;
 
 public class ErrorHistogram : CompositeDrawable
 {
-    public ErrorHistogram(ReplayResults results)
+    public ErrorHistogram(HitWindows hitWindows, ReplayResults results)
     {
         var hitErrors = results.HitErrors;
         var radius = 100;
@@ -40,8 +38,8 @@ public class ErrorHistogram : CompositeDrawable
 
                 var absMs = Math.Abs(ms);
 
-                var rating = BeatmapScorer.HitWindows.GetRating(absMs);
-                var color = BeatmapScorer.HitWindows.GetColor(rating);
+                var rating = hitWindows.GetRating(absMs);
+                var color = hitWindows.GetColor(rating);
 
                 var coloredMs = MarkupText.Color(absMs.ToString(), color) + "ms";
                 var signedMs = ms < 0 ? $"-{coloredMs}" : $"+{coloredMs}";
@@ -72,7 +70,6 @@ public class ErrorHistogram : CompositeDrawable
         plot.Invalidate();
         AddInternal(plot);
 
-        var windows = new HitWindows();
         void AddLine(float ms, Colour4 color)
         {
             if (ms > radius) return;
@@ -97,15 +94,16 @@ public class ErrorHistogram : CompositeDrawable
                 });
         }
         AddLine(0, Util.HitColors.Perfect);
-        AddLine(windows.PerfectWindow, Util.HitColors.Good);
-        AddLine(windows.GoodWindow, Util.HitColors.Bad);
-        AddLine(windows.BadWindow, Util.HitColors.Miss);
-        AddInternal(new SpriteText
+        AddLine(hitWindows.PerfectWindow, Util.HitColors.Good);
+        AddLine(hitWindows.GoodWindow, Util.HitColors.Bad);
+        AddLine(hitWindows.BadWindow, Util.HitColors.Miss);
+        AddInternal(new MarkupTooltipSpriteText
         {
             Anchor = Anchor.TopCentre,
             Origin = Anchor.TopCentre,
             Colour = Colour4.White,
-            Text = "Hit error histogram"
+            Text = "Hit error histogram",
+            MarkupTooltip = hitWindows.MarkupTooltip
         });
     }
 }

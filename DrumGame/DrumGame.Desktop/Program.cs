@@ -7,6 +7,7 @@ using System.Linq;
 using System.Globalization;
 using osu.Framework.Graphics;
 using DrumGame.Game.Commands;
+using osu.Framework.Graphics.Containers;
 
 namespace DrumGame.Desktop;
 
@@ -79,6 +80,37 @@ public static class Program
                     {
                         var commandInfo = CommandInfo.FromString(command);
                         Util.CommandController.ActivateCommand(commandInfo);
+                    };
+                }
+            }
+            else if (arg == "--click")
+            {
+                if (nextArg(out var target))
+                {
+                    OnLoad += _ =>
+                    {
+                        CompositeDrawable targetCd = Util.DrumGame;
+                        var queue = "";
+                        Drawable found = null;
+                        void apply()
+                        {
+                            if (queue == "") return;
+                            found = Util.FindText(targetCd, queue);
+                            queue = "";
+                        }
+                        for (var i = 0; i < target.Length; i++)
+                        {
+                            if (target[i] == '^')
+                            {
+                                apply();
+                                targetCd = found.Parent;
+                                continue;
+                            }
+                            queue += target[i];
+                        }
+                        apply();
+                        while (!found.TriggerClick())
+                            found = found.Parent;
                     };
                 }
             }

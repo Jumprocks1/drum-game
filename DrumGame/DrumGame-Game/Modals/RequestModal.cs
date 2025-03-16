@@ -21,6 +21,7 @@ public interface IFieldConfig
 {
     public void TriggerCommit(object value) { }
     public IDrawableField Render(RequestModal modal);
+    public Type OutputType { get; }
     public string Label { get; }
     public bool HasCommit { get; }
     public string Key { get; }
@@ -74,10 +75,35 @@ public class RequestConfig
     public string CloseText = "Close";
     public bool AutoFocus = true;
     public string DisableCommit; // set to tooltip text for disable reason
-    public bool HasCommit => OnCommit != null || (Fields != null && Fields.Any(e => e.HasCommit));
+    public bool HasCommit => OnCommit != null || OnCommitBasic != null || (Fields != null && Fields.Any(e => e.HasCommit));
     public Action<RequestModal> OnCommit;
+    // this handles a RequestResult instead of a request modal
+    // this is useful when a request may be completed by a command context instead of a modal
+    public Action<RequestResult> OnCommitBasic;
+    public Func<RequestModal, bool> CanCommit;
     // works well as single button, footer command, or even container
     public Drawable Footer;
+}
+
+public class RequestResult
+{
+    public (string Key, object Value)[] Results;
+    public RequestResult(IList<(string Key, object Value)> results)
+    {
+        Results = new (string Key, object Value)[results.Count];
+        for (var i = 0; i < results.Count; i++)
+            Results[i] = results[i];
+    }
+    public RequestResult(RequestModal requestModal)
+    {
+        var f = requestModal.Fields;
+        Results = new (string Key, object Value)[f.Length];
+        for (var i = 0; i < f.Length; i++)
+            Results[i] = (f[i].Key, f[i].Value);
+    }
+    public T GetValue<T>(int i) => (T)Results[i].Value;
+    public T GetValue<T>() => (T)Results[0].Value;
+    public T GetValue<T>(string key) => (T)Results.First(e => e.Key == key).Value;
 }
 
 public class FooterCommand : CommandButton
@@ -122,7 +148,7 @@ public class RequestModal : TabbableContainer, IModal, IAcceptFocus
 
     public readonly RequestConfig Config;
 
-    IDrawableField[] Fields;
+    public IDrawableField[] Fields { get; private set; }
     public void SetValue<T>(int i, T value) => ((IDrawableField<T>)Fields[i]).Value = value;
     public T GetValue<T>(int i) => ((IDrawableField<T>)Fields[i]).Value;
     public T GetValue<T>() => ((IDrawableField<T>)Fields[0]).Value;
@@ -158,16 +184,20 @@ public class RequestModal : TabbableContainer, IModal, IAcceptFocus
                 Util.CommandController.RemoveHandler(command.Item1, command.Item2);
         base.Dispose(isDisposing);
     }
+    protected ModalForeground Foreground;
     public RequestModal(RequestConfig config)
     {
         Config = config;
         TabbableContentContainer = this;
         RelativeSizeAxes = Axes.Both;
         AddInternal(new ModalBackground(Close));
+        var autoWidth = config.Width == 0;
+        var autoSizeAxes = autoWidth ? Axes.Both : Axes.Y;
+        var relativeAxes = autoWidth ? Axes.None : Axes.X;
         var mainContainer = new MainContainer
         {
-            AutoSizeAxes = Axes.Y,
-            RelativeSizeAxes = Axes.X,
+            AutoSizeAxes = autoSizeAxes,
+            RelativeSizeAxes = relativeAxes,
             Direction = FillDirection.Vertical,
             Padding = new MarginPadding(CommandPalette.Margin)
         };
@@ -197,8 +227,8 @@ public class RequestModal : TabbableContainer, IModal, IAcceptFocus
         }
         mainContainer.Add(InnerContent = new Container
         {
-            AutoSizeAxes = Axes.Y,
-            RelativeSizeAxes = Axes.X
+            AutoSizeAxes = autoSizeAxes,
+            RelativeSizeAxes = relativeAxes
         });
 
         var hasCloseButton = Config.CloseText != null;
@@ -240,18 +270,21 @@ public class RequestModal : TabbableContainer, IModal, IAcceptFocus
             }
             mainContainer.Add(FooterButtonContainer);
         }
-        var relativeWidth = config.Width <= 1;
+
+        var relativeWidth = config.Width <= 1 && !autoWidth;
         var borderPadding = 2;
 
-        var foreground = new ModalForeground(Axes.Y)
+        Foreground = new ModalForeground(autoSizeAxes)
         {
             RelativeSizeAxes = relativeWidth ? Axes.X : Axes.None,
             Anchor = Anchor.Centre,
             Origin = Anchor.Centre,
-            Width = relativeWidth ? config.Width : config.Width + (borderPadding + CommandPalette.Margin) * 2,
         };
-        foreground.Add(mainContainer);
-        AddInternal(foreground);
+        if (!autoWidth)
+            Foreground.Width = relativeWidth ? config.Width : config.Width + (borderPadding + CommandPalette.Margin) * 2;
+
+        Foreground.Add(mainContainer);
+        AddInternal(Foreground);
         if (Config.Commands != null)
             foreach (var command in Config.Commands)
                 Util.CommandController.RegisterHandler(command.Item1, command.Item2);
@@ -321,6 +354,7 @@ public class RequestModal : TabbableContainer, IModal, IAcceptFocus
 
     public bool Commit()
     {
+        if (!(Config?.CanCommit?.Invoke(this) ?? true)) return true;
         if (Config.Fields != null)
         {
             var fields = Config.Fields;
@@ -328,6 +362,7 @@ public class RequestModal : TabbableContainer, IModal, IAcceptFocus
                 fields[i].TriggerCommit(Fields[i].Value);
         }
         Config.OnCommit?.Invoke(this);
+        Config.OnCommitBasic?.Invoke(new(this));
         Close();
         return true;
     }

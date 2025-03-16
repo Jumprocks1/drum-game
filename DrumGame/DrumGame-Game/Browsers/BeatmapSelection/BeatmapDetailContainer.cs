@@ -34,11 +34,11 @@ public class BeatmapDetailContainer : CompositeDrawable
             Top = BeatmapSelector.HeaderHeight,
         };
         RelativeSizeAxes = Axes.Both;
-        AddInternal(new Box
-        {
-            RelativeSizeAxes = Axes.Both,
-            Colour = DrumColors.DarkBackground.MultiplyAlpha(0.5f)
-        });
+        // AddInternal(new Box
+        // {
+        //     RelativeSizeAxes = Axes.Both,
+        //     Colour = DrumColors.DarkBackground.MultiplyAlpha(0.5f)
+        // });
     }
 
     CancellationTokenSource cancellation;

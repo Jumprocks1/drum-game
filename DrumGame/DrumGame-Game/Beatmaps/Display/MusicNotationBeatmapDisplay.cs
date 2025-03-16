@@ -23,6 +23,8 @@ using osu.Framework.Input.Events;
 using osu.Framework.Logging;
 using osuTK;
 using osuTK.Input;
+using DrumGame.Game.Beatmaps.Display.Notation;
+using DrumGame.Game.Channels;
 
 namespace DrumGame.Game.Beatmaps.Display;
 
@@ -57,6 +59,7 @@ public partial class MusicNotationBeatmapDisplay : BeatmapDisplay
     (int, int) DisplayRange = (0, 0);
     public float Inset;
     internal NoteContainer NoteContainer;
+    NoMaskContainer EffectOverlayContainer;
     Container AnnotationsContainer;
     [Resolved] DrumInputManager InputManager { get; set; }
     public bool SnapIndicator;
@@ -74,6 +77,7 @@ public partial class MusicNotationBeatmapDisplay : BeatmapDisplay
     SpriteText TempoText;
     SpriteText BeatText;
     protected FillFlowContainer StatusContainer;
+    public FillFlowContainer ModeContainer;
     SpriteText ModeText;
     SpriteText SnapText;
     Box SnapCursor;
@@ -259,6 +263,7 @@ public partial class MusicNotationBeatmapDisplay : BeatmapDisplay
     {
         Util.CommandController.RegisterHandlers(this);
         AddInternal(NoteContainer = new NoteContainer(Font));
+        AddInternal(EffectOverlayContainer = new NoMaskContainer { Height = 4 });
         if (!SmoothScroll)
         {
             NoteContainer.Add(JumpCursor = new Box
@@ -313,10 +318,14 @@ public partial class MusicNotationBeatmapDisplay : BeatmapDisplay
         };
         StatusContainer.Add(ZoomText = new CommandText(Command.SetZoom) { Colour = TextColor });
         StatusContainer.Add(TempoText = new CommandText(Command.SetPlaybackSpeed) { Colour = TextColor });
-        StatusContainer.Add(BeatText = new CommandText(Command.SeekToBeat) { Colour = TextColor });
+        StatusContainer.Add(BeatText = new CommandText(Command.SeekToBeat)
+        {
+            Colour = TextColor,
+            ExtraTooltip = () => $"Beat: {Track.CurrentBeat + Beatmap.BeatEpsilon:0} / {Beatmap.QuarterNotes}\nMeasure: {Track.CurrentMeasure} / {Beatmap.MeasureFromBeat(Beatmap.QuarterNotes)}"
+        });
         AddInternal(StatusContainer);
         AddInternal(VolumeControls = new VolumeControlGroup(Player as BeatmapEditor));
-        if (Player is BeatmapEditor)
+        if (Player is BeatmapEditor && !Util.Skin.Streaming)
         {
             AddInternal(new CommandIconButton(Command.EditorTools, FontAwesome.Solid.Tools, 40)
             {
@@ -326,18 +335,26 @@ public partial class MusicNotationBeatmapDisplay : BeatmapDisplay
                 Colour = TextColor
             });
         }
-        var modeContainer = new FillFlowContainer
+        ModeContainer = new FillFlowContainer
         {
             Origin = Anchor.BottomLeft,
             Anchor = Anchor.BottomLeft,
+            Padding = new MarginPadding { Left = 2 },
             Y = -BeatmapTimeline.Height,
-            AutoSizeAxes = Axes.Both
+            AutoSizeAxes = Axes.Both,
+            Spacing = new Vector2(4, 0)
         };
-        modeContainer.Add(ModeText = new CommandText(Command.SwitchMode) { Margin = new() { Left = 2 }, Colour = TextColor });
-        SkinManager.RegisterTarget(SkinAnchorTarget.ModeText, modeContainer);
-        if (Player is BeatmapEditor) modeContainer.Add(SnapText = new CommandText(Command.SetEditorSnapping) { Colour = TextColor });
-        AddInternal(modeContainer);
+        ModeContainer.Add(ModeText = new CommandText(Command.SwitchMode) { Colour = TextColor });
+        SkinManager.RegisterTarget(SkinAnchorTarget.ModeText, ModeContainer);
+        if (Player is BeatmapEditor) ModeContainer.Add(SnapText = new CommandText(Command.SetEditorSnapping) { Colour = TextColor });
+        AddInternal(ModeContainer);
         AddInternal(InfoPanel = new SongInfoPanel(Beatmap));
+        var extras = Util.Skin.Notation.ExtraElements;
+        if (extras != null)
+        {
+            for (var i = 0; i < extras.Count; i++)
+                AddInternal(new ExtraSkinElement(e => e.Notation.ExtraElements, i));
+        }
         AddInternal(EventContainer = new());
         LoadNotes();
         Beatmap.AnnotationsUpdated += LoadAnnotations;
@@ -385,13 +402,15 @@ public partial class MusicNotationBeatmapDisplay : BeatmapDisplay
         foreach (var e in NoteGroupContainers) e.Dispose();
         base.Dispose(isDisposing);
     }
-    public void LogEvent(EventLog eventLog) => EventContainer.Add(eventLog);
+    public void LogEvent(EventLog eventLog) => EventContainer?.Add(eventLog);
     public virtual void UpdateLayout()
     {
         _staffHeight = (float)(DefaultStaffHeight * _zoomLevel * Util.Skin.Notation.ZoomMultiplier);
         var y = StaffHeight * NoteContainerTopPadding + TopbarHeight;
         NoteContainer.Y = y;
         NoteContainer.Scale = new osuTK.Vector2(StaffHeight / 4); // set scale to size of a single staff cell
+        EffectOverlayContainer.Y = y;
+        EffectOverlayContainer.Scale = NoteContainer.Scale;
         AuxDisplay.Padding = new MarginPadding
         {
             Top = TopbarHeight + StaffHeight * NoteContainerHeight,
@@ -431,14 +450,14 @@ public partial class MusicNotationBeatmapDisplay : BeatmapDisplay
         ZoomText.Text = $"Z:{zoom * 100:F0}%";
         TempoText.Text = $" {tempo:0.00}x ";
         BeatText.Text = $" {beatString} / {totalString}";
-        ModeText.Text = Player.Mode == BeatmapPlayerMode.Replay ? string.Empty : $"{Player.Mode} Mode ";
+        ModeText.Text = Player.Mode == BeatmapPlayerMode.Replay ? string.Empty : $"{Player.Mode} Mode";
         if (Player is BeatmapEditor ed)
         {
             if (Selection != null && selectionPending)
             {
                 UpdateSelection(ed.SnapBeat(NoteContainer.ToLocalSpace(InputManager.CurrentState.Mouse.Position).X / Font.Spacing));
             }
-            SnapText.Text = ed.BeatSnap.HasValue ? $" {ed.BeatSnap} snap" : " 0 snap";
+            SnapText.Text = ed.BeatSnap.HasValue ? $"{ed.BeatSnap} snap" : "0 snap";
             SnapCursor.Alpha = SnapIndicator ? 1 : 0;
             if (SnapIndicator)
             {
@@ -612,7 +631,8 @@ public partial class MusicNotationBeatmapDisplay : BeatmapDisplay
         var (left, right) = CurrentView();
         var sLeft = target.Left;
         var sRight = target.Right;
-        if (left <= sLeft && right >= sRight) return; // already in view
+        if (left <= sLeft && right >= sRight) return; // already fully in view
+        if (left <= sLeft && Math.Abs(Track.CurrentBeat - sLeft) < 4) return; // already close enough
         Track.Seek(Beatmap.MillisecondsFromBeat(sLeft));
     }
     public ScoreTopBar ScoreTopBar;
@@ -630,22 +650,75 @@ public partial class MusicNotationBeatmapDisplay : BeatmapDisplay
         ScoreTopBar = null;
         base.LeavePlayMode();
     }
+    Dictionary<int, BarJudgementDisplay> ExistingJudgements;
     public override void DisplayScoreEvent(ScoreEvent e)
     {
         if (HideJudgements) return;
+        var judgementSkin = Util.Skin.Notation.Judgements;
         var xTime = e.Time ?? e.ObjectTime ?? 0;
-        var h = new Circle
+
+        var skinNote = Util.Skin.Notation.Channels[e.Channel];
+
+        var circle = new Circle
         {
             Colour = e.Colour,
-            Width = 1.5f,
-            Height = 1.5f,
+            Width = judgementSkin.Circle.Size,
+            Height = judgementSkin.Circle.Size,
             Origin = Anchor.Centre,
             X = (float)Beatmap.BeatFromMilliseconds(xTime) * Font.Spacing + MainNoteheadWidth / 2,
-            Y = (float)Util.Skin.Notation.Channels[e.Channel].Position / 2,
+            Y = (float)skinNote.Position / 2,
             Depth = -2 // make sure we're on top of notes
         };
-        NoteContainer.Add(h);
-        h.FadeOut(1000).Expire();
+        NoteContainer.Add(circle);
+        circle.FadeOut(judgementSkin.Circle.Duration).Expire();
+
+        var bar = judgementSkin.Bar;
+        if (bar != null && e.HitError is double error)
+        {
+            var maxError = judgementSkin.Bar.MaximumError ?? Scorer.HitWindows.PerfectWindow;
+            if (bar.Style == NotationJudgementInfo.BarInfo.BarStyle.Note)
+            {
+                if (Math.Abs(error) > judgementSkin.Bar.MinimumError)
+                {
+                    var newBar = new BarJudgementDisplay(bar, error / maxError)
+                    {
+                        X = circle.X,
+                        Y = circle.Y,
+                        Depth = -2
+                    };
+                    NoteContainer.Add(newBar);
+                    newBar.FadeOut(judgementSkin.Bar.Duration).Expire();
+                }
+            }
+            else if (bar.Style == NotationJudgementInfo.BarInfo.BarStyle.Shared
+                || bar.Style == NotationJudgementInfo.BarInfo.BarStyle.Shared2
+                || bar.Style == NotationJudgementInfo.BarInfo.BarStyle.SharedLane)
+            {
+                var position = bar.Style == NotationJudgementInfo.BarInfo.BarStyle.Shared ? bar.SharedPosition :
+                                bar.Style == NotationJudgementInfo.BarInfo.BarStyle.Shared2 ?
+                                    e.Channel.IsFoot() ? bar.SharedPositionFeet : bar.SharedPosition :
+                                skinNote.Position;
+
+                ExistingJudgements ??= new();
+                var existing = ExistingJudgements.GetValueOrDefault(position);
+                if (existing != null)
+                {
+                    existing.ClearTransforms();
+                    existing.Expire();
+                }
+                if (Math.Abs(error) > judgementSkin.Bar.MinimumError)
+                {
+                    var newBar = new BarJudgementDisplay(bar, error / maxError)
+                    {
+                        X = (Inset + bar.LaneOffset) * Font.Spacing,
+                        Y = (float)position / 2
+                    };
+                    EffectOverlayContainer.Add(newBar);
+                    ExistingJudgements[position] = newBar;
+                    newBar.FadeOut(judgementSkin.Bar.Duration).Expire();
+                }
+            }
+        }
     }
     float MainNoteheadWidth => Font.MainNoteheadWidth;
     public override void OnDrumTrigger(DrumChannelEvent ev) => AuxDisplay.InputDisplay?.Hit(ev);
@@ -669,7 +742,7 @@ public class ViewTarget
 {
     public double Left;
     public double Right;
-    public ViewTarget(double left, double right)
+    public ViewTarget(double left, double right) // can probably remove view target in favor of affect range eventually
     {
         Left = left;
         Right = right;

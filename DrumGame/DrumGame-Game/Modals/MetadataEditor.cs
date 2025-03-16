@@ -7,6 +7,7 @@ using DrumGame.Game.Beatmaps.Editor;
 using DrumGame.Game.Beatmaps.Loaders;
 using DrumGame.Game.Commands;
 using DrumGame.Game.Components;
+using DrumGame.Game.Stores;
 using DrumGame.Game.Utils;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -66,8 +67,20 @@ public static class MetadataEditor
                     Label = e,
                     Buttons = [new CommandIconButton(Command.SetDifficultyName, FontAwesome.Solid.PenFancy, 22)],
                     Options = ["Easy", "Normal", "Hard", "Insane", "Expert", "Expert+"],
-                    DefaultValue = beatmap.Difficulty,
-                    OnCommit = v => CommitProp(t.GetProperty("Difficulty"), v)
+                    DefaultValue = beatmap.Difficulty.ToDifficultyString(),
+                    OnCommit = v =>
+                    {
+                        var difficulty = BeatmapDifficultyExtensions.Parse(v);
+                        var oldValue = beatmap.Difficulty;
+                        if (difficulty != oldValue)
+                        {
+                            if (editor != null)
+                                editor.PushChange(new MetadataChange(() => beatmap.Difficulty = difficulty,
+                                    () => beatmap.Difficulty = oldValue, $"set beatmap Difficulty to {difficulty}"));
+                            else
+                                beatmap.Difficulty = difficulty;
+                        }
+                    }
                 };
                 var prop = t.GetProperty(e);
                 return new StringFieldConfig(e, (string)prop.GetValue(beatmap))

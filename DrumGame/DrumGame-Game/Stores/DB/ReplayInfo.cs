@@ -30,6 +30,7 @@ public class ReplayInfo
 
     public string Mods { get; set; }
     public string Extra { get; set; } // for future use
+    public string HitWindows { get; set; }
 
     public int Perfect { get; set; }
     public int Good { get; set; }
@@ -96,5 +97,5 @@ public class ReplayInfo
     public BeatmapReplay LoadReplay() => BeatmapReplay.From(Utils.Util.Resources, this);
 
     public void SetMods(List<BeatmapModifier> modifiers) => Mods = BeatmapModifier.Serialize(modifiers);
-    public List<BeatmapModifier> ParseMods() => BeatmapModifier.ParseModifiers(Mods);
+    public List<BeatmapModifier> ParseMods() => BeatmapModifier.ParseModifiers(Mods, true);
 }

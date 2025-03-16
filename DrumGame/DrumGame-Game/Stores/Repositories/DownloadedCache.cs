@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using DrumGame.Game.Utils;
 using Newtonsoft.Json;
 using osu.Framework.Logging;
@@ -10,7 +11,7 @@ namespace DrumGame.Game.Stores.Repositories;
 public static class DownloadedCache
 {
     public static string FilePath => Util.Resources.GetAbsolutePath(Path.Join("repositories", "downloaded.txt"));
-    public static HashSet<string> Downloaded;
+    static HashSet<string> Downloaded;
 
     // not used currently, but if we make it so you can remove songs from download list, we need to be able to resave the whole list
     // static bool Dirty = false;
@@ -37,13 +38,25 @@ public static class DownloadedCache
             PendingAdd?.Clear();
         }
     }
-    public static bool Contains(string key) => Load().Contains(key);
-    public static bool Contains(JsonRepositoryBeatmap map) => Load().Contains(map.DownloadIdentifier);
+    static string Clean(string url)
+    {
+        if (string.IsNullOrWhiteSpace(url)) return url;
+        var strip = new string[] { "?usp=sharing", "?usp=drive_link", "?usp=share_link" };
+        foreach (var s in strip)
+        {
+            if (url.EndsWith(s))
+                url = url[..^s.Length];
+        }
+        return url;
+    }
+    public static bool Contains(string key) => Load().Contains(Clean(key));
+    public static bool Contains(JsonRepositoryBeatmap map) => Contains(map.DownloadIdentifier);
     public static void Add(JsonRepositoryBeatmap map) => Add(map.DownloadIdentifier);
     public static void Remove(JsonRepositoryBeatmap map) => Remove(map.DownloadIdentifier);
     public static void Add(string key)
     {
         if (key == null) return;
+        key = Clean(key);
         lock (_lock)
         {
             var hashSet = Load();
@@ -56,6 +69,7 @@ public static class DownloadedCache
     public static void Remove(string key)
     {
         if (key == null) return;
+        key = Clean(key);
         lock (_lock)
         {
             var hashSet = Load();
@@ -63,13 +77,13 @@ public static class DownloadedCache
                 requiresResave = true;
         }
     }
-    public static HashSet<string> Load()
+    static HashSet<string> Load()
     {
         if (Downloaded == null)
         {
             var path = FilePath;
             if (File.Exists(path))
-                Downloaded = new HashSet<string>(File.ReadAllLines(path));
+                Downloaded = new HashSet<string>(File.ReadAllLines(path).Select(Clean));
             else
                 Downloaded = new();
         }

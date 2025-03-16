@@ -18,3 +18,8 @@ public interface ISampleHandler
     public bool BassNative { get; }
     public void Play(DrumChannelEvent e);
 }
+
+public interface ISampleHandlerMixDelay
+{
+    public void Play(DrumChannelEvent e, double delaySeconds);
+}

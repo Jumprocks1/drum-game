@@ -37,7 +37,7 @@ public class DtxExporter
     static string Base36Key = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     MapStorage MapStorage => Util.DrumGame.MapStorage;
     static string base36(int i) => new(new char[] { Base36Key[i / 36], Base36Key[i % 36] });
-    record WavChipKey(DrumChannel Channel, NoteModifiers VelocityModifier, NoteModifiers Sticking, double VolumeMultiplier)
+    record WavChipKey(DrumChannel Channel, NoteModifiers VelocityModifier, NoteModifiers Sticking, double VolumeMultiplier, NotePreset Preset)
     {
         public byte ComputedVelocity
         {
@@ -61,18 +61,23 @@ public class DtxExporter
         public bool BGM;
         public NoteModifiers Sticking => Key.Sticking;
         public NoteModifiers Velocity => Key.VelocityModifier;
+        public NotePreset Preset => Key.Preset;
         public WavChipKey Key;
         public void WriteTo(DtxWriter writer)
         {
             writer.WriteLine($"#WAV{Id}: {Filename}");
             // if velocity goes over 127, we could apply the overflow  to the volume
             var outputVolume = Math.Round(Math.Clamp(Volume, 0, 100));
-            // var outputVolume = Math.Round(Math.Clamp(Volume * VelocityMultiplier, 0, 100));
 
             if (outputVolume != 100)
                 writer.WriteLine($"#VOLUME{Id}: {outputVolume}");
 
             var width = 100;
+            if (Preset != null)
+            {
+                if (Preset.Size > 0 && Preset.Size < 1)
+                    width = (int)(width * Preset.Size);
+            }
             if (Velocity.HasFlag(NoteModifiers.Ghost) || Velocity.HasFlag(NoteModifiers.Roll))
                 width = writer.Exporter.Config.GhostNoteWidth;
             if (width != 100)
@@ -121,7 +126,7 @@ public class DtxExporter
         public bool EncodeOffset;
         public bool IncludeVideo;
         public int OffbeatHiHatVolume = 100;
-        public bool ExcludeMeasureChanges = true; // TODO add config
+        public bool ExcludeMeasureChanges = false; // TODO add config
     }
 
     class DtxWriter : StreamWriter
@@ -155,7 +160,8 @@ public class DtxExporter
     {
         var baseVolume = CurrentBeatmap.GetVolumeMultiplier(VolumeEvents, ho);
         var channel = ho.Channel;
-        if (channel == DrumChannel.OpenHiHat || channel == DrumChannel.ClosedHiHat || channel == DrumChannel.Ride)
+        if (channel == DrumChannel.OpenHiHat || channel == DrumChannel.ClosedHiHat || channel == DrumChannel.Ride
+            || channel == DrumChannel.HalfOpenHiHat)
         {
             var beatStartTick = CurrentBeatmap.BeatStartTickFromTick(ho.Time);
             if (beatStartTick != ho.Time)
@@ -174,7 +180,7 @@ public class DtxExporter
     }
 
     WavChipKey SampleKey(HitObject ho) =>
-        new(ho.Channel, ho.Data.VelocityModifiers, StereoSticking(ho), GetVolume(ho));
+        new(ho.Channel, ho.Data.VelocityModifiers, StereoSticking(ho), GetVolume(ho), ho.Preset);
 
     class BgmObject : ITickTime
     {
@@ -332,7 +338,8 @@ public class DtxExporter
         var videoStartTick = 0;
         if (Config.IncludeVideo)
         {
-            videoStartTick = CurrentBeatmap.TickFromBeatSlow(CurrentBeatmap.BeatFromMilliseconds(-beatmap.YouTubeOffset));
+            var videoOffset = beatmap.VideoOffset == default && !beatmap.Source.AssetExists(beatmap.Video) ? beatmap.YouTubeOffset : beatmap.VideoOffset;
+            videoStartTick = CurrentBeatmap.TickFromBeatSlow(CurrentBeatmap.BeatFromMilliseconds(-videoOffset));
             if (videoStartTick < -bufferMeasures * startingTicksPerMeasure)
                 bufferMeasures = (startingTicksPerMeasure - videoStartTick) / startingTicksPerMeasure;
         }
@@ -355,8 +362,9 @@ public class DtxExporter
             //    there will be no wav sample for it later
             if (ho.Channel == DrumChannel.Crash && ho.Modifiers == NoteModifiers.Accented)
             {
-                hitObjects.Add(ho.With(NoteModifiers.None));
-                hitObjects.Add(new HitObject(ho.Time, new HitObjectData(DrumChannel.China)));
+                var noMod = ho.With(NoteModifiers.None);
+                hitObjects.Add(noMod);
+                hitObjects.Add(noMod.With(DrumChannel.China));
             }
             else if (ho is RollHitObject roll)
             {
@@ -518,7 +526,9 @@ public class DtxExporter
             e.Channel == DrumChannel.OpenHiHat || e.Channel == DrumChannel.ClosedHiHat ||
             e.Channel == DrumChannel.HalfOpenHiHat || e.Channel == DrumChannel.HiHatPedal || e.Channel == DrumChannel.Ride))
         {
-            HiHatHits.Add(ho.Time, ho.Channel);
+            // this doesn't work perfectly if there's multiple at the same tick
+            // this would only really happen for ride + hihat pedal
+            HiHatHits[ho.Time] = ho.Channel;
         }
         var dtxOutputName = GetDtxFileName(CurrentBeatmap) + ".dtx";
         MakeBgmChip();
@@ -566,6 +576,8 @@ public class DtxExporter
 
     WavChip BgmChip;
 
+    const double GlobalBoost = 4.7; // this is just what I decided on, it's pretty arbitrary
+
     void MakeBgmChip()
     {
         if (BgmChip != null) return;
@@ -573,8 +585,9 @@ public class DtxExporter
         {
             Id = base36(Samples.Count + 1),
             Filename = "bgm.ogg",
-            Volume = CurrentBeatmap.CurrentRelativeVolume / 0.3 * 45,
-            Key = new(DrumChannel.None, NoteModifiers.None, NoteModifiers.None, 1.0),
+            // these numbers control the ratio of BGM:Hitsound volume
+            Volume = CurrentBeatmap.CurrentRelativeVolume / 0.3 * 11.84 * GlobalBoost,
+            Key = new(DrumChannel.None, NoteModifiers.None, NoteModifiers.None, 1.0, null),
             BGM = true
         });
     }
@@ -607,38 +620,44 @@ public class DtxExporter
             }
         }
 
-        if (Config.IncludeVideo && CurrentBeatmap.YouTubeID != null)
+        if (Config.IncludeVideo)
         {
-            try
+            var videoPath = Output.BuildPath("bg.mp4");
+            if (!File.Exists(videoPath))
             {
-                var videoPath = Output.BuildPath("bg.mp4");
-                if (!File.Exists(videoPath))
+                if (CurrentBeatmap.Source.AssetExists(CurrentBeatmap.Video))
                 {
-
-                    var url = CurrentBeatmap.YouTubeID;
-                    var processInfo = new ProcessStartInfo(YouTubeDL.Executable);
-                    processInfo.ArgumentList.Add("-f");
-                    processInfo.ArgumentList.Add("136");
-                    processInfo.ArgumentList.Add("-o");
-                    processInfo.ArgumentList.Add(videoPath);
-                    processInfo.RedirectStandardError = true;
-                    if (url.Length == 11)
-                        url = "youtu.be/" + url; // without this, IDs starting with `-` will fail
-                    processInfo.ArgumentList.Add(url);
-
-                    var proc = Process.Start(processInfo);
-                    proc.WaitForExit();
-                    if (proc.ExitCode != 0)
+                    File.Copy(CurrentBeatmap.FullAssetPath(CurrentBeatmap.Video), videoPath);
+                }
+                else if (CurrentBeatmap.YouTubeID != null)
+                {
+                    try
                     {
-                        string error;
-                        if (processInfo.RedirectStandardOutput)
-                            error = proc.StandardOutput.ReadToEnd();
-                        else error = "See console output for error";
-                        throw new Exception($"Failed to run {processInfo.FileName} with: {string.Join(", ", proc.StartInfo.ArgumentList)}\n\n\n{error}");
+                        var url = CurrentBeatmap.YouTubeID;
+                        var processInfo = new ProcessStartInfo(YouTubeDL.Executable);
+                        processInfo.ArgumentList.Add("-f");
+                        processInfo.ArgumentList.Add("136");
+                        processInfo.ArgumentList.Add("-o");
+                        processInfo.ArgumentList.Add(videoPath);
+                        processInfo.RedirectStandardError = true;
+                        if (url.Length == 11)
+                            url = "youtu.be/" + url; // without this, IDs starting with `-` will fail
+                        processInfo.ArgumentList.Add(url);
+
+                        var proc = Process.Start(processInfo);
+                        proc.WaitForExit();
+                        if (proc.ExitCode != 0)
+                        {
+                            string error;
+                            if (processInfo.RedirectStandardOutput)
+                                error = proc.StandardOutput.ReadToEnd();
+                            else error = "See console output for error";
+                            throw new Exception($"Failed to run {processInfo.FileName} with: {string.Join(", ", proc.StartInfo.ArgumentList)}\n\n\n{error}");
+                        }
                     }
+                    catch (Exception e) { Logger.Error(e, "Error while downloading YouTube video"); }
                 }
             }
-            catch (Exception e) { Logger.Error(e, "Error while downloading YouTube video"); }
         }
 
         var previewPath = Output.BuildPath("pre.ogg");
@@ -726,8 +745,7 @@ public class DtxExporter
             }
         }
 
-        var boost = 3.8d; // this is just what I decided on
-        foreach (var sample in hitSampleChips) sample.Volume *= boost;
+        foreach (var sample in hitSampleChips) sample.Volume *= GlobalBoost;
     }
 
     Dictionary<string, string> Filenames = new();
@@ -895,6 +913,8 @@ public class DtxExporter
             req.AddWarning("Warning: No DTX level tag set");
         if (beatmap.YouTubeOffset == default && !string.IsNullOrWhiteSpace(beatmap.YouTubeID))
             req.AddWarning("Warning: YouTube offset not set");
+        if (beatmap.MissingLeftBassSticking())
+            req.AddWarning("Warning: Left bass sticking not set");
         return true;
     }
 

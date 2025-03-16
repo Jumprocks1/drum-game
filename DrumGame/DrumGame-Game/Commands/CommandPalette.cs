@@ -149,7 +149,7 @@ public class CommandPalette : CompositeDrawable
         // this could be brought down to <1ms with virtualization
         if (!force && !Visible) return;
         search ??= string.Empty;
-        var s = search.ToLower().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var s = search.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         FilteredCommands = new();
         var orderedCommands = OrderedCommands ?? CommandController.OrderedCommands;
         var defaultCommands = CommandController.DefaultCommandInfos;

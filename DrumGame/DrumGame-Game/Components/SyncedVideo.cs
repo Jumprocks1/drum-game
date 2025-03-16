@@ -1,20 +1,21 @@
 using System;
 using DrumGame.Game.Commands;
+using DrumGame.Game.Containers;
 using DrumGame.Game.Interfaces;
 using DrumGame.Game.Timing;
 using DrumGame.Game.Utils;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Cursor;
+using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Graphics.Video;
 using osu.Framework.Input.Events;
-using osu.Framework.Localisation;
 using osu.Framework.Timing;
 using osuTK;
 using osuTK.Input;
 
 namespace DrumGame.Game.Components;
 
-public class SyncedVideo : Video, IHasCommand
+public class SyncedVideo : Video, IHasCommand, IHasContextMenu
 {
     public bool DisableClick => true;
     public readonly TrackClock Track;
@@ -69,12 +70,12 @@ public class SyncedVideo : Video, IHasCommand
     double dragOffset;
     protected override bool OnMouseDown(MouseDownEvent e)
     {
-        if (e.Button == MouseButton.Right) return true;
+        if (e.Button == MouseButton.Left && offsetCanBeDragged) return true;
         return base.OnMouseDown(e);
     }
     protected override bool OnDragStart(DragStartEvent e)
     {
-        if (e.Button == MouseButton.Right)
+        if (e.Button == MouseButton.Left && offsetCanBeDragged)
         {
             dragChange = 0;
             dragOffset = Offset.Value;
@@ -90,17 +91,39 @@ public class SyncedVideo : Video, IHasCommand
         Offset.Value = dragOffset + c;
     }
 
+    bool offsetCanBeDragged;
     string IHasMarkupTooltip.MarkupTooltip
     {
         get
         {
-            var res = IsDragged ? $"{dragChange:+0;-#}ms" : "Hold right click to adjust offset";
+            if (!offsetCanBeDragged) return IHasCommand.GetMarkupTooltipNoModify(Command);
+            var res = IsDragged ? $"{dragChange:+0;-#}ms" : "Hold left click to adjust offset";
             if (Command != Command.None)
                 return $"{IHasCommand.GetMarkupTooltipNoModify(Command)}\n{res}";
             return res;
         }
     }
     public Command Command { get; set; }
+
+    public MenuItem[] ContextMenuItems
+    {
+        get
+        {
+            var builder = ContextMenuBuilder.New(this);
+            if (!offsetCanBeDragged)
+                builder.Add("Enable Offset Adjustment", video => video.offsetCanBeDragged = true);
+            else
+                builder.Add("Disable Offset Adjustment", video => video.offsetCanBeDragged = false);
+            builder.Add("Set Video Offset", video =>
+            {
+                Util.Palette.RequestNumber("Setting Video Offset", "Video offset", Offset.Value, e => Offset.Value = e);
+            });
+            if (Track is BeatClock beatClock)
+                builder.Add("Set Video Offset to YouTube Offset", e => Offset.Value = beatClock.Beatmap.YouTubeOffset);
+
+            return builder.Build();
+        }
+    }
 
     protected override void Dispose(bool isDisposing)
     {

@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.RegularExpressions;
 using ManagedBass;
 
 namespace DrumGame.Game.Utils;
@@ -17,10 +18,17 @@ public static class AudioTagUtil
             var tagReader = TagReader.Read(filename);
             if (tagReader == null) return new();
 
+            var title = Clean(tagReader.Title);
+            if (title != null)
+                // not sure why, but title usually ends up just coming from the file name
+                // bass fails to read the tags correctly
+                // the filename frequently starts with "01 - "
+                title = new Regex(@"^((\d\d \-?)|(\d\d\. ?\-?))").Replace(title, "").Trim();
+
             return new()
             {
                 Artist = Clean(tagReader.Artist ?? tagReader.AlbumArtist),
-                Title = Clean(tagReader.Title)
+                Title = title
             };
         }
         catch { return new(); }

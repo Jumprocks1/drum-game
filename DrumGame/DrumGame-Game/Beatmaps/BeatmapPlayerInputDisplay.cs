@@ -41,14 +41,12 @@ public class BeatmapPlayerInputDisplay : CompositeDrawable
             Colour = Util.Skin.Notation.InputDisplayBackground,
             RelativeSizeAxes = Axes.Both,
         });
-        var align = Util.ConfigManager.LayoutPreference.Value == LayoutPreference.Standard ? Anchor.Centre :
-            Anchor.CentreLeft;
         AddInternal(Container = new DrawSizePreservingFillContainer
         {
             Child = Inner = new BeatmapPlayerInputDisplayInner
             {
-                Anchor = align,
-                Origin = align
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre
             },
             TargetDrawSize = new osuTK.Vector2(BeatmapPlayerInputDisplayInner.Width, BeatmapPlayerInputDisplayInner.Height)
         });

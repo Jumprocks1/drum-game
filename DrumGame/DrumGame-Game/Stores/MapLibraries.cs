@@ -85,7 +85,7 @@ public class MapLibraries : IChangedEvent
             }
         }
         if (!foundMain)
-            ValidLibraries.Insert(0, MapLibrary.Main);
+            ValidLibraries.Insert(0, MapLibrary.Main());
     }
 }
 
@@ -113,7 +113,7 @@ public class MapLibrary
     string _absolutePath;
     [JsonIgnore] public string AbsolutePath => _absolutePath ??= (Path == null ? null : Util.Resources.GetAbsolutePath(Path));
 
-    public static MapLibrary Main => new();
+    public static MapLibrary Main() => new();
 
     public string Prefix() => $"${Name}/";
     public bool Exists() => IsMain || Directory.Exists(AbsolutePath);
@@ -216,5 +216,13 @@ public class MapLibrary
             Logger.Error(e, $"Error loading {Name}");
             return (null, null, null);
         }
+    }
+
+    public bool Contains(string absolutePath)
+    {
+        if (Path == null)
+            return absolutePath.StartsWith(Util.MapStorage.AbsolutePath);
+        else
+            return absolutePath.StartsWith(AbsolutePath);
     }
 }

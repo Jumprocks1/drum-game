@@ -136,10 +136,25 @@ public partial class DtxLoader
     static void ReadCharter(Beatmap beatmap, string comment)
     {
         if (beatmap.Mapper != null) return;
-        var regex = new Regex(@"\bChart by ([\S]+)");
-        var match = regex.Match(comment);
-        if (match.Success)
-            beatmap.Mapper = match.Groups[1].Value;
+        var regexs = new string[] {
+            @"\bChart by ([\S]+)",
+            @"\bChart: ([\S]+)",
+            @"\bDTX by ([\S]+)",
+        };
+        try
+        {
+            foreach (var rege in regexs)
+            {
+                var regex = new Regex(rege, RegexOptions.IgnoreCase);
+                var match = regex.Match(comment);
+                if (match.Success)
+                {
+                    beatmap.Mapper = match.Groups[1].Value;
+                    return;
+                }
+            }
+        }
+        catch (Exception e) { Logger.Error(e, "Error while reading map comments"); }
     }
 }
 

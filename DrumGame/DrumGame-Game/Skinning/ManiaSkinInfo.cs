@@ -23,10 +23,16 @@ public class ManiaSkinInfo
     public static double ScrollRate => Util.Skin.Mania.ScrollMultiplier * 0.25d / 1000; // measured in vertical screens per millisecond
 
     public float GhostNoteWidth = 0.7f;
-    public float JudgementLinePosition = 0.15f;
-    public Colour4 JudgementLineColor = DrumColors.Yellow;
-    public double JudgementLineOffset = 0; // ms
-    public float JudgementLineThickness = 0.008f;
+
+    public class ManiaSkinInfo_JudgementLine
+    {
+        public SkinTexture Texture;
+        public float Position = 0.15f;
+        public Colour4 Color = DrumColors.Yellow;
+        public double Offset = 0; // ms
+        public float Thickness = 0.008f;
+    }
+    public ManiaSkinInfo_JudgementLine JudgementLine = new();
     public ManiaJudgementInfo Judgements = new();
     public float ChipThickness;
     public Colour4 BeatLineColor = new(200, 200, 200, 255);
@@ -36,12 +42,23 @@ public class ManiaSkinInfo
     public float BeatLineThickness = 0.002f;
     public float MeasureLineThickness;
     public Colour4 BorderColor = new(100, 100, 100, 255);
+    public float IconContainerPosition;
+    public float IconContainerHeight = 0;
     public AdjustableSkinData SongInfoPanel;
     public AdjustableSkinData HitErrorDisplay;
     public Beatmaps.Display.Mania.ManiaTimeline.PositionData PositionIndicator;
     public AdjustableSkinData PracticeInfoPanel;
     public AdjustableSkinData LaneContainer;
     public AdjustableSkinData Video;
+    public List<ExtraSkinElementData> ExtraElements;
+    public SkinTexture Background = new()
+    {
+        FragmentShader = "sh_background.fs",
+        Fill = FillMode.Stretch,
+        Color = DrumColors.Blue,
+        Alpha = 0.5f,
+        NotFoundBehavior = NotFoundBehavior.Log
+    };
     [Description("Increases or decreases spacing between mania chips.\nHigher values will make faster maps easier to read.\nThe numbers here should match scroll rates in DTXmania.")]
     [DefaultValue(2d)]
     public double ScrollMultiplier = 2;
@@ -53,36 +70,46 @@ public class ManiaSkinInfo
             Lanes.LaneList[i].LoadedIndex = i;
         }
         if (ChipThickness == default)
-            ChipThickness = JudgementLineThickness * 1.5f;
+            ChipThickness = JudgementLine.Thickness * 1.5f;
         if (MeasureLineThickness == default)
             MeasureLineThickness = BeatLineThickness * 3;
         if (MeasureLineColor == default)
             MeasureLineColor = BeatLineColor;
         if (BackgroundFontColor == default)
             BackgroundFontColor = DrumColors.ContrastText(BackgroundColor);
+        if (IconContainerHeight == default)
+            IconContainerHeight = JudgementLine.Position - IconContainerPosition;
         SongInfoPanel?.LoadDefaults();
         HitErrorDisplay?.LoadDefaults();
         PositionIndicator?.LoadDefaults();
         PracticeInfoPanel?.LoadDefaults();
         LaneContainer?.LoadDefaults();
         Judgements?.LoadDefaults();
+        if (ExtraElements != null) foreach (var e in ExtraElements) e.Placement?.LoadDefaults();
     }
 
     public class ManiaSkinInfo_Lane : IChipInfo
     {
-        public ManiaSkinInfo_Lane(float width, float leftBorder, Colour4 accentColor, DrumChannel channel, Colour4 borderColor = default)
+        public ManiaSkinInfo_Lane() { }
+        public ManiaSkinInfo_Lane(float width, float leftBorderWidth, Colour4 accentColor, DrumChannel channel, Colour4 borderColor = default)
         {
             Width = width;
-            LeftBorder = leftBorder;
+            LeftBorder.Width = leftBorderWidth;
+            LeftBorder.Color = borderColor;
             Color = accentColor;
-            BorderColor = borderColor;
             Channel = channel;
         }
-        public float LeftBorder; // left border thickness weight. The first border detail is also used for the final right border
-        public Colour4 BorderColor;
+        public class ManiaSkinInfo_Lane_LeftBorder
+        {
+            public SkinTexture Texture;
+            public Colour4 Color;
+            public float Width; // left border thickness weight. The first border detail is also used for the final right border
+        }
+        public ManiaSkinInfo_Lane_LeftBorder LeftBorder = new();
         public float Width; // don't use this when rendering since it's actually a weighted width
         public float Index;
         public SkinTexture Icon;
+        public float IconPosition = 0.5f;
         public SkinTexture Background;
 
         public const float DefaultJudgementTextPosition = 0.35f;
@@ -121,8 +148,8 @@ public class ManiaSkinInfo
                     s.Chip ??= Chip;
                 }
             }
-            if (BorderColor == default)
-                BorderColor = parent.BorderColor;
+            if (LeftBorder.Color == default)
+                LeftBorder.Color = parent.BorderColor;
         }
     }
     // never instantiated, only used as a handler for the LaneConverter
@@ -182,6 +209,8 @@ public class ManiaSkinInfo
     }
     public ManiaSkinInfo_Shutter Shutter;
 
+    public IconAnimationStyle IconAnimation;
+
     public class LaneConverter : JsonConverter<ManiaSkinInfo_LaneList>
     {
         public override ManiaSkinInfo_LaneList ReadJson(JsonReader reader, Type objectType,
@@ -233,4 +262,11 @@ public class ManiaSkinInfo
             writer.WriteEndObject();
         }
     }
+}
+
+public enum IconAnimationStyle
+{
+    Expand,
+    BounceDown,
+    DtxBounceDown
 }

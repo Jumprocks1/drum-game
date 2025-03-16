@@ -25,7 +25,7 @@ public interface IHasCommandInfo : IHasMarkupTooltip, IHasCursor
 {
     SDL2.SDL.SDL_SystemCursor? IHasCursor.Cursor => DisableClick ? null : SDL2.SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_HAND;
     CommandInfo CommandInfo { get; }
-    bool DisableClick => false;
+    bool DisableClick => CommandInfo == null;
     string IHasMarkupTooltip.MarkupTooltip => GetMarkupTooltip(CommandInfo);
 
     public static string GetMarkupTooltip(CommandInfo commandInfo, bool modify = true)

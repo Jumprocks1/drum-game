@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using DrumGame.Game.Channels;
+using DrumGame.Game.Components;
 using DrumGame.Game.Notation;
 using DrumGame.Game.Utils;
 using Newtonsoft.Json;
@@ -41,16 +42,20 @@ public class NotationSkinInfo
     public Colour4 RightNoteColor = DrumColors.BrightRed;
     public AdjustableSkinData SongInfoPanel;
     public AdjustableSkinData EventContainer;
-    public AdjustableSkinData VolumeControlGroup;
+    public VolumeControlGroup.CustomSkinData VolumeControlGroup;
     public AdjustableSkinData PracticeInfoPanel;
     public AdjustableSkinData HitErrorDisplay;
+    public List<ExtraSkinElementData> ExtraElements;
+    public NotationJudgementInfo Judgements = new();
     public void LoadDefaults()
     {
+        Judgements?.LoadDefaults();
         SongInfoPanel?.LoadDefaults();
         EventContainer?.LoadDefaults();
         VolumeControlGroup?.LoadDefaults();
         PracticeInfoPanel?.LoadDefaults();
         HitErrorDisplay?.LoadDefaults();
+        if (ExtraElements != null) foreach (var e in ExtraElements) e.Placement?.LoadDefaults();
         if (NoteColor == default) NoteColor = NotationColor;
         if (StaffLineColor == default) StaffLineColor = NotationColor;
         if (MeasureLineColor == default) MeasureLineColor = DrumColors.Blue.MultiplyAlpha(0.4f);
@@ -85,7 +90,7 @@ public class NotationSkinInfo
             {DrumChannel.Splash, new SkinNote(-2, MusicGlyph.noteheadDiamondWhite){ StickingColorNotehead = true }},
             {DrumChannel.China, new SkinNote(-2, MusicGlyph.noteheadXOrnateEllipse){ StickingColorNotehead = true }},
             {DrumChannel.OpenHiHat, new SkinNote(-1, MusicGlyph.noteheadCircleX)},
-            {DrumChannel.HalfOpenHiHat, new SkinNote(-1, MusicGlyph.noteheadCircleX)},
+            {DrumChannel.HalfOpenHiHat, new SkinNote(-1, MusicGlyph.noteheadCircleSlash)},
             {DrumChannel.ClosedHiHat, new SkinNote(-1, MusicGlyph.noteheadXBlack)},
             {DrumChannel.Ride, new SkinNote(0, MusicGlyph.noteheadXBlack)},
             {DrumChannel.RideBell, new SkinNote(0, MusicGlyph.noteheadDiamondBlack)},

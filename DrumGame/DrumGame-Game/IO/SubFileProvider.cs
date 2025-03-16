@@ -15,7 +15,8 @@ public class SubFileProvider : IFileProvider
     public SubFileProvider(IFileProvider parent, string subPath)
     {
         Parent = parent;
-        SubPath = subPath;
+        // `\` doesn't work with zip usually
+        SubPath = subPath.Replace("\\", "/");
     }
 
     public string BuildPath(string path)

@@ -8,6 +8,7 @@ using Commons.Music.Midi;
 using DrumGame.Game.Beatmaps.Scoring;
 using DrumGame.Game.Channels;
 using DrumGame.Game.Media;
+using DrumGame.Game.Stores;
 using DrumGame.Game.Utils;
 using ManagedBass;
 using ManagedBass.Midi;
@@ -54,6 +55,8 @@ public static class DrumMidiHandler
             r += 100;
         return r;
     }
+    public const string Disabled = "Disable";
+
     public static List<IMidiPortDetails> Inputs { get; private set; }
     public static List<IMidiPortDetails> Outputs { get; private set; }
     public static IMidiInput Input;
@@ -124,15 +127,18 @@ public static class DrumMidiHandler
         Outputs = MidiAccessManager.Default.Outputs.Where(e => e.Name != "Microsoft GS Wavetable Synth").ToList();
         Logger.Log($"Found {Outputs.Count} MIDI output devices", level: LogLevel.Important);
 
+        var disabled = Util.ConfigManager.Get<string>(Stores.DrumGameSetting.PreferredMidiOutput)?.Trim() == Disabled;
+
+
         if (o != null)
         {
-            if (Outputs.Any(e => e.Id == o.Details.Id)) return; // current output is good to go
+            if (!disabled && Outputs.Any(e => e.Id == o.Details.Id)) return; // current output is good to go
             Output = null;
             Close(o);
             o = null;
         }
 
-        if (Outputs.Count == 0) return;
+        if (Outputs.Count == 0 || disabled) return;
         if (inputName != null) Logger.Log($"Searching for output named {inputName}", level: LogLevel.Important);
         var target = Outputs.MaxBy(e => OutputPreference(e.Name, inputName));
         OutputFound = true;
@@ -170,14 +176,14 @@ public static class DrumMidiHandler
     static void Close(IMidiOutput device)
     {
         Task.Factory.StartNew(device.CloseAsync, TaskCreationOptions.LongRunning);
-        Logger.Log($"Disconnected MIDI output device: {device.Details.Name}");
+        Logger.Log($"Disconnected MIDI output device: {device.Details.Name}", level: LogLevel.Important);
     }
     static void Close(IMidiInput device, bool sync = false)
     {
         device.MessageReceived -= onMessage;
         if (sync) device.CloseAsync().Wait();
         else Task.Factory.StartNew(device.CloseAsync, TaskCreationOptions.LongRunning);
-        Logger.Log($"Disconnected MIDI input device: {device.Details.Name}");
+        Logger.Log($"Disconnected MIDI input device: {device.Details.Name}", level: LogLevel.Important);
     }
 
 
@@ -299,12 +305,22 @@ public static class DrumMidiHandler
     public delegate bool NoteOnHandler(MidiNoteOnEvent noteOn);
     public delegate bool MidiAuxHandler(MidiAuxEvent ev);
 
-    // raw handlers trigger immediately and can cancel further processing
-    static List<NoteOnHandler> rawHandlers = new();
-    // update handlers run on update thread
-    static List<NoteOnHandler> updateHandlers = new();
-    public static void AddNoteHandler(NoteOnHandler handler, bool raw = false) => (raw ? rawHandlers : updateHandlers).Add(handler);
-    public static void RemoveNoteHandler(NoteOnHandler handler, bool raw = false) => (raw ? rawHandlers : updateHandlers).Remove(handler);
+    class MidiHandler
+    {
+        public NoteOnHandler Handler;
+        // raw handlers trigger immediately and can cancel further processing
+        // update handlers run on update thread
+        public bool Raw;
+        public bool BlockSoundfontPlayback;
+    }
+    static List<MidiHandler> handlers = [];
+    public static void AddNoteHandler(NoteOnHandler handler, bool raw = false, bool blockSoundfont = false) => handlers.Add(new MidiHandler
+    {
+        Handler = handler,
+        Raw = raw,
+        BlockSoundfontPlayback = blockSoundfont
+    });
+    public static void RemoveNoteHandler(NoteOnHandler handler) => handlers.RemoveAll(e => e.Handler == handler);
     static List<MidiAuxHandler> auxHandlers = new();
     public static void AddAuxHandler(MidiAuxHandler handler) => auxHandlers.Add(handler);
     public static void RemoveAuxHandler(MidiAuxHandler handler) => auxHandlers.Remove(handler);
@@ -313,23 +329,37 @@ public static class DrumMidiHandler
         // ignore velocity 0
         if (e.Velocity <= Util.ConfigManager.MidiThreshold.Value) return;
         Util.InputManager?.HideMouse();
-        if (Util.ConfigManager.PlaySamplesFromMidi.Value)
+        if (Util.ConfigManager.PlaySamplesFromMidi.Value && !handlers.Any(e => e.BlockSoundfontPlayback) &&
+            Util.ConfigManager.Get<bool>(DrumGameSetting.PlaySoundfontOutsideMaps))
         {
-            var font = Util.DrumGame.Drumset.Value.LoadedSoundFont;
-            if (font != null)
+            Util.DrumGame.Drumset.Value.LoadedSoundFont?.Play(new DrumChannelEvent(0, DrumChannel.None, e.Velocity)
             {
-                font.Play(new DrumChannelEvent(0, DrumChannel.None, e.Velocity)
-                {
-                    Note = e.Note
-                });
-            }
+                Note = e.Note,
+                MIDI = true
+            });
         }
-        for (var i = rawHandlers.Count - 1; i >= 0; i--) if (rawHandlers[i](e)) return; // raw has priority
-        if (updateHandlers.Count > 0)
+        var updateHandlers = false;
+        // should technically lock the handlers here, oh well
+        for (var i = handlers.Count - 1; i >= 0; i--)
+        {
+            var handler = handlers[i];
+            if (handler.Raw)
+            {
+                if (handler.Handler(e))
+                    return; // raw has priority
+            }
+            else updateHandlers = true;
+        }
+        if (updateHandlers)
         {
             Util.Host.UpdateThread.Scheduler.Add(() =>
             {
-                for (var i = updateHandlers.Count - 1; i >= 0; i--) if (updateHandlers[i](e)) return;
+                for (var i = handlers.Count - 1; i >= 0; i--)
+                {
+                    var handler = handlers[i];
+                    if (!handler.Raw)
+                        if (handler.Handler(e)) return;
+                }
             });
         }
     }

@@ -18,6 +18,12 @@ public class SkinNote
 
     public bool StickingColorNotehead;
 
+    // TODO L/R color should be converted to just Left and Right
+    // they should be typed as SkinNoteBase, where it has everything except the Left and Right fields
+    // ideally it should inherit all of the defaults from the parent SkinNote
+    // that will likely require changing the default position to like int.MinValue, that way we can tell if we need to inherit
+    // we could also make it nullable, but that would mess up some other code
+    // JSON will call the constructor, so we would actually set the default in there
     public Colour4 LeftColor;
     public Colour4 RightColor;
     public Colour4 AccentColor;

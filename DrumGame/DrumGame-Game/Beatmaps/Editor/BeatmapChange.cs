@@ -93,6 +93,12 @@ public class AudioBeatmapChange : PropertyChange<string>
         }
     }
 }
+public class VideoBeatmapChange : PropertyChange<string>
+{
+    public VideoBeatmapChange(Beatmap beatmap, string newValue) : base(beatmap, newValue) { }
+    public override string Description => $"set video to {NewValue}";
+    public override string Property { get => Beatmap.Video; set => Beatmap.Video = value; }
+}
 public abstract class PropertyChange<T> : IHistoryChange where T : IEquatable<T>
 {
     public readonly T NewValue;
@@ -155,19 +161,17 @@ public class NoteBeatmapChange : IHistoryChange
     Func<AffectedRange> action;
     string description;
     public string Description => description;
-    ViewTarget viewTarget;
     public void OverwriteDescription(string s)
     {
         description = s;
     }
-    public NoteBeatmapChange(Action action, string description, ViewTarget viewTarget = null) :
-        this(() => { action(); return true; }, description, viewTarget)
+    public NoteBeatmapChange(Action action, string description) :
+        this(() => { action(); return true; }, description)
     { }
-    public NoteBeatmapChange(Func<AffectedRange> action, string description, ViewTarget viewTarget = null)
+    public NoteBeatmapChange(Func<AffectedRange> action, string description)
     {
         this.action = action;
         this.description = description;
-        this.viewTarget = viewTarget;
     }
     List<HitObject> Clone;
     AffectedRange Range;
@@ -179,7 +183,7 @@ public class NoteBeatmapChange : IHistoryChange
         if (Range.HasChange)
         {
             display.ReloadNoteRange(Range);
-            display.PullView(viewTarget);
+            display.PullView(editor.ViewTargetFromAffectedRange(Range));
             return true;
         }
         else
@@ -193,7 +197,7 @@ public class NoteBeatmapChange : IHistoryChange
         var display = editor.Display;
         display.Beatmap.HitObjects = Clone;
         display.ReloadNoteRange(Range);
-        display.PullView(viewTarget);
+        display.PullView(editor.ViewTargetFromAffectedRange(Range));
     }
 }
 public class TempoBeatmapChange : ListBeatmapChange<TempoChange>

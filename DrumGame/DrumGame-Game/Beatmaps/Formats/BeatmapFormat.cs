@@ -34,8 +34,7 @@ public abstract class BeatmapFormat
         o.DisableSaving |= metadataOnly; // if we only loaded metadata, prevent saving
         if (prepareForPlay)
         {
-            o.Bookmarks ??= new();
-            o.Annotations ??= new();
+            o.LoadMissingDefaults();
         }
         o.Source = new BJsonSource(fullPath, this)
         {

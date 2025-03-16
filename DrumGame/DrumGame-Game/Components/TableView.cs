@@ -30,23 +30,50 @@ public class ColumnBuilder<T>
         items.Add(column);
         return this;
     }
+    public ColumnBuilder<T> Modify(Action<TableViewColumn<T>> modify)
+    {
+        modify(items[^1]);
+        return this;
+    }
     public ColumnBuilder<T> Add(string header, Func<T, string> getter) =>
         Add(new TableViewColumn<T>() { Header = header, GetValue = getter });
     public ColumnBuilder<T> Add(string fieldName)
     {
+        Func<object, object> getValue = null;
+        Action<object, object> setValue = null;
+        string name = null;
+        Type type = null;
         var field = typeof(T).GetField(fieldName);
         if (field != null)
         {
+            name = field.Name;
+            type = field.FieldType;
+            getValue = field.GetValue;
+            setValue = field.SetValue;
+        }
+        else
+        {
+            var prop = typeof(T).GetProperty(fieldName);
+            if (prop != null)
+            {
+                name = prop.Name;
+                type = prop.PropertyType;
+                getValue = prop.GetValue;
+                setValue = prop.SetValue;
+            }
+        }
+        if (name != null)
+        {
             return Add(new TableViewColumn<T>
             {
-                Header = field.Name,
-                GetValue = e => field.GetValue(e)?.ToString(),
+                Header = name,
+                GetValue = e => getValue(e)?.ToString(),
                 SetValue = (e, v) =>
                 {
                     try
                     {
                         // note, we don't use invariant culture here
-                        field.SetValue(e, Convert.ChangeType(v, field.FieldType));
+                        setValue(e, Convert.ChangeType(v, type));
                         return true;
                     }
                     catch (Exception ex)
@@ -58,6 +85,16 @@ public class ColumnBuilder<T>
             });
         }
         throw new Exception($"Field not found: {fieldName}");
+    }
+    public ColumnBuilder<T> Width(float width)
+    {
+        items[^1].TargetWidth = width;
+        return this;
+    }
+    public ColumnBuilder<T> Format(Func<T, TableViewColumn<T>, TableViewConfig<T>, Drawable> format)
+    {
+        items[^1].Format = format;
+        return this;
     }
     public ColumnBuilder<T> Editable(Action<T, TableViewColumn<T>, TableView<T>> edit)
     {
@@ -79,7 +116,10 @@ public class ColumnBuilder<T>
                 if (column.SetValue != null)
                 {
                     if (column.SetValue(e, newValue))
+                    {
                         table.UpdateCell(e, column);
+                        table.Config.OnCellChange?.Invoke(e, column, newValue);
+                    }
                 }
             });
         };
@@ -94,6 +134,8 @@ public class ColumnBuilder<T>
 }
 public class TableViewColumn<T>
 {
+    public string Key; // optional, only needed for easy reference
+    public bool NoCellHover;
     // could also add GetTooltip or GetDrawable
     // we would change GetValue to setter only and then have it override GetDrawable if needed
     public Func<T, string> GetValue;
@@ -104,17 +146,20 @@ public class TableViewColumn<T>
     public Action<T, TableViewColumn<T>, TableView<T>> Edit;
     public bool Editable => Edit != null;
     public Func<T, object, bool> SetValue;
-
+    public Func<T, TableViewColumn<T>, TableViewConfig<T>, Drawable> Format;
+    public Func<TableView<T>.TableCell, bool> OnClick;
+    public float TargetWidth;
+    public float MaxWidth = float.MaxValue;
+    public float MinWidth;
+    public float ExactWidth { set => MaxWidth = MinWidth = value; }
     public Drawable GetDrawable(TableViewConfig<T> config, T row)
-    {
-        return new SpriteText
+        => Format?.Invoke(row, this, config) ?? new SpriteText
         {
             Text = GetValue(row),
             Font = config.Font,
             Anchor = Anchor.CentreLeft,
             Origin = Anchor.CentreLeft
         };
-    }
 }
 public class TableViewConfig<T>
 {
@@ -122,14 +167,23 @@ public class TableViewConfig<T>
     // if Data.Count * RowHeight is greater than MaxHeight, we will use a scroll container and set the height to this value
     // to never use scroll, set to null
     public float? MaxHeight = 29 * 14.5f;
+    public bool AutoSize => MinWidth.HasValue;
+    public float? MinWidth;
     public float RowMinHeight; // 0 => full auto size
     public FontUsage HeaderFont = DrumFont.Bold.With(size: 24);
     public FontUsage Font = DrumFont.Regular.With(size: 18);
+    public Colour4 RowHighlight = DrumColors.RowHighlight;
+    public Colour4 CellHighlight = DrumColors.RowHighlight;
+    public Colour4 HeaderHighlight = DrumColors.RowHighlight;
     public MarginPadding CellPadding = new MarginPadding
     {
         Horizontal = 4,
         Vertical = 1
     };
+
+    public Func<TableViewColumn<T>, T, string> ExtraCellTooltip;
+
+    public Action<T, TableViewColumn<T>, string> OnCellChange;
 
     public float HeaderBorderWidth = 1.5f;
     // https://stackoverflow.com/questions/7242909/moving-elements-in-array-c-sharp
@@ -149,13 +203,13 @@ public class TableViewConfig<T>
 
 public class TableView<T> : CompositeDrawable
 {
-    class TableCell : CompositeDrawable, IHasMarkupTooltip, IHasContextMenu
+    public class TableCell : CompositeDrawable, IHasMarkupTooltip, IHasContextMenu
     {
         readonly int Row; // -1 = header
         T RowData => Row == -1 ? default : Table.Rows[Row];
         readonly int VisibleColumn;
         readonly int Column;
-        TableView<T> Table;
+        public TableView<T> Table;
         TableViewConfig<T> Config => Table.Config;
         public TableViewColumn<T> ColumnConfig => Config.Columns[Column];
 
@@ -164,23 +218,30 @@ public class TableView<T> : CompositeDrawable
             get
             {
                 if (IsDisposed) return null;
+                var self = ColumnConfig;
+                if (self.NoCellHover) return null;
                 if (Row == -1) return "Right click for options";
                 var o = "";
-                var self = Config.Columns[Column];
+                var row = Table.Rows[Row];
                 if (self.Edit != null)
                 {
                     o += $"Left click to set <brightCyan>{self.Header}</c>\n\n";
                 }
+                var first = true;
                 for (var i = 0; i < Config.Columns.Length; i++)
                 {
-                    var newLine = i == Config.Columns.Length - 1 ? "" : "\n";
                     var column = Config.Columns[i];
-                    var value = column.GetValue(Table.Rows[Row]);
+                    if (column.Header == null) continue;
+                    var newLine = first ? "" : "\n";
+                    first = false;
+                    var value = column.GetValue(row);
                     if (i == Column)
-                        o += $"<brightCyan>{column.Header}</c>: {value}{newLine}";
+                        o += $"{newLine}<brightCyan>{column.Header}</c>: {value}";
                     else
-                        o += $"<brightGreen>{column.Header}</c>: {value}{newLine}";
+                        o += $"{newLine}<brightGreen>{column.Header}</c>: {value}";
                 }
+                var extra = Config.ExtraCellTooltip?.Invoke(self, row);
+                if (extra != null) o += $"\n{extra}";
                 return o;
             }
         }
@@ -189,11 +250,14 @@ public class TableView<T> : CompositeDrawable
         {
             get
             {
+                if (ColumnConfig.NoCellHover) return null;
                 if (Row == -1)
                 {
                     var clickedColumn = Config.Columns[Column];
-                    var builder = new ContextMenuBuilder<TableViewColumn<T>>(clickedColumn)
-                        .Add($"Hide {clickedColumn.Header} Column", e =>
+                    var builder = new ContextMenuBuilder<TableViewColumn<T>>(clickedColumn);
+
+                    if (clickedColumn.Header != null)
+                        builder.Add($"Hide {clickedColumn.Header} Column", e =>
                         {
                             e.Hidden = true;
                             Table.Reload();
@@ -269,7 +333,7 @@ public class TableView<T> : CompositeDrawable
                     return true;
                 }
             }
-            return base.OnClick(e);
+            return ColumnConfig.OnClick?.Invoke(this) ?? base.OnClick(e);
         }
         protected override void OnHoverLost(HoverLostEvent e)
         {
@@ -289,6 +353,7 @@ public class TableView<T> : CompositeDrawable
     FontUsage Font => Config.Font;
     List<TableViewColumn<T>> VisibleColumns;
     List<T> Rows;
+    public IReadOnlyList<T> InternalRows => Rows;
     readonly Func<List<T>> GetRows;
 
     bool RowsValid; // might be able to skip this and just set Rows to null
@@ -306,12 +371,13 @@ public class TableView<T> : CompositeDrawable
     {
         Config = config;
         AutoSizeAxes = Axes.Y;
-        RelativeSizeAxes = Axes.X;
+        if (!config.AutoSize)
+            RelativeSizeAxes = Axes.X;
         GetRows = getRows;
         AddLayout(columnWidths);
     }
 
-    void ValidateRows()
+    public void ValidateRows()
     {
         if (IsDisposed) return;
         if (!RowsValid)
@@ -352,33 +418,76 @@ public class TableView<T> : CompositeDrawable
         ValidateRows();
         if (!columnWidths.IsValid)
         {
-            var requestedColumnWidths = new float[VisibleColumns.Count];
-            var xPadding = Config.CellPadding.TotalHorizontal;
+            var columnCount = VisibleColumns.Count;
+            // doesn't include padding
+            var requestedColumnWidths = new float[columnCount];
 
-            for (var i = 0; i < Content.GetLength(0); i++)
+            for (var j = 0; j < columnCount; j++)
             {
-                for (var j = 0; j < Content.GetLength(1); j++)
+                var targetWidth = VisibleColumns[j].TargetWidth;
+                var column = VisibleColumns[j];
+                for (var i = 0; i < Content.GetLength(0); i++)
                 {
-                    var content = Content[i, j].Child;
-                    if (content.Width + xPadding > requestedColumnWidths[j])
-                        requestedColumnWidths[j] = content.Width + xPadding;
+                    var width = targetWidth == 0 ? Content[i, j].Child.Width : targetWidth;
+                    width = Math.Clamp(width, column.MinWidth, column.MaxWidth);
+                    if (width > requestedColumnWidths[j])
+                        requestedColumnWidths[j] = width;
                 }
             }
 
-            var total = requestedColumnWidths.Sum();
-            // if this is negative, we have some problems
-            var add = (DrawWidth - total) / requestedColumnWidths.Length;
+            var xPadding = Config.CellPadding.TotalHorizontal;
+            var targetTableWidth = Config.MinWidth ?? DrawWidth;
+            var extraSpace = targetTableWidth - requestedColumnWidths.Sum() - xPadding * columnCount;
+            if (BodyContainer is DrumScrollContainer)
+                extraSpace -= DrumScrollContainer.ScrollbarSize;
+            if (extraSpace < 0 && !Config.AutoSize)
+            {
+                // not much we can do
+                var add = extraSpace / columnCount;
+                for (var j = 0; j < columnCount; j++)
+                    requestedColumnWidths[j] += add;
+            }
+            else
+            {
+                while (extraSpace > 0)
+                {
+                    var minGrow = float.PositiveInfinity;
+                    var growable = 0;
+                    for (var j = 0; j < columnCount; j++)
+                    {
+                        var growLimit = VisibleColumns[j].MaxWidth - requestedColumnWidths[j];
+                        if (growLimit > 0)
+                        {
+                            if (growLimit < minGrow)
+                                minGrow = growLimit;
+                            growable += 1;
+                        }
+                    }
+                    if (growable == 0) break;
+                    var done = extraSpace < minGrow * growable;
+                    var add = Math.Min(extraSpace / growable, minGrow);
+                    for (var j = 0; j < columnCount; j++)
+                    {
+                        var growLimit = VisibleColumns[j].MaxWidth - requestedColumnWidths[j];
+                        if (growLimit > 0)
+                            requestedColumnWidths[j] += add;
+                    }
+                    extraSpace -= add * growable;
+                    if (done) break;
+                }
+            }
             for (var row = 0; row < Content.GetLength(0); row++)
             {
                 var x = 0f;
-                for (var col = 0; col < VisibleColumns.Count; col++)
+                for (var col = 0; col < columnCount; col++)
                 {
-                    var width = requestedColumnWidths[col] + add;
-                    Content[row, col].Width = width;
+                    var width = requestedColumnWidths[col] + xPadding;
                     Content[row, col].X = x;
+                    Content[row, col].Width = width;
                     x += width;
                 }
             }
+            if (Config.AutoSize) Width = Config.MinWidth.Value - extraSpace;
             columnWidths.Validate();
         }
     }
@@ -390,8 +499,10 @@ public class TableView<T> : CompositeDrawable
     public (int, int)? CurrentHover;
     public void Hover(int row, int col)
     {
+        // header is row == -1 for some reason
         CurrentHover = (row, col);
-        CellHover.Alpha = 1;
+        var column = VisibleColumns[col];
+        CellHover.Alpha = column.NoCellHover ? 0 : 1;
         if (row >= 0)
         {
             RowHover.Alpha = 1;
@@ -400,10 +511,17 @@ public class TableView<T> : CompositeDrawable
         }
         if (CellHover.Parent != null)
             ((TableCell)CellHover.Parent).Remove(CellHover);
-        if (Content[row + 1, col].ColumnConfig.Editable)
+
+        CellHover.Width = Content[row + 1, col].Width;
+        CellHover.Height = Content[row + 1, col].Height;
+        CellHover.X = -Config.CellPadding.Left;
+        CellHover.Y = -Config.CellPadding.Top;
+        if (row == -1)
+            CellHover.Colour = Config.HeaderHighlight;
+        else if (Content[row + 1, col].ColumnConfig.Editable)
             CellHover.Colour = DrumColors.BrightCyan.MultiplyAlpha(0.1f);
         else
-            CellHover.Colour = DrumColors.RowHighlight;
+            CellHover.Colour = Config.CellHighlight;
         Content[row + 1, col].Add(CellHover);
     }
 
@@ -423,8 +541,36 @@ public class TableView<T> : CompositeDrawable
         }
     }
 
+    public void FlashRow(int i)
+    {
+        var firstCell = Content[i + 1, 0];
+        if (BodyContainer is DrumScrollContainer scroll)
+            scroll.ScrollIntoView(firstCell, false);
+        var flasher = new Box
+        {
+            Colour = Colour4.Transparent,
+            RelativeSizeAxes = Axes.X,
+            Height = firstCell.Height,
+            Y = firstCell.Y,
+            Depth = 50
+        };
+        BodyContainer.Add(flasher);
+        flasher.FlashColour(Colour4.PaleGreen, 500, Easing.OutQuint);
+    }
+
+    // first index is row, col. Make sure to add 1 to row for header
     TableCell[,] Content; // includes header
 
+    public Drawable GetCellContent(T row, TableViewColumn<T> column)
+    {
+        var rowI = Rows.IndexOf(row);
+        if (rowI < 0) return null;
+        var colI = VisibleColumns.IndexOf(column);
+        if (colI < 0) return null;
+        return Content[rowI + 1, colI].Child;
+    }
+
+    // TODO need to simplify this a lot so we can add rows without reloading the whole table
     void mainLoad()
     {
         VisibleColumns = Config.Columns.Where(e => !e.Hidden).ToList();
@@ -536,16 +682,12 @@ public class TableView<T> : CompositeDrawable
         }
         columnWidths.Invalidate();
 
-        CellHover = new()
-        {
-            RelativeSizeAxes = Axes.Both,
-            Depth = 1
-        };
+        CellHover = new() { Depth = 1 };
 
         BodyContainer.Add(RowHover = new()
         {
             Alpha = 0,
-            Colour = DrumColors.RowHighlight,
+            Colour = Config.RowHighlight,
             RelativeSizeAxes = Axes.X,
             Depth = 1
         });

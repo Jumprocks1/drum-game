@@ -8,12 +8,14 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using DrumGame.Game.API;
 using DrumGame.Game.Beatmaps;
+using DrumGame.Game.Beatmaps.Display.Mania;
 using DrumGame.Game.Beatmaps.Formats;
 using DrumGame.Game.Beatmaps.Loaders;
 using DrumGame.Game.Browsers.BeatmapSelection;
 using DrumGame.Game.Commands;
 using DrumGame.Game.Commands.Requests;
 using DrumGame.Game.Components;
+using DrumGame.Game.Components.Basic;
 using DrumGame.Game.Interfaces;
 using DrumGame.Game.IO;
 using DrumGame.Game.Modals;
@@ -21,6 +23,7 @@ using DrumGame.Game.Modifiers;
 using DrumGame.Game.Stores;
 using DrumGame.Game.Stores.DB;
 using DrumGame.Game.Utils;
+using Newtonsoft.Json;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
@@ -63,11 +66,32 @@ public class BeatmapSelectorState
     public List<BeatmapModifier> Modifiers;
     public event Action OnModifiersChange;
     public bool HasModifiers => Modifiers != null && Modifiers.Count > 0;
+    public Bindable<string> StringModifiersBindable => Util.ConfigManager.GetBindable<string>(DrumGameSetting.Modifiers);
+
+    public void LoadModsFromConfig() // could probably just put this in a constructor instead
+    {
+        var mods = StringModifiersBindable.Value;
+        if (string.IsNullOrWhiteSpace(mods)) return;
+        Modifiers = BeatmapModifier.ParseModifiers(mods, false);
+        // we don't call TriggerModifiersChanged since we don't need to assign to the bindable
+        OnModifiersChange?.Invoke();
+    }
+
+    void TriggerModifiersChanged()
+    {
+        StringModifiersBindable.Value = BeatmapModifier.SerializeAllModifiers(Modifiers);
+        OnModifiersChange?.Invoke();
+    }
+
+    public void ModifierConfigured(BeatmapModifier modifier)
+    {
+        TriggerModifiersChanged();
+    }
     public void AddModifier(BeatmapModifier modifier)
     {
         if (modifier == null) return;
         (Modifiers ??= new()).Add(modifier);
-        OnModifiersChange();
+        TriggerModifiersChanged();
     }
     public bool HasModifier(BeatmapModifier mod)
     {
@@ -83,7 +107,7 @@ public class BeatmapSelectorState
                 if (Modifiers[i] == modifier)
                 {
                     Modifiers.RemoveAt(i);
-                    OnModifiersChange();
+                    TriggerModifiersChanged();
                     return false;
                 }
             }
@@ -96,7 +120,7 @@ public class BeatmapSelectorState
         if (HasModifiers)
         {
             Modifiers?.Clear();
-            OnModifiersChange();
+            TriggerModifiersChanged();
         }
     }
 }
@@ -112,6 +136,7 @@ public partial class BeatmapSelector : CompositeDrawable
     {
         OnSelect = onSelect;
         State = state;
+        Util.CommandController.RegisterHandlers(this);
     }
     // This ref is super sketchy but I kinda like it
     // All it lets us do is pass in null for the state and still have it work
@@ -119,9 +144,8 @@ public partial class BeatmapSelector : CompositeDrawable
     // Could probably just use a static default selector state for null but this is fun too
     public BeatmapSelector(Func<string, bool> onSelect, ref BeatmapSelectorState state) : this(onSelect, state ??= new BeatmapSelectorState()) { }
     BeatmapCarousel Carousel;
-    [Resolved] public CollectionStorage CollectionStorage { get; private set; }
-    [Resolved] public MapStorage MapStorage { get; private set; }
-    [Resolved] public FileSystemResources Resources { get; private set; }
+    public CollectionStorage CollectionStorage => Util.DrumGame.CollectionStorage;
+    public MapStorage MapStorage => Util.MapStorage;
     List<BeatmapSelectorMap> Maps;
     void LoadAllMaps()
     {
@@ -157,13 +181,15 @@ public partial class BeatmapSelector : CompositeDrawable
     SearchTextBox SearchInput;
     public static Colour4 HeaderBackground => DrumColors.DarkActiveBackground.MultiplyAlpha(0.8f);
     [BackgroundDependencyLoader]
-    private void load(DrumGameConfigManager config)
+    private void load()
     {
-        State.SearchBindable = config.GetBindable<string>(DrumGameSetting.BeatmapSearch);
-        State.CollectionBindable = config.GetBindable<string>(DrumGameSetting.CurrentCollection);
+        State.SearchBindable = Util.ConfigManager.GetBindable<string>(DrumGameSetting.BeatmapSearch);
+        State.CollectionBindable = Util.ConfigManager.GetBindable<string>(DrumGameSetting.CurrentCollection);
         State.OnIndexChange += UpdateTargetMap;
-        Util.CommandController.RegisterHandlers(this);
         Carousel = new BeatmapCarousel(this);
+
+        if (Util.Skin.SelectorBackground != null && Util.Skin.SelectorBackground.Alpha > 0)
+            AddInternal(new BackgroundSkinTexture(() => Util.Skin.SelectorBackground, null) { RelativeSizeAxes = Axes.Both, Depth = 500, Relative = true });
         LoadAllMaps();
         // we set this so that we can still set a TargetMap even though the filter isn't actually loaded
         // we should probably rework this so that we can just directly set the target map
@@ -710,13 +736,15 @@ public partial class BeatmapSelector : CompositeDrawable
         if (oldRequest != null) Schedule(oldRequest.Close);
         FileRequest = context.GetFile(file =>
         {
-            if (MapStorage.Exists(file))
+            if (MapStorage.Contains(file))
             {
                 if (SelectMap(file, false))
                     return;
             }
             if (Util.DrumGame.OpenFile(context)) return;
             var extension = Path.GetExtension(file);
+            // this checks for archives since the CopyAudio method supports loading from a zip
+            // sometimes when buying from Amazon, single songs are zipped.
             if (Util.AudioExtension(extension) || Util.ArchiveExtension(extension))
             {
                 var beatmap = Beatmap.Create();
@@ -734,44 +762,82 @@ public partial class BeatmapSelector : CompositeDrawable
 
                 if (File.Exists(beatmap.Source.AbsolutePath))
                 {
-                    // technically this is sort of bad since it will leave a danging audio file
+                    // technically this is sort of bad since it will leave a dangling audio file
                     context.ShowMessage("A map with that name already exists");
                     return;
                 }
                 beatmap.SaveToDisk(MapStorage);
                 OnSelect(State.Filename = beatmapName);
             }
-        }, "Open/Import File", "You can also simply drag and drop a file to load it at any time.");
+        }, "Open/Import File", "You can drag and drop a file to load it at any time.");
+        if (FileRequest != null)
+        {
+            FileRequest.Add(new SpriteText
+            {
+                Text = "Supported file types include (hover for more info):",
+                Font = FrameworkFont.Regular.With(size: 20),
+                Y = 10
+            });
+            var y = 36;
+            void addFileType(string name, string help)
+            {
+                FileRequest.Add(new MarkupTooltipSpriteText
+                {
+                    Y = y,
+                    X = 10,
+                    Text = name,
+                    MarkupTooltip = help,
+                    Font = FrameworkFont.Regular.With(size: 16),
+                    Colour = DrumColors.BrightGreen
+                });
+                y += 18;
+            }
+            addFileType(".bjson", "These are the primary format for Drum Game maps.\nOther formats get converted to .bjson when imported.\nThis format can be viewed with a standard text editor such as VSCode or Notepad."
+                + $"\nTo open the current map in your file explorer, try {IHasCommand.GetMarkupTooltipIgnoreUnbound(Command.RevealInFileExplorer)}.");
+            addFileType(".dtx, set.def", "These file types are from DTXMania.\nImporting for these types should work in almost all cases."
+                + "\nIf the .dtx file contains multiple BGM tracks (sometimes called stems), you may want to install FFmpeg."
+                + "\nWith FFmpeg installed, the game will attempt to merge the BGM files before importing."
+                + "\nFFmpeg should be placed in the system path or in the `resources/lib` folder.");
+            addFileType("song.ini", $"This format is from Clone Hero/Phaseshift."
+                + "\nCurrently only imports the highest difficulty. These files can be edited before importing using Onyx."
+                + "\nMost notes should import correctly, though keep in mind Clone Hero charts were designed for having only 4/5 lanes."
+                + "\nBackground audio may fail to import."
+                + "\nImporting these is still a work in progress, please report any issues on the Discord.");
+            addFileType(".mp3, .m4a, .ogg, .webm, .flac, .wav", "These are audio files.\nWhen imported on the select screen, the game will make a new map.\nWhen imported in the editor, the game will swap out the BGM for the new file.");
+            addFileType(".zip, .7z, .rar", "These are archive formats.\nWhen imported, the game will try to find any supported file types and import them."
+                + "\n.7z and .rar requiring having 7z.exe in your system path."
+                + "\nIf importing the archive fails or has issues, please try extracting the files first.");
+        }
         return true;
     }
 
     [CommandHandler]
     public bool NewMapFromYouTube(CommandContext context) => context.GetString(url =>
+    {
+        var name = BeatmapSelector.YouTubeRegex.Match(url).Groups[1].Value;
+        var relativeAudio = $"audio/{name}.ogg";
+        // TODO would be nice to get some metadata up in here
+        var task = YouTubeDL.DownloadBackground(url, $"{Util.MapStorage.AbsolutePath}/{relativeAudio}");
+        task.OnSuccess += task =>
         {
-            var name = BeatmapSelector.YouTubeRegex.Match(url).Groups[1].Value;
-            var relativeAudio = $"audio/{name}.ogg";
-            // TODO would be nice to get some metadata up in here
-            var task = YouTubeDL.DownloadBackground(url, $"{Util.MapStorage.AbsolutePath}/{relativeAudio}");
-            task.OnSuccess += task =>
+            // we can't use our own scheduler, since removing yourself during update is bad
+            Util.UpdateThread.Scheduler.Add(() =>
             {
-                // we can't use our own scheduler, since removing yourself during update is bad
-                Util.UpdateThread.Scheduler.Add(() =>
+                var o = Beatmap.Create();
+                o.Source = new BJsonSource(MapStorage.GetFullPath(name + ".bjson"), BJsonFormat.Instance);
+                o.Audio = relativeAudio;
+                o.YouTubeID = name;
+                if (File.Exists(o.Source.AbsolutePath))
                 {
-                    var o = Beatmap.Create();
-                    o.Source = new BJsonSource(MapStorage.GetFullPath(name + ".bjson"), BJsonFormat.Instance);
-                    o.Audio = relativeAudio;
-                    o.YouTubeID = name;
-                    if (File.Exists(o.Source.AbsolutePath))
-                    {
-                        context.ShowMessage("A map with that name already exists");
-                        return;
-                    }
-                    o.SaveToDisk(MapStorage);
-                    OnSelect(State.Filename = o.Source.Filename);
-                });
-            };
-            task.Enqueue();
-        }, "Creating New Beatmap From YouTube", "Url", Util.ShortClipboard);
+                    context.ShowMessage("A map with that name already exists");
+                    return;
+                }
+                o.SaveToDisk(MapStorage);
+                OnSelect(State.Filename = o.Source.Filename);
+            });
+        };
+        task.Enqueue();
+    }, "Creating New Beatmap From YouTube", "Url", Util.ShortClipboard);
 
     public BeatmapSelectorMap GetTargetMap(CommandContext context)
         => context != null && context.TryGetParameter<BeatmapSelectorMap>(out var o) ? o : TargetMap;
@@ -874,8 +940,8 @@ public partial class BeatmapSelector : CompositeDrawable
         {
             beatmap.SaveToDisk(MapStorage);
             if (filterLoaded) target.LoadFilter(); // update filter string
-            // make sure active detail container gets reloaded if needed
-            // this method only reloads if the current target matches
+                                                   // make sure active detail container gets reloaded if needed
+                                                   // this method only reloads if the current target matches
             DetailContainer.ReloadTarget(target, beatmap);
             Carousel.ReloadCard(target); // make sure metadata on our card gets updated
             ReloadFiltering();
@@ -989,14 +1055,16 @@ public partial class BeatmapSelector : CompositeDrawable
     }
     [CommandHandler] public bool UpvoteMap(CommandContext context) => ModifyRating(context, 1);
     [CommandHandler] public bool DownvoteMap(CommandContext context) => ModifyRating(context, -1);
-    [CommandHandler]
-    public bool RevealInFileExplorer(CommandContext context)
+
+    bool handleMapExternally(CommandContext context, Action<string> action)
     {
         var targetMap = GetTargetMap(context);
         if (targetMap == null) return false;
-        Util.RevealInFileExplorer(MapStorage.GetFullPath(targetMap.MapStoragePath));
+        action(MapStorage.GetFullPath(targetMap.MapStoragePath));
         return true;
     }
+    [CommandHandler] public bool RevealInFileExplorer(CommandContext context) => handleMapExternally(context, Util.RevealInFileExplorer);
+    [CommandHandler] public bool OpenExternally(CommandContext context) => handleMapExternally(context, Util.OpenExternally);
     [CommandHandler]
     public bool RevealAudioInFileExplorer(CommandContext context)
     {
@@ -1013,23 +1081,90 @@ public partial class BeatmapSelector : CompositeDrawable
         }
         return true;
     }
-    [CommandHandler]
-    public void ExportSearchToFile()
+    public enum ExportSearchType
     {
-        var time = DateTime.UtcNow.GetHashCode();
-        var name = $"search-export-{time:X8}.txt";
-        var path = Path.Join(Resources.GetDirectory("exports").FullName, name);
-        var text = new StringBuilder();
-
-        foreach (var map in FilteredMaps)
+        Basic,
+        RequestListJson,
+        FullJson
+    }
+    [CommandHandler]
+    public bool ExportSearchToFile(CommandContext context)
+    {
+        var requestConfig = new RequestConfig
         {
-            var meta = map.LoadedMetadata;
-            text.AppendLine($"{meta.Artist} - {meta.Title}");
-        }
+            Title = "Exporting Search",
+            Field = new EnumFieldConfig<ExportSearchType>(),
+            CommitText = "Export",
+            OnCommitBasic = request =>
+            {
+                var time = DateTime.UtcNow.GetHashCode();
+                var format = request.GetValue<ExportSearchType>();
+                string path = null;
+                if (format == ExportSearchType.Basic)
+                {
+                    var name = $"search-export-{time:X8}.txt";
+                    path = Path.Join(Util.Resources.GetDirectory("exports").FullName, name);
+                    var text = new StringBuilder();
 
-        File.WriteAllText(path, text.ToString());
+                    foreach (var map in FilteredMaps)
+                    {
+                        var meta = map.LoadedMetadata;
+                        text.AppendLine($"{meta.Artist} - {meta.Title}");
+                    }
 
-        Util.Host.PresentFileExternally(path);
+                    File.WriteAllText(path, text.ToString());
+                }
+                else if (format == ExportSearchType.RequestListJson)
+                {
+                    var name = $"search-export-{time:X8}.json";
+                    path = Path.Join(Util.Resources.GetDirectory("exports").FullName, name);
+
+                    var collection = CollectionStorage.GetCollection("request-list.json");
+                    var targetMaps = FilteredMaps;
+
+                    if (collection != null)
+                        targetMaps = collection.Apply(Maps, CollectionStorage).ToList();
+
+
+                    File.WriteAllText(path, JsonConvert.SerializeObject(targetMaps.Select(e => e.LoadedMetadata).Select(e =>
+                    {
+                        var dtxLevel = e.DtxLevel;
+                        var diffString = e.DifficultyString;
+                        if (string.IsNullOrWhiteSpace(diffString))
+                            diffString = dtxLevel;
+                        else if (!string.IsNullOrWhiteSpace(dtxLevel))
+                            diffString = $"{diffString} - {dtxLevel}";
+                        return new
+                        {
+                            e.Artist,
+                            e.Title,
+                            MedianBPM = e.BPM,
+                            e.DtxLevel,
+                            e.Difficulty,
+                            DifficultyString = diffString,
+                            e.Duration,
+                            e.ImageUrl,
+                            e.Mapper,
+                            e.MapSetId,
+                            e.RomanArtist,
+                            e.RomanTitle,
+                            e.Tags,
+                            PlayableDuration = e.Duration
+                        };
+                    })));
+                }
+                else if (format == ExportSearchType.FullJson)
+                {
+                    var name = $"search-export-{time:X8}.json";
+                    path = Path.Join(Util.Resources.GetDirectory("exports").FullName, name);
+                    File.WriteAllText(path, JsonConvert.SerializeObject(FilteredMaps.Select(e => e.LoadedMetadata)));
+                }
+                var dontOpen = context.TryGetParameter<bool>(1, out var o) && o;
+                if (path != null && !dontOpen)
+                    Util.Host.PresentFileExternally(path);
+            }
+        };
+        return context.HandleRequest(requestConfig);
     }
     [CommandHandler]
     public bool LoadYouTubeAudio(CommandContext context)

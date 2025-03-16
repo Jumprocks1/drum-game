@@ -204,7 +204,7 @@ public class CommandPaletteContainer : Container
     [CommandHandler] public void OpenKeyboardView() => Push<OverlayModal<KeyBindingBrowser>>();
     [CommandHandler] public void OpenKeyboardDrumEditor() => Push<OverlayModal<KeyboardMappingEditor>>();
     [CommandHandler] public void ViewDrumLegend() => Push<OverlayModal<Notation.DrumLegend>>();
-    [CommandHandler] public void ViewMidi() => Push<OverlayModal<MidiView>>();
+    [CommandHandler] public void MidiMonitor() => Push<OverlayModal<MidiMonitor>>();
     [CommandHandler] public void ViewRepositories() => Push<RepositoryViewer>();
     [CommandHandler] public void ConfigureMapLibraries() => Toggle<MapLibraryView>();
 

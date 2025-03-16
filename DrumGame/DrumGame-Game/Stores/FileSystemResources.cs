@@ -15,13 +15,13 @@ public class FileSystemResources : StorageBackedResourceStore
     public readonly NativeStorage GlobalStorage;
     public readonly IResourceStore<byte[]> GlobalStorageStore;
     public readonly ITrackStore Tracks;
-    public FileSystemResources(string path, NativeStorage storage) : base(storage)
+    public FileSystemResources(string path, NativeStorage storage, ITrackStore trackStore = null) : base(storage)
     {
         AbsolutePath = Path.GetFullPath(path);
         Storage = storage;
         GlobalStorage = new GlobalNativeStorage(Util.Host);
         GlobalStorageStore = new StorageBackedResourceStore(GlobalStorage);
-        Tracks = Util.DrumGame.Audio.GetTrackStore(GlobalStorageStore);
+        Tracks = trackStore ?? Util.DrumGame.Audio.GetTrackStore(GlobalStorageStore);
         _largeTextureStore = new Lazy<ITextureStore>(() =>
         {
             var loader = Util.Host.CreateTextureLoaderStore(GlobalStorageStore);
@@ -50,7 +50,8 @@ public class FileSystemResources : StorageBackedResourceStore
         {
             // this is far from perfect. We don't actually need to load these if it's a .ogg vorbis file
             // we have another issue in that I hard-coded the YouTube track lookup to use .ogg even if it's a .webm file
-            if (path.EndsWith(".webm", StringComparison.OrdinalIgnoreCase) || path.EndsWith(".ogg", StringComparison.OrdinalIgnoreCase))
+            if (path.EndsWith(".webm", StringComparison.OrdinalIgnoreCase) || path.EndsWith(".ogg", StringComparison.OrdinalIgnoreCase)
+                || path.EndsWith(".opus", StringComparison.OrdinalIgnoreCase))
             {
                 // costs ~4ms if cached, ~100ms if first time
                 // run on audio thread to make sure we don't run it twice

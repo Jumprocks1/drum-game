@@ -7,30 +7,12 @@ using DrumGame.Game.Stores;
 using DrumGame.Game.Skinning;
 using DrumGame.Game.Utils;
 using osu.Framework.Bindables;
-using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Sprites;
+using DrumGame.Game.Interfaces;
 
 namespace DrumGame.Game.Views.Settings.SettingInfos;
 
-public class WindowModeSetting : EnumSettingInfo<WindowMode>
-{
-    public WindowModeSetting(Bindable<WindowMode> binding) : base("Window Mode", binding) { }
-    public override void Render(SettingControl control)
-    {
-        control.Command = Command.ToggleFullscreen;
-        base.Render(control);
-    }
-}
-public class FrameSyncSetting : EnumSettingInfo<FrameSync>
-{
-    public FrameSyncSetting(Bindable<FrameSync> binding) : base("Frame Sync", binding) { }
-    public override void Render(SettingControl control)
-    {
-        control.Command = Command.CycleFrameSync;
-        base.Render(control);
-    }
-}
 public class SkinSetting : SettingInfo
 {
     public SkinSetting(string label) : base(label)
@@ -84,7 +66,7 @@ public class SkinSetting : SettingInfo
             Anchor = Anchor.TopRight,
             Origin = Anchor.TopRight,
             X = autocomplete.X - autocomplete.Width - 5,
-            MarkupTooltip = "<command>Skin Settings</>\n\nOnly some skin options are available for edit in-game\nFor more options, edit the skin file directly with a text editor such as VSCode."
+            MarkupTooltip = $"{IHasCommand.GetMarkupTooltipIgnoreUnbound(Command.OpenSkinSettings)}\n\nOnly some skin options are available for edit in-game\nFor more options, edit the skin file directly with a text editor such as VSCode."
         });
         control.Add(autocomplete);
     }
@@ -92,6 +74,7 @@ public class SkinSetting : SettingInfo
 
 public class EnumSettingInfo<T> : SettingInfo where T : struct, Enum
 {
+    public override string Description => Binding.Description;
     public Bindable<T> Binding;
     public EnumSettingInfo(string label, Bindable<T> binding) : base(label)
     {

@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using System.Linq;
+using DrumGame.Game.Beatmaps.Data;
 using DrumGame.Game.Channels;
 using DrumGame.Game.Modifiers;
 
@@ -40,6 +41,7 @@ public static class CommandParameters
         type = Nullable.GetUnderlyingType(type) ?? type;
         if (type == typeof(double)) return "number";
         else if (type == typeof(DrumChannel)) return "channel";
+        else if (type == typeof(NotePreset)) return "preset";
         else if (type == typeof(string)) return "string";
         else if (type.IsAssignableTo(typeof(BeatmapModifier))) return "modifier";
         else if (type.IsEnum) return type.Name;

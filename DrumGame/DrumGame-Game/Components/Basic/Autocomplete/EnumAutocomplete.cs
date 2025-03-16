@@ -20,7 +20,7 @@ public class EnumOption<T> : IFilterable where T : struct, Enum
     public string MarkupTooltip => Util.MarkupDescription(Value);
 }
 
-public class EnumAutocomplete<T> : Autocomplete<EnumOption<T>>, IHasTooltip where T : struct, Enum
+public class EnumAutocomplete<T> : Autocomplete<EnumOption<T>> where T : struct, Enum
 {
     Bindable<T> Binding;
     public EnumAutocomplete(Bindable<T> binding, Func<T, string> getLabel = null)
@@ -50,5 +50,4 @@ public class EnumAutocomplete<T> : Autocomplete<EnumOption<T>>, IHasTooltip wher
         CommittedTarget = current == null ? null : Options.First(e => e != null && e.Value.Equals(current));
         ClearOnFocus = true;
     }
-    public LocalisableString TooltipText => "Click to edit";
 }

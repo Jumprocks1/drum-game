@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using DrumGame.Game.Commands;
 using DrumGame.Game.Components;
 using DrumGame.Game.Components.Basic;
@@ -11,36 +10,15 @@ using osu.Framework.Allocation;
 using osu.Framework.Configuration;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Input;
-using osu.Framework.Input.Events;
 
 namespace DrumGame.Game.Views.Settings;
 
 [Cached]
-public class SettingsView : ModalBase, IModal
+public class SettingsView : ModalBase, IModal, IHandleSettingInfo
 {
     [Resolved] DrumGameConfigManager Config { get; set; }
     [Resolved] FrameworkConfigManager FrameworkConfig { get; set; }
-
-    IModal Modal;
-    void CloseModal()
-    {
-        if (Modal == null) return;
-        RemoveInternal((Drawable)Modal, true);
-        Modal = null;
-    }
-    // Very similar to CommandPaletteContainer.AddModal
-    public void AddModal<T>() where T : IModal, new()
-    {
-        CloseModal();
-        Modal = new T();
-        Modal.CloseAction = CloseModal;
-        var drawable = (Drawable)Modal;
-        drawable.RelativeSizeAxes = Axes.Both;
-        AddInternal(drawable);
-    }
 
     public Action CloseAction { get; set; }
 
@@ -112,40 +90,30 @@ public class SettingsView : ModalBase, IModal
             RelativeSizeAxes = Axes.Both,
         });
 
-        y = 0f;
-        var even = true;
-        var settings = SettingsList.GetSettings(Config, FrameworkConfig);
-        var depth = 0;
-        foreach (var setting in settings)
-        {
-            var control = new SettingControl(setting, even)
-            {
-                Y = y,
-                Depth = depth++
-            };
-            ScrollContainer.Add(control);
-            y += control.Height;
-            even = !even;
-        }
+        SettingsList.RenderSettings(this, Config, FrameworkConfig);
+
         AddInternal(inner);
         Util.CommandController.RegisterHandlers(this);
+    }
+    bool Even = true; // even fields have lighter background
+    int NextDepth;
+    float NextY;
+    public void AddSetting(SettingInfo setting)
+    {
+        var control = new SettingControl(setting, Even)
+        {
+            Y = NextY,
+            Depth = NextDepth++
+        };
+        ScrollContainer.Add(control);
+        NextY += control.Height;
+        Even = !Even;
     }
 
     protected override void Dispose(bool isDisposing)
     {
         Util.CommandController.RemoveHandlers(this);
         base.Dispose(isDisposing);
-    }
-
-    [CommandHandler]
-    public bool Close(CommandContext _)
-    {
-        if (Modal != null)
-        {
-            CloseModal();
-            return true;
-        }
-        return false;
     }
 
     [CommandHandler] public void RevealInFileExplorer() => Config.RevealInFileExplorer();

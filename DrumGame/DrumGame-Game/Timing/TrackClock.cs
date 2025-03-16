@@ -161,8 +161,7 @@ public class TrackClock : IClock, IDisposable
     }
     private void OnComplete()
     {
-        AtEnd = true;
-        Stop();
+        Util.UpdateThread.Scheduler.Add(() => Stop(true));
     }
 
     // TODO https://github.com/ppy/osu-framework/issues/4202
@@ -180,7 +179,10 @@ public class TrackClock : IClock, IDisposable
             if (!Track.IsRunning && !Manual)
             {
                 t = CurrentTime + dt * Rate;
-                if (t > 0)
+                // we have to check against the previous time, since this can trigger sometimes when the track reaches the end
+                // Our local IsRunning variable is updated in a callback from the Completed event, but it waits until the next update cycle
+                // to reproduce this bug, add a 10ms delay to the OnComplete handler
+                if (CurrentTime < 0 && t >= 0)
                 {
                     Track.Seek(0);
                     Track.Start(); // this causes a lag spike unfortunately
@@ -217,7 +219,7 @@ public class TrackClock : IClock, IDisposable
             {
                 CurrentTime = time;
                 // don't need to seek the track since we aren't allow to `Play` until we have a non-end seek
-                Stop();
+                Stop(true);
             }
             else
             {
@@ -304,17 +306,23 @@ public class TrackClock : IClock, IDisposable
             RunningChanged?.Invoke();
         }
     }
-    public void Stop()
+    public void Stop() => Stop(false);
+    public void Stop(bool end)
     {
         if (IsRunning)
         {
             IsRunning = false;
+            if (end) AtEnd = true; // probably don't need this line since it's set below, keeping in case of thread issues
+            // note, we only update CurrentTime if the inner track is running
+            // this is because we could call Stop during the lead in phase (when Track is still paused)
+            // if that happens, the inner track's CurrentTime isn't valid
             if (Track.IsRunning)
             {
                 Track.Stop();
-                // needed since Latency factor can cause annoying issues
+                // Math.Max needed since LatencyFactor can cause annoying issues
                 CurrentTime = Math.Max(Track.CurrentTime, CurrentTime);
             }
+            AtEnd = end || CurrentTime >= EndTime;
             RunningChanged?.Invoke();
         }
     }
@@ -412,10 +420,16 @@ public class TrackClock : IClock, IDisposable
     [CommandHandler] public void TogglePlayback() { if (IsRunning) Stop(); else Start(); }
     [CommandHandler] public void Pause() => Stop();
     [CommandHandler] public void Play() => Start();
-    public Bindable<double> PlaybackSpeed = new(1);
+    public Bindable<double> PlaybackSpeed = new BindableNumber<double>(1)
+    {
+        // http://bass.radio42.com/help/html/90d034c4-b426-7f7c-4f32-28210a5e6bfb.htm
+        // Doc says -95% to 5000%
+        MinValue = 0.05f, // f is intentional. o!f compares with a float, setting to 0.05d will cause a crash
+        MaxValue = 50
+    };
     [CommandHandler] public bool SetPlaybackSpeed(CommandContext context) => context.GetNumber(PlaybackSpeed, "Set Playback Speed", "Speed");
     [CommandHandler] public void IncreasePlaybackSpeed() => PlaybackSpeed.Value *= 1.10f;
-    [CommandHandler] public void DecreasePlaybackSpeed() => PlaybackSpeed.Value = Math.Max(0.05f, PlaybackSpeed.Value / 1.10f);
+    [CommandHandler] public void DecreasePlaybackSpeed() => PlaybackSpeed.Value /= 1.10f;
     [CommandHandler]
     public bool SeekToTime(CommandContext context)
     {

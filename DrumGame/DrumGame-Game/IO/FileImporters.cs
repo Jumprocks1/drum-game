@@ -121,7 +121,7 @@ public static class FileImporters
         }
         catch (Exception e)
         {
-            Util.CommandController.Palette.ShowMessage($"Failed while opening {path}, see log for exception");
+            Util.Palette.ShowMessage($"Failed while opening {path}, see log for exception");
             Logger.Error(e, $"Failed while opening {path}");
         }
         if (n == NextContext) NextContext = null; // successfully consumed context

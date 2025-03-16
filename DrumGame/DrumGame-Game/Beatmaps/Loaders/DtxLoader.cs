@@ -11,6 +11,7 @@ using DrumGame.Game.Channels;
 using DrumGame.Game.Interfaces;
 using DrumGame.Game.IO;
 using DrumGame.Game.Media;
+using DrumGame.Game.Stores;
 using DrumGame.Game.Utils;
 using osu.Framework.Logging;
 
@@ -80,15 +81,15 @@ public partial class DtxLoader
         ApplyDefInfo(defs, Path.GetFileName(fullPath), res.Item1);
         return res.Item1;
     }
-    static string DifficultyMap(int dtxDifficulty) => (dtxDifficulty >= 100 ? dtxDifficulty / 10 : dtxDifficulty) switch
+    static BeatmapDifficulty DifficultyMap(int dtxDifficulty) => (dtxDifficulty >= 100 ? dtxDifficulty / 10 : dtxDifficulty) switch
     {
-        < 55 => "Easy",
-        < 70 => "Normal",
-        < 80 => "Hard",
-        < 87 => "Insane",
-        < 93 => "Expert",
-        < 100 => "Expert+",
-        _ => null
+        < 55 => BeatmapDifficulty.Easy,
+        < 70 => BeatmapDifficulty.Normal,
+        < 80 => BeatmapDifficulty.Hard,
+        < 87 => BeatmapDifficulty.Insane,
+        < 93 => BeatmapDifficulty.Expert,
+        < 100 => BeatmapDifficulty.ExpertPlus,
+        _ => BeatmapDifficulty.Unknown
     };
 
     // start time is in ticks
@@ -255,6 +256,13 @@ public partial class DtxLoader
                 o.Description = value;
                 ReadCharter(o, value);
             }
+            else if (code == "PANEL")
+            {
+                if (o.Description == null)
+                    o.Description = value;
+                else
+                    o.Description += $"\n{value}";
+            }
             else if (code.StartsWith("WAV"))
             {
                 var sample = info.Sample(code[3], code[4]);
@@ -308,7 +316,8 @@ public partial class DtxLoader
                     o.MeasureChanges.Add(new MeasureChange(o.TickFromMeasure(measure), targetLength));
                 }
                 else if (channelInt >= 49 && channelInt <= 60) { } // hidden chips (not played in DTX)
-                else if (channelInt >= 97 && channelInt <= 146) { } // background sound triggers
+                // this used to filter out 97, but that is used for timing secondary BGM
+                else if (channelInt >= 98 && channelInt <= 146) { } // background sound triggers
                 else if (channelInt >= 177 && channelInt <= 190) { } // default sound (when a hit is not matched to a chip)
                 else if (channel == "C2") { } // hide bar lines
                 else if (channel == "4F") { } // bonus effect?
@@ -374,7 +383,7 @@ public partial class DtxLoader
                     mod = NoteModifiers.Right;
                 void add(int tick, DrumChannel channel, NoteModifiers modifiers, DtxSample sample)
                 {
-                    o.HitObjects.Add(new HitObject(tick, new HitObjectData(channel, modifiers, sample.NotePreset)));
+                    o.HitObjects.Add(new HitObject(tick, new HitObjectData(channel, modifiers, sample?.NotePreset)));
                 }
                 if (dc == DrumChannel.BassDrum) // for the bass channel, we have to mark the samples as bass drum samples
                     s((tick, id, sample) =>
@@ -436,6 +445,12 @@ public partial class DtxLoader
                     if (found != null)
                         found.StartTime = tick;
                 });
+            else if (channel == "61")
+                s((tick, id, sample) =>
+                {
+                    if (sample != null)
+                        sample.StartTime = tick;
+                });
             else if (channel == "08")
                 f((tick, v) => o.TempoChanges.Add(new TempoChange(tick, bpmLookups[base36(v)])));
             else if (channel == "54") // avi timing
@@ -473,12 +488,14 @@ public partial class DtxLoader
                 o.Audio = mainBgm.Path;
             }
             else Logger.Log($"No BGM found for {o.Title}");
-            if (!Config.MetadataOnly && aviLookups.Count > 0)
+            if (!Config.MetadataOnly)
             {
-                var video = aviLookups.Values.FirstOrDefault(e => e.StartTick != null)
-                    ?? aviLookups.Values.First();
-                o.Video = video.Path;
-                o.VideoOffset = -o.MillisecondsFromTick(video.StartTick.Value) + ImportOffset;
+                var video = aviLookups.Values.FirstOrDefault(e => e.StartTick != null);
+                if (video != null)
+                {
+                    o.Video = video.Path;
+                    o.VideoOffset = -o.MillisecondsFromTick(video.StartTick.Value) + ImportOffset;
+                }
             }
             o.HashId();
         }
@@ -552,28 +569,53 @@ public partial class DtxLoader
                     }
                 }
 
+                // if we successfully merge audio, don't need to copy main bgm anymore
+                var copyMainBgm = true;
                 if (!fullFound && ffmpegMix.Count > 1) // merge with FFmpeg, could compare length before merging just to be safe
                 {
-                    try
+                    if (FFmpegProcess.Executable == null)
                     {
-                        if (!mapStorage.Exists(beatmap.FullAudioPath()))
-                        {
-                            Logger.Log("Merging drum audio");
-                            var merger = new AudioMerger();
-                            foreach (var path in ffmpegMix)
-                                merger.InputStreams.Add(Provider.Open(path));
-                            merger.OutputFile = beatmap.FullAudioPath();
-                            await merger.MergeAsync();
-                        }
-                        beatmap.Audio = Path.ChangeExtension(beatmap.Audio, ".ogg");
+                        Logger.Log("FFmpeg not found, skipping BGM merge", level: LogLevel.Important);
+                        copyMainBgm = true;
                     }
-                    catch // if no FFmpeg, do regular copy
+                    else
                     {
-                        if (!mapStorage.Exists(beatmap.FullAudioPath()))
-                            Provider.Copy(mainBgm.Path, beatmap.FullAudioPath());
+                        try
+                        {
+                            var mergeTargetPath = Path.ChangeExtension(beatmap.FullAudioPath(), ".ogg");
+                            if (!mapStorage.Exists(mergeTargetPath))
+                            {
+                                Logger.Log("Merging drum audio");
+                                var merger = new AudioMerger { InputDelaysMs = [] };
+                                foreach (var path in ffmpegMix)
+                                {
+                                    merger.InputStreams.Add(Provider.Open(path));
+                                    var chipInfo = info.BGMs.FirstOrDefault(e => e.Path == path)
+                                        ?? info.SamplesDict.Values.FirstOrDefault(e => e.Path == path)
+                                        ?? mainBgm;
+                                    var startTimeMs = beatmap.MillisecondsFromTick(chipInfo.StartTime ?? mainBgm.StartTime ?? 0);
+                                    merger.InputDelaysMs.Add(startTimeMs);
+                                }
+                                merger.OutputFile = mergeTargetPath;
+                                // for now, only do input delay calculations if the main bgm has the smallest start time
+                                if (mainBgm.StartTime != merger.InputDelaysMs.Min())
+                                {
+                                    Logger.Log("Skipping FFmpeg delay mixing, BGM not first track", level: LogLevel.Important);
+                                    merger.InputDelaysMs = null;
+                                }
+                                await merger.MergeAsync();
+                            }
+                            beatmap.Audio = Path.ChangeExtension(beatmap.Audio, ".ogg");
+                            copyMainBgm = false;
+                        }
+                        catch (Exception e)
+                        {
+                            // if no FFmpeg, do regular copy
+                            Logger.Error(e, "Failed to merge audio, using regular BGM instead");
+                        }
                     }
                 }
-                else
+                if (copyMainBgm)
                 {
                     if (!mapStorage.Exists(beatmap.FullAudioPath()))
                         Provider.Copy(mainBgm.Path, beatmap.FullAudioPath());

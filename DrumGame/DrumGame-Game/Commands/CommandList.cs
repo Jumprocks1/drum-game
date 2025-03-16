@@ -17,9 +17,10 @@ public enum Command
     OpenKeyboardView,
     OpenKeyboardDrumEditor,
     ViewDrumLegend,
-    ViewMidi,
+    MidiMonitor,
     ViewRepositories,
     ConfigureMapLibraries,
+    InputOffsetWizard,
     Notifications,
     Save,
     SelectMods,
@@ -236,10 +237,11 @@ public static class CommandList
         controller.RegisterCommand(Command.OpenKeyboardView, new KeyCombo(ModifierKey.Shift, InputKey.F1));
         controller.RegisterCommand(Command.OpenKeyboardDrumEditor);
         controller.RegisterCommand(Command.ViewDrumLegend);
-        controller.RegisterCommand(Command.ViewMidi)
+        controller.RegisterCommand(Command.MidiMonitor, "MIDI Monitor")
             .HelperMarkup = "Allows viewing the currently connected MIDI devices.\nAlso allows setting preferred input and output devices.";
         controller.RegisterCommand(Command.ViewRepositories);
         controller.RegisterCommand(Command.ConfigureMapLibraries);
+        controller.RegisterCommand(Command.InputOffsetWizard);
         controller.RegisterCommand(Command.Notifications);
         controller.RegisterCommand(Command.Save, new KeyCombo(ModifierKey.Ctrl, InputKey.S));
 
@@ -286,6 +288,7 @@ public static class CommandList
             + $"and set the map relative volume such that the loudness is {Beatmaps.Editor.BeatmapEditor.TargetLufs} LUFS";
         controller.RegisterCommand(Command.CreateNewBeatmap, new KeyCombo(ModifierKey.Ctrl, InputKey.N));
         controller.RegisterCommand(Command.JumpToMap);
+        controller.SetParameterInfo(Command.JumpToMap, typeof(string));
 
         controller.RegisterCommand(Command.SetEditorSnapping);
         controller.SetParameterInfo(Command.SetEditorSnapping, typeof(double));
@@ -333,11 +336,14 @@ public static class CommandList
         controller.RegisterCommand(Command.ConvertRolls);
         controller.RegisterCommand(Command.RemoveDuplicateNotes);
         controller.RegisterCommand(Command.CollapseFlams);
-        controller.RegisterCommand(Command.SetLeftBassSticking);
+        controller.RegisterCommand(Command.SetLeftBassSticking)
+            .SearchTags = "double-bass db";
         controller.RegisterCommand(Command.SimplifyNotes);
         controller.RegisterCommand(Command.StackDrumChannel);
         controller.SetParameterInfo(Command.StackDrumChannel, typeof(DrumChannel));
         controller.RegisterCommand(Command.InsertPresetNote);
+        // not really sure why this has NotePreset as part of the parameter list
+        // the handlers do accept both string/NotePreset types, but when this list is used for keybinding, it shows both, which is silly
         controller.SetParameterInfo(Command.InsertPresetNote, typeof(string), typeof(NotePreset));
         controller.RegisterCommand(Command.InsertRoll, InputKey.R);
         controller.RegisterCommand(Command.EditTiming, InputKey.T)
@@ -433,7 +439,13 @@ public static class CommandList
         controller[Command.SelectCollection].HelperMarkup =
             $"To create new collections, use the command <command>{controller[Command.ConvertSearchToCollection].Name}</>";
 
-        controller.RegisterCommand(Command.ExportSearchToFile);
+        controller.RegisterCommand(Command.ExportSearchToFile)
+            .SearchTags = "request-list";
+        controller[Command.ExportSearchToFile].HelperMarkup =
+            "This will export a list of the currently visible maps.\nUseful for integrating with APIs or sharing lists of maps."
+            + "\n\nThe request list option is specifically meant for creating a request list for live streaming."
+            + "\nIf a collection named `request-list.json` exists, that will be used instead of the current search.";
+        controller.SetParameterInfo(Command.ExportSearchToFile, typeof(Browsers.BeatmapSelector.ExportSearchType), typeof(bool));
         controller.RegisterCommand(Command.HighlightRandom, InputKey.F2, DrumChannel.HiHatPedal, DrumChannel.OpenHiHat);
         controller.RegisterCommand(Command.HighlightRandomPrevious, new KeyCombo(ModifierKey.Shift, InputKey.F2), DrumChannel.ClosedHiHat);
         controller.RegisterCommand(Command.NextNote, InputKey.MouseWheelUp);
@@ -535,7 +547,8 @@ public static class CommandList
         controller.RegisterCommand(Command.RevealInFileExplorer, new KeyCombo(ModifierKey.CtrlAlt, InputKey.R));
         controller.RegisterCommand(Command.RevealAudioInFileExplorer);
         controller.RegisterCommand(Command.OpenResourcesFolder);
-        controller.RegisterCommand(Command.OpenLogFolder);
+        controller.RegisterCommand(Command.OpenLogFolder)
+            .SearchTags = "logs help";
         controller.RegisterCommand(Command.OpenDrumGameDiscord)
             .HelperMarkup = "Discord is the easiest way to get help if you find anything missing/wrong with the game.";
         controller.RegisterCommand(Command.ExportMap);
@@ -545,7 +558,7 @@ public static class CommandList
             .SearchTags = "reencode";
         controller.RegisterCommand(Command.LoadYouTubeAudio, "Load YouTube Audio");
         controller.RegisterCommand(Command.FixAudio);
-        controller.RegisterCommand(Command.NewMapFromYouTube);
+        controller.RegisterCommand(Command.NewMapFromYouTube, "New Map From YouTube");
         controller.RegisterCommand(Command.SearchSpotifyForMap);
         controller.RegisterCommand(Command.OpenExternally, new KeyCombo(ModifierKey.CtrlShiftAlt, InputKey.R));
         controller.RegisterCommand(Command.EditKeybind, new KeyCombo(ModifierKey.Ctrl, InputKey.Enter));

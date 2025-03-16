@@ -29,14 +29,14 @@ public class ClockDisplay : CompositeDrawable, IHasTooltip
         UpdateText();
     }
     int loaded = -1;
-    public LocalisableString TooltipText => DateTime.Now.ToString("G", Formats);
+    public LocalisableString TooltipText => DateTime.Now.ToString("G", Formats).Replace('\u202F', ' ');
     void UpdateText()
     {
         var time = DateTime.Now;
         var min = time.Minute;
         if (min != loaded)
         {
-            TimeText.Text = time.ToString(Formats.ShortTimePattern);
+            TimeText.Text = time.ToString(Formats.ShortTimePattern).Replace('\u202F', ' ');
             DateText.Text = time.ToString(Formats.ShortDatePattern);
             loaded = min;
         }

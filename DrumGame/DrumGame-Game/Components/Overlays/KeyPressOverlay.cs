@@ -15,7 +15,8 @@ public class KeyPressOverlay : AdjustableSkinElement
     public override AdjustableSkinData DefaultData() => new()
     {
         Anchor = Anchor.BottomLeft,
-        Y = -250
+        Y = -250,
+        Depth = -30
     };
 
 

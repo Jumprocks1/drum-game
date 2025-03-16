@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using DrumGame.Game.Utils;
+using osu.Framework.Logging;
 
 namespace DrumGame.Game.Stores.Repositories;
 
@@ -133,6 +134,12 @@ public abstract class RepoRefresherBase : IDisposable
     }
     public async Task<string> Download(string url, bool cache = false)
     {
+        var req = new HttpRequestMessage(HttpMethod.Get, url);
+        if (Repo.RequestHeaders != null)
+        {
+            foreach (var (k, v) in Repo.RequestHeaders)
+                req.Headers.Add(k, v);
+        }
         if (cache)
         {
             var fileName = Util.MD5(url) + ".cache";
@@ -141,13 +148,14 @@ public abstract class RepoRefresherBase : IDisposable
             if (File.Exists(path))
                 return File.ReadAllText(path);
 
-            var resp = await HttpClient.GetAsync(url);
+            var resp = await HttpClient.SendAsync(req);
             resp.EnsureSuccessStatusCode();
             var res = await resp.Content.ReadAsStringAsync();
+            Logger.Log($"Cached to {path}", level: LogLevel.Important);
             File.WriteAllText(path, res);
             return res;
         }
-        var response = await HttpClient.GetAsync(url);
+        var response = await HttpClient.SendAsync(req);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadAsStringAsync();
     }

@@ -27,6 +27,13 @@ public class AnimatedSprite : Sprite
     }
 }
 
+public enum NotFoundBehavior
+{
+    MessageAndDraw = 0, // default
+    Message, // in-game message/error
+    Log // won't draw, useful to avoid drawing a white/colored rectangle
+}
+
 public class SkinTexture
 {
     public TextureFilteringMode FilteringMode = TextureFilteringMode.Linear;
@@ -48,10 +55,12 @@ public class SkinTexture
     Texture Texture => _texture ??= _getTexture(); // this will cache, but might be best that we don't rely on that
     public string Blend;
     public FillMode Fill = FillMode.Fill;
+    [JsonProperty(DefaultValueHandling = DefaultValueHandling.Include)]
     public float Alpha = 1;
     public float ScaleX = 1;
     public float ScaleY = 1;
     public Colour4 Color;
+    public NotFoundBehavior NotFoundBehavior;
 
 
     void ApplyBasic(Drawable drawable)
@@ -127,9 +136,12 @@ public class SkinTexture
         {
             try
             {
-                LoadedShader = Util.Skin.ShaderManager.LoadSafeOrNull(FragmentShader);
+                var message = NotFoundBehavior == NotFoundBehavior.MessageAndDraw || NotFoundBehavior == NotFoundBehavior.Message;
+                LoadedShader = Util.Skin.ShaderManager.LoadSafeOrNull(FragmentShader, message);
             }
             catch { LoadedShader = null; }
+            if (LoadedShader == null && NotFoundBehavior != NotFoundBehavior.MessageAndDraw)
+                Color = Colour4.Transparent;
         }
     }
     bool TextureLoaded; // can't do simple null check since sometimes the Texture is legitimately null (file no found)

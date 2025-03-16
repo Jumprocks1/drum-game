@@ -12,19 +12,39 @@ public class JsonRepoRefresher : RepoRefresherBase
     public JsonRepoRefresher(RepositoryDefinition repo) : base(repo) { }
     public virtual JsonRepositoryBeatmap ParseMap(JObject e)
     {
+        var comments = "";
+
         var diff = GetString(e, "difficultyString");
+        if (diff != null)
+            comments += $"Difficulty: {diff}\n";
+
         var tags = GetString(e, "tags");
-        var downloadUrl = GetString(e, Repo.DownloadUrlPath ?? "downloadUrl");
-        return new JsonRepositoryBeatmap
+        if (tags != null)
+            comments += $"Tags: {tags}\n";
+
+        var bpm = GetString(e, "bpm");
+        if (bpm != null)
+            comments += $"BPM: {bpm}\n";
+
+
+        var downloadUrl = GetString(e, Repo.DownloadUrlPath, "downloadUrl", "download_url");
+        var res = new JsonRepositoryBeatmap
         {
             Title = GetString(e, "title"),
             Artist = GetString(e, "artist"),
-            Comments = $"Difficulty: {diff}\nTags: {tags}",
-            Mapper = GetString(e, "mapper"),
+            Comments = comments.Trim(),
+            Mapper = GetString(e, "mapper") ?? Repo.Mapper,
             PublishedOn = GetDateTime(e, "creationTimeUtc"),
             DownloadUrl = (Repo.DownloadUrlPrefix ?? "") + downloadUrl,
-            Url = Repo.UrlPrefix + downloadUrl
+            Url = Repo.UrlPrefix + downloadUrl,
+            Index = GetInt(e, Repo.IndexPath, "indexPath", "id") ?? default,
+            UpdatedOn = GetDateTime(e, "publish_date")
         };
+
+        if (diff == null && GetToken(e, "dtx_files") is JArray arr)
+            res.Difficulties = arr.Select(e => e["level"].ToString()).ToList();
+
+        return res;
     }
     public override async Task Refresh()
     {
@@ -42,7 +62,7 @@ public class JsonRepoRefresher : RepoRefresherBase
 
             IEnumerable<JObject> maps;
 
-            var mapsToken = json.SelectToken(Repo.MapsPath);
+            var mapsToken = Repo.MapsPath == null ? json : json.SelectToken(Repo.MapsPath);
             if (mapsToken is JArray ja) maps = mapsToken.Cast<JObject>();
             else if (mapsToken is JObject jo)
             {
@@ -63,7 +83,9 @@ public class JsonRepoRefresher : RepoRefresherBase
             Cache.Maps = refreshedMaps
                 .OrderByDescending(e => e.Index)
                 .ThenByDescending(e => e.PublishedOn)
-                .ThenByDescending(e => e.Comments).ToList();
+                .ThenByDescending(e => e.Comments)
+                .ThenByDescending(e => e.FullName)
+                .ToList();
             Cache.Refreshed = DateTimeOffset.UtcNow;
             Cache.Save();
             Dispose();
@@ -74,14 +96,23 @@ public class JsonRepoRefresher : RepoRefresherBase
         }
     }
 
-    public string GetString(JObject obj, string path)
+    public JToken GetToken(JObject obj, params string[] paths)
     {
-        var token = obj.SelectToken(path) ?? obj.SelectToken(char.ToUpper(path[0]) + path[1..]);
-        return token?.ToString();
+        foreach (var path in paths)
+        {
+            if (path == null) continue;
+            var token = obj.SelectToken(path) ?? obj.SelectToken(char.ToUpper(path[0]) + path[1..]);
+            if (token != null)
+                return token;
+        }
+        return null;
     }
-    public DateTime? GetDateTime(JObject obj, string path)
+
+    public int? GetInt(JObject obj, params string[] paths) => int.TryParse(GetToken(obj, paths)?.ToString(), out var o) ? o : null;
+    public string GetString(JObject obj, params string[] paths) => GetToken(obj, paths)?.ToString();
+    public DateTime? GetDateTime(JObject obj, params string[] paths)
     {
-        var s = GetString(obj, path);
+        var s = GetString(obj, paths);
         if (s == null) return null;
         return DateTime.Parse(s);
     }

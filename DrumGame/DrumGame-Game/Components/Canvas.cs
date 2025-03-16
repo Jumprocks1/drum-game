@@ -2,6 +2,7 @@ using System;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using DrumGame.Game.Timing;
 using DrumGame.Game.Utils;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -21,11 +22,13 @@ namespace DrumGame.Game.Components;
 // best used with things we know will change every frame
 // Pretty sure performance will still be way better than regular components even if nothing changes
 // The main downside here is we have to be careful how we send all the data during the update thread
-public class Canvas<State> : Canvas where State : new()
+public abstract class Canvas<State> : Canvas where State : new()
 {
     protected override DrawNode CreateDrawNode() => new Node(this);
-    public Action<State> ApplyState;
-    public Action<Node, State> Draw; // don't change this ever
+    // to get State, just do node.State
+    protected abstract void ApplyState(Node node);
+    protected abstract void Draw(Node node);
+    protected virtual void BindUniformResources(Node node, IShader shader, IRenderer renderer) { }
     public class Node : CanvasNode
     {
         protected readonly new Canvas<State> Source; // don't use this on draw thread
@@ -35,10 +38,16 @@ public class Canvas<State> : Canvas where State : new()
             Source = source;
         }
 
+        protected override void BindUniformResources(IShader shader, IRenderer renderer)
+        {
+            base.BindUniformResources(shader, renderer);
+            Source.BindUniformResources(this, shader, renderer);
+        }
+
         public override void ApplyState()
         {
             base.ApplyState();
-            Source.ApplyState(State);
+            Source.ApplyState(this);
         }
         protected override void Draw(IRenderer renderer)
         {
@@ -46,7 +55,7 @@ public class Canvas<State> : Canvas where State : new()
             Renderer = renderer;
 
             Color = DrawColourInfo.Colour; // have to reset color on each render
-            Source.Draw(this, State);
+            Source.Draw(this);
 
             BoundShader?.Unbind();
             BoundShader = null;
@@ -133,6 +142,14 @@ public abstract class CanvasNode : DrawNode // ~3 of these are instanced per Can
     public double TrackTime;
     public double TrackBeat;
     public double MsPerBeat;
+
+    // this should be called by an implementor
+    public void ApplyTrackInfo(BeatClock track)
+    {
+        TrackTime = track.CurrentTime;
+        TrackBeat = track.CurrentBeat;
+        MsPerBeat = track.CurrentBPM.MillisecondsPerQuarterNote;
+    }
 
     public bool Relative;
     public float Width;

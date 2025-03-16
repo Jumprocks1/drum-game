@@ -7,6 +7,7 @@ namespace DrumGame.Game.Modals;
 public abstract class FieldConfigBase : IFieldConfig
 {
     public object Tooltip { get; set; }
+    public abstract Type OutputType { get; }
     public string MarkupTooltip { get => (Tooltip as MarkupTooltipData)?.Data; set => Tooltip = new MarkupTooltipData(value); }
     public string Label { get; set; }
     public Drawable[] LabelButtons { get; set; }
@@ -43,7 +44,7 @@ public abstract class FieldConfigBase<T> : FieldConfigBase, IFieldConfig<T>
     public T DefaultValue { get; set; }
     public Action<T> OnCommit { get; set; }
     public override bool HasCommit => OnCommit != null;
-
+    public override Type OutputType => typeof(T);
     public override void SetDefault(object value) => DefaultValue = (T)value;
 
 

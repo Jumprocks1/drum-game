@@ -315,7 +315,8 @@ public class BeatmapCarousel : CompositeDrawable
                     NewButton.Y = 25;
                 }
                 LibraryButton.Y = NewButton.Y + NewButton.Height + 5;
-                RepoText.Y = LibraryButton.Y + LibraryButton.Height + 5;
+                OpenButton.Y = LibraryButton.Y + LibraryButton.Height + 5;
+                RepoText.Y = OpenButton.Y + OpenButton.Height + 5;
                 Alpha = 1;
             }
             else
@@ -326,6 +327,7 @@ public class BeatmapCarousel : CompositeDrawable
         ClickableText CollectionText;
         CommandTextIconButton NewButton;
         CommandTextIconButton LibraryButton;
+        CommandTextIconButton OpenButton;
         CommandTextIconButton RepoText;
         public NoMaps()
         {
@@ -360,6 +362,13 @@ public class BeatmapCarousel : CompositeDrawable
                 Anchor = Anchor.Centre,
                 Origin = Anchor.TopCentre,
                 Text = "Add Local File Library",
+                Colour = DrumColors.BrightBlue
+            });
+            AddInternal(OpenButton = new CommandTextIconButton(Command.OpenFile, FontAwesome.Solid.FileUpload, 25)
+            {
+                Anchor = Anchor.Centre,
+                Origin = Anchor.TopCentre,
+                Text = "Import File",
                 Colour = DrumColors.BrightBlue
             });
             AddInternal(RepoText = new CommandTextIconButton(Command.ViewRepositories, FontAwesome.Solid.Server, 25)

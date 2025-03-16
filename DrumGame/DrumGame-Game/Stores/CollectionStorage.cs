@@ -242,11 +242,11 @@ public class CollectionStorage : NativeStorage, IDisposable
         Save(Collection.NewEmpty("Favorites"));
         Save(new Collection("Sort By Difficulty")
         {
-            Rules = new List<CollectionRule> { new CollectionRuleQuery("diff^") }
+            Rules = [new CollectionRuleQuery("diff^")]
         });
-        Save(new Collection("Recently Added")
+        Save(new Collection("Recently Modified")
         {
-            Rules = new List<CollectionRule> { new CollectionRuleQuery("writeTime>1d") }
+            Rules = [new CollectionRuleQuery("writeTime>1d")]
         });
     }
 

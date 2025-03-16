@@ -33,6 +33,11 @@ public class KeybindEditor : CompositeDrawable, IModal, IAcceptFocus
     public KeybindEditor()
     {
         var textBoxSize = 40;
+        AddInternal(SearchBox = new SearchTextBox
+        {
+            RelativeSizeAxes = Axes.X,
+            Height = textBoxSize
+        });
         AddInternal(Inner = new Container
         {
             RelativeSizeAxes = Axes.Both,
@@ -43,15 +48,9 @@ public class KeybindEditor : CompositeDrawable, IModal, IAcceptFocus
             RelativeSizeAxes = Axes.Both,
             Colour = DrumColors.DarkBackground
         });
-        AddInternal(SearchBox = new SearchTextBox
-        {
-            RelativeSizeAxes = Axes.X,
-            Height = textBoxSize
-        });
         SearchBox.OnCommit += (_, __) =>
         {
-            var target = ScrollContainer?.Children[0] as KeybindEditorButton;
-            if (target != null)
+            if (ScrollContainer?.Children[0] is KeybindEditorButton target)
             {
                 target.TriggerClick();
             }
@@ -131,9 +130,9 @@ public class KeybindEditor : CompositeDrawable, IModal, IAcceptFocus
         else
         {
             FilteredCommands = new();
-            var s = search.ToLower().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            var s = search.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             var commands = Command.OrderedCommands;
-            for (int i = 0; i < commands.Count; i++)
+            for (var i = 0; i < commands.Count; i++)
             {
                 var c = commands[i];
                 if (c.MatchesSearch(s))
@@ -143,7 +142,6 @@ public class KeybindEditor : CompositeDrawable, IModal, IAcceptFocus
             }
         }
     }
-
     public void UpdateHotkeyList()
     {
         UpdateFilter();
@@ -161,7 +159,7 @@ public class KeybindEditor : CompositeDrawable, IModal, IAcceptFocus
             });
         }
         var y = 0f;
-        for (int i = 0; i < commands.Count; i++)
+        for (var i = 0; i < commands.Count; i++)
         {
             var command = commands[i];
             var hasBindings = command.Bindings.Count > 0;

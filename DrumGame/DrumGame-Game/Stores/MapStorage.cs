@@ -46,11 +46,12 @@ public class BeatmapMetadata
     public string Audio;
     public string Image;
     public string ImageUrl;
-    public string SHA;
+    [JsonIgnore] public string SHA; // not used yet
     public double Duration;
     public double BPM;
     public string BpmRange;
     public string MapSetId;
+    [JsonIgnore] public int PlayCount => Util.MapStorage.GetPlayCount(Id);
     [JsonIgnore] public bool HasAudio; // depends on if the user has the audio files or not, loaded during runtime (not cached)
     // this is loaded from replay information. If we eventually upgrade to database metadata, we should be able to store this in the database
     // we don't want to store it in .cache.json since that gets deleted occasionally
@@ -75,17 +76,8 @@ public class BeatmapMetadata
         RomanTitle = beatmap.RomanTitle;
         RomanArtist = beatmap.RomanArtist;
         WriteTime = writeTime;
-        DifficultyString = beatmap.DifficultyName ?? beatmap.Difficulty;
-        Difficulty = beatmap.Difficulty switch
-        {
-            "Expert+" => BeatmapDifficulty.ExpertPlus,
-            "Expert" => BeatmapDifficulty.Expert,
-            "Insane" => BeatmapDifficulty.Insane,
-            "Hard" => BeatmapDifficulty.Hard,
-            "Normal" => BeatmapDifficulty.Normal,
-            "Easy" => BeatmapDifficulty.Easy,
-            _ => BeatmapDifficulty.Unknown
-        };
+        DifficultyString = beatmap.DifficultyName ?? beatmap.Difficulty.ToDifficultyString();
+        Difficulty = beatmap.Difficulty;
         Tags = beatmap.Tags;
         Image = beatmap.Image;
         ImageUrl = beatmap.ImageUrl;
@@ -210,17 +202,7 @@ public class MapStorage : NativeStorage, IDisposable
     {
         if (mapStoragePath == null) return null;
         var o = LoadedMetadata.Maps.GetValueOrDefault(mapStoragePath);
-        if (o == null)
-        {
-            LoadedMetadata.Maps[mapStoragePath] = o = new BeatmapMetadata(LoadForQuickMetadata(mapStoragePath), GetWriteTime(mapStoragePath));
-            if (RatingsLoaded && !o.RatingLoaded)
-                // only issue with this is if we GetMetadata multiple times before this loads, it will schedule multiple loads
-                // this shouldn't really matter, but it should be kept in mind
-                // a workaround would be to assign int.MinValue + 1 to mean "Loading" to prevent duplicate loads
-                LoadRating(o);
-            MapSets.Add(mapStoragePath, o);
-            dirty = true;
-        }
+        o ??= MakeAndStoreMetadata(LoadForQuickMetadata(mapStoragePath), mapStoragePath);
         return o;
     }
     public BeatmapMetadata GetMetadataFromId(string id) => LoadedMetadata.Maps.Values.FirstOrDefault(e => e.Id == id);
@@ -243,6 +225,19 @@ public class MapStorage : NativeStorage, IDisposable
                 metadata.PlayTime = dict.GetValueOrDefault(metadata.Id)?.PlayTime ?? 0;
         }
         playTimesLoaded = true;
+    }
+
+    Dictionary<string, int> playCounts;
+    public int GetPlayCount(string mapId)
+    {
+        if (playCounts == null)
+        {
+            using var context = Util.GetDbContext();
+            playCounts = context.Replays.GroupBy(e => e.MapId)
+                 .Select(e => new { MapId = e.Key, Count = e.Count() })
+                 .ToDictionary(e => e.MapId, e => e.Count);
+        }
+        return playCounts.TryGetValue(mapId, out var o) ? o : 0;
     }
 
     Task loadingRatings;
@@ -301,10 +296,26 @@ public class MapStorage : NativeStorage, IDisposable
             v.Update(beatmap, GetWriteTime(mapStoragePath));
             MapSets.MapSetIdChanged(mapStoragePath, v, oldMapSetId);
         }
-        else
-            LoadedMetadata.Maps[mapStoragePath] = new BeatmapMetadata(beatmap, GetWriteTime(mapStoragePath));
+        else MakeAndStoreMetadata(beatmap, mapStoragePath);
         dirty = true;
     }
+
+    // beatmap doesn't have to be a fully loaded map
+    // `LoadForQuickMetadata` is sufficient
+    BeatmapMetadata MakeAndStoreMetadata(Beatmap beatmap, string mapStoragePath)
+    {
+        var o = new BeatmapMetadata(beatmap, GetWriteTime(mapStoragePath));
+        LoadedMetadata.Maps[mapStoragePath] = o;
+        if (RatingsLoaded && !o.RatingLoaded)
+            // only issue with this is if we GetMetadata multiple times before this loads, it will schedule multiple loads
+            // this shouldn't really matter, but it should be kept in mind
+            // a workaround would be to assign int.MinValue + 1 to mean "Loading" to prevent duplicate loads
+            LoadRating(o);
+        MapSets.Add(mapStoragePath, o);
+        dirty = true;
+        return o;
+    }
+
     public readonly string AbsolutePath;
     public MapStorage(string path, GameHost host) : base(path, host)
     {
@@ -339,6 +350,16 @@ public class MapStorage : NativeStorage, IDisposable
             return Path.GetFullPath(path[(slash + 1)..], MapLibraries.PathMapping[path[1..slash]]);
         }
         return Path.GetFullPath(path, AbsolutePath);
+    }
+    public bool Contains(string path)
+    {
+        var absolutePath = GetFullPath(path);
+        foreach (var source in ValidLibraries)
+        {
+            if (source.Contains(absolutePath))
+                return true;
+        }
+        return false;
     }
     // this is not good anymore
     // it doesn't properly consider library paths
@@ -413,14 +434,12 @@ public class MapStorage : NativeStorage, IDisposable
             File.Delete(path);
     }
 
-    // returns path to file relative to MapStorage
-    public string StoreExistingFile(string file, Beatmap beatmap, string folder = null)
+    // returns path to file relative to copyToFolder
+    public static string StoreOrHash(string file, string copyToFolder, string folder = null)
     {
-        var alreadyStored = Util.RelativeOrNullPath(file, AbsolutePath);
-        if (alreadyStored != null) return alreadyStored;
-
-        var relativePath = Path.Join(folder, Path.GetFileName(file));
-        var target = beatmap.FullAssetPath(relativePath);
+        var fileName = Path.GetFileName(file);
+        var relativePath = Path.Join(folder, fileName);
+        var target = Path.GetFullPath(relativePath, copyToFolder);
         if (target != file)
         {
             try
@@ -430,16 +449,24 @@ public class MapStorage : NativeStorage, IDisposable
                     Directory.CreateDirectory(Path.GetDirectoryName(target));
                     File.Copy(file, target);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     var sourceInfo = new FileInfo(file);
                     var targetInfo = new FileInfo(target);
-                    if (sourceInfo.LastWriteTimeUtc == targetInfo.LastWriteTimeUtc)
-                        Logger.Log("Skipping copy, same write time", level: LogLevel.Important);
+                    if (sourceInfo.LastWriteTimeUtc == targetInfo.LastWriteTimeUtc && sourceInfo.Length == targetInfo.Length)
+                        Logger.Log("Skipping copy, same write time and length", level: LogLevel.Important);
                     else
                     {
-                        Logger.Error(e, $"Failed to copy to {target}, trying again with overwrite enabled");
-                        File.Copy(file, target, true);
+                        var hash = Util.MD5(File.OpenRead(file)).ToLowerInvariant();
+                        relativePath = Path.Join(folder, hash + "-" + fileName);
+                        target = Path.GetFullPath(relativePath, copyToFolder);
+                        if (File.Exists(target))
+                            Logger.Log("Skipping copy, hashed file already exists", level: LogLevel.Important);
+                        else
+                        {
+                            Directory.CreateDirectory(Path.GetDirectoryName(target));
+                            File.Copy(file, target);
+                        }
                     }
                 }
             }
@@ -451,6 +478,9 @@ public class MapStorage : NativeStorage, IDisposable
         }
         return relativePath;
     }
+
+    // returns path to file relative to Beatmap.Source.Directory
+    public string StoreOrHash(string file, Beatmap beatmap, string folder = null) => StoreOrHash(file, beatmap.Source.Directory, folder);
 
     public IReadOnlyList<MapSetEntry> GetMapSet(Beatmap beatmap) => MapSets[beatmap];
 }

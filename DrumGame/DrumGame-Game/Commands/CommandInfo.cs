@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using DrumGame.Game.Channels;
 using DrumGame.Game.Utils;
+using osu.Framework.Logging;
 
 namespace DrumGame.Game.Commands;
 
@@ -13,14 +14,18 @@ public class CommandInfo
     public string FilterString => _filterString ??= MakeFilterString();
     string MakeFilterString() // this should only ever be called once per CommandInfo
     {
+        SearchTags ??= Util.CommandController[Command].SearchTags;
         if (SearchTags == null)
-        {
-            SearchTags = Util.CommandController[Command].SearchTags;
-            return Name.ToLower();
-        }
-        return $"{Name.ToLower()} {SearchTags}";
+            return Name;
+        return $"{Name} {SearchTags}";
     }
-    public bool MatchesSearch(string[] search) => search.All(FilterString.Contains);
+    public bool MatchesSearch(string[] search)
+    {
+        foreach (var e in search)
+            if (!FilterString.Contains(e, StringComparison.OrdinalIgnoreCase))
+                return false;
+        return true;
+    }
     public bool HasHandlers => Handlers != null && Handlers.Count > 0;
     // handlers will only exist for DefaultCommandInfo, since parameter CommandInfos get passed to the default
     internal List<object> Handlers;
@@ -64,6 +69,21 @@ public class CommandInfo
                 !Parameters[i].Equals(other[i])) return false;
         }
         return true;
+    }
+    public bool TryConvertParameter(Type t, object v, out object value)
+    {
+        if (v.GetType().IsAssignableTo(t))
+        {
+            value = v;
+            return true;
+        }
+        else if (v is string s && CommandParameters.TryParse(s, t, out var o))
+        {
+            value = o;
+            return true;
+        }
+        value = default;
+        return false;
     }
     public bool TryGetParameter<T>(int i, out T value)
     {
@@ -130,7 +150,13 @@ public class CommandInfo
         var enumString = s[..paramIndex];
         var commandE = Enum.Parse<Command>(enumString);
         var paramString = s[(paramIndex + 1)..s.IndexOf('}')];
-        var parameters = CommandParameters.Parse(paramString, Util.CommandController.ParameterInfo[(int)commandE]?.Types);
+        var parameterInfo = Util.CommandController.ParameterInfo[(int)commandE];
+        if (parameterInfo == null)
+        {
+            Logger.Log($"No parameter info found for {commandE}", level: LogLevel.Error);
+            return Util.CommandController[commandE];
+        }
+        var parameters = CommandParameters.Parse(paramString, parameterInfo.Types);
 
         var parameterCommands = Util.CommandController.ParameterCommands[(int)commandE];
         if (parameterCommands != null)

@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Threading.Tasks;
 using DrumGame.Game.Utils;
 using osu.Framework.Logging;
@@ -13,9 +14,10 @@ public class FFmpegProcess
     public FFmpegProcess(string description = null)
     {
         Description = description;
-        var location = Util.Resources.LocateExecutable("ffmpeg");
-        StartInfo = new ProcessStartInfo(location);
+        StartInfo = new ProcessStartInfo(Executable);
     }
+
+    public static string Executable => Util.Resources.LocateExecutable("ffmpeg");
 
     string outputPath;
 
@@ -74,25 +76,23 @@ public class FFmpegProcess
 
     public bool Success;
 
+    // note, this throws exceptions, but the regular Run method doesn't yet
     public async Task RunAsync()
     {
+        if (string.IsNullOrWhiteSpace(StartInfo.FileName))
+            throw new FileNotFoundException("ffmpeg executable not found");
         if (outputPath != null) AddArgument(outputPath);
-        try
+        var proc = Process.Start(StartInfo);
+        AfterStart?.Invoke(proc);
+        await proc.WaitForExitAsync();
+        if (proc.ExitCode != 0)
         {
-            var proc = Process.Start(StartInfo);
-            AfterStart?.Invoke(proc);
-            await proc.WaitForExitAsync();
-            if (proc.ExitCode != 0)
-            {
-                string error;
-                if (StartInfo.RedirectStandardOutput)
-                    error = proc.StandardOutput.ReadToEnd();
-                else error = "See console output for error";
-                throw new Exception($"Failed to run {StartInfo.FileName} with: {string.Join(", ", proc.StartInfo.ArgumentList)}\n\n\n{error}");
-            }
-            Success = true;
+            string error;
+            if (StartInfo.RedirectStandardOutput)
+                error = proc.StandardOutput.ReadToEnd();
+            else error = "See console output for error";
+            throw new Exception($"Failed to run {StartInfo.FileName} with: {string.Join(", ", proc.StartInfo.ArgumentList)}\n\n\n{error}");
         }
-        catch (Exception e) { Logger.Error(e, "Error while " + Description ?? "running FFmpeg"); }
     }
     // public void Run() => RunAsync().Wait(); // this dead locked, not sure why
     public void Run()

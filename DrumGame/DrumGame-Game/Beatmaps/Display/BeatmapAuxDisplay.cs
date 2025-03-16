@@ -1,6 +1,9 @@
 using System;
 using System.IO;
+using DrumGame.Game.API;
+using DrumGame.Game.Beatmaps.Editor;
 using DrumGame.Game.Commands;
+using DrumGame.Game.Commands.Requests;
 using DrumGame.Game.Components;
 using DrumGame.Game.Notation;
 using DrumGame.Game.Stores;
@@ -49,13 +52,58 @@ public class BeatmapAuxDisplay : Container
         return base.OnInvalidate(invalidation, source);
     }
 
+    CameraPlaceholder CameraPlaceholder;
 
-    // FlowContainer uses this, so we use it too *shrug*
-    protected override void UpdateAfterChildren()
+    public void InvalidateLayout() => validLayout = false;
+
+    void ValidateLayout()
     {
-        if (!validLayout)
+        if (validLayout) return;
+        validLayout = true;
+
+        var areaSize = ChildSize;
+
+        if (Util.Skin.LayoutPreference == Skinning.LayoutPreference.Streaming)
         {
-            validLayout = true;
+            var cameraSize = new Vector2(areaSize.Y * (float)CameraPlaceholder.AspectRatio, areaSize.Y);
+
+            if (CameraPlaceholder == null)
+            {
+                Add(CameraPlaceholder = new()
+                {
+                    RelativeSizeAxes = Axes.Y,
+                    Height = 1f
+                });
+            }
+            CameraPlaceholder.Width = cameraSize.X;
+
+            var showInputDisplay = Video == null && InputDisplay != null;
+            Drawable rightSide = showInputDisplay ? InputDisplay : Video;
+            if (InputDisplay != null)
+                InputDisplay.Alpha = showInputDisplay ? 1 : 0;
+
+            if (rightSide != null)
+            {
+                rightSide.Anchor = Anchor.CentreRight;
+                rightSide.Origin = Anchor.CentreRight;
+                rightSide.RelativeSizeAxes = Axes.Both;
+                rightSide.Width = (areaSize.X - cameraSize.X) / areaSize.X;
+                rightSide.Height = 1f;
+            }
+
+
+            return;
+        }
+        else
+        {
+            if (CameraPlaceholder != null)
+            {
+                Remove(CameraPlaceholder, true);
+                CameraPlaceholder = null;
+            }
+        }
+
+        {
             var showInputDisplay = (!HasCamera || Video == null) && InputDisplay != null;
             if (InputDisplay != null)
                 InputDisplay.Alpha = showInputDisplay ? 1 : 0;
@@ -63,7 +111,6 @@ public class BeatmapAuxDisplay : Container
             {
                 var bottomLeft = (Drawable)Video;
                 var videoAndInput = showInputDisplay && bottomLeft != null;
-                var areaSize = ChildSize;
                 var cameraSize = CameraFeed.DrawSize;
                 if (showInputDisplay)
                 {
@@ -101,6 +148,10 @@ public class BeatmapAuxDisplay : Container
         }
     }
 
+
+    // FlowContainer uses this, so we use it too *shrug*
+    protected override void UpdateAfterChildren() => ValidateLayout();
+
     protected override void Dispose(bool isDisposing)
     {
         CommandController.RemoveHandlers(this);
@@ -135,7 +186,54 @@ public class BeatmapAuxDisplay : Container
     [CommandHandler]
     public void ToggleVideo()
     {
-        if (Video == null) LoadVideo();
+        if (Video == null)
+        {
+            if (Beatmap.Video == null && Display.Player is BeatmapEditor editor && Beatmap.YouTubeID != null)
+            {
+                var modal = new ConfirmationModal(() =>
+                {
+                    var currentFolder = Beatmap.Source.AbsolutePath;
+                    var library = Beatmap.Source.Library;
+                    var filename = $"{Beatmap.YouTubeID}.mp4";
+                    var relativePath = $"video/{filename}";
+                    if (!library.IsMain)
+                        relativePath = filename;
+                    var task = YouTubeDL.DownloadBackground(Beatmap.YouTubeID, Beatmap.FullAssetPath(relativePath), new()
+                    {
+                        Video = true
+                    });
+                    task.OnSuccess += _ =>
+                    {
+                        Schedule(() =>
+                        {
+                            var old = Beatmap.Video;
+                            var oldOffset = Beatmap.VideoOffset;
+                            editor.PushChange(() =>
+                            {
+                                Beatmap.Video = relativePath;
+                                Beatmap.VideoOffset = Beatmap.YouTubeOffset;
+                            }, () =>
+                            {
+                                Beatmap.Video = old;
+                                Beatmap.VideoOffset = oldOffset;
+                            }, $"Set video to {relativePath}");
+                            LoadVideo();
+                        });
+                    };
+                },
+                "A YouTube video is available, would you like to download it?",
+                "This will attempt to use YouTube-DL to download a 720p video")
+                {
+                    YesText = "Download",
+                    NoText = "Cancel"
+                };
+                Util.Palette.Push(modal);
+            }
+            else
+            {
+                LoadVideo();
+            }
+        }
         else
         {
             RemoveInternal(Video, true);

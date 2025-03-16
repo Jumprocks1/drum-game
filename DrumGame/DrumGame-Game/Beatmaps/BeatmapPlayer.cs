@@ -123,7 +123,7 @@ public class BeatmapPlayer : CompositeDrawable
                 Util.DrumGame.Drumset.Value.ClearQueue();
         };
         Command.RegisterHandlers(this);
-        Util.DrumGame.VolumeController.MetronomeVolume.Muted.BindValueChanged(MetronomeMuteChanged, true);
+        Util.DrumGame.VolumeController?.MetronomeVolume.Muted.BindValueChanged(MetronomeMuteChanged, true);
         AddInternal(Display);
     }
     void ApplyMods()
@@ -145,7 +145,7 @@ public class BeatmapPlayer : CompositeDrawable
     protected virtual bool ShouldTriggerEndScreen =>
         Mode == BeatmapPlayerMode.Playing && BeatmapPlayerInputHandler != null &&
             BeatmapPlayerInputHandler.Scorer.ReplayInfo.StartNote == -1 &&
-            (Track.CurrentTime > endTime + EndTimeDelay || Track.CurrentTime >= Track.EndTime) &&
+            (Track.CurrentTime > endTime + EndTimeDelay || Track.CurrentTime >= Track.EndTime || Track.AtEnd) &&
             Beatmap.HitObjects.Count > 0;
 
     // if we seek backwards or switch modes, hide end screen
@@ -204,6 +204,7 @@ public class BeatmapPlayer : CompositeDrawable
         {
             // eventually this should run on background thread
             replayInfo = BeatmapPlayerInputHandler.BuildReplay();
+            replayInfo.HitWindows = BeatmapPlayerInputHandler.Scorer.HitWindows.ToString();
             replayInfo.SetMods(Modifiers);
             replayInfo.MapId = Beatmap.Id;
             replayInfo.SetCompleteTime();
@@ -399,6 +400,11 @@ public class BeatmapPlayer : CompositeDrawable
         {
             var extension = Path.GetExtension(file);
             if (Util.AudioExtension(extension) || Util.ArchiveExtension(extension)) AddAudio(file);
+            else if (Util.VideoExtension(extension))
+            {
+                if (this is BeatmapEditor ed)
+                    ed.AddVideo(file);
+            }
             else if (extension == ".mid")
             {
                 if (this is BeatmapEditor ed)
@@ -429,7 +435,7 @@ public class BeatmapPlayer : CompositeDrawable
                       }, $"Import MIDI from {file}");
                 }
             }
-        }, "Open/Import File", "You can also simply drag and drop a file to load it at any time.");
+        }, "Open/Import File", "You can also drag and drop a file to load it at any time.");
         return true;
     }
 
@@ -446,7 +452,7 @@ public class BeatmapPlayer : CompositeDrawable
     {
         if (Track != null && !Track.Virtual) return false;
         CloseFileRequest();
-        FileRequest = Util.Palette.RequestFile("Beatmap Missing Audio File",
+        FileRequest = Util.Palette?.RequestFile("Beatmap Missing Audio File",
             "Drop an mp3/ogg file into the window to add audio to this beatmap.",
             e =>
             {

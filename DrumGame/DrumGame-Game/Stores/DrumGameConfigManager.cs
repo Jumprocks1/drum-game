@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using DrumGame.Game.Beatmaps.Scoring;
 using DrumGame.Game.Browsers;
 using DrumGame.Game.Input;
@@ -33,8 +34,8 @@ public class DrumGameConfigManager : IniConfigManager<DrumGameSetting>
     public Bindable<int> MidiThreshold;
     public Bindable<double> KeyboardInputOffset;
     public Bindable<double> MidiOutputOffset;
-    public Bindable<LayoutPreference> LayoutPreference;
     public BindableNumber<double> SampleVolume;
+    public BindableNumber<double> SoundfontVolume;
     public BindableChannelEquivalents ChannelEquivalents;
     public BindableMidiMapping MidiMapping;
     public Bindable<SortMethod> ReplaySort;
@@ -56,12 +57,15 @@ public class DrumGameConfigManager : IniConfigManager<DrumGameSetting>
         SetDefault(DrumGameSetting.MasterMuted, false);
         SetDefault(DrumGameSetting.TrackVolume, 1.0, 0.0, 1.0, 0.01);
         SetDefault(DrumGameSetting.TrackMuted, false);
-        SampleVolume = SetDefault(DrumGameSetting.SampleVolume, 1.0, 0.0, 1.0, 0.01);
+        SampleVolume = SetDefault(DrumGameSetting.SampleVolume, 1.0, 0.0, 1.0);
         SetDefault(DrumGameSetting.SampleMuted, false);
         SetDefault(DrumGameSetting.MetronomeVolume, 1.0, 0.0, 1.0, 0.01);
         SetDefault(DrumGameSetting.MetronomeMuted, true);
         SetDefault(DrumGameSetting.HitVolume, 1.0, 0.0, 1.0, 0.01);
         SetDefault(DrumGameSetting.HitMuted, false);
+        SoundfontVolume = SetDefault(DrumGameSetting.SoundfontVolume, 1.5, 0.0, 3);
+        SetDefault(DrumGameSetting.SoundfontUseMidiVelocity, false);
+        SetDefault(DrumGameSetting.PlaySoundfontOutsideMaps, true);
         SetDefault(DrumGameSetting.SaveFullReplayData, false);
         SetDefault(DrumGameSetting.BeatmapSearch, "");
         AddBindable(DrumGameSetting.CurrentCollection, new BindableNullString());
@@ -71,7 +75,6 @@ public class DrumGameConfigManager : IniConfigManager<DrumGameSetting>
         // should be pretty similar to DrumsetAudioPlayer.WavOffset
         KeyboardInputOffset = SetDefault(DrumGameSetting.KeyboardInputOffset, -20.0);
         MidiInputOffset = SetDefault(DrumGameSetting.MidiInputOffset, 15.0);
-        LayoutPreference = SetDefault(DrumGameSetting.LayoutPreference, Stores.LayoutPreference.Standard);
         AddBindable(DrumGameSetting.ChannelEquivalents, ChannelEquivalents = new BindableChannelEquivalents(Beatmaps.Scoring.ChannelEquivalents.Default));
         AddBindable(DrumGameSetting.MidiMapping, MidiMapping = new BindableMidiMapping());
         AddBindable(DrumGameSetting.SyncTarget, new Bindable<string>(""));
@@ -95,9 +98,58 @@ public class DrumGameConfigManager : IniConfigManager<DrumGameSetting>
         SetDefault(DrumGameSetting.AutoLoadVideo, true);
         SetDefault(DrumGameSetting.PreferredMidiInput, "");
         SetDefault(DrumGameSetting.PreferredMidiOutput, "");
+        SetDefault(DrumGameSetting.Modifiers, "");
+        SetDefault(DrumGameSetting.HitWindowPreference, HitWindowPreference.Standard);
+        SetDefault(DrumGameSetting.CustomHitWindows, HitWindows.DefaultCustomHitWindowString);
+        SetDefault(DrumGameSetting.Version, "0.0.0");
     }
 
-    protected override void PerformLoad()
+    public static int[] ParseVersion(string version) => version.Split('.').Select(e => int.TryParse(e, out var o) ? o : -1).ToArray();
+    public static int CompareVersions(int[] a, int[] b)
+    {
+        var len = Math.Max(a.Length, b.Length);
+        for (var i = 0; i < len; i++)
+        {
+            if (a.Length <= i) return -1;
+            if (b.Length <= i) return 1;
+            if (a[i] < b[i]) return -1;
+            if (a[i] > b[i]) return 1;
+        }
+        return 0;
+    }
+
+    public void Migrate()
+    {
+        // doesn't really have to be current version, should just be the first version after the last migration
+        const string latest = "0.9.0";
+        // if the .ini file doesn't exist, we don't do any migrations
+        if (!fileFound)
+        {
+            SetValue(DrumGameSetting.Version, latest);
+            return;
+        }
+        var version = Get<string>(DrumGameSetting.Version);
+        if (version == latest) return;
+        var currentVersionParsed = ParseVersion(version);
+        bool check(string migration)
+        {
+            var res = CompareVersions(currentVersionParsed, ParseVersion(migration)) == -1;
+            if (res) Logger.Log($"Performing {migration} migration", level: LogLevel.Important);
+            return res;
+        }
+
+        if (check("0.9.0"))
+        {
+            // perform 0.9.0 migration
+        }
+
+        SetValue(DrumGameSetting.Version, latest);
+        Logger.Log($"Migrated config to {latest}", level: LogLevel.Important);
+    }
+
+    bool fileFound; // used for checking if migration is needed
+
+    void innerLoad()
     {
         // base.PerformLoad();
 
@@ -110,6 +162,7 @@ public class DrumGameConfigManager : IniConfigManager<DrumGameSetting>
         {
             if (stream == null)
                 return;
+            fileFound = true;
 
             using (var reader = new StreamReader(stream))
             {
@@ -149,7 +202,24 @@ public class DrumGameConfigManager : IniConfigManager<DrumGameSetting>
                 }
             }
         }
+    }
 
+    protected override void PerformLoad()
+    {
+        innerLoad();
+        AfterLoad();
+        try
+        {
+            Migrate();
+        }
+        catch (Exception e)
+        {
+            Logger.Error(e, "Error occured while performing config migration");
+        }
+    }
+
+    protected void AfterLoad()
+    {
         // we can set some extra values if they were not loaded 100% here
         MidiMapping.Value ??= new MidiMapping(null);
         MapLibraries.Value ??= new MapLibraries();
@@ -175,12 +245,6 @@ public enum SortMethod
     MaxCombo
 }
 
-public enum LayoutPreference
-{
-    Standard,
-    Streaming
-}
-
 public enum DrumGameSetting
 {
     MasterVolume,
@@ -199,7 +263,6 @@ public enum DrumGameSetting
     MidiOutputOffset,
     BeatmapSearch,
     CurrentCollection,
-    LayoutPreference,
     ChannelEquivalents,
     MidiMapping,
     SyncTarget,
@@ -223,5 +286,12 @@ public enum DrumGameSetting
     AutoLoadVideo,
     PreferredMidiInput,
     PreferredMidiOutput,
+    Modifiers,
+    HitWindowPreference,
+    CustomHitWindows,
+    SoundfontVolume,
+    PlaySoundfontOutsideMaps,
+    SoundfontUseMidiVelocity,
+    Version
 }
 

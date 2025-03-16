@@ -28,6 +28,27 @@ public class NumberFieldConfig : FieldConfigBase<double?>
         }
     }
 }
+public class FloatFieldConfig : FieldConfigBase<float?>
+{
+    public override IDrawableField<float?> Render(RequestModal modal) => new StringFieldConfig.StringField(modal, this, DefaultValue.ToString());
+
+    public override float? Convert(object v)
+    {
+        if (v is string s) return float.TryParse(s, out var e) ? e : null;
+        return base.Convert(v);
+    }
+
+    public delegate ref float RefDelN();
+    // this is just a shortcut instead of having to set DefaultValue and OnCommit
+    public RefDelN RefN
+    {
+        set
+        {
+            DefaultValue = value();
+            OnCommit = e => { if (e.HasValue) value() = e.Value; };
+        }
+    }
+}
 public class IntFieldConfig : FieldConfigBase<int?>
 {
     public override IDrawableField<int?> Render(RequestModal modal) => new StringFieldConfig.StringField(modal, this, DefaultValue.ToString());
@@ -59,7 +80,9 @@ public class StringFieldConfig : FieldConfigBase<string>
         DefaultValue = defaultValue;
     }
 
-    public class StringField : DrumTextBox, IDrawableField<string>, IDrawableField<double?>, IDrawableField<int?>, IHasCustomTooltip
+    public bool ReleaseFocusOnCommit; // not really sure why we have this defaulting to false
+
+    public class StringField : DrumTextBox, IDrawableField<string>, IDrawableField<double?>, IDrawableField<float?>, IDrawableField<int?>, IHasCustomTooltip
     {
         public FieldConfigBase Config { get; }
         public StringField(RequestModal modal, StringFieldConfig config) : this(modal, config, config.DefaultValue) { }
@@ -68,7 +91,8 @@ public class StringFieldConfig : FieldConfigBase<string>
             TabbableContentContainer = modal;
             Height = 30;
             RelativeSizeAxes = Axes.X;
-            ReleaseFocusOnCommit = false;
+            if (config is StringFieldConfig sfc)
+                ReleaseFocusOnCommit = sfc.ReleaseFocusOnCommit;
             Config = config;
             PlaceholderText = config.Label;
             OnCommit += (_, __) => modal?.Commit();
@@ -77,6 +101,7 @@ public class StringFieldConfig : FieldConfigBase<string>
         public string Value { get => Current.Value; set => Current.Value = value; }
         object IDrawableField.Value => Current.Value;
         double? IDrawableField<double?>.Value { get => double.TryParse(Current.Value, out var d) ? d : null; set => Current.Value = value.ToString(); }
+        float? IDrawableField<float?>.Value { get => float.TryParse(Current.Value, out var d) ? d : null; set => Current.Value = value.ToString(); }
         int? IDrawableField<int?>.Value { get => int.TryParse(Current.Value, out var d) ? d : null; set => Current.Value = value.ToString(); }
 
         public object TooltipContent => Config.Tooltip;

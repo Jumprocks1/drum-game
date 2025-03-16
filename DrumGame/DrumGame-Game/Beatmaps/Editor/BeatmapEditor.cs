@@ -22,7 +22,7 @@ namespace DrumGame.Game.Beatmaps.Editor;
 
 public enum PasteTarget
 {
-    RoundBeat, // Basically aligns to Tick
+    SnapTarget,
     Beat,
     Measure,
 }
@@ -99,7 +99,7 @@ public partial class BeatmapEditor : BeatmapPlayer
                 var s = Display.Selection.Clone(); // have to clone so that redo works
                 var desc = $"toggle {channel} notes {s.RangeString}";
                 var stride = TickStride;
-                PushChange(new NoteBeatmapChange(() => Beatmap.AddHits(s, stride, data, true), desc, s));
+                PushChange(new NoteBeatmapChange(() => Beatmap.AddHits(s, stride, data, true), desc));
             }
             else
             {
@@ -119,7 +119,7 @@ public partial class BeatmapEditor : BeatmapPlayer
                 {
                     added = Beatmap.AddHit(tickTarget, data);
                     return new AffectedRange(tickTarget);
-                }, desc, target));
+                }, desc));
                 if (Mode == BeatmapPlayerMode.Fill)
                 {
                     Track.Stop();
@@ -148,6 +148,12 @@ public partial class BeatmapEditor : BeatmapPlayer
                     {
                         Util.KeyPressOverlay?.Handle(commands[i].Name, keyCombo);
                         ChannelPressed((DrumChannel)commands[i].Parameter);
+                        return true;
+                    }
+                    else if (commands[i].Command == Commands.Command.InsertPresetNote)
+                    {
+                        Util.KeyPressOverlay?.Handle(commands[i].Name, keyCombo);
+                        PresetPressed((NotePreset)commands[i].Parameter);
                         return true;
                     }
                 }
@@ -183,7 +189,7 @@ public partial class BeatmapEditor : BeatmapPlayer
             var s = Display.Selection.Clone(); // have to clone so that redo works
             var desc = $"toggle preset {preset} notes {s.RangeString}";
             var stride = TickStride;
-            PushChange(new NoteBeatmapChange(() => Beatmap.AddHits(s, stride, data, true), desc, s));
+            PushChange(new NoteBeatmapChange(() => Beatmap.AddHits(s, stride, data, true), desc));
         }
         else
         {
@@ -194,7 +200,7 @@ public partial class BeatmapEditor : BeatmapPlayer
             {
                 Beatmap.AddHit(tickTarget, data);
                 return new AffectedRange(tickTarget);
-            }, desc, target));
+            }, desc));
         }
     }
 
@@ -250,7 +256,7 @@ public partial class BeatmapEditor : BeatmapPlayer
                 preset.Unregister();
         }
         Command.RemoveHandlers(this);
-        DrumMidiHandler.RemoveNoteHandler(OnMidiNote, true);
+        DrumMidiHandler.RemoveNoteHandler(OnMidiNote);
         if (offsetWizard != null)
         {
             // we can't close because we aren't always allowed to mutate children
@@ -291,7 +297,7 @@ public partial class BeatmapEditor : BeatmapPlayer
             {
                 var data = Beatmap.HitObjects[i].Data;
                 var desc = $"add {data.Channel} roll {s.RangeString}";
-                PushChange(new NoteBeatmapChange(() => Beatmap.AddRoll(s, data), desc, s));
+                PushChange(new NoteBeatmapChange(() => Beatmap.AddRoll(s, data), desc));
             }
         }
     }
@@ -307,20 +313,27 @@ public partial class BeatmapEditor : BeatmapPlayer
         var desc = $"paste at beat {toBeat}";
         PushChange(new NoteBeatmapChange(() =>
         {
-            var lastTick = to;
-            foreach (var hit in paste)
+            // this should follow similar rules to regularly adding notes with one exception
+            // if we already have stacked hits in the copy buffer, we must paste them stacked
+            // this is very tricky since AddHit likes to remove stacked hits - we still want this behavior, just with the other hits in the copy buffer excluded
+            // this only requires special logic for hits after the first
+            // it gets further complicated though because the first hit might not even remove the stacked hits, since stacked hits aren't removed if there's an exact match
+            var toAdd = new List<HitObjectData>();
+            foreach (var (t, group) in paste.SortedGroupBy(e => e.Time))
             {
-                if (hit is RollHitObject roll)
+                toAdd.Clear();
+                foreach (var hit in group)
                 {
-                    Beatmap.AddRoll(hit.Time + to, roll.Duration, hit.Data);
+                    if (hit is RollHitObject roll)
+                    {
+                        Beatmap.AddRoll(hit.Time + to, roll.Duration, hit.Data);
+                    }
+                    else toAdd.Add(hit.Data);
                 }
-                else
-                {
-                    Beatmap.AddHit(hit.Time + to, hit.Data, false);
-                }
+                Beatmap.AddHitsAt(t + to, toAdd);
             }
             return new AffectedRange(to, paste[^1].Time + to + 1);
-        }, desc, toBeat));
+        }, desc));
     }
     [CommandHandler] public void Cut() { Copy(); Delete(); }
     [CommandHandler]
@@ -339,7 +352,7 @@ public partial class BeatmapEditor : BeatmapPlayer
             var last = Beatmap.HitObjects.Count > 0 ? Math.Max(from, Beatmap.HitObjects[^1].Time) : from;
             Beatmap.HitObjects = replace;
             return new AffectedRange(from, last + 1);
-        }, null, beat);
+        }, null);
         var timingChange = new TempoBeatmapChange(Beatmap, () =>
         {
             var replace = new List<TempoChange>();
@@ -370,7 +383,7 @@ public partial class BeatmapEditor : BeatmapPlayer
             Beatmap.HitObjects = replace;
             var last = Beatmap.HitObjects.Count > 0 ? Math.Max(start, Beatmap.HitObjects[^1].Time) : start;
             return new AffectedRange(start, last + 1);
-        }, null, beat);
+        }, null);
         var timingChange = new TempoBeatmapChange(Beatmap, () =>
         {
             var replace = new List<TempoChange>();
@@ -419,7 +432,7 @@ public partial class BeatmapEditor : BeatmapPlayer
             {
                 Beatmap.HitObjects.RemoveRange(removeStart, removeCount);
                 return new AffectedRange(from, to);
-            }, desc, beat));
+            }, desc));
         }
     }
     [CommandHandler]
@@ -608,4 +621,12 @@ public partial class BeatmapEditor : BeatmapPlayer
         return Beatmap.TrySaveToDisk(this);
     }
     [CommandHandler] public bool ImportMidi(CommandContext context) => OpenFile(context);
+
+    public void AddVideo(string file)
+    {
+        var newVideoPath = Util.DrumGame.MapStorage.StoreOrHash(file, Beatmap, "video");
+        if (newVideoPath == null) return;
+        if (newVideoPath == Beatmap.Video) return;
+        PushChange(new VideoBeatmapChange(Beatmap, newVideoPath));
+    }
 }

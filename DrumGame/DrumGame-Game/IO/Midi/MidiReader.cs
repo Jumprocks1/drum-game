@@ -1,11 +1,23 @@
 ﻿using System;
 using System.IO;
+using System.IO.Compression;
 
 namespace DrumGame.Game.IO.Midi;
 
 public class MidiReader : BigEndianReader
 {
-    public MidiReader(Stream stream) : base(stream) { }
+    static Stream FixStream(Stream stream)
+    {
+        if (stream is DeflateStream) // deflate stream doesn't support position or length
+        {
+            var o = new MemoryStream();
+            stream.CopyTo(o);
+            o.Seek(0, SeekOrigin.Begin);
+            return o;
+        }
+        return stream;
+    }
+    public MidiReader(Stream stream) : base(FixStream(stream)) { }
     public MidiFile ReadFile() => new MidiFile(this);
     public int ReadVInt32()
     {

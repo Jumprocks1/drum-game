@@ -1,6 +1,7 @@
 using System;
 using System.Buffers;
 using System.IO;
+using DrumGame.Game.Beatmaps.Editor.FFT;
 using DrumGame.Game.Components;
 using DrumGame.Game.Interfaces;
 using DrumGame.Game.Modals;
@@ -291,7 +292,7 @@ public class FrequencyImageModal : RequestModal
                         for (var y = 0; y < TextureHeight; y += 1)
                         {
                             var bin = TextureHeight - 1 - y;
-                            var v = bins[bin] * (bin / 20f + 0.75f);
+                            var v = AutoMapperSettings.RescaleFftValue(bins[bin], bin);
                             upload.RawData[y * w + i] = Gradient(v);
                             sprite.Data[y * TextureWidth + i + startOffset] = v;
                         }

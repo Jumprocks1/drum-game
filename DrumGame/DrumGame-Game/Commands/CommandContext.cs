@@ -114,6 +114,33 @@ public class CommandContext
     }
     public bool GetNumber(Bindable<double> value, string title, string label = null) =>
         GetNumber(d => value.Value = d, title, label, value.Value);
+    public bool HandleRequest(RequestConfig config)
+    {
+        if (config.OnCommitBasic == null) throw new Exception("Expected OnCommitBasic");
+        if (CommandInfo.Parameters != null)
+        {
+            var unusedParameters = CommandInfo.Parameters.ToList();
+            var values = new List<(string Key, object Value)>();
+            foreach (var field in config.Fields)
+            {
+                var valueFound = false;
+                for (var i = 0; i < unusedParameters.Count; i++)
+                    if (CommandInfo.TryConvertParameter(field.OutputType, unusedParameters[i], out var value))
+                    {
+                        values.Add((field.Key, value));
+                        valueFound = true;
+                    }
+                if (!valueFound) break;
+            }
+            if (values.Count == config.Fields.Length)
+            {
+                config.OnCommitBasic(new(values));
+                return true;
+            }
+        }
+        Palette.Request(config);
+        return true;
+    }
     public bool TryGetParameter<T>(int i, out T value) => CommandInfo.TryGetParameter(i, out value);
     public bool TryGetParameter<T>(out T value)
     {

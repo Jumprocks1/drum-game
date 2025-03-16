@@ -16,7 +16,7 @@ public class ErrorGraph : CompositeDrawable
     public const int SampleCount = 65; // odd number lets us center the middle sample
     public Circle[] Circles = new Circle[SampleCount];
     float[] errors = new float[SampleCount];
-    HitWindows HitWindows = new();
+    HitWindows HitWindows = HitWindows.GetWindows(HitWindowPreference.Standard);
     public void UpdateData(List<(double beat, double time)> data, double currentTime, double slope, double intercept)
     {
         var maxError = 50f;

@@ -66,6 +66,7 @@ public class AudioDump
     public (float[], float) VolumeTransform(double windowWidth, Action<double> progress) // recommend ~1000 output sample rate
     {
         var sampleCount = SampleCount;
+        if (sampleCount <= 0) return ([], 1);
         var samples = SampleBuffer;
         var sampleWidth = (int)(SampleRate * windowWidth);
         var max = 0f;

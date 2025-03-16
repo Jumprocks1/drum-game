@@ -11,6 +11,6 @@ public class RangedSlider : BasicSlider<double>
     {
         base.UpdateThumb((x - Value.MinValue) / Value.MaxValue);
     }
-    protected override double ComputeValue(float x) => x * (Value.MaxValue - Value.MinValue) + Value.MinValue;
+    protected override double XToValue(float x) => x * (Value.MaxValue - Value.MinValue) + Value.MinValue;
 }
 

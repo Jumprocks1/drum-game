@@ -39,16 +39,14 @@ public class NotationCanvas : Canvas<NotationCanvas.NotationCanvasData>
     }
     public NotationCanvas(MusicNotationBeatmapDisplay display)
     {
-        base.Draw = Draw;
-        base.ApplyState = ApplyState;
     }
 
-    new void ApplyState(NotationCanvasData data)
+    protected override void ApplyState(Node node)
     {
 
     }
 
-    new void Draw(Canvas<NotationCanvasData>.Node node, NotationCanvasData data)
+    protected override void Draw(Node node)
     {
 
     }

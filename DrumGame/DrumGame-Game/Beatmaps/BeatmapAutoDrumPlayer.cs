@@ -46,7 +46,7 @@ public class BeatmapAutoDrumPlayer
                         if (volumeMultiplier != 1)
                             v = (byte)Math.Clamp(Math.Floor(v * volumeMultiplier), 0, 127);
 
-                        var ev = new DrumChannelEvent(0, o.Data.Channel, v);
+                        var ev = new DrumChannelEvent(0, o.Data.Channel, v) { HitObject = o, CurrentBeatmap = Beatmap };
                         for (var i = 0; i < count; i++)
                         {
                             var tickTime = o.Time + i * ticksPerHit;
@@ -60,18 +60,18 @@ public class BeatmapAutoDrumPlayer
                             v = (byte)Math.Clamp(Math.Floor(v * volumeMultiplier), 0, 127);
 
                         var startTime = Beatmap.MillisecondsFromTick(o.Time);
-                        Drumset.PlayAt(new DrumChannelEvent(0, o.Data.Channel, v), Track, startTime, Queue);
+                        Drumset.PlayAt(new DrumChannelEvent(0, o.Data.Channel, v) { HitObject = o, CurrentBeatmap = Beatmap }, Track, startTime, Queue);
                     }
                 })
                 {
-                    OnReset = () => Queue.UnbindAndClear(Track.Track)
+                    OnReset = Queue.UnbindAndClear
                 };
                 Track.RegisterEvents(hitEvents);
             }
             else
             {
                 Track.UnregisterEvents(hitEvents);
-                Queue.UnbindAndClear(Track.Track);
+                Queue.UnbindAndClear();
             }
         }
     }

@@ -8,6 +8,7 @@ using DrumGame.Game.Channels;
 using DrumGame.Game.Commands;
 using DrumGame.Game.Components;
 using DrumGame.Game.Containers;
+using DrumGame.Game.Interfaces;
 using DrumGame.Game.Skinning;
 using DrumGame.Game.Utils;
 using osu.Framework.Allocation;
@@ -39,14 +40,13 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
         var heightOfDisplayInMs = 1 / ScrollRate;
         var overdraw = ManiaConfig.ChipThickness * 2; // the "perfect" overdraw is ChipThickness / 2, we add extra for safety
 
-        var startTime = time - heightOfDisplayInMs * (ManiaConfig.JudgementLinePosition + overdraw);
-        var endTime = time + heightOfDisplayInMs * (1 - ManiaConfig.JudgementLinePosition + overdraw);
+        var startTime = time - heightOfDisplayInMs * (ManiaConfig.JudgementLine.Position + overdraw);
+        var endTime = time + heightOfDisplayInMs * (1 - ManiaConfig.JudgementLine.Position + overdraw);
 
         data.VisibleChips = Chips.FindRangeContinuous(startTime, endTime);
         data.VisibleLines = Lines.FindRangeContinuous(startTime, endTime);
         data.Offset = ScoreEventContainer.Y;
         data.RecentJudgements ??= new ManiaCanvas.Data.JudgementEvent[Lanes.Length];
-        data.TrackTime = time;
         data.UpdateTime = Clock.CurrentTime;
 
         var start = data.VisibleChips.Start;
@@ -61,87 +61,98 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
 
     void DrawCanvas(ManiaCanvas.Node node, ManiaCanvas.Data data)
     {
-        foreach (var lane in Lanes)
+        lock (Chips) // Chips is mutated very rarely, only on skin reload I think
         {
-            node.Color = lane.Config.BorderColor;
-            node.Box(lane.X, 0, -lane.LeftBorderWidth, 1);
-            lane.DrawBackground(node);
-            node.ResetShader();
-        }
-        var lane1 = Lanes[0];
-        node.Color = lane1.Config.BorderColor;
-        node.Box(1, 0, -lane1.LeftBorderWidth, 1);
-
-        var defaultMatrix = node.Matrix;
-        node.Translate(new Vector2(0, node.State.Offset));
-
-        var end = node.State.VisibleLines.End;
-        for (var i = node.State.VisibleLines.Start; i < end; i++)
-            Lines[i].Draw(node);
-
-        var start = data.VisibleChips.Start;
-        end = data.VisibleChips.End;
-        // these frick up our blending, be careful
-        // we split into 2 loops to prevent swapping blend modes
-        // swapping blend modes forces a flush of the draw buffer
-        node.Alpha = 1;
-        var nextHidden = 0;
-        var hidden = data.HiddenChips;
-        for (var i = start; i < end; i++)
-        {
-            if (nextHidden < hidden.Count && hidden[nextHidden] == i) { nextHidden++; continue; }
-            if (PracticeMode != null)
+            foreach (var lane in Lanes)
             {
-                var contained = Chips[i].HitTime > PracticeMode.StartTime && Chips[i].HitTime < PracticeMode.EndTime;
-                node.Alpha = contained ? 1 : 1 - PracticeMode.Config.OverlayStrength;
+                lane.DrawBorder(node);
+                lane.DrawBackground(node);
+                node.ResetShader();
             }
-            Chips[i].DrawAdornment(node);
-        }
-        nextHidden = 0;
-        for (var i = start; i < end; i++)
-        {
-            if (nextHidden < hidden.Count && data.HiddenChips[nextHidden] == i) { nextHidden++; continue; }
-            if (PracticeMode != null)
+            // TODO: custom skinning the right border?
+            // code duplication... probably should figure this out
+            var lane1 = Lanes[0];
+            if (lane1.LeftBorder != null)
             {
-                var contained = Chips[i].HitTime > PracticeMode.StartTime && Chips[i].HitTime < PracticeMode.EndTime;
-                node.Alpha = contained ? 1 : 1 - PracticeMode.Config.OverlayStrength;
+                lane1.LeftBorder.Draw(node, 1 - lane1.LeftBorderWidth, 0, lane1.LeftBorderWidth, 1);
             }
-            Chips[i].DrawChip(node);
-        }
-        node.Alpha = 1;
-
-        node.Matrix = defaultMatrix;
-        var time = node.Time;
-        var judgements = ManiaConfig.Judgements;
-        for (var i = 0; i < data.RecentJudgements.Length; i++)
-        {
-            var lane = Lanes[i];
-            var judgement = data.RecentJudgements[i];
-            if (judgement != null)
+            else
             {
-                var texture = judgements.TextureForJudgement(judgement.Rating);
-                if (texture != null)
+                node.Color = lane1.Config.LeftBorder.Color;
+                node.Box(1 - lane1.LeftBorderWidth, 0, lane1.LeftBorderWidth, 1);
+            }
+
+            var defaultMatrix = node.Matrix;
+            node.Translate(new Vector2(0, node.State.Offset));
+
+            var end = node.State.VisibleLines.End;
+            for (var i = node.State.VisibleLines.Start; i < end; i++)
+                Lines[i].Draw(node);
+
+            var start = data.VisibleChips.Start;
+            end = data.VisibleChips.End;
+            // these frick up our blending, be careful
+            // we split into 2 loops to prevent swapping blend modes
+            // swapping blend modes forces a flush of the draw buffer
+            node.Alpha = 1;
+            var nextHidden = 0;
+            var hidden = data.HiddenChips;
+            for (var i = start; i < end; i++)
+            {
+                if (nextHidden < hidden.Count && hidden[nextHidden] == i) { nextHidden++; continue; }
+                if (PracticeMode != null)
                 {
-                    node.Time = data.UpdateTime - judgement.UpdateTime;
-                    if (texture.FrameDuration == 0 || (int)(node.Time / texture.FrameDuration) < texture.FrameCount)
+                    var contained = Chips[i].HitTime > PracticeMode.StartTime && Chips[i].HitTime < PracticeMode.EndTime;
+                    node.Alpha = contained ? 1 : 1 - PracticeMode.Config.OverlayStrength;
+                }
+                Chips[i].DrawAdornment(node);
+            }
+            nextHidden = 0;
+            for (var i = start; i < end; i++)
+            {
+                if (nextHidden < hidden.Count && data.HiddenChips[nextHidden] == i) { nextHidden++; continue; }
+                if (PracticeMode != null)
+                {
+                    var contained = Chips[i].HitTime > PracticeMode.StartTime && Chips[i].HitTime < PracticeMode.EndTime;
+                    node.Alpha = contained ? 1 : 1 - PracticeMode.Config.OverlayStrength;
+                }
+                Chips[i].DrawChip(node);
+            }
+            node.Alpha = 1;
+
+            node.Matrix = defaultMatrix;
+            var time = node.Time;
+            var judgements = ManiaConfig.Judgements;
+            for (var i = 0; i < data.RecentJudgements.Length; i++)
+            {
+                var lane = Lanes[i];
+                var judgement = data.RecentJudgements[i];
+                if (judgement != null)
+                {
+                    var texture = judgements.TextureForJudgement(judgement.Rating);
+                    if (texture != null)
                     {
-                        if (texture.FragmentShader != null)
+                        node.Time = data.UpdateTime - judgement.UpdateTime;
+                        if (texture.FrameDuration == 0 || (int)(node.Time / texture.FrameDuration) < texture.FrameCount)
                         {
-                            node.SetLaneParameters(lane);
-                            node.SetJudgementParameters(judgement);
-                            texture.DrawCentered(node, lane.X + lane.Width / 2, 1 - lane.Config.JudgementTextPosition, 1, 0);
-                            node.Flush(); // required since setting the uniform doesn't flush
-                        }
-                        else
-                        {
-                            texture.DrawCentered(node, lane.X + lane.Width / 2, 1 - lane.Config.JudgementTextPosition, 1, 0);
+                            if (texture.FragmentShader != null)
+                            {
+                                node.SetLaneParameters(lane);
+                                node.SetJudgementParameters(judgement);
+                                texture.DrawCentered(node, lane.X + lane.Width / 2, 1 - lane.Config.JudgementTextPosition, 1, 0);
+                                node.Flush(); // required since setting the uniform doesn't flush
+                            }
+                            else
+                            {
+                                texture.DrawCentered(node, lane.X + lane.Width / 2, 1 - lane.Config.JudgementTextPosition, 1, 0);
+                            }
                         }
                     }
                 }
             }
+            node.Time = time;
+            node.ResetShader();
         }
-        node.Time = time;
-        node.ResetShader();
     }
 
     public Lane[] Lanes;
@@ -239,6 +250,7 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
     {
         public readonly LaneInfo Config;
         public SkinTexture Background => Config.Background;
+        public SkinTexture LeftBorder => Config.LeftBorder.Texture;
         public ManiaJudgementErrorNumbers ErrorNumbers;
         public ManiaIcon Icon;
         public ColourInfo BackgroundColor;
@@ -266,6 +278,19 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
                 node.Box(X, 0, Width, 1);
             }
         }
+        public void DrawBorder(ManiaCanvas.Node node)
+        {
+            if (LeftBorder != null)
+            {
+                LeftBorder.Draw(node, X - LeftBorderWidth, 0, LeftBorderWidth, 1);
+            }
+            else
+            {
+                node.Color = Config.LeftBorder.Color;
+                node.Box(X - LeftBorderWidth, 0, LeftBorderWidth, 1);
+            }
+        }
+
     }
     Dictionary<DrumChannel, Lane> PrimaryLaneLookup = new();
     Dictionary<DrumChannel, Lane> SecondaryLaneLookup = new();
@@ -304,21 +329,28 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
 
     void LoadChips()
     {
+        // calling this while the draw thread is running is dangerous
+        // draw thread assumes Chips list doesn't change
+        // we added a lock to fix this
+        // the lock is also helpful for locking the Lanes object
         var hitObjects = Beatmap.GetRealTimeHitObjects();
-        Chips.Clear();
-        Chips.EnsureCapacity(hitObjects.Count);
-        OriginalChips = new Chip[hitObjects.Count];
-        for (var i = 0; i < hitObjects.Count; i++)
+        lock (Chips)
         {
-            var chip = new Chip(this, hitObjects[i]);
-            Chips.Add(chip);
-            OriginalChips[i] = chip;
-        }
-        Chips.Sort((a, b) => a.HitTime.CompareTo(b.HitTime));
+            Chips.Clear();
+            Chips.EnsureCapacity(hitObjects.Count);
+            OriginalChips = new Chip[hitObjects.Count];
+            for (var i = 0; i < hitObjects.Count; i++)
+            {
+                var chip = new Chip(this, hitObjects[i]);
+                Chips.Add(chip);
+                OriginalChips[i] = chip;
+            }
+            Chips.Sort((a, b) => a.HitTime.CompareTo(b.HitTime));
 
-        Lines.Clear();
-        foreach (var line in Beatmap.BeatLinesMs())
-            Lines.Add(new(line));
+            Lines.Clear();
+            foreach (var line in Beatmap.BeatLinesMs())
+                Lines.Add(new(line));
+        }
     }
 
     [BackgroundDependencyLoader]
@@ -330,6 +362,14 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
         SkinManager.RegisterTarget(SkinAnchorTarget.PositionIndicator, Timeline);
         AddInternal(new SongInfoPanel(Beatmap, true));
         AddInternal(new ManiaVideo(Player));
+        var extras = Util.Skin.Mania.ExtraElements;
+        if (extras != null)
+        {
+            for (var i = 0; i < extras.Count; i++)
+                AddInternal(new ExtraSkinElement(e => e.Mania.ExtraElements, i));
+        }
+        if (Util.Skin.Mania.Background != null && Util.Skin.Mania.Background.Alpha > 0)
+            AddInternal(new BackgroundSkinTexture(() => Util.Skin.Mania.Background, this) { RelativeSizeAxes = Axes.Both, Depth = 500, Relative = true });
         LaneContainer.Add(new ManiaCanvas(this)
         {
             RelativeSizeAxes = Axes.Both,
@@ -346,26 +386,26 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
             // if we have shutter, these have to appear below the icons and the shutter
             Depth = HasShutter ? -1f : -5
         });
-        LaneContainer.Add(new Box
-        {
-            Colour = ManiaConfig.JudgementLineColor,
-            Y = -ManiaConfig.JudgementLinePosition + (float)(-ManiaConfig.JudgementLineOffset * ScrollRate),
-            Height = ManiaConfig.JudgementLineThickness,
-            RelativeSizeAxes = Axes.Both,
-            RelativePositionAxes = Axes.Y,
-            Anchor = Anchor.BottomLeft,
-            Origin = Anchor.CentreLeft,
-            Name = "Cursor"
-        });
+
+        var judgementLine = ManiaConfig.JudgementLine.Texture?.MakeSprite() ?? new Box { Colour = ManiaConfig.JudgementLine.Color };
+        judgementLine.Y = -ManiaConfig.JudgementLine.Position + (float)(-ManiaConfig.JudgementLine.Offset * ScrollRate);
+        judgementLine.Height = ManiaConfig.JudgementLine.Thickness;
+        judgementLine.RelativeSizeAxes = Axes.Both;
+        judgementLine.RelativePositionAxes = Axes.Y;
+        judgementLine.Anchor = Anchor.BottomLeft;
+        judgementLine.Origin = Anchor.CentreLeft;
+        judgementLine.Name = "Cursor";
+        LaneContainer.Add(judgementLine);
+
         if (HasShutter)
         {
             var d = ManiaConfig.Shutter.Texture?.MakeSprite() ?? new Box { Colour = ManiaConfig.BackgroundColor };
             d.RelativeSizeAxes = Axes.Both;
             d.RelativePositionAxes = Axes.Both;
-            d.Height = ManiaConfig.JudgementLinePosition;
+            d.Height = ManiaConfig.Shutter.Height;
             d.Anchor = Anchor.BottomLeft;
             d.Origin = Anchor.TopLeft;
-            d.Y = -ManiaConfig.JudgementLinePosition;
+            d.Y = -ManiaConfig.Shutter.Height;
             d.Depth = -2; // icons are -3
             LaneContainer.Add(d);
         }
@@ -395,17 +435,17 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
     {
         var lanes = Util.Skin.Mania.Lanes.LaneList;
         Lanes = new Lane[lanes.Length];
-        var totalWeight = lanes.Sum(e => e.LeftBorder + e.Width) + lanes[0].LeftBorder;
+        var totalWeight = lanes.Sum(e => e.LeftBorder.Width + e.Width) + lanes[0].LeftBorder.Width;
         var x = 0f;
         for (var i = 0; i < lanes.Length; i++)
         {
             var lane = lanes[i];
-            x += lane.LeftBorder;
+            x += lane.LeftBorder.Width;
             var laneObject = new Lane(lane)
             {
                 X = x / totalWeight,
                 Width = lane.Width / totalWeight,
-                LeftBorderWidth = lane.LeftBorder / totalWeight
+                LeftBorderWidth = lane.LeftBorder.Width / totalWeight
             };
             Lanes[i] = laneObject;
             var channel = lane.Channel;
@@ -427,8 +467,9 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
                 laneObject.Icon = icon;
                 icon.Depth = -3;
                 icon.X = laneObject.X;
+                icon.Y = -ManiaConfig.IconContainerPosition;
                 icon.Width = laneObject.Width;
-                icon.Height = ManiaConfig.JudgementLinePosition;
+                icon.Height = ManiaConfig.IconContainerHeight;
                 icon.Anchor = Anchor.BottomLeft;
                 icon.Origin = Anchor.BottomLeft;
                 LaneContainer.Add(icon);
@@ -439,7 +480,7 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
     protected override void Update()
     {
         if (Dragging) UpdateDrag();
-        ScoreEventContainer.Y = (float)(Track.CurrentTime * ScrollRate - ManiaConfig.JudgementLinePosition);
+        ScoreEventContainer.Y = (float)(Track.CurrentTime * ScrollRate - ManiaConfig.JudgementLine.Position);
     }
 
     SpriteText StatsText;

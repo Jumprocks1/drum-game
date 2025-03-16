@@ -13,7 +13,7 @@ using osu.Framework.Graphics.Sprites;
 
 namespace DrumGame.Game.Views.Settings;
 
-public class SkinSettingsView : CompositeDrawable
+public class SkinSettingsView : CompositeDrawable, IHandleSettingInfo
 {
     public static void Open()
     {
@@ -26,7 +26,14 @@ public class SkinSettingsView : CompositeDrawable
         if (Util.Skin.Source == null)
         {
             if (SkinManager.EnsureDefaultSkinExists())
+            {
                 SkinManager.ChangeSkinTo(SkinManager.DefaultSkinFilename);
+                // this happens if the skin was already set to default.json, but on initial game load it was missing
+                // the above call won't do anything since the target skin was already set to default
+                // since we just created the skin file in the above call, we need to reload
+                if (Util.Skin.Source == null)
+                    SkinManager.ReloadSkin();
+            }
         }
         Skin = Util.Skin;
     }
@@ -156,7 +163,11 @@ public class SkinSettingsView : CompositeDrawable
     protected override void Dispose(bool isDisposing)
     {
         Util.CommandController.RemoveHandlers(this);
-        SkinManager.SavePartialSkin(Util.Skin); // only saves if dirty
+        if (Util.Skin.Dirty)
+        {
+            SkinManager.SavePartialSkin(Util.Skin); // only saves if dirty
+            SkinManager.ReloadSkin(true); // this resets/calls LoadDefaults, which is important in some cases
+        }
         base.Dispose(isDisposing);
     }
 

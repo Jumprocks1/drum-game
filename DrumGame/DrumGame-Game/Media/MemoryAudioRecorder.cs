@@ -21,6 +21,7 @@ public class MemoryAudioRecorder : IDisposable
     int BufferFrameCount;
 
     public RecorderInitArgs InitInfo;
+    public int SampleRate => InitInfo.SampleRate;
 
     public float this[int frame, int channel]
     {
@@ -88,6 +89,14 @@ public class MemoryAudioRecorder : IDisposable
     {
         StartTime = DateTime.UtcNow;
         InnerRecorder.StartRecording();
+    }
+
+    public float[] ReadAll(int frameStart)
+    {
+        lock (Lock)
+        {
+            return GetMonoSamples(frameStart, framesRead - frameStart);
+        }
     }
 
     public float[] GetMonoSamples(int frameStart, int frameCount)

@@ -56,6 +56,7 @@ public class Autocomplete<T> : CompositeDrawable, IAcceptFocus where T : class, 
                 Util.GetParent<DrumPopoverContainer>(this)?.ClosePopover(Popover);
             }
             UpdateFilterAndDisplay();
+            Util.ResetHover(this); // force tooltip to recalculate, since this changes our OnHover handle boolean
         }
     }
     protected const float SearchHeight = 30;
@@ -232,7 +233,7 @@ public class Autocomplete<T> : CompositeDrawable, IAcceptFocus where T : class, 
         backgroundContainer.AutoSizeAxes = Axes.Y;
         backgroundContainer.RelativeSizeAxes = Axes.X;
         AddInternal(backgroundContainer);
-        backgroundContainer.Add(ButtonContainer = new MouseBlockingContainer
+        backgroundContainer.Add(ButtonContainer = new Container
         {
             Padding = new MarginPadding(Margin),
             AutoSizeAxes = Axes.Y,
@@ -272,6 +273,17 @@ public class Autocomplete<T> : CompositeDrawable, IAcceptFocus where T : class, 
         {
             RelativeSizeAxes = Axes.Both
         });
+    }
+    protected override bool Handle(UIEvent e)
+    {
+        if (base.Handle(e)) return true;
+        return e switch
+        {
+            // block all mouse events from going behind us if we're open
+            // mainly to prevent tooltips showing for background elements
+            MouseEvent => Open,
+            _ => false,
+        };
     }
 
     protected virtual void HardCommit()
@@ -316,6 +328,7 @@ public class Autocomplete<T> : CompositeDrawable, IAcceptFocus where T : class, 
 
     protected override bool OnKeyDown(KeyDownEvent e)
     {
+        if (!Open) return false;
         switch (e.Key)
         {
             case Key.Down:
@@ -368,4 +381,12 @@ public class BasicAutocompleteOption : IFilterable
 {
     public string Name { get; set; }
     public BasicAutocompleteOption(string name) { Name = name; }
+}
+
+public class AutocompleteKeyName : IFilterable
+{
+    public string Name { get; set; }
+    public string Key { get; set; }
+    public AutocompleteKeyName(string key) { Key = key; Name = key; }
+    public AutocompleteKeyName(string key, string name) { Key = key; Name = name; }
 }

@@ -255,8 +255,7 @@ public partial class Beatmap
         DefaultValueHandling = DefaultValueHandling.Ignore, // some fields have this set to include on a case-by-case
         Formatting = Formatting.Indented,
     };
-    public static readonly HashSet<DrumChannel> Cymbols = new()
-    {
+    public static readonly HashSet<DrumChannel> Cymbols = [
         DrumChannel.ClosedHiHat,
         DrumChannel.OpenHiHat,
         DrumChannel.HalfOpenHiHat,
@@ -266,12 +265,12 @@ public partial class Beatmap
         DrumChannel.Splash,
         DrumChannel.China,
         DrumChannel.Rim,
-    };
+    ];
 
-    public static HashSet<DrumChannel>[] ChannelGroups = new HashSet<DrumChannel>[] {
-            Cymbols,
-            new() { DrumChannel.Snare, DrumChannel.SideStick }
-        };
+    public static HashSet<DrumChannel>[] ChannelGroups = [
+        Cymbols,
+        [DrumChannel.Snare, DrumChannel.SideStick]
+    ];
 
     public static HashSet<DrumChannel> GetGroup(DrumChannel channel)
     {
@@ -282,39 +281,95 @@ public partial class Beatmap
         return null;
     }
 
-    public bool AddHit(int tick, HitObjectData data, bool toggle = true, bool force = false)
+    public bool AddHitsAt(int tick, IList<HitObjectData> hits)
     {
+        if (hits.Count == 0) return false;
+        if (hits.Count == 1) return AddHit(tick, hits.First(), false);
+        var pos = HitObjects.InsertSortedPosition(tick);
+        var groups = hits.Select(e => GetGroup(e.Channel)).ToArray();
+        var replace = new List<int>();
+        foreach (var j in GetHitObjectsAtTick(tick, pos))
+        {
+            var ho = HitObjects[j];
+            var h = ho.Data.Channel;
+            for (var i = 0; i < hits.Count; i++)
+            {
+                var group = groups[i];
+                var hit = hits[i];
+                if (group?.Contains(h) ?? h == hit.Channel)
+                {
+                    replace.Add(j);
+                    break;
+                }
+            }
+        }
+        if (replace.Count > 0)
+        {
+            if (replace.Count >= hits.Count)
+            {
+                replace.Sort(); // needs to be sorted so we can safely remove
+                for (var i = 0; i < hits.Count; i++)
+                    HitObjects[replace[i]] = new HitObject(tick, hits[i]);
+                for (var i = replace.Count - 1; i >= hits.Count; i--)
+                    HitObjects.RemoveAt(replace[i]);
+            }
+            else
+            {
+                for (var i = 0; i < replace.Count; i++)
+                    HitObjects[replace[i]] = new HitObject(tick, hits[i]);
+                HitObjects.InsertRange(pos, hits.Skip(replace.Count).Select(e => new HitObject(tick, e)));
+            }
+        }
+        else
+        {
+            HitObjects.InsertRange(pos, hits.Select(e => new HitObject(tick, e)));
+            QuarterNotes = Math.Max(tick / TickRate + 1, QuarterNotes);
+        }
+        return true;
+    }
+    // returns false if we found an exact match
+    // if toggle is true, this causes that exact match to be removed
+    // if toggle is false, this means we did nothing
+    public bool AddHit(int tick, HitObjectData data, bool toggle = true, bool stack = false)
+    {
+        // this has a few basic rules:
+        //   1. if data already exists at tick, do nothing (unless toggle is set, then remove) - return false
+        //   2. if data matches other objects at this tick based on group (not exact), remove all other objects and add data
+        //   3. otherwise, simply add data
         var hitObject = new HitObject(tick, data);
-        var pos = HitObjects.InsertSortedPosition(hitObject);
+        var pos = HitObjects.InsertSortedPosition(tick);
 
         var channel = data.Channel;
-        var group = force ? null : GetGroup(channel);
-        int? replace = null;
+        var group = stack ? null : GetGroup(channel);
+        var replace = new List<int>();
         // somehow this got out of bounds at one point
         // I think pos came in at a maximum possible value
-        foreach (var j in GetHitObjectsAtTick(hitObject.Time, pos))
+        foreach (var j in GetHitObjectsAtTick(tick, pos))
         {
             var ho = HitObjects[j];
             var h = ho.Data.Channel;
             if (group?.Contains(h) ?? h == channel)
             {
                 // if we find a perfect match, we can stop searching this tick
-                if (ho.Data == data)
+                if (toggle && ho.Data == data)
                 {
-                    if (toggle) HitObjects.RemoveAt(j);
+                    HitObjects.RemoveAt(j);
                     return false;
                 }
-                else
-                {
-                    // we can't replace this immediately in-case there's a perfect match on this same tick
-                    // if we replaced without searching for the perfect match, we could get a duplicate
-                    replace = j;
-                }
+                // we can't replace this immediately in-case there's a perfect match on this same tick
+                // if we replaced without searching for the perfect match, we could get a duplicate
+                replace.Add(j);
             }
         }
-        if (replace is int replaceV)
+        if (replace.Count > 0)
         {
-            HitObjects[replaceV] = HitObjects[replaceV].With(data);
+            // only 1 thing we wanted to change, and it's already an exact match
+            if (replace.Count == 1 && HitObjects[replace[0]].Data == data) return false;
+
+            if (replace.Count > 1) replace.Sort(); // needs to be sorted so we can safely remove
+            HitObjects[replace[0]] = HitObjects[replace[0]].With(data);
+            for (var i = replace.Count - 1; i >= 1; i--)
+                HitObjects.RemoveAt(replace[i]);
         }
         else
         {
@@ -453,7 +508,7 @@ public partial class Beatmap
     }
     public AffectedRange ApplyStrideAction(BeatSelection selection, int stride, Func<int, bool, bool> action, bool allowToggle = false)
     {
-        if (!selection.HasVolume) return action(TickFromBeat(selection.Start), true);
+        if (!selection.HasVolume) return action(TickFromBeat(selection.Start), allowToggle);
         var start = TickFromBeat(selection.Left);
         var end = TickFromBeat(selection.Right);
         var changed = false;
@@ -674,6 +729,9 @@ public partial class Beatmap
 
     public string FullAssetPath(string asset) => Source.FullAssetPath(asset);
 
+    // the ms times returned by this should not be directly compared to times from MillisecondsFromTick (without an epsilon)
+    // this method accumulates FP error for each hitobject, so they will not match
+    // it's definitely possible to restructure this to work the same as MillisecondsFromBeat, but it's not worth it right now
     public List<HitObjectRealTime> GetRealTimeHitObjects()
     {
         var o = new List<HitObjectRealTime>();
@@ -822,17 +880,18 @@ public partial class Beatmap
         public bool RemoveExistingSticking;
         public bool LeftLead;
         public bool NoHandsOnLeft; // we could change this to all hands if the sticking is left
+        public double MaximumDivisor;
     }
 
     int SnapFromTick(ITickTime e) => TickRate / Util.GCD(e.Time % TickRate, TickRate);
     public AffectedRange SetDoubleBassSticking(BeatSelection selection, DoubleBassStickingSettings settings)
     {
-        var divisor = settings.Divisor;
         var minStreak = Math.Max(settings.Streak, 2); // can't be less than 2
         var removeExisting = settings.RemoveExistingSticking;
         var checkHands = settings.NoHandsOnLeft;
         int? lastBass = null;
-        var threshold = (int)(TickRate / divisor);
+        var maximumDistance = (int)(TickRate / settings.Divisor);
+        var minimumDistance = (int)(TickRate / settings.MaximumDivisor);
         var currentStreak = new List<int>(); // store all recent bass drums
 
         void EndStreak()
@@ -857,6 +916,12 @@ public partial class Beatmap
                     if (SnapFromTick(e) > SnapFromTick(HitObjects[currentStreak[1]]))
                         HitObjects[currentStreak[0]] = e.With(e.Modifiers | NoteModifiers.Left);
                 }
+                // make sure we are not starting with a left foot if left lead is disabled
+                if (!settings.LeftLead)
+                {
+                    var e = HitObjects[currentStreak[0]];
+                    HitObjects[currentStreak[0]] = e.With(e.Modifiers & ~NoteModifiers.LeftRight);
+                }
                 var lastStickingWasLeft = HitObjects[currentStreak[0]].Sticking.HasFlag(NoteModifiers.Left);
                 for (var i = 1; i < currentStreak.Count; i++)
                 {
@@ -865,6 +930,9 @@ public partial class Beatmap
                     var setLeft = !lastStickingWasLeft && !hasOtherHits;
                     if (setLeft)
                         HitObjects[currentStreak[i]] = e = e.With(e.Modifiers | NoteModifiers.Left);
+                    // absolutely cannot have 2 lefts in a row
+                    if (lastStickingWasLeft && e.Modifiers.HasFlag(NoteModifiers.Left))
+                        HitObjects[currentStreak[i]] = e = e.With(e.Modifiers & ~NoteModifiers.Left);
                     lastStickingWasLeft = e.Sticking.HasFlag(NoteModifiers.Left);
                 }
             }
@@ -886,11 +954,15 @@ public partial class Beatmap
                     if (removeExisting)
                         HitObjects[i] = e.With(e.Modifiers & ~NoteModifiers.LeftRight);
 
-                    if (lastBass != null && time - lastBass > threshold)
-                        EndStreak();
+                    if (lastBass != null)
+                    {
+                        var distance = time - lastBass.Value;
+                        if (distance > maximumDistance || distance < minimumDistance)
+                            EndStreak();
+                    }
 
                     // we ignore bass hits that are too close to hi-hat hits/pedals
-                    if (time - lastCloseHH >= threshold * 2)
+                    if (time - lastCloseHH >= maximumDistance * 2)
                     {
                         currentStreak.Add(i);
                         lastBass = time;
@@ -977,7 +1049,8 @@ public partial class Beatmap
     }
 
     public void HashId() => Id = MetaHash();
-    public string MetaHash() => Util.MD5(Title ?? "", Artist ?? "", DifficultyName ?? Difficulty ?? "", Mapper ?? "", Description ?? "", Tags ?? "");
+    public string DifficultyString => DifficultyName ?? Difficulty.ToDifficultyString();
+    public string MetaHash() => Util.MD5(Title ?? "", Artist ?? "", DifficultyName ?? DifficultyString ?? "", Mapper ?? "", Description ?? "", Tags ?? "");
     // note, this doesn't work for things like (TV Size) being in the title, oh well
     // in those cases, we will have to manually set the map set
     public string MapSetHash() => Util.MD5(Title ?? "", Artist ?? "", Mapper ?? "");
@@ -1082,15 +1155,18 @@ public partial class Beatmap
     {
         var tick = ho.Time;
         var v = 1d;
+        if (ho.Preset != null && string.IsNullOrWhiteSpace(ho.Preset.Sample))
+            v *= ho.Preset.Volume;
         if (volumeEvents.Length == 0) return v;
         var beat = (double)tick / TickRate;
+        var bookmarkModifier = 1d;
         foreach (var volumeEvent in volumeEvents)
         {
-            if (volumeEvent.Beat > beat) return v;
+            if (volumeEvent.Beat > beat) break;
             if (volumeEvent.VolumeFor(ho.Data, beat) is double vol)
-                v = vol;
+                bookmarkModifier = vol;
         }
-        return v;
+        return v * bookmarkModifier;
     }
 
     public int[] TicksToNoteLengths(List<int> ticks)
@@ -1125,5 +1201,24 @@ public partial class Beatmap
                 lengths[i] = (beat + 1) * TickRate - tick;
         }
         return lengths;
+    }
+
+    public bool MissingLeftBassSticking()
+    {
+        var bassHits = HitObjects.Where(e => e.Channel == DrumChannel.BassDrum);
+        var last = int.MinValue;
+        var smallestGap = int.MaxValue;
+        foreach (var ho in bassHits)
+        {
+            if (ho.Sticking == NoteModifiers.Left) return false; // if there's a single left bass, then it's not missing
+            if (last != int.MinValue)
+            {
+                var diff = ho.Time - last;
+                if (diff < smallestGap) smallestGap = diff;
+            }
+            last = ho.Time;
+        }
+        // it's fine if there's no left bass if all the notes are slowish
+        return smallestGap <= TickRate / 4;
     }
 }

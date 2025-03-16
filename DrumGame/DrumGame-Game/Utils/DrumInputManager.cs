@@ -7,6 +7,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
+using osu.Framework.Input.Events;
 using osu.Framework.Input.StateChanges.Events;
 using osu.Framework.Input.States;
 using osu.Framework.Platform;
@@ -166,36 +167,42 @@ public class DrumInputManager : UserInputManager
 
         protected override Drawable HandleButtonDown(InputState state, List<Drawable> targets)
         {
-            if (Button == MouseButton.Left || Button == MouseButton.Right)
+            if (state.Mouse.IsPositionValid)
+                MouseDownPosition = state.Mouse.Position;
+            var ev = new MouseDownEvent(state, Button, MouseDownPosition);
+            if (targets != null && EnableClick && DraggedDrawable?.DragBlocksClick != true)
             {
-                if (targets != null && EnableClick && DraggedDrawable?.DragBlocksClick != true)
+                for (var i = 0; i < targets.Count; i++)
                 {
-                    foreach (var e in targets)
+                    var e = targets[i];
+                    if (e.IsHovered)
                     {
-                        if (e.IsHovered)
+                        if (Button == MouseButton.Right && e is IHasContextMenu)
                         {
-                            if (Button == MouseButton.Right && e is IHasContextMenu)
+                            if (Util.ContextMenuContainer.TriggerEvent(ev))
                             {
-                                // make sure the click gets dumped into the ContextMenuContainer
-                                targets.Clear();
-                                targets.Add(Util.ContextMenuContainer);
-                                break;
-                            }
-                            // this condition should match HandleButtonUp
-                            if ((state.Keyboard.ControlPressed && e is IHasUrl)
-                                || (e is IHasCommandInfo command && !command.DisableClick && command.CommandInfo != null))
-                            {
-                                // basically just MouseDown => true
-                                // prevents mouse down from triggering other drawables
-                                if (state.Mouse.IsPositionValid)
-                                    MouseDownPosition = state.Mouse.Position;
-                                return e;
+                                // all targets after i will not trigger MouseUp events
+                                // since we insert at i, the current target (e) will be skipped
+                                targets.Insert(i, Util.ContextMenuContainer);
+                                return Util.ContextMenuContainer;
                             }
                         }
+                        // this condition should match HandleButtonUp
+                        if (((state.Keyboard.ControlPressed && e is IHasUrl)
+                            || (e is IHasCommandInfo command && !command.DisableClick && command.CommandInfo != null))
+                            && (Button == MouseButton.Left || Button == MouseButton.Right))
+                        {
+                            return e;
+                        }
                     }
+                    if (e.TriggerEvent(ev))
+                        return e;
                 }
             }
-            return base.HandleButtonDown(state, targets);
+
+            // Since we don't call base, double clicks will never work. Don't think I care
+            // return base.HandleButtonDown(state, targets);
+            return null;
         }
 
         protected override void HandleButtonUp(InputState state, List<Drawable> targets)
@@ -204,12 +211,21 @@ public class DrumInputManager : UserInputManager
             {
                 if (targets != null && EnableClick && DraggedDrawable?.DragBlocksClick != true)
                 {
-                    foreach (var e in targets)
+                    // MouseUp events cannot return `true` normally
+                    // This is because `targets` only contains drawables that already handled the down event
+                    // Because of this, we never want to `break` or `return` out of this loop
+                    // we do still remove from `targets` to block regular click events
+                    for (var i = targets.Count - 1; i >= 0; i--)
                     {
+                        var e = targets[i];
                         if (e.IsHovered)
                         {
-                            if (state.Keyboard.ControlPressed && e is IHasUrl url) { Util.InputManager.GameHost?.OpenUrlExternally(url.Url); break; }
-                            if (e is IHasCommandInfo command && !command.DisableClick && command.CommandInfo != null)
+                            if (state.Keyboard.ControlPressed && e is IHasUrl url)
+                            {
+                                Util.InputManager.GameHost?.OpenUrlExternally(url.Url);
+                                targets.RemoveAt(i);
+                            }
+                            else if (e is IHasCommandInfo command && !command.DisableClick && command.CommandInfo != null)
                             {
                                 if (state.Keyboard.ControlPressed || Button == MouseButton.Right)
                                     Util.Palette.EditKeybind(command.CommandInfo);
@@ -222,8 +238,7 @@ public class DrumInputManager : UserInputManager
                                             cb.AfterActivate?.Invoke();
                                     });
                                 }
-                                targets = null; // prevent click from propagating
-                                break;
+                                targets.RemoveAt(i);
                             }
                         }
                     }

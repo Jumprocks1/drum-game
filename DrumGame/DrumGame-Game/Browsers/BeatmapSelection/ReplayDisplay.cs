@@ -34,9 +34,10 @@ public class ReplayDisplay : CompositeDrawable, IHasMarkupTooltip, IHasContextMe
         get
         {
             var time = ReplayInfo.CompleteTimeLocal;
-            var res = $"{time.ToString(Formats.ShortDatePattern)} {time.ToString(Formats.LongTimePattern)}\n" +
+            var res = $"{time.ToString(Formats.ShortDatePattern)} {time.ToString(Formats.LongTimePattern).Replace('\u202F', ' ')}\n" +
                 $"<perfect>P</c>:{ReplayInfo.Perfect} <good>G</c>:{ReplayInfo.Good} <bad>B</c>:{ReplayInfo.Bad} <miss>M</c>:{ReplayInfo.Miss}\n" +
-                $"Accuracy: {ReplayInfo.AccuracyNoLeading}";
+                $"Accuracy: {ReplayInfo.AccuracyNoLeading}\n" +
+                $"Hit windows: {ReplayInfo.HitWindows ?? "Standard"}";
             if (ParsedMods != null)
                 foreach (var mod in ParsedMods)
                     res += '\n' + mod.MarkupDisplay;
@@ -54,7 +55,7 @@ public class ReplayDisplay : CompositeDrawable, IHasMarkupTooltip, IHasContextMe
 
     public void Delete(ReplayInfo replay)
     {
-        Util.CommandController.Palette.Push(new ConfirmationModal(() =>
+        Util.Palette.Push(new ConfirmationModal(() =>
         {
             if (Util.Resources.Exists(replay.Path))
                 Util.Resources.Storage.Delete(replay.Path);
@@ -164,7 +165,7 @@ public class ReplayDisplay : CompositeDrawable, IHasMarkupTooltip, IHasContextMe
     protected override bool OnClick(ClickEvent e)
     {
         if (e.Button == MouseButton.Left)
-            Util.CommandController.Palette.Push(new EndScreen(ReplayInfo));
+            Util.Palette.Push(new EndScreen(ReplayInfo));
         return true;
     }
 

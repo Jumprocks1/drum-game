@@ -41,12 +41,14 @@ public class AutoMapper
         var biggestCorrection = triggerSettings.Max(e => Math.Abs(e.TimeCorrectionMs));
         var extraChunks = (int)Math.Ceiling(biggestCorrection / FFT.ChunkWidthMs);
 
+        var extraEarly = (int)(100d / FFT.ChunkWidthMs);
+
         int startI = 0;
         int endI = FFT.ChunkCount;
 
         if (selection != null && selection.IsComplete)
         {
-            startI = Math.Clamp(FFT.ChunkAt(Beatmap.MillisecondsFromBeat(selection.Left)) - extraChunks, 0, FFT.ChunkCount);
+            startI = Math.Clamp(FFT.ChunkAt(Beatmap.MillisecondsFromBeat(selection.Left)) - extraChunks - extraEarly, 0, FFT.ChunkCount);
             endI = Math.Clamp(FFT.ChunkAt(Beatmap.MillisecondsFromBeat(selection.Right)) + 1 + extraChunks, 0, FFT.ChunkCount);
         }
 
@@ -58,21 +60,11 @@ public class AutoMapper
             for (var c = 0; c < triggerSettings.Count; c++)
             {
                 var v = triggerSettings[c];
-                var endBin = v.HighBin;
                 var minimumRise = v.Climb;
                 var channel = v.Channel;
                 var thresh = v.MinimumThreshold;
 
-                var sum = 0f;
-                for (var j = v.LowBin; j <= endBin; j++)
-                    sum += bins[j];
-                sum *= v.Multiplier;
-                var sub = v.Subtract;
-                if (sub != null)
-                {
-                    for (var j = sub.LowBin; j <= sub.HighBin; j++)
-                        sum -= bins[j] * sub.Multiplier;
-                }
+                var sum = v.ComputeValue(bins);
 
                 if (sum < minAfter[c])
                     minAfter[c] = sum;

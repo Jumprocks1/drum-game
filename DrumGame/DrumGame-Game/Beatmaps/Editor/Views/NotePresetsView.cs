@@ -84,7 +84,7 @@ public class NotePresetsView : RequestModal
                                     Beatmap.HitObjects[i] = Beatmap.HitObjects[i].With(v);
                             }
                             Beatmap.RemoveDuplicates();
-                        }, $"change {preset} to {v}"));
+                        }, $"change {preset} channel to {v}"));
                     }
                     Table.UpdateRow(preset);
                 }
@@ -110,6 +110,7 @@ public class NotePresetsView : RequestModal
                 DefaultValue = NoteModifiers.None,
                 OnCommit = v =>
                 {
+                    preset.Modifiers = v;
                     Editor.PushChange(new NoteBeatmapChange(() =>
                     {
                         for (var i = 0; i < Beatmap.HitObjects.Count; i++)
@@ -118,6 +119,7 @@ public class NotePresetsView : RequestModal
                                 Beatmap.HitObjects[i] = Beatmap.HitObjects[i].With(v);
                         }
                     }, $"change {preset} modifiers to {v}"));
+                    Table.UpdateRow(preset);
                 }
             },
         });
@@ -182,6 +184,7 @@ public class NotePresetsView : RequestModal
     public NotePresetsView(BeatmapEditor editor) : base(new RequestConfig
     {
         Title = "Note Presets",
+        Width = 0
     })
     {
         Editor = editor;
@@ -190,6 +193,7 @@ public class NotePresetsView : RequestModal
         var presets = Beatmap.NotePresets.Values;
         Add(Table = new TableView<NotePreset>(new()
         {
+            MinWidth = 700,
             BuildContextMenu = builder => builder
                 .Add("Seek to Next Usage", e =>
                 {
@@ -212,7 +216,30 @@ public class NotePresetsView : RequestModal
                         }
                     }
                 })
-                .Add("Change Modifiers", RequestChangeModifiers),
+                .Add("Clone", e =>
+                {
+                    var newPreset = e.Clone();
+                    newPreset.Key = Util.CloneName(e.Key, e => !Beatmap.NotePresets.ContainsKey(e));
+                    newPreset.Name = Util.CloneName(e.Name, e => !Beatmap.NotePresets.Values.Any(p => p.Name == e));
+                    Editor.PushChange(new PresetBeatmapChange(
+                        e => e.Beatmap.NotePresets.Add(newPreset),
+                        e => e.Beatmap.NotePresets.Remove(newPreset),
+                        $"clone preset {e.Key} => {newPreset.Key}"
+                    ));
+                }).Color(DrumColors.BrightGreen),
+            OnCellChange = (preset, column, _) =>
+            {
+                if (Editor != null)
+                {
+                    var filtered = Beatmap.HitObjects.Where(e => e.Preset == preset);
+                    var first = filtered.FirstOrDefault();
+                    if (first != null)
+                    {
+                        var last = filtered.LastOrDefault();
+                        Editor.Display.ReloadNoteRange(new AffectedRange(first.Time, last.Time + 1));
+                    }
+                }
+            },
             Columns = ColumnBuilder.New<NotePreset>()
                 .Add(nameof(NotePreset.Key))
                 .Editable((e, column, _) =>
@@ -259,12 +286,14 @@ public class NotePresetsView : RequestModal
                         return e.Channel == DrumChannel.None ? null : e.Channel.ToString();
                     }
                 }).Editable(RequestChangeChannel)
+                .Add(nameof(NotePreset.Modifiers)).Editable(RequestChangeModifiers)
                 .Add(nameof(NotePreset.Pan)).Hide()
-                .Add(nameof(NotePreset.Volume)).Hide()
-                .Add(nameof(NotePreset.Size)).Hide().BasicEdit()
+                .Add(nameof(NotePreset.Volume)).BasicEdit()
+                .Add(nameof(NotePreset.Size)).BasicEdit()
                 .Add("Hotkey", e => e.Keybind.ToString()).Hide().Editable((e, column, table) =>
                 {
-                    Util.Palette.Request(new RequestConfig
+                    RequestModal req = null;
+                    req = Util.Palette.Request(new RequestConfig
                     {
                         Title = $"Setting {column.Header} for {e}",
                         Field = new KeyComboFieldConfig(column.Header, e.Keybind)
@@ -273,6 +302,17 @@ public class NotePresetsView : RequestModal
                             {
                                 e.Keybind = key;
                                 e.Register();
+                            }
+                        },
+                        Footer = new DrumButton
+                        {
+                            Text = "Remove Hotkey",
+                            AutoSize = true,
+                            Action = () =>
+                            {
+                                e.Keybind = default;
+                                e.Register();
+                                req.Close();
                             }
                         }
                     });

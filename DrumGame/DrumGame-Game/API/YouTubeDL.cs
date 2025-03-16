@@ -17,11 +17,17 @@ public static class YouTubeDL
     static string _executable;
     public static string Executable => _executable ??= LocateExecutable();
     static string LocateExecutable() => Util.Resources.LocateExecutable("yt-dlp", "youtube-dl");
-    public static BackgroundTask DownloadBackground(string url, string outputPath = null, bool vorbis = false)
+    public class DownloadConfig
+    {
+        public bool Video;
+        public bool? Vorbis;
+        public string Format => Video ? "136" : "bestaudio";
+    }
+    public static BackgroundTask DownloadBackground(string url, string outputPath = null, DownloadConfig downloadConfig = null)
     {
         var backgroundTask = new BackgroundTask(t =>
         {
-            return Download(t, url, outputPath, vorbis);
+            return Download(t, url, outputPath, downloadConfig);
         })
         {
             Name = "YouTube-DL",
@@ -55,10 +61,12 @@ public static class YouTubeDL
 
     public static bool PreferVorbis => Util.ConfigManager.Get<bool>(Stores.DrumGameSetting.PreferVorbisAudio);
 
-    public async static Task<string> Download(BackgroundTask task, string url, string outputPath, bool? vorbis = null)
+    public async static Task<string> Download(BackgroundTask task, string url, string outputPath, DownloadConfig config = null)
     {
         if (File.Exists(outputPath))
             return outputPath;
+
+        config ??= new();
 
         var ex = Executable;
         if (ex == null)
@@ -69,11 +77,11 @@ public static class YouTubeDL
         }
         var processInfo = new ProcessStartInfo(ex);
         processInfo.ArgumentList.Add("-f");
-        processInfo.ArgumentList.Add("bestaudio");
+        processInfo.ArgumentList.Add(config.Format);
         processInfo.ArgumentList.Add("-o");
         processInfo.ArgumentList.Add(outputPath);
         processInfo.RedirectStandardError = true;
-        if (vorbis ?? PreferVorbis)
+        if (config.Vorbis ?? PreferVorbis)
         {
             processInfo.ArgumentList.Add("-x");
             processInfo.ArgumentList.Add("--audio-format");

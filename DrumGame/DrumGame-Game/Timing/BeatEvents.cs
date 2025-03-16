@@ -31,7 +31,7 @@ public class BeatEventList<T> : IBeatEventHandler where T : ITickTime
     protected Beatmap Beatmap;
     protected virtual List<T> Events { get; }
     readonly Action<T, double> Callback;
-    public Action OnReset;
+    public Action OnReset; // should probably call this on dispose
     public void TriggerThrough(int _, BeatClock clock, bool __)
     {
         var time = clock.CurrentTime;

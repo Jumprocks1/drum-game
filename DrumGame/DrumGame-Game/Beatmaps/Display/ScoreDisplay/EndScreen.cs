@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using DrumGame.Game.Beatmaps.Replay;
 using DrumGame.Game.Beatmaps.Scoring;
 using DrumGame.Game.Browsers;
@@ -26,6 +27,9 @@ public class EndScreen : ModalBase, IModal
     [Resolved] CommandController Command { get; set; }
     [Resolved] MapStorage MapStorage { get; set; }
     [Resolved] FileSystemResources Resources { get; set; }
+
+    static CircularList<(int, BeatmapReplay)> ReplayCache = new(3);
+
     readonly ReplayInfo Info;
     // ReplayInfo should not change after getting here
     BeatmapReplay Replay;
@@ -109,9 +113,26 @@ public class EndScreen : ModalBase, IModal
         if (replayOnDisk)
             Util.CommandController.RegisterHandler(Commands.Command.RevealInFileExplorer, RevealInFileExplorer);
 
-        if (Replay != null || replayOnDisk)
+        if (Replay == null)
         {
-            Replay ??= Info.LoadReplay(); // if Replay is null but the file exists, then we can load the json file
+            var cached = ReplayCache.FirstOrDefault(e => e.Item1 == Info.Id);
+            if (cached != default)
+                Replay = cached.Item2;
+        }
+
+        if (Replay != null && !replayOnDisk)
+        {
+            Replay.PrepareForCacheStorage();
+            ReplayCache.Add((Info.Id, Replay));
+        }
+
+        if (Replay == null && replayOnDisk)
+            Replay = Info.LoadReplay(); // if Replay is null but the file exists, then we can load the json file
+
+
+        string accuracyTooltip = null;
+        if (Replay != null)
+        {
             bodyOuter.Add(new DrumButton
             {
                 Anchor = Anchor.BottomRight,
@@ -130,13 +151,29 @@ public class EndScreen : ModalBase, IModal
             });
             using var scorer = new ReplayScorer(Beatmap, Replay);
             var results = scorer.ComputeResults();
-            bodyOuter.Add(new AccuracyPlot(Info, results)
+
+            accuracyTooltip = "Accuracy at different hit windows:";
+            var accuracyTotal = Info.AccuracyTotal;
+            var hitErrors = results.HitErrors;
+            foreach (var hitWindowPreference in Enum.GetValues<HitWindowPreference>())
+            {
+                var hitWindow = HitWindows.GetWindows(hitWindowPreference);
+                var accuracyHit = 0;
+                for (var j = 0; j < results.HitErrors.Count; j++)
+                {
+                    var rating = hitWindow.GetRating(Math.Abs(hitErrors[j]));
+                    accuracyHit += BeatmapScorerBase.RatingValue(rating);
+                }
+                var acc = (double)(accuracyHit * 100) / accuracyTotal;
+                accuracyTooltip += $"\n{hitWindowPreference}: <faded>{acc:0.00}%</c>";
+            }
+            bodyOuter.Add(new AccuracyPlot(scorer.HitWindows, Info, results)
             {
                 Anchor = Anchor.BottomLeft,
                 Origin = Anchor.BottomLeft,
                 X = 0
             });
-            bodyOuter.Add(new ErrorHistogram(results)
+            bodyOuter.Add(new ErrorHistogram(scorer.HitWindows, results)
             {
                 Anchor = Anchor.BottomLeft,
                 Origin = Anchor.BottomLeft,
@@ -199,7 +236,7 @@ public class EndScreen : ModalBase, IModal
             statX += width;
         }
 
-        AddStat("Accuracy", Info.AccuracyNoLeading, 150);
+        AddStat("Accuracy", Info.AccuracyNoLeading, 150, tooltip: accuracyTooltip);
         AddStat("Max Combo", Info.MaxCombo.ToString(), 150, tooltip: Info.NotePercent(Info.MaxCombo));
         AddStat("Score", Info.Score.ToString(), 150);
 
@@ -242,14 +279,13 @@ public class EndScreen : ModalBase, IModal
     public void FadeIn() => this.FadeIn(1200);
 
 
-    class Stat : CompositeDrawable, IHasTooltip
+    class Stat : CompositeDrawable, IHasMarkupTooltip
     {
-        readonly string tooltip;
-        public LocalisableString TooltipText => tooltip;
+        public string MarkupTooltip { get; set; }
         public Stat(string label, string value, Colour4? color = null, string tooltip = null)
         {
             Height = 50;
-            this.tooltip = tooltip;
+            MarkupTooltip = tooltip;
             var l = new SpriteText
             {
                 Text = label,

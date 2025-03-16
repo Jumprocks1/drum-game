@@ -8,10 +8,11 @@ using DrumGame.Game.Beatmaps.Editor;
 using DrumGame.Game.Skinning;
 using DrumGame.Game.Components;
 using DrumGame.Game.Beatmaps.Practice;
+using DrumGame.Game.Interfaces;
 
 namespace DrumGame.Game.Beatmaps.Display;
 
-public abstract class BeatmapDisplay : CompositeDrawable
+public abstract class BeatmapDisplay : CompositeDrawable, IHasTrack
 {
     public virtual void DisplayScoreEvent(ScoreEvent e) { }
     public virtual void HandleScoreChange() { }
@@ -23,12 +24,12 @@ public abstract class BeatmapDisplay : CompositeDrawable
     public bool HideJudgements = false;
 
     protected BeatmapPlayerInputHandler InputHandler => Player.BeatmapPlayerInputHandler;
-    public BeatmapScorer Scorer => InputHandler.Scorer;
+    public BeatmapScorer Scorer => InputHandler?.Scorer;
 
     public HitErrorDisplay HitErrorDisplay;
     public virtual void EnterPlayMode() // TODO should really just swap this with a mode change listener
     {
-        AddInternal(HitErrorDisplay = new HitErrorDisplay(this, BeatmapScorer.HitWindows));
+        AddInternal(HitErrorDisplay = new HitErrorDisplay(this));
         Scorer.OnChange += HandleScoreChange;
         HandleScoreChange();
     }

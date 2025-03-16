@@ -11,6 +11,7 @@ using DrumGame.Game.Channels;
 using DrumGame.Game.Interfaces;
 using DrumGame.Game.IO;
 using DrumGame.Game.IO.Midi;
+using DrumGame.Game.Media;
 using DrumGame.Game.Stores;
 using DrumGame.Game.Utils;
 using osu.Framework.Logging;
@@ -89,8 +90,100 @@ public class SongIniLoader
         Logger.Log($"Importing {fileName} from {Provider.FolderName}", level: LogLevel.Important);
         using var ini = Provider.Open(fileName);
         ParseSongIniStream(ini);
-
     }
+
+    public static readonly string[] AudioFormats = [".opus", ".ogg", ".mp3"];
+
+    string FindAudioFile(string basename)
+    {
+        foreach (var ext in AudioFormats)
+        {
+            var f = basename + ext;
+            if (Provider.Exists(f))
+                return f;
+        }
+        return null;
+    }
+
+    struct StemInfo
+    {
+        public string Name;
+        public int MaxIndex;
+        public StemInfo(string name, int maxIndex = 0)
+        {
+            Name = name;
+            MaxIndex = maxIndex;
+        }
+    }
+
+    void FindBgm(Beatmap beatmap)
+    {
+        // https://github.com/TheNathannator/GuitarGame_ChartFormats/blob/main/doc/FileFormats/Audio%20Files.md
+
+        if (Config.MetadataOnly && !string.IsNullOrWhiteSpace(beatmap.PreviewAudio))
+            return; // don't need BGM if we have a preview and we are only looking for metadata
+
+        if (beatmap.Audio != null) return;
+
+        var stems = new StemInfo[] {
+            new("song"),
+            new("guitar"),
+            new("rhythm"),
+            new("bass"),
+            new("keys"),
+            new("drums", 4),
+            new("vocals", 2),
+            new("vocals_explicit", 2),
+            new("crowd"),
+        };
+        var found = new List<string>();
+        foreach (var stem in stems)
+        {
+            string f;
+            if (stem.MaxIndex > 0)
+            {
+                var indexFound = false;
+                for (var i = 1; i <= stem.MaxIndex; i++)
+                {
+                    f = FindAudioFile(stem.Name + "_" + i);
+                    if (f == null) break;
+                    indexFound = true;
+                    found.Add(f);
+                }
+                if (indexFound) continue; // if drums_1.ogg exists, don't look for drums.ogg
+            }
+            f = FindAudioFile(stem.Name);
+            if (f != null)
+                found.Add(f);
+        }
+        // ideally we should mix all tracks in found, but if were mounting, then we just have to use the first one
+        if (Config.MountOnly || Config.MetadataOnly || found.Count <= 1)
+            beatmap.Audio = found.FirstOrDefault();
+        else
+        {
+            try
+            {
+                var mergeTarget = "audio/bgm_" + beatmap.MetaHash() + ".ogg";
+                var fullMergeTarget = beatmap.FullAssetPath(mergeTarget);
+                if (!File.Exists(fullMergeTarget))
+                {
+                    var merger = new AudioMerger()
+                    {
+                        InputStreams = found.Select(Provider.Open).ToList(),
+                        OutputFile = beatmap.FullAssetPath(mergeTarget)
+                    };
+                    merger.AmixSync();
+                }
+                beatmap.Audio = mergeTarget;
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e, "Failed to merge audio tracks");
+                beatmap.Audio = found.FirstOrDefault();
+            }
+        }
+    }
+
     Beatmap ParseSongIniStream(Stream stream)
     {
         var map = Beatmap.Create();
@@ -99,6 +192,8 @@ public class SongIniLoader
         map.MeasureChanges = new();
         map.RelativeVolume = 0.4;
         map.Tags = Config.MountOnly ? "song-ini-mount" : "song-ini-import";
+        if (Config.MountOnly)
+            map.PreviewAudio = FindAudioFile("preview");
         if (Provider.Exists("notes.chart"))
             LoadDotChart(map);
         else
@@ -137,6 +232,10 @@ public class SongIniLoader
                     diffDrumsReal = int.Parse(v);
                 else if (prop == "diff_drums_real_ps")
                     diffDrumsRealPs = int.Parse(v);
+                else if (prop == "preview_start_time")
+                    map.PreviewTime = int.Parse(v);
+                else if (prop == "song_length")
+                    map.PlayableDuration = int.Parse(v);
             }
         }
 
@@ -146,7 +245,7 @@ public class SongIniLoader
             if (d <= 0) d = 1;
             if (d >= 6) d = 6;
             // 1 = Easy, 6 = Expert+
-            map.Difficulty = ((BeatmapDifficulty)d).ToDifficultyString();
+            map.Difficulty = (BeatmapDifficulty)d;
         }
 
         var folderName = Provider.FolderName;
@@ -161,28 +260,33 @@ public class SongIniLoader
         // if we aren't mounting, we need a location to save to
         if (!Config.MountOnly)
             map.Source = new BJsonSource(Path.Join(Util.MapStorage.AbsolutePath, outputFilename), BJsonFormat.Instance);
+        FindBgm(map);
 
-        var mainBgm = map.Audio ?? "guitar.ogg";
+        if (!Config.MountOnly && !Config.MetadataOnly)
+        {
+            if (!Util.MapStorage.Exists(map.FullAudioPath()))
+            {
+                var providerAudio = map.Audio;
+                if (Provider.Exists(providerAudio))
+                {
+                    var audioExt = Path.GetExtension(providerAudio);
+                    var audioHash = "_" + Util.MD5(Provider.Open(providerAudio))[0..8].ToLowerInvariant();
+                    var audioName = $"{folderName}-{Path.GetFileNameWithoutExtension(providerAudio)}".ToFilename();
+                    map.Audio = $"audio/{audioName}{audioHash}{audioExt}";
+                    Provider.Copy(providerAudio, map.FullAudioPath());
+                }
+            }
+        }
+
         var image = "album.png";
         if (!Provider.Exists(image))
             image = "album.jpg";
         if (Config.MountOnly)
         {
-            map.Audio = mainBgm;
             map.Image = image;
         }
         else
         {
-            var audioExt = Path.GetExtension(mainBgm);
-            var audioHash = Provider.Exists(mainBgm) ? "_" + Util.MD5(Provider.Open(mainBgm))[0..8].ToLowerInvariant() : "";
-            var audioName = $"{folderName}-{Path.GetFileNameWithoutExtension(mainBgm)}".ToFilename();
-            map.Audio = $"audio/{audioName}{audioHash}{audioExt}";
-            if (Provider.Exists(mainBgm))
-            {
-                if (!Util.MapStorage.Exists(map.FullAudioPath()))
-                    Provider.Copy(mainBgm, map.FullAudioPath());
-            }
-
             try
             {
                 var ext = Path.GetExtension(image);
@@ -222,7 +326,7 @@ public class SongIniLoader
                     else if (Key == "Difficulty") o.AddTags($"difficulty-{Value}");
                     else if (Key == "PreviewStart") o.PreviewTime = double.Parse(Value, CultureInfo.InvariantCulture);
                     else if (Key == "Genre") o.AddTags($"genre-{Value.Replace(' ', '-')}");
-                    else if (Key == "MusicStream") o.Audio = "song.ogg";
+                    else if (Key == "MusicStream") o.Audio = Value;
                 }
             }
             else if (section.Name == "SyncTrack")
@@ -358,7 +462,7 @@ public class SongIniLoader
                 {
                     var midiNote = me.parameter1;
                     if (track.Name != targetTrackName) continue;
-                    if (me.type == 9) // note on event
+                    if (me.type == 9 && me.parameter2 > 0) // note on event
                     {
                         // https://github.com/TheNathannator/GuitarGame_ChartFormats/blob/main/doc/FileFormats/.mid/Standard/Drums.md#track-notes
                         // https://github.com/TheNathannator/GuitarGame_ChartFormats/blob/main/doc/FileFormats/.mid/Miscellaneous/Rock%20Band/Drums.md
@@ -367,20 +471,19 @@ public class SongIniLoader
                             markers[midiNote] = true;
                             continue;
                         }
+                        // not sure why I skip these 2
                         if (midiNote == 12 || midiNote == 13) continue;
-                        if (me.parameter2 > 0)
+                        var diff = SongIniMapping.Difficulty(midiNote);
+                        if (diff != 3 && diff != -1)
                         {
-                            var diff = SongIniMapping.Difficulty(midiNote);
-                            if (diff != 3 && diff != -1)
-                            {
-                                if (knownDiffs.Add(diff))
-                                    Logger.Log($"Unrecognized difficulty: {diff}, midi: {midiNote}", level: LogLevel.Error);
-                                continue;
-                            }
-                            noteQueue.Add(midiNote); // velocity not used
+                            if (knownDiffs.Add(diff))
+                                Logger.Log($"Unrecognized difficulty: {diff}, midi: {midiNote}", level: LogLevel.Error);
+                            continue;
                         }
+                        noteQueue.Add(midiNote); // velocity not used
                     }
-                    else if (me.type == 8) // note off
+                    // velocity 0 is equivalent to note off
+                    else if (me.type == 8 || (me.type == 9 && me.parameter2 == 0)) // note off
                     {
                         if ((midiNote >= 24 && midiNote <= 51) || (midiNote >= 103 && midiNote <= 127))
                             markers[midiNote] = false;

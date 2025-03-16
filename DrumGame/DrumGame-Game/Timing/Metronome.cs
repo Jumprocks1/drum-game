@@ -15,14 +15,14 @@ public class Metronome(BeatmapPlayer Player, DrumsetAudioPlayer Drumset) : IBeat
     public void SkipTo(int _, double __)
     {
         nextBeatTime = double.NaN;
-        Queue.UnbindAndClear(Player.Track.Track);
+        Queue.UnbindAndClear();
     }
 
     // if current beat is an integer, this should NOT return that beat
     protected virtual double GetNextBeat(int currentMeasure, double currentBeat)
     {
         var measureStart = beatmap.BeatFromMeasure(currentMeasure);
-        return measureStart + Math.Floor(currentBeat - measureStart) + 1;
+        return measureStart + Math.Floor(currentBeat - measureStart + Beatmap.BeatEpsilon) + 1;
     }
 
     void UpdateNextBeat(double currentBeat)

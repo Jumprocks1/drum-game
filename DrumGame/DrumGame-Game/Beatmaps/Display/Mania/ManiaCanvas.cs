@@ -20,7 +20,6 @@ public class ManiaCanvas : Canvas
         public (int Start, int End) VisibleLines;
         public List<int> HiddenChips = new();
         public float Offset;
-        public double TrackTime;
         public double UpdateTime;
         public JudgementEvent[] RecentJudgements;
         public class JudgementEvent // could probably be struct
@@ -43,10 +42,7 @@ public class ManiaCanvas : Canvas
     void ApplyStateInternal(Node node)
     {
         ApplyState(node.State);
-        var track = Display.Track;
-        node.TrackTime = track.CurrentTime;
-        node.TrackBeat = track.CurrentBeat;
-        node.MsPerBeat = track.CurrentBPM.MillisecondsPerQuarterNote;
+        node.ApplyTrackInfo(Display.Track);
     }
     readonly ManiaBeatmapDisplay Display;
     public ManiaCanvas(ManiaBeatmapDisplay display)

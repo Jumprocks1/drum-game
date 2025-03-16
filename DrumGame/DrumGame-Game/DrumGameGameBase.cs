@@ -29,6 +29,7 @@ using osu.Framework.Graphics.Sprites;
 using DrumGame.Game.Skinning;
 using osu.Framework.Input.Handlers.Mouse;
 using osu.Framework.Input.Handlers.Keyboard;
+using DrumGame.Game.Input;
 
 namespace DrumGame.Game;
 
@@ -158,7 +159,7 @@ public class DrumGameGameBase : osu.Framework.Game
 
         dependencies.Cache(VolumeController = new VolumeController(Audio, command, LocalConfig));
 
-        var volumeOverlay = new VolumeOverlay { Depth = -2 };
+        var volumeOverlay = new VolumeOverlay { Depth = -11 }; // command palette has -10 currently
         Add(volumeOverlay);
         VolumeController.MasterVolume.Aggregate.ValueChanged += volumeOverlay.VolumeUpdated;
         SkinManager.Initialize();
@@ -298,8 +299,19 @@ public class DrumGameGameBase : osu.Framework.Game
             Title = "Drum Game"
         });
         var list = new List<(string, string)>();
-        list.Add(("Version", Util.VersionString));
-        list.Add(("OS", System.Runtime.InteropServices.RuntimeInformation.OSDescription));
+        void safeAdd(string name, Func<string> get)
+        {
+            try
+            {
+                list.Add((name, get()));
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e, $"Error getting {name}");
+            }
+        }
+        safeAdd("Version", () => Util.VersionString);
+        safeAdd("OS", () => System.Runtime.InteropServices.RuntimeInformation.OSDescription);
         var y = 0;
         foreach (var kv in list)
         {
@@ -356,6 +368,7 @@ public class DrumGameGameBase : osu.Framework.Game
     [CommandHandler] public void OpenLogFolder() => Host.OpenFileExternally(Host.Storage.GetFullPath("logs"));
     [CommandHandler] public void OpenDrumGameDiscord() => Host.OpenUrlExternally("https://discord.gg/RTc3xDKabU");
     [CommandHandler] public void ForceGarbageCollection() => GC.Collect();
+    [CommandHandler] public void InputOffsetWizard() => command.Palette.Push<InputOffsetWizard>();
     [CommandHandler] public void EnableDebugLogging() => Logger.Level = LogLevel.Debug;
     [CommandHandler]
     public void EnableDebugAndPerformanceLogging()
@@ -379,12 +392,12 @@ public class DrumGameGameBase : osu.Framework.Game
     }
 
     [CommandHandler] public void SubmitFeedback() => Host.OpenUrlExternally("https://github.com/Jumprocks1/drum-game/issues");
-    [CommandHandler] public void Help() => command.Palette.Palette.ShowAvailableCommands();
+    [CommandHandler] public void Help() => Util.Palette.Palette.ShowAvailableCommands();
     [CommandHandler]
     public void ToggleScreencastMode()
     {
         if (RemoveAll(e => e is KeyPressOverlay, true) == 0)
-            Add(new KeyPressOverlay { Depth = -30 });
+            Add(new KeyPressOverlay());
     }
 
     [CommandHandler]

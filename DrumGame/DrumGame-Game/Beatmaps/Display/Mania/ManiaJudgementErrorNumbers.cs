@@ -1,3 +1,4 @@
+using System;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics;
 using DrumGame.Game.Utils;
@@ -52,7 +53,7 @@ public class ManiaJudgementErrorNumbers : CompositeDrawable
     public void DisplayError(double error)
     {
         ClearTransforms();
-        if (error == 0)
+        if (Math.Abs(error) < Config.HideWindow)
         {
             Alpha = 0;
             return;

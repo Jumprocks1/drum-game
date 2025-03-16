@@ -36,6 +36,8 @@ using System.Numerics;
 using System.ComponentModel;
 using osu.Framework.Allocation;
 using System.Globalization;
+using System.Text.RegularExpressions;
+using osu.Framework.Graphics.Sprites;
 
 namespace DrumGame.Game.Utils;
 
@@ -53,6 +55,7 @@ public static class Util
     public static MouseState Mouse => InputManager.CurrentState.Mouse;
     public static NotificationOverlay NotificationOverlay => Palette.NotificationOverlay;
     public static FileSystemResources Resources => DrumGame.FileSystemResources;
+    public static Browsers.BeatmapSelectorLoader SelectorLoader { get; set; }
     public static MapStorage MapStorage => DrumGame.MapStorage;
     public static GameThread UpdateThread => Host.UpdateThread;
     public static GameThread AudioThread => Host.AudioThread;
@@ -427,8 +430,19 @@ public static class Util
     }
     public static string MarkupDescription<T>(this T value) where T : struct, Enum
     {
-        var s = value.ToString();
-        return MarkupDescription(typeof(T).GetField(s));
+        if (value is Channels.DrumChannel c)
+        {
+            var o = Channels.ChannelMapping.MarkupDescription(c);
+            if (o != null) return o;
+        }
+        return MarkupDescription(typeof(T).GetField(value.ToString()));
+    }
+    public static string DisplayName(MemberInfo member)
+    {
+        if (member == null) return null;
+        var attr = member.GetCustomAttribute<DisplayAttribute>();
+        if (attr != null) return attr.Name;
+        return member.Name.FromPascalCase();
     }
     public static string MarkupDescription(MemberInfo member)
     {
@@ -552,11 +566,12 @@ public static class Util
             }
         }
         else if (Util.AudioExtension(extension))
-            return Util.DrumGame.MapStorage.StoreExistingFile(file, beatmap, "audio");
+            return Util.DrumGame.MapStorage.StoreOrHash(file, beatmap, "audio");
         return null;
     }
 
     public static void RevealInFileExplorer(string path) => Host?.PresentFileExternally(path);
+    public static void OpenExternally(string path) => Host?.OpenFileExternally(path);
 
     public static IEnumerable<T> FindAll<T>(CompositeDrawable parent) where T : Drawable
     {
@@ -592,6 +607,30 @@ public static class Util
             }
         }
         return null;
+    }
+    // expensive
+    public static Drawable FindText(CompositeDrawable parent, string text)
+    {
+        var queue = new Queue<CompositeDrawable>();
+        queue.Enqueue(parent);
+        var prop = typeof(CompositeDrawable).GetField("internalChildren", BindingFlags.Instance | BindingFlags.NonPublic);
+        while (queue.TryDequeue(out var e))
+        {
+            var children = (SortedList<Drawable>)prop.GetValue(e);
+            for (var i = 0; i < children.Count; i++)
+            {
+                if (children[i] is IHasText t && t.Text == text) return children[i];
+                else if (children[i] is CompositeDrawable cd) queue.Enqueue(cd);
+            }
+        }
+        return null;
+    }
+    // this is giga cursed by also needed in some cases
+    public static void ResetHover(Drawable drawable)
+    {
+        typeof(Drawable).GetProperty(nameof(Drawable.IsHovered), BindingFlags.Instance | BindingFlags.Public).SetValue(drawable, false);
+        // proper way would also call this
+        // d.TriggerEvent(new HoverLostEvent(state));
     }
 
     public static T GetParent<T>(Drawable drawable)
@@ -807,11 +846,17 @@ public static class Util
     public static void ActivateCommandUpdateThread(Command command) => EnsureUpdateThread(() => CommandController.ActivateCommand(command));
 
 
-    public static T Call<T>(object instance, string name)
+    public static T Call<T>(object instance, string name, object[] parameters = null)
     {
         var t = instance.GetType();
         var method = t.GetMethod(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-        return (T)method.Invoke(instance, []);
+        return (T)method.Invoke(instance, parameters ?? []);
+    }
+    public static void Call(object instance, string name, object[] parameters = null)
+    {
+        var t = instance.GetType();
+        var method = t.GetMethod(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+        method.Invoke(instance, parameters ?? []);
     }
     public static void Set(object instance, string name, object val)
     {
@@ -862,6 +907,49 @@ public static class Util
         for (var i = 0; i < list.Count; i++)
             if (list[i] == item) return i;
         return -1;
+    }
+
+    public static string CloneName(string current, Func<string, bool> isValid)
+    {
+        if (current == null) return null;
+        var baseName = current;
+        var match = Regex.Match(current, @"^(.*?)(\d+)$");
+        if (match != null && match.Success && int.TryParse(match.Groups[2].Value, out var index))
+            baseName = match.Groups[1].Value;
+        else
+            index = 1;
+
+        while (true)
+        {
+            var newName = $"{baseName}{index}";
+            if (isValid(newName)) return newName;
+            index += 1;
+        }
+    }
+    // note, this reuses the group list
+    public static IEnumerable<(K, List<T>)> SortedGroupBy<T, K>(this IEnumerable<T> source, Func<T, K> keySelector)
+    {
+        var group = new List<T>();
+        K currentKey = default;
+        foreach (var e in source)
+        {
+            var key = keySelector(e);
+            if (group.Count == 0 || !currentKey.Equals(key))
+            {
+                if (group.Count > 0)
+                {
+                    yield return (currentKey, group);
+                    group.Clear();
+                }
+                currentKey = key;
+                group.Add(e);
+            }
+            else
+            {
+                group.Add(e);
+            }
+        }
+        if (group.Count > 0) yield return (currentKey, group);
     }
 }
 

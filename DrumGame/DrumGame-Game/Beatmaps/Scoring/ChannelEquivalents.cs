@@ -49,14 +49,33 @@ public class ChannelEquivalents : IEnumerable<(DrumChannel Input, DrumChannel Ma
 
     public bool AllowTrigger(DrumChannel input, DrumChannel map) => Map?.Contains(new Equiv(input, map)) ?? false;
 
+    public void AddDefaults(DrumChannel? channel)
+    {
+        if (channel is DrumChannel c)
+            foreach (var e in Default.Map.Where(e => e.Input == c))
+                Map.Add(e);
+        else
+            foreach (var e in Default.Map)
+                Map.Add(e);
+    }
     public void ResetToDefault() => Map = Default.Map;
+    public void ResetToDefault(DrumChannel inputChannel)
+    {
+        Map.RemoveWhere(e => e.Input == inputChannel);
+        foreach (var e in Default.Map)
+            if (e.Input == inputChannel)
+                Map.Add(e);
+    }
     public void Replace(DrumChannel input1, DrumChannel map1, DrumChannel input2, DrumChannel map2)
     {
         Map.Remove(new Equiv(input1, map1));
         Map.Add(new Equiv(input2, map2));
     }
     public void Add(DrumChannel input, DrumChannel map) => Map.Add(new Equiv(input, map));
+    public void Remove(DrumChannel input, DrumChannel map) => Map.Remove(new Equiv(input, map));
 
+    // excludes input
+    public IEnumerable<DrumChannel> EquivalentsFor(DrumChannel input) => Map.Where(e => e.Input == input).Select(e => e.Map);
     HashSet<Equiv> Map;
     public ChannelEquivalents(string config)
     {

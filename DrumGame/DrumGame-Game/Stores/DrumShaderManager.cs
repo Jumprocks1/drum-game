@@ -23,7 +23,7 @@ public class DrumShaderManager : ShaderManager
     // really laggy if shader fails since it will try to compile it over and over since it doesn't end up in the cache
     HashSet<string> FailedShaders = new();
 
-    public IShader LoadSafeOrNull(string fragmentShaderPath)
+    public IShader LoadSafeOrNull(string fragmentShaderPath, bool message = true)
     {
         try
         {
@@ -32,19 +32,19 @@ public class DrumShaderManager : ShaderManager
         }
         catch (Exception e)
         {
-            FailedShader(e, fragmentShaderPath);
+            FailedShader(e, fragmentShaderPath, message);
             return null;
         }
     }
 
-    void FailedShader(Exception e, string fragmentShaderPath)
+    void FailedShader(Exception e, string fragmentShaderPath, bool message)
     {
         FailedShaders.Add(fragmentShaderPath);
-        Util.Palette.ShowMessage("Shader compilation failed, see console");
+        if (message) Util.Palette.ShowMessage("Shader compilation failed, see console");
         Logger.Error(e, "Shader compilation failed");
     }
 
-    public IShader LoadSafe(string fragmentShaderPath)
+    public IShader LoadSafe(string fragmentShaderPath, bool message = true)
     {
         try
         {
@@ -53,7 +53,7 @@ public class DrumShaderManager : ShaderManager
         }
         catch (Exception e)
         {
-            FailedShader(e, fragmentShaderPath);
+            FailedShader(e, fragmentShaderPath, message);
             return Load(VertexShaderDescriptor.TEXTURE_2, FragmentShaderDescriptor.TEXTURE);
         }
     }

@@ -1,4 +1,5 @@
 
+using DrumGame.Game.Interfaces;
 using DrumGame.Game.Utils;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
@@ -11,12 +12,18 @@ using osuTK.Graphics;
 
 namespace DrumGame.Game.Components;
 
+public class DrumTextBoxTooltip : DrumTextBox, IHasMarkupTooltip
+{
+    public string MarkupTooltip { get; set; }
+}
+
 public class DrumTextBox : TextBox
 {
     protected virtual float CaretWidth => 2;
 
     public Color4 BackgroundFocused = DrumColors.ActiveTextBox;
     public Color4 BackgroundUnfocused = DrumColors.FieldBackground;
+    public bool SelectOnFocus;
 
     private readonly Box background;
 
@@ -36,6 +43,7 @@ public class DrumTextBox : TextBox
     }
 
     protected override void NotifyInputError() => background.FlashColour(InputErrorColour, 200);
+    public void Errored() => NotifyInputError();
 
     protected override void OnFocusLost(FocusLostEvent e)
     {
@@ -49,6 +57,8 @@ public class DrumTextBox : TextBox
     protected override void OnFocus(FocusEvent e)
     {
         base.OnFocus(e);
+        if (SelectOnFocus)
+            SelectAll();
 
         background.ClearTransforms();
         background.Colour = BackgroundUnfocused;

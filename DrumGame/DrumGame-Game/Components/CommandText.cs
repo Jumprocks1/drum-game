@@ -1,3 +1,4 @@
+using System;
 using DrumGame.Game.Commands;
 using DrumGame.Game.Interfaces;
 using DrumGame.Game.Utils;
@@ -10,6 +11,15 @@ namespace DrumGame.Game.Components;
 public class CommandText : SpriteText, IHasCommand
 {
     public Command Command { get; }
+    public Func<string> ExtraTooltip;
+    string IHasMarkupTooltip.MarkupTooltip
+    {
+        get
+        {
+            var main = IHasCommand.GetMarkupTooltip(Command);
+            return ExtraTooltip == null ? main : $"{ExtraTooltip()}\n{main}";
+        }
+    }
     Colour4? baseColor;
     public CommandText(Command command)
     {

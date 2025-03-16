@@ -34,6 +34,11 @@ public class MidiMapping : IEnumerable<(byte InputNote, DrumChannel Map)>
     {
         LoadOrder();
         Map.Remove(input1);
+        if (input1 != input2 && Map.ContainsKey(input2))
+        {
+            Order.Remove(input1);
+            return;
+        }
         var i = Order.IndexOf(input1);
         if (i >= 0) Order[i] = input2;
         Map[input2] = map2;
@@ -52,11 +57,12 @@ public class MidiMapping : IEnumerable<(byte InputNote, DrumChannel Map)>
 
     void LoadOrder()
     {
-        if (Order == null) Order = Map.Select(e => e.Key).OrderBy(e => e).ToList();
+        Order ??= Map.Select(e => e.Key).OrderBy(e => e).ToList();
     }
     Dictionary<byte, DrumChannel> Map = new();
     // temporarily overrides the default Map ordering
     List<byte> Order;
+    public int Count => Map.Count;
     public bool HasMappingOverride(byte note) => Map.ContainsKey(note);
     public DrumChannel MapNote(byte note) => Map.TryGetValue(note, out var o) ? o : DrumChannel.None;
     public MidiMapping(string config)

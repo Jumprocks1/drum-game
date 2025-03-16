@@ -61,8 +61,25 @@ public class Skin
     public Skin_HitColors HitColors = new();
     public AdjustableSkinData KeyPressOverlay;
 
+    [Description("Setting this to \"Streaming\" moves the input display off to the side so you can overlay a camera more easily.")]
+    public LayoutPreference LayoutPreference;
+
+    [JsonIgnore] public bool Streaming => LayoutPreference == LayoutPreference.Streaming;
+
+    const double DefaultCameraAspectRatio = 16d / 9;
+    [DefaultValue(DefaultCameraAspectRatio)]
+    public double StreamingCameraAspectRatio = DefaultCameraAspectRatio;
+
     public NotationSkinInfo Notation = new();
     public ManiaSkinInfo Mania = new();
+    public SkinTexture SelectorBackground = new()
+    {
+        FragmentShader = "sh_background.fs",
+        Fill = FillMode.Stretch,
+        Color = DrumColors.Blue,
+        Alpha = 0.5f,
+        NotFoundBehavior = NotFoundBehavior.Log
+    };
 
     public void LoadDefaults()
     {
@@ -111,19 +128,27 @@ public class Skin
     }
     public void LoadStores()
     {
-        if (SourceFolder != null)
-        {
-            var assetStore = new StorageBackedResourceStore(Util.Resources.Storage.GetStorageForDirectory(SourceFolder));
-            LoaderStore = Util.Host.CreateTextureLoaderStore(assetStore);
+        // if null (ie. default skin), still allow loading assets from `skins` folder
+        var sourceFolder = SourceFolder ?? "skins";
 
-            var shaderStore = new ResourceStore<byte[]>();
-            shaderStore.AddStore(new NamespacedResourceStore<byte[]>(Util.DrumGame.Resources, @"Shaders"));
-            shaderStore.AddStore(assetStore);
-            shaderStore.AddStore(Util.Resources);
+        var assetStore = new StorageBackedResourceStore(Util.Resources.Storage.GetStorageForDirectory(sourceFolder));
+        LoaderStore = Util.Host.CreateTextureLoaderStore(assetStore);
 
-            ShaderManager = new DrumShaderManager(shaderStore);
-            Util.Resources.LinearAssetTextureStore.AddTextureSource(LoaderStore);
-            Util.Resources.NearestAssetTextureStore.AddTextureSource(LoaderStore);
-        }
+        var shaderStore = new ResourceStore<byte[]>();
+        shaderStore.AddStore(new NamespacedResourceStore<byte[]>(Util.DrumGame.Resources, @"Shaders"));
+        shaderStore.AddStore(assetStore);
+        shaderStore.AddStore(Util.Resources);
+
+        ShaderManager = new DrumShaderManager(shaderStore);
+        // these should probably have higher prioity than the regular asset store
+        Util.Resources.LinearAssetTextureStore.AddTextureSource(LoaderStore);
+        Util.Resources.NearestAssetTextureStore.AddTextureSource(LoaderStore);
     }
+}
+
+
+public enum LayoutPreference
+{
+    Standard,
+    Streaming
 }

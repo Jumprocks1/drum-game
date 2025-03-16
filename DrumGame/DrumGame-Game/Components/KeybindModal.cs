@@ -37,6 +37,7 @@ public class KeybindModal : CompositeDrawable, IModal
             Util.GetParent<KeybindModal>(this)?.UpdateBindingContainer(new KeyCombo(e));
             return true;
         }
+        protected override bool OnMouseDown(MouseDownEvent e) => true;
     }
     public override bool HandleNonPositionalInput => true;
     public override bool RequestsFocus => true;
@@ -198,7 +199,7 @@ public class KeybindModal : CompositeDrawable, IModal
             y += 2;
             for (var i = 0; i < parameterTypes.Length; i++)
             {
-                var currentV = command.Parameters?[i];
+                var currentV = command.Parameters != null && command.Parameters.Length > i ? command.Parameters[i] : null;
                 Center.Add(ParameterBoxes[i] = new ParameterBox(parameterTypes[i].GetNullableType(), i, currentV)
                 {
                     Y = y,
@@ -239,6 +240,8 @@ public class KeybindModal : CompositeDrawable, IModal
                 if (fieldConfig is StringFieldConfig) fieldConfig.SetDefault(currentValue.ToString());
                 else fieldConfig.SetDefault(currentValue);
             }
+            if (fieldConfig is StringFieldConfig sfc)
+                sfc.ReleaseFocusOnCommit = true;
             fieldConfig.Tooltip = $"Parameter {i + 1} ({CommandParameters.TypeString(type)})";
             Field = fieldConfig.Render(null);
             var d = (Drawable)Field;

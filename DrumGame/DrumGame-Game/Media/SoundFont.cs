@@ -6,6 +6,7 @@ using DrumGame.Game.Beatmaps.Scoring;
 using DrumGame.Game.Channels;
 using DrumGame.Game.Components;
 using DrumGame.Game.Midi;
+using DrumGame.Game.Stores;
 using DrumGame.Game.Utils;
 using ManagedBass;
 using ManagedBass.Midi;
@@ -17,7 +18,7 @@ using BassFlags = OriginalManagedBass::ManagedBass.BassFlags;
 
 namespace DrumGame.Game.Media;
 
-public class SoundFont : ISampleHandler, IDisposable
+public class SoundFont : ISampleHandler, IDisposable, ISampleHandlerMixDelay
 {
     public bool BassNative => true;
     bool loaded = false;
@@ -31,7 +32,8 @@ public class SoundFont : ISampleHandler, IDisposable
     {
         Bass.ChannelSetAttribute(midiStream, ChannelAttribute.Volume,
             VolumeController.SampleVolume.ComputedValue * VolumeController.HitVolume.ComputedValue
-            * VolumeController.MasterVolume.ComputedValue);
+            * VolumeController.MasterVolume.ComputedValue
+            * Util.ConfigManager.SoundfontVolume.Value);
     }
 
     public double Latency { get; set; } = 40;
@@ -67,6 +69,7 @@ public class SoundFont : ISampleHandler, IDisposable
                 VolumeController.SampleVolume.ComputedValueChanged += VolumeChanged;
                 VolumeController.HitVolume.ComputedValueChanged += VolumeChanged;
                 VolumeController.MasterVolume.ComputedValueChanged += VolumeChanged;
+                Util.ConfigManager.SoundfontVolume.ValueChanged += _ => VolumeChanged(0);
                 VolumeChanged(0);
 
                 ManagedBass.Mix.BassMix.MixerAddChannel(Util.TrackMixerHandle, midiStream, 0);
@@ -79,7 +82,8 @@ public class SoundFont : ISampleHandler, IDisposable
 
     public int Handle => midiStream;
 
-    public void Play(DrumChannelEvent e)
+    public void Play(DrumChannelEvent e) => Play(e, 0);
+    public void Play(DrumChannelEvent e, double delay)
     {
         // Debug.Assert(ThreadSafety.IsAudioThread);
         if (!disposed)
@@ -92,12 +96,28 @@ public class SoundFont : ISampleHandler, IDisposable
             }
             else
             {
-                var midiNote = e.Channel.MidiNote();
+                var velocity = !e.MIDI || Util.ConfigManager.Get<bool>(DrumGameSetting.SoundfontUseMidiVelocity) ? e.Velocity : (byte)92;
+
+                var midiNote = e.MidiNote;
                 if (!loaded) // if we aren't loaded, this definitely won't work, so we can try to delay it
                     Util.DrumGame.AudioThread.Scheduler.Add(() =>
-                        BassMidi.StreamEvent(midiStream, 0, MidiEventType.Note, BitHelper.MakeWord(midiNote, e.Velocity)));
+                        BassMidi.StreamEvent(midiStream, 0, MidiEventType.Note, BitHelper.MakeWord(midiNote, velocity)));
                 else
-                    BassMidi.StreamEvent(midiStream, 0, MidiEventType.Note, BitHelper.MakeWord(midiNote, e.Velocity));
+                {
+                    if (delay > 0)
+                    {
+                        var midiDelay = Bass.ChannelSeconds2Bytes(midiStream, delay);
+                        BassMidi.StreamEvents(midiStream, MidiEventsMode.Time, [
+                            new MidiEvent {
+                                EventType = MidiEventType.Note,
+                                Parameter = BitHelper.MakeWord(midiNote, velocity),
+                                Position = (int)midiDelay
+                            }
+                        ], 0);
+                    }
+                    else
+                        BassMidi.StreamEvent(midiStream, 0, MidiEventType.Note, BitHelper.MakeWord(midiNote, velocity));
+                }
             }
         }
     }

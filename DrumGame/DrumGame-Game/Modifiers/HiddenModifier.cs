@@ -1,5 +1,6 @@
 using DrumGame.Game.Beatmaps;
 using DrumGame.Game.Beatmaps.Display;
+using DrumGame.Game.Modals;
 using DrumGame.Game.Utils;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
@@ -16,12 +17,41 @@ public class HiddenModifier : BeatmapModifier
     public override bool AllowSaving => true;
 
     public override string MarkupDescription => "Causes notes to fade out as they get closer to the song cursor.\n" +
-        $"Notes within {HiddenBeats} beats are entirely hidden.";
+        $"Notes within {HiddenBeats} beats are entirely hidden.\n" +
+        $"Notes fade out over {FadeBeats} beats.";
 
-    const float HiddenBeats = 3; // how much to hide 100% past the cursor
-    const float FadeBeats = 2; // width of fade
+    float HiddenBeats = 3;
+    float FadeBeats = 2;
 
     public const float StartPosition = -4; // start a little early just in case. Had issue with ghost notes popping out to the left
+
+    public override void Configure() => Util.Palette.Request(new RequestConfig
+    {
+        Title = $"Configuring {FullName} Modifier",
+        Fields = [
+            new FloatFieldConfig {
+                Label = "Hidden beats",
+                MarkupTooltip = "How many beats are completely hidden in front of the cursor.",
+                RefN = () => ref HiddenBeats
+            },
+            new FloatFieldConfig {
+                Label = "Fade beats",
+                MarkupTooltip = "How many beats are partially hidden.",
+                RefN = () => ref FadeBeats
+            }
+        ],
+        // triggering this will update the mod display
+        // main thing that changes is the color of the configure button
+        OnCommit = _ => TriggerChanged()
+    });
+    protected override string SerializeData() => $"{HiddenBeats},{FadeBeats}";
+    public override void ApplyData(string data)
+    {
+        var spl = data.Split(',', 2);
+        HiddenBeats = float.Parse(spl[0]);
+        FadeBeats = float.Parse(spl[1]);
+    }
+
 
     protected override void ModifyInternal(BeatmapPlayer player)
     {

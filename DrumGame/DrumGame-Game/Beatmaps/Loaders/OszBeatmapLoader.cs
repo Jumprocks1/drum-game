@@ -25,7 +25,7 @@ public static class OszBeatmapLoader
         o.Artist = osu.Metadata.Artist;
         o.Mapper = osu.Metadata.Creator;
         o.Title = osu.Metadata.Title;
-        o.Difficulty = "Normal";
+        o.Difficulty = BeatmapDifficulty.Normal;
         o.DifficultyName = osu.Metadata.Version;
         o.Tags = "osu-import";
 

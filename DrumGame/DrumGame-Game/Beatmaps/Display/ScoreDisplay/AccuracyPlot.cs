@@ -12,7 +12,7 @@ namespace DrumGame.Game.Beatmaps.Display.ScoreDisplay;
 
 public class AccuracyPlot : CompositeDrawable
 {
-    public AccuracyPlot(ReplayInfo replayInfo, ReplayResults results)
+    public AccuracyPlot(HitWindows hitWindows, ReplayInfo replayInfo, ReplayResults results)
     {
         AutoSizeAxes = Axes.Both;
 
@@ -38,8 +38,8 @@ public class AccuracyPlot : CompositeDrawable
 
                 var absMs = Math.Abs(ms);
 
-                var rating = BeatmapScorer.HitWindows.GetRating(absMs);
-                var color = BeatmapScorer.HitWindows.GetColor(rating);
+                var rating = hitWindows.GetRating(absMs);
+                var color = hitWindows.GetColor(rating);
 
                 var coloredMs = MarkupText.Color(absMs.ToString(), color) + "ms";
 
@@ -60,7 +60,6 @@ public class AccuracyPlot : CompositeDrawable
             Y = 30
         };
         var accuracyTotal = replayInfo.AccuracyTotal;
-        var hitWindows = new HitWindows();
         var min = 100.0;
         var max = 0.0;
         for (var i = 0; i < count; i++)

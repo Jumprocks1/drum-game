@@ -29,6 +29,8 @@ public class ManiaJudgementInfo
         public float Y = 0.05f;
         [Description("Duration in milliseconds that the error numbers will be displayed for.")]
         public float Duration = 1000;
+        [Description("Duration in milliseconds for a window where the error numbers will not be displayed.")]
+        public float HideWindow = HitWindows.DefaultPerfectWindow;
         public Colour4 FastColor = DrumColors.BrightCyan;
         public Colour4 SlowColor = DrumColors.BrightRed;
     }

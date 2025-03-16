@@ -169,7 +169,8 @@ public partial class BeatmapEditor
                 return true;
             return AffectedRange.FromSelection(selection, Beatmap);
         }
-        PushChange(new NoteBeatmapChange(doChange, ""));
+        if (hits.Count > 0)
+            PushChange(new NoteBeatmapChange(doChange, ""));
     }
 }
 

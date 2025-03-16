@@ -24,6 +24,7 @@ public enum MusicGlyph : ushort
     articAccentAbove = 0xE4A0,
     articAccentBelow = 0xE4A1,
     noteheadParenthesis = 0xE0CE,
+    noteheadCircleSlash = 0xE0F7 // half open hh
 }
 
 public static class MusicGlyphExtensions

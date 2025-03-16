@@ -44,7 +44,7 @@ public class BeatmapPlayerInputHandler : IDisposable
 
         Drumset = Util.DrumGame.Drumset.Value;
 
-        DrumMidiHandler.AddNoteHandler(InputHandler.OnMidiNote, true);
+        DrumMidiHandler.AddNoteHandler(InputHandler.OnMidiNote, true, true);
         DrumMidiHandler.AddAuxHandler(OnMidiAux);
     }
 
@@ -64,7 +64,7 @@ public class BeatmapPlayerInputHandler : IDisposable
     public void Dispose()
     {
         OnTrigger = null;
-        DrumMidiHandler.RemoveNoteHandler(InputHandler.OnMidiNote, true);
+        DrumMidiHandler.RemoveNoteHandler(InputHandler.OnMidiNote);
         InputHandler.Dispose();
         InputHandler = null;
         DrumMidiHandler.RemoveAuxHandler(OnMidiAux);
@@ -97,8 +97,8 @@ public class BeatmapPlayerInputHandler : IDisposable
             }
         }
         // don't want to play hit sample if the user already had samples via their MIDI device
-        // we do want to play samples if it was hit with a keyboard  or inside a replay
-        if (!ev.MIDI && playAudio) Drumset.Play(ev);
+        // we do want to play samples if it was hit with a keyboard or inside a replay
+        if ((!ev.MIDI || Util.ConfigManager.PlaySamplesFromMidi.Value) && playAudio) Drumset.Play(ev);
         OnTrigger?.Invoke(ev);
     }
     public void TriggerEventDelayed(DrumChannelEvent ev)

@@ -88,6 +88,8 @@ public class BeatmapSelectorLoader : CompositeDrawable
     BeatmapScene scene;
     public BeatmapSelectorLoader()
     {
+        Util.SelectorLoader = this;
+        SelectorState.LoadModsFromConfig();
         RelativeSizeAxes = Axes.Both;
     }
 
@@ -121,6 +123,8 @@ public class BeatmapSelectorLoader : CompositeDrawable
         return false;
     }
     [CommandHandler] public bool Close(CommandContext _) => CloseWithoutSaving(_);
+
+    public Beatmap CurrentBeatmap => scene?.Player?.Beatmap;
 
     public BeatmapPlayer LoadMap(Beatmap beatmap)
     {

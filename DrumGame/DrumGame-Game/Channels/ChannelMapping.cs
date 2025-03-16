@@ -1,4 +1,6 @@
+using DrumGame.Game.Commands;
 using DrumGame.Game.Input;
+using DrumGame.Game.Interfaces;
 using DrumGame.Game.Utils;
 using osu.Framework.Input;
 using MidiInputKey = osu.Framework.Input.Bindings.InputKey;
@@ -19,6 +21,7 @@ public static class ChannelMapping
 
     static MidiMapping CustomMapping => Util.ConfigManager.MidiMapping.Value;
 
+    // this obeys the user's settings
     public static DrumChannel MidiMapping(byte note)
     {
         var dc = CustomMapping.MapNote(note);
@@ -27,10 +30,7 @@ public static class ChannelMapping
     }
 
     // TD 27 default mapping https://rolandus.zendesk.com/hc/en-us/articles/4407474950811-TD-27-Default-MIDI-Note-Map
-    // we should allow custom mapping here
-    // would basically be a Func<int, DrumChannel> that defaults to this current method
-    // see example at https://docs.microsoft.com/en-us/dotnet/api/system.linq.expressions.expression.switch?view=net-6.0
-    // switch default would be the standard mapping
+    // this should ignore any user overrides
     public static DrumChannel StandardMidiMapping(int midiChannel) => midiChannel switch
     {
         35 => DrumChannel.BassDrum,
@@ -105,6 +105,20 @@ public static class ChannelMapping
         DrumChannel.China or DrumChannel.Crash or DrumChannel.Ride
             or DrumChannel.OpenHiHat or DrumChannel.ClosedHiHat => true,
         _ => false
+    };
+
+    // this could be done with attributes, but then it wouldn't be able to change dynamically
+    public static string MarkupDescription(this DrumChannel channel) => channel switch
+    {
+        DrumChannel.SideStick => $"Represents hitting the snare rim while the butt of the stick is pressed into the head.\nOnly needs to be bound if your module has separate MIDI values for snare head/rim/sidestick.",
+        DrumChannel.Metronome => $"Used for metronome events, should not be bound.",
+        DrumChannel.PracticeMetronome => $"Used for the practice metronome, should not be bound.",
+        DrumChannel.Rim => $"Rim of any drum. Typically bound to snare rim if your module supports it.",
+        DrumChannel.HalfOpenHiHat => $"A half-open hi-hat hit is triggered when hitting the hi-hat while the MIDI hi-hat control value is between {Util.ConfigManager.HiHatRange.Value.Item1} and {Util.ConfigManager.HiHatRange.Value.Item2}."
+            + "\nYou can configure the control range in the game settings."
+            + $"\nTo see the range of control values your drum module outputs, use {IHasCommand.GetMarkupTooltipIgnoreUnbound(Command.MidiMonitor)}."
+            + "\n\nTo group all hi-hat inputs, bind MIDI inputs to the half-open channel and set closed and open as equivalents for half-open.",
+        _ => null
     };
 }
 

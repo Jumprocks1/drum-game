@@ -13,6 +13,7 @@ public class BoolFieldConfig : FieldConfigBase<bool>
     }
     public override IDrawableField<bool> Render(RequestModal modal) => new Field(this);
 
+    // TODO tooltip should show up when hovering label
     class Field : DrumCheckbox, IDrawableField<bool>, IHasCustomTooltip
     {
         public FieldConfigBase Config { get; }

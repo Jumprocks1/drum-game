@@ -7,7 +7,10 @@ using DrumGame.Game.Skinning;
 using DrumGame.Game.Utils;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Sprites;
+using osuTK;
 
 namespace DrumGame.Game.Beatmaps.Display;
 
@@ -48,14 +51,27 @@ public class SongInfoPanel : AdjustableSkinElement, IHasCommandInfo
         Mania = mania;
         InitializeSkinData();
         Beatmap = beatmap;
-        AddInternal(Title = new() { Colour = FontColor });
-        AddInternal(Artist = new() { Colour = FontColor });
+        SpriteText newText(Colour4 color) => new() { Colour = color };
+        // shadow looks awful for light theme, not sure how to fix
+        var drawShadow = DrumColors.ContrastText(FontColor) == Colour4.Black;
+        if (drawShadow)
+        {
+            // we have to create new texts instead of using `DrawOriginal` since DrawOriginal looks really bad
+            var effect = new BlurEffect { Sigma = new Vector2(3), Strength = 3, PadExtent = true };
+            var shadowColor = DrumColors.ContrastText(FontColor);
+            AddInternal(TitleShadow = newText(shadowColor).WithEffect(effect));
+            AddInternal(ArtistShadow = newText(shadowColor).WithEffect(effect));
+        }
+        AddInternal(Title = newText(FontColor));
+        AddInternal(Artist = newText(FontColor));
         AddInternal(Image = new());
         SkinManager.RegisterTarget(SkinAnchorTarget.SongInfoPanel, this);
     }
 
     SpriteText Title;
+    BufferedContainer TitleShadow;
     SpriteText Artist;
+    BufferedContainer ArtistShadow;
     Sprite Image;
 
     public override void LayoutChanged() => UpdateData();
@@ -65,6 +81,7 @@ public class SongInfoPanel : AdjustableSkinElement, IHasCommandInfo
         SkinManager.UnregisterTarget(SkinAnchorTarget.SongInfoPanel);
         base.Dispose(isDisposing);
     }
+    static FontUsage Font(float height) => FrameworkFont.Regular.With(size: height);
 
     public void UpdateData()
     {
@@ -121,16 +138,32 @@ public class SongInfoPanel : AdjustableSkinElement, IHasCommandInfo
         // we don't divide by 44 since we want the text to be a bit smaller (so it's not so wide)
         // eventually we should add auto scaling text which crunches really long text
         Title.Text = Beatmap.Title;
-        Title.Font = FrameworkFont.Regular.With(size: titleHeight);
+        Title.Font = Font(titleHeight);
         Title.X = x;
         Title.Y = y;
+        if (TitleShadow != null)
+        {
+            var shadowText = (SpriteText)TitleShadow.Child;
+            shadowText.Text = Beatmap.Title;
+            shadowText.Font = Title.Font;
+            TitleShadow.X = x - TitleShadow.Padding.Left;
+            TitleShadow.Y = y - TitleShadow.Padding.Top;
+        }
         y += titleHeight + yUnit;
 
         var artistIndent = Layout == ElementLayout.Vertical ? 0f : 8f;
         Artist.Text = Beatmap.Artist;
-        Artist.Font = FrameworkFont.Regular.With(size: artistHeight);
+        Artist.Font = Artist.Font;
         Artist.X = x + artistIndent;
         Artist.Y = y;
+        if (ArtistShadow != null)
+        {
+            var shadowText = (SpriteText)ArtistShadow.Child;
+            shadowText.Text = Beatmap.Artist;
+            shadowText.Font = Artist.Font;
+            ArtistShadow.X = x + artistIndent - ArtistShadow.Padding.Left;
+            ArtistShadow.Y = y - ArtistShadow.Padding.Top;
+        }
         y += artistHeight;
 
         x += Math.Max(Title.Width, Artist.Width + artistIndent) + 5;

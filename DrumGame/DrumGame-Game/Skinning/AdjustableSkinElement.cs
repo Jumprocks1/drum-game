@@ -9,6 +9,8 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Reflection;
 using System.Collections.Generic;
+using osu.Framework.Allocation;
+using DrumGame.Game.Containers;
 
 namespace DrumGame.Game.Skinning;
 
@@ -19,20 +21,21 @@ public enum ElementLayout
     Vertical
 }
 
-public enum SkinAnchorTarget
+public static class SkinAnchorTarget
 {
-    Parent,
-    ModeText,
-    LaneContainer,
-    PositionIndicator,
-    SongInfoPanel,
-    Video
+    public const string Parent = null;
+    public const string ModeText = "ModeText";
+    public const string LaneContainer = "LaneContainer";
+    public const string PositionIndicator = "PositionIndicator";
+    public const string SongInfoPanel = "SongInfoPanel";
+    public const string CameraPlaceholder = "CameraPlaceholder";
+    public const string Video = "Video";
 }
 
 public class AdjustableSkinData // this should be serialized to the skin
 {
     public ElementLayout Layout;
-    public SkinAnchorTarget AnchorTarget;
+    public string AnchorTarget;
 
     // typically Anchor/Origin should be the same
     public Anchor Anchor
@@ -82,6 +85,11 @@ public class AdjustableSkinData // this should be serialized to the skin
     public Vector2 RelativePosition; // setting this will require Anchor to be custom
     public bool ShouldSerializeRelativePosition() => Anchor == Anchor.Custom;
 
+    public float Depth;
+    public FillMode FillMode;
+    [DefaultValue(1f)]
+    public float FillAspectRatio = 1;
+
     public AdjustableSkinData LoadDefaults()
     {
         if (Origin == default)
@@ -128,7 +136,7 @@ public class AdjustableSkinData // this should be serialized to the skin
         Origin = origin;
         AbsolutePosition += currentTopLeft - TopLeft(self);
     }
-    public void ChangeTarget(SkinAnchorTarget target, AdjustableSkinElement self)
+    public void ChangeTarget(string target, AdjustableSkinElement self)
     {
         var currentTopLeft = TopLeft(self);
         AnchorTarget = target;
@@ -138,7 +146,7 @@ public class AdjustableSkinData // this should be serialized to the skin
     public void ChangeAnchor(Anchor anchor, AdjustableSkinElement self)
     {
         var currentTopLeft = TopLeft(self);
-        if (AnchorTarget == SkinAnchorTarget.Parent && Origin == Anchor)
+        if (AnchorTarget == null && Origin == Anchor)
             Origin = anchor;
         Anchor = anchor;
         AbsolutePosition += currentTopLeft - TopLeft(self);
@@ -151,10 +159,9 @@ public class AdjustableSkinData // this should be serialized to the skin
         var scaledRelativeOffset = RelativePosition * s;
         if (self.AnchorTarget != null)
             scaledRelativeOffset += parent.ToLocalSpace(self.AnchorTarget.ScreenSpaceDrawQuad.TopLeft);
-
         return AbsolutePosition
             + scaledRelativeOffset
-            - AnchorToRelative(Origin) * self.DrawSize;
+            - AnchorToRelative(Origin) * self.DrawSize * self.Scale;
     }
 
     public static Vector2 AnchorToRelative(Anchor anchor)
@@ -195,6 +202,10 @@ public abstract class AdjustableSkinElement : CompositeDrawable
     public abstract Expression<Func<Skin, AdjustableSkinData>> SkinPathExpression { get; }
     protected static Skin Skin => Util.Skin;
 
+    public virtual string OverlayTooltip => null;
+
+    public virtual void ModifyOverlayContextMenu(ContextMenuBuilder<AdjustableSkinElement> menu) { }
+
     public virtual ElementLayout[] AvailableLayouts => null;
 
     public AdjustableSkinData SkinData;
@@ -208,6 +219,17 @@ public abstract class AdjustableSkinElement : CompositeDrawable
         LayoutChanged();
         ApplySkinData(writeToSkin: false);
     }
+    public void ReloadFromSkin()
+    {
+        var diskSkin = SkinManager.ParseSkin(SkinManager.CurrentSkin);
+        if (diskSkin != null)
+        {
+            SkinPathExpression.Set(SkinPathExpression.Get(diskSkin));
+            SkinData = SkinPathExpression.GetOrDefault() ?? DefaultData().LoadDefaults();
+            LayoutChanged();
+            ApplySkinData(writeToSkin: false);
+        }
+    }
 
     public void UpdateAnchorPosition()
     {
@@ -215,22 +237,35 @@ public abstract class AdjustableSkinElement : CompositeDrawable
         Position = AnchorTarget.ToSpaceOfOtherDrawable(
                 new Vector2(SkinData.X + SkinData.RelativePosition.X * AnchorTarget.DrawSize.X,
                     SkinData.Y + +SkinData.RelativePosition.Y * AnchorTarget.DrawSize.Y), Parent);
-        cachedTargetInfo = AnchorTarget.DrawInfo.Matrix;
+
+        // TODO fill mode isn't supported since RelativeSizeAxes won't be set to both
+        // we need to add that math here
+        if (SkinData.RelativeSizeAxes.HasFlag(Axes.X))
+            Width = SkinData.Width * AnchorTarget.DrawSize.X;
+        if (SkinData.RelativeSizeAxes.HasFlag(Axes.Y))
+            Height = SkinData.Height * AnchorTarget.DrawSize.Y;
+
+        lastInvalidate = AnchorTarget.InvalidationID;
     }
-    Matrix3 cachedTargetInfo; // awful since it's struct
+    long lastInvalidate;
+    bool targetAttempted;
     protected override void Update()
     {
+        // sometimes target isn't found at first
+        if (SkinData.AnchorTarget != null && AnchorTarget == null && !targetAttempted)
+        {
+            targetAttempted = true;
+            ApplyTarget();
+        }
         if (AnchorTarget == null) return;
-        // this is still kinda expensive
-        // this doesn't update when size changes
-        // I'm okay having ~100 of these
-        if (!AnchorTarget.DrawInfo.Matrix.Equals(cachedTargetInfo))
+        if (lastInvalidate != AnchorTarget.InvalidationID)
             UpdateAnchorPosition();
         base.Update();
     }
 
     public abstract AdjustableSkinData DefaultData();
     // skip init is for when DefaultData and/or SkinPath aren't valid until the parent constructor runs
+    // in those cases, it should be called by the subclass constructor
     public AdjustableSkinElement(bool skipInit = false)
     {
         SkinManager.RegisterElement(this);
@@ -245,7 +280,7 @@ public abstract class AdjustableSkinElement : CompositeDrawable
 
     // this registers everything we need, but only while alt is pressed
     public SkinElementOverlay Overlay;
-    public void ShowOverlay()
+    public virtual void ShowOverlay()
     {
         if (Overlay != null)
         {
@@ -254,9 +289,9 @@ public abstract class AdjustableSkinElement : CompositeDrawable
         }
         AddInternal(Overlay = new(this));
     }
-    public void HideOverlay()
+    public virtual void HideOverlay()
     {
-        if (Overlay.Locked) Overlay.ShouldHide = true;
+        if (Overlay.LockCount > 0) Overlay.ShouldHide = true;
         else
         {
             RemoveInternal(Overlay, true);
@@ -270,6 +305,8 @@ public abstract class AdjustableSkinElement : CompositeDrawable
     public void ApplyTarget()
     {
         AnchorTarget = SkinManager.GetTarget(SkinData.AnchorTarget);
+        if (AnchorTarget != null)
+            Anchor = Anchor.TopLeft;
     }
     // only time we don't write to skin are on initialize and on reset
     // we don't write on initialize since nothing has actually changed yet
@@ -281,26 +318,42 @@ public abstract class AdjustableSkinElement : CompositeDrawable
         ApplyTarget();
         if (AnchorTarget == null)
         {
+            RelativeSizeAxes = SkinData.RelativeSizeAxes;
             RelativeAnchorPosition = SkinData.RelativePosition;
             X = SkinData.X;
             Y = SkinData.Y;
+            // in most cases, Width and Height should already be set by the layout updater
+            if (SkinData.Width != default)
+                Width = SkinData.Width;
+            if (SkinData.Height != default)
+                Height = SkinData.Height;
         }
         else
         {
-            Anchor = Anchor.TopLeft;
+            RelativeSizeAxes = Axes.None;
             // can throw exception during initial
             if (!initial) UpdateAnchorPosition();
+
+            // relative axis sizes are handled in UpdateAnchorPosition
+            if (SkinData.Width != default && !SkinData.RelativeSizeAxes.HasFlag(Axes.X))
+                Width = SkinData.Width;
+            if (SkinData.Height != default && !SkinData.RelativeSizeAxes.HasFlag(Axes.Y))
+                Height = SkinData.Height;
         }
         Origin = SkinData.Origin;
         Scale = new Vector2(SkinData.Scale);
-        RelativeSizeAxes = SkinData.RelativeSizeAxes;
+        if (SkinData.Depth != Depth)
+        {
+            if (initial)
+                Depth = SkinData.Depth;
+            else if (Parent != null)
+                // this should be called only very rarely
+                Util.Call(Parent, nameof(ChangeInternalChildDepth), [this, SkinData.Depth]);
+        }
+        FillMode = SkinData.FillMode;
+        FillAspectRatio = SkinData.FillAspectRatio;
         Rotation = SkinData.Rotation;
         Alpha = SkinData.Hide ? 0 : 1;
-        // in most cases, Width and Height should already be set by the layout updater
-        if (SkinData.Width != default)
-            Width = SkinData.Width;
-        if (SkinData.Height != default)
-            Height = SkinData.Height;
         Overlay?.ApplySkinData();
     }
 
@@ -308,5 +361,21 @@ public abstract class AdjustableSkinElement : CompositeDrawable
     {
         SkinManager.UnregisterElement(this);
         base.Dispose(isDisposing);
+    }
+
+    // DrawPosition assuming our SkinData.Position = Vector2.Zero
+    public Vector2 TargetAnchorPosition()
+    {
+        var offset = Vector2.Zero;
+        if (Parent != null && RelativePositionAxes != Axes.None)
+        {
+            offset = Parent.RelativeChildOffset;
+            if (!RelativePositionAxes.HasFlag(Axes.X))
+                offset.X = 0;
+            if (!RelativePositionAxes.HasFlag(Axes.Y))
+                offset.Y = 0;
+        }
+        var pos = AnchorTarget?.ToSpaceOfOtherDrawable(SkinData.RelativePosition * AnchorTarget.DrawSize, Parent) ?? Vector2.Zero;
+        return ApplyRelativeAxes(RelativePositionAxes, pos - offset, FillMode.Stretch);
     }
 }

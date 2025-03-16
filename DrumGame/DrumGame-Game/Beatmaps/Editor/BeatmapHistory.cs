@@ -94,9 +94,10 @@ public partial class BeatmapEditor
         if (compositeTarget != null) return null;
         compositeTarget = new CompositeTarget(() =>
         {
-            var change = new CompositeHistoryChange(description, compositeTarget.Changes.ToArray());
+            var changes = compositeTarget.Changes;
             compositeTarget = null;
-            PushChange(change, false);
+            if (changes.Count > 0)
+                PushChange(new CompositeHistoryChange(description, changes.ToArray()), false);
         });
         return compositeTarget;
     }

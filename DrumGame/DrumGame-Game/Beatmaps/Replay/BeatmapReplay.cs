@@ -25,12 +25,28 @@ public class BeatmapReplay : IBeatEventHandler
     public string Video;
     public double VideoOffset;
     [JsonIgnore]
-    public double Length => Events.Count == 0 ? 0 : Events[Events.Count - 1].Time; // ms
+    public double Length => Events.Count == 0 ? 0 : Events[^1].Time; // ms
     public int Version { get; set; } = 2; // only used loosely, not intended to be perfect
 
     public BeatmapReplay(IEnumerable<IReplayEvent> events)
     {
         Events = events.OrderBy(e => e.Time).ToList();
+    }
+
+    // there are a lot of fields that are set to JsonIgnore
+    // the full proper way to do this would be to serialize and deserialize, but that seems expensive
+    public void PrepareForCacheStorage()
+    {
+        foreach (var e in Events)
+        {
+            if (e is DrumChannelEvent ev)
+            {
+                ev.TimeVersion = 0;
+                ev.HitObject = null;
+                ev.CurrentBeatmap = null;
+                ev.MIDI = false;
+            }
+        }
     }
 
     public BeatmapReplay() { } // for JSON deserializer

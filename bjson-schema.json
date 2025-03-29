@@ -81,6 +81,9 @@
             },
             "pan": {
               "type": "number"
+            },
+            "chokeDelay": {
+              "type": "number"
             }
           }
         }

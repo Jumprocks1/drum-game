@@ -50,11 +50,15 @@ public class PreviewLoader : Component
     {
         lock (quickLock)
         {
+            if (beatmap == null || previewTarget == null)
+            {
+                // if new target or current target are null, we can safely set new target to null
+                SetTarget(null);
+                return;
+            }
             // don't clear target if paths match
-            if (beatmap == null || previewTarget == null ||
-                // unfortunately this check doesn't work for DTX files with preview tracks
-                // since this uses BeatmapSelectorMap, we don't have access to the PreviewAudio field
-                previewTarget.AudioPath != beatmap.FullAssetPath(beatmap.LoadedMetadata.Audio))
+            var metadata = beatmap.LoadedMetadata;
+            if (previewTarget.AudioPath != beatmap.FullAssetPath(metadata.PreviewAudio ?? metadata.Audio))
                 SetTarget(null);
         }
     }
@@ -103,7 +107,8 @@ public class PreviewLoader : Component
             if (!force)
             {
                 if (newTarget == previewTarget) return;
-                if (previewTarget != null && newTarget != null && previewTarget.AudioPath == newTarget.AudioPath) return; // don't change if same audio path
+                // don't change if same audio path
+                if (previewTarget != null && newTarget != null && previewTarget.AudioPath == newTarget.AudioPath) return;
             }
             previewTarget = newTarget;
             TargetChanged();

@@ -14,10 +14,18 @@ namespace DrumGame.Game.Commands;
 
 public delegate bool CommandHandlerWithContext(CommandContext context);
 public delegate void CommandHandlerSimple();
+
+// this contains all parameter info for a single command
+// could consider restructuring this so that there was a class for a single parameter,
+//   then this class would basically be a list of those new classes
 public class ParameterInfo
 {
     public Type[] Types;
     public Func<Command, object[], string> GetName;
+    public string[] ParameterNames;
+    public string[] ParameterTooltips;
+    public string ParameterName(int i) => ParameterNames?[i];
+    public string ParameterTooltip(int i) => ParameterTooltips?[i];
     public ParameterInfo(Type[] types)
     {
         Types = types;
@@ -27,6 +35,8 @@ public class CommandController
 {
     public CommandPaletteContainer Palette;
     // the 3 arrays below here are expected to be indexed with a Command enum
+    // parameter info is it's own array since they apply to all CommandInfo's of a specific Command
+    // could consider merging these 3 arrays into a new type
     public readonly ParameterInfo[] ParameterInfo;
     // Default commands represent the commands with no parameters (users will have to fill in parameters)
     public readonly CommandInfo[] DefaultCommandInfos;
@@ -63,6 +73,7 @@ public class CommandController
         CommandList.RegisterCommands(this);
     }
     public ParameterInfo SetParameterInfo(Command command, params Type[] types) => ParameterInfo[(int)command] = new ParameterInfo(types);
+    public ParameterInfo SetParameterInfo(Command command, ParameterInfo info) => ParameterInfo[(int)command] = info;
     public CommandInfo RegisterCommand(Command command, string name = null, params KeyCombo[] keys)
     {
         var c = new CommandInfo(command, name ?? command.ToString().FromPascalCase(), keys);

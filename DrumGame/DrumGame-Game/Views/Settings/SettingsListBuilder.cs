@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Numerics;
 using DrumGame.Game.Commands;
+using DrumGame.Game.Components.Basic;
 using DrumGame.Game.Modals;
 using DrumGame.Game.Skinning;
 using DrumGame.Game.Utils;
@@ -39,13 +40,20 @@ public class SettingsListBuilder
         });
         return this;
     }
-    static void OpenSubmenu(string title, Action<SettingsListBuilder> build)
+    public static RequestModal OpenSettingsMenu(string title, Action<SettingsListBuilder> builder, string description = null) => OpenSubmenu(title, builder, description);
+    static RequestModal OpenSubmenu(string title, Action<SettingsListBuilder> build, string description = null)
     {
         var modal = Util.Palette.Request(new RequestConfig
         {
             Title = title,
-            CommitText = null
+            CommitText = null,
+            MarkupDescription = description
         });
+        var scrollContainer = new DrumScrollContainer
+        {
+            RelativeSizeAxes = Axes.X,
+        };
+        modal.Add(scrollContainer);
         var subBuilder = new SettingsListBuilder();
         build(subBuilder);
         var subSettings = subBuilder.settings;
@@ -59,10 +67,12 @@ public class SettingsListBuilder
                 Y = y,
                 Depth = depth++
             };
-            modal.Add(control);
+            scrollContainer.Add(control);
             y += control.Height;
             even = !even;
         }
+        scrollContainer.Height = Math.Min(y, 700);
+        return modal;
     }
     public SettingsListBuilder AdvancedMenu(string title, Action<SettingsListBuilder> build, IconUsage? icon = null)
         => AddIconButton(() => OpenSubmenu(title, build), icon ?? FontAwesome.Solid.Cog, $"<command>Open {title}</>");

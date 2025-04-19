@@ -69,7 +69,7 @@ public class MarkupText : TextFlowContainer, IHasText
     {
         if (invalid)
         {
-            if (Children.Count > 0) Clear();
+            if (Flow.Children.Count > 0) Clear();
             AddData(_data);
             invalid = false;
         }

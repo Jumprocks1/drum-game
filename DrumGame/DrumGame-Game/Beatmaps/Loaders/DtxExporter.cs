@@ -65,7 +65,11 @@ public class DtxExporter
         public WavChipKey Key;
         public void WriteTo(DtxWriter writer)
         {
-            writer.WriteLine($"#WAV{Id}: {Filename}");
+            if (string.IsNullOrWhiteSpace(Preset?.Name))
+                writer.WriteLine($"#WAV{Id}: {Filename}");
+            else
+                // don't think the \t is necessary, but this is how most others write comments
+                writer.WriteLine($"#WAV{Id}: {Filename}\t;{Preset.Name}");
             // if velocity goes over 127, we could apply the overflow  to the volume
             var outputVolume = Math.Round(Math.Clamp(Volume, 0, 100));
 
@@ -358,8 +362,6 @@ public class DtxExporter
         {
             // this upgrades accented crashes to turn into L+R crash and china
             // we don't normally do this in drum game because the notes would overlap
-            // TODO this probably has a bug where if we don't use the China at all,
-            //    there will be no wav sample for it later
             if (ho.Channel == DrumChannel.Crash && ho.Modifiers == NoteModifiers.Accented)
             {
                 var noMod = ho.With(NoteModifiers.None);
@@ -562,11 +564,14 @@ public class DtxExporter
 
         var midi = key.Channel.MidiNote();
         var computedVelocity = key.ComputedVelocity;
+        var filename = $"{key.Channel}_{midi}_{computedVelocity}";
+        if (key.Preset?.ChokeDelay is double choke)
+            filename += $"_c{choke.ToString(CultureInfo.InvariantCulture).Replace('.', '-')}";
         var chip = new WavChip
         {
             Id = base36(Samples.Count + 1),
             Note = midi,
-            Filename = $"{key.Channel}_{midi}_{computedVelocity}.ogg",
+            Filename = $"{filename}.ogg",
             Key = key
         };
         Samples.Add(chip);
@@ -724,7 +729,7 @@ public class DtxExporter
             var midi = key.Channel.MidiNote();
             var computedVelocity = key.ComputedVelocity;
             var outputPath = Output.BuildPath(sample.Filename);
-            renderer?.Render(outputPath, midi, computedVelocity);
+            renderer?.Render(outputPath, midi, computedVelocity, key.Preset?.ChokeDelay);
         }
         var result = renderer.WaitForResult();
         for (var i = 0; i < result.Count; i++)

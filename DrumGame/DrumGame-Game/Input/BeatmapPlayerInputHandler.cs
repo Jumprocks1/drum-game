@@ -14,6 +14,9 @@ using osu.Framework.Allocation;
 using osu.Framework.Platform;
 using DrumGame.Game.Beatmaps;
 using osu.Framework.Input.Events;
+using osu.Framework.Threading;
+using osu.Framework.Development;
+using System.Diagnostics;
 
 namespace DrumGame.Game.Input;
 
@@ -50,7 +53,17 @@ public class BeatmapPlayerInputHandler : IDisposable
 
     public void AfterSeek(double position)
     {
+        Debug.Assert(ThreadSafety.IsUpdateThread);
         if (Scorer.AfterSeek(position)) Events.Clear();
+        // don't expect this to remove all events that occur after the seek point if the seek is triggered by a timestamp
+        // track time is based on the audio thread, but the delayed events are queued on the update thread
+        // fortunately, even if it triggers, the effects of that trigger would occur on the track prior to the seek
+        // for example, if a loop or practice section has a hit at the very end, it may still trigger.
+        // if that happens, it will trigger on the state before the seek
+        // in practice mode, this should result in an ignore event occuring right before the seek
+        // this behavior can be tested by subtracting a few ms from the delay when queuing on the update thread
+        foreach (var ev in QueuedEvents) ev.Cancel();
+        QueuedEvents.Clear();
     }
 
     bool OnMidiAux(MidiAuxEvent ev)
@@ -101,13 +114,20 @@ public class BeatmapPlayerInputHandler : IDisposable
         if ((!ev.MIDI || Util.ConfigManager.PlaySamplesFromMidi.Value) && playAudio) Drumset.Play(ev);
         OnTrigger?.Invoke(ev);
     }
+    List<ScheduledDelegate> QueuedEvents = new();
     public void TriggerEventDelayed(DrumChannelEvent ev)
     {
         var trackTime = Player.Track.AbsoluteTime;
         if (ev.Time > trackTime)
         {
             var delay = (ev.Time - trackTime) / Player.Track.PlaybackSpeed.Value;
-            Host.UpdateThread.Scheduler.AddDelayed(() => TriggerEvent(ev, false), delay);
+            ScheduledDelegate s = null;
+            s = Host.UpdateThread.Scheduler.AddDelayed(() =>
+            {
+                QueuedEvents.Remove(s);
+                TriggerEvent(ev, false);
+            }, delay);
+            QueuedEvents.Add(s);
             // triggering runs on update thread, but we can get better timing for replays + automatic playback by queueing on the audio thread
             if (!ev.MIDI) Drumset.PlayAt(ev, Player.Track, ev.Time);
         }

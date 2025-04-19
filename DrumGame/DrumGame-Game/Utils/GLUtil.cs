@@ -6,7 +6,9 @@ using osu.Framework.Graphics.Rendering;
 using osuTK;
 using osuTK.Graphics.ES30;
 using static glTFLoader.Schema.Accessor;
-using static SDL2.SDL;
+using SDL;
+using _SDL2 = SDL2.SDL;
+using _SDL3 = SDL.SDL3;
 
 namespace DrumGame.Game.Utils;
 
@@ -60,18 +62,32 @@ public static class GLUtil
     public static void StartSDLMultisample()
     {
         // if (RuntimeInfo.OS == RuntimeInfo.Platform.Windows && Multisample > 0)
+        if (FrameworkEnvironment.UseSDL3)
         {
-            _ = SDL_InitSubSystem(SDL_INIT_VIDEO);
+            _ = _SDL3.SDL_InitSubSystem(SDL_InitFlags.SDL_INIT_VIDEO);
             // this doesn't actually do anything if we're running D3D11
-            _ = SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_MULTISAMPLEBUFFERS, 1);
-            _ = SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_MULTISAMPLESAMPLES, Multisample);
+            _ = _SDL3.SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_MULTISAMPLEBUFFERS, 1);
+            _ = _SDL3.SDL_GL_SetAttribute(SDL_GLAttr.SDL_GL_MULTISAMPLESAMPLES, Multisample);
+        }
+        else
+        {
+            _ = _SDL2.SDL_InitSubSystem(_SDL2.SDL_INIT_VIDEO);
+            // this doesn't actually do anything if we're running D3D11
+            // https://github.com/libsdl-org/SDL/issues/8398
+            _ = _SDL2.SDL_GL_SetAttribute(_SDL2.SDL_GLattr.SDL_GL_MULTISAMPLEBUFFERS, 1);
+            _ = _SDL2.SDL_GL_SetAttribute(_SDL2.SDL_GLattr.SDL_GL_MULTISAMPLESAMPLES, Multisample);
         }
     }
     public static void StopSDLMultisample()
     {
         // if (RuntimeInfo.OS == RuntimeInfo.Platform.Windows && Multisample > 0)
+        if (FrameworkEnvironment.UseSDL3)
         {
-            SDL_QuitSubSystem(SDL_INIT_VIDEO);
+            _SDL3.SDL_QuitSubSystem(SDL_InitFlags.SDL_INIT_VIDEO);
+        }
+        else
+        {
+            _SDL2.SDL_QuitSubSystem(_SDL2.SDL_INIT_VIDEO);
         }
     }
 

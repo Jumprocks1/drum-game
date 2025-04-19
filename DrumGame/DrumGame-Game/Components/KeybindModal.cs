@@ -180,7 +180,8 @@ public class KeybindModal : CompositeDrawable, IModal
             Origin = Anchor.TopCentre
         });
         y += KeybindEditor.Font.Size + Spacing;
-        var parameterTypes = controller.ParameterInfo[(int)command.Command]?.Types;
+        var parameterInfo = controller.ParameterInfo[(int)command.Command];
+        var parameterTypes = parameterInfo?.Types;
         if (parameterTypes != null && parameterTypes.Length > 0 && bindTarget == -1)
         {
             ParameterBoxes = new ParameterBox[parameterTypes.Length];
@@ -200,7 +201,7 @@ public class KeybindModal : CompositeDrawable, IModal
             for (var i = 0; i < parameterTypes.Length; i++)
             {
                 var currentV = command.Parameters != null && command.Parameters.Length > i ? command.Parameters[i] : null;
-                Center.Add(ParameterBoxes[i] = new ParameterBox(parameterTypes[i].GetNullableType(), i, currentV)
+                Center.Add(ParameterBoxes[i] = new ParameterBox(parameterInfo, i, currentV)
                 {
                     Y = y,
                     X = -width / 2 + i * (w + 4) + 2,
@@ -231,8 +232,9 @@ public class KeybindModal : CompositeDrawable, IModal
                 return CommandParameters.ParseOrDefault((string)v, Type);
             }
         }
-        public ParameterBox(Type type, int i, object currentValue)
+        public ParameterBox(ParameterInfo parameterInfo, int i, object currentValue)
         {
+            var type = parameterInfo.Types[i].GetNullableType();
             Type = type;
             var fieldConfig = FieldConfigBase.GetConfigFor(type);
             if (currentValue != null)
@@ -242,7 +244,11 @@ public class KeybindModal : CompositeDrawable, IModal
             }
             if (fieldConfig is StringFieldConfig sfc)
                 sfc.ReleaseFocusOnCommit = true;
-            fieldConfig.Tooltip = $"Parameter {i + 1} ({CommandParameters.TypeString(type)})";
+            var name = parameterInfo.ParameterName(i) ?? $"Parameter {i + 1}";
+            var tooltip = $"<green>{name}</> (<faded>{CommandParameters.TypeString(type)}</>)";
+            if (parameterInfo.ParameterTooltip(i) is string parameterTooltip)
+                tooltip += "\n\n" + parameterTooltip;
+            fieldConfig.MarkupTooltip = tooltip;
             Field = fieldConfig.Render(null);
             var d = (Drawable)Field;
             Height = d.Height;

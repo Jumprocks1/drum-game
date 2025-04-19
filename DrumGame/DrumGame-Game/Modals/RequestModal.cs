@@ -71,6 +71,7 @@ public class RequestConfig
     public (Command, CommandHandlerWithContext)[] Commands;
     public string Title;
     public string Description;
+    public string MarkupDescription;
     public string CommitText = "Okay";
     public string CloseText = "Close";
     public bool AutoFocus = true;
@@ -182,8 +183,11 @@ public class RequestModal : TabbableContainer, IModal, IAcceptFocus
         if (Config.Commands != null)
             foreach (var command in Config.Commands)
                 Util.CommandController.RemoveHandler(command.Item1, command.Item2);
+        OnDispose?.Invoke();
+        OnDispose = null;
         base.Dispose(isDisposing);
     }
+    public event Action OnDispose;
     protected ModalForeground Foreground;
     public RequestModal(RequestConfig config)
     {
@@ -214,8 +218,15 @@ public class RequestModal : TabbableContainer, IModal, IAcceptFocus
                 Padding = new MarginPadding { Bottom = CommandPalette.Margin }
             });
         }
+        if (config.MarkupDescription != null)
+            mainContainer.Add(new MarkupText
+            {
+                Origin = Anchor.TopCentre,
+                Anchor = Anchor.TopCentre,
+                Font = FrameworkFont.Regular.With(size: 16),
+                Text = config.MarkupDescription,
+            });
         if (config.Description != null)
-        {
             mainContainer.Add(new AutoSizeSpriteText
             {
                 Origin = Anchor.TopCentre,
@@ -224,7 +235,6 @@ public class RequestModal : TabbableContainer, IModal, IAcceptFocus
                 MaxSize = 16,
                 Text = config.Description,
             });
-        }
         mainContainer.Add(InnerContent = new Container
         {
             AutoSizeAxes = autoSizeAxes,

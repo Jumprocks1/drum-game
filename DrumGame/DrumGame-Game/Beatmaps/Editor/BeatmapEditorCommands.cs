@@ -181,7 +181,13 @@ public partial class BeatmapEditor
         PushChange(new NoteBeatmapChange(() => Beatmap.RemoveHits(s), desc));
         return true;
     }
-    [CommandHandler] public void SetBeatmapPreviewTime() => PushChange(new PreviewTimeChange(Beatmap, Math.Round(Track.CurrentTime)));
+    [CommandHandler]
+    public bool SetBeatmapPreviewTime(CommandContext context)
+    {
+        if (!context.TryGetParameter(out double offset)) offset = 0;
+        PushChange(new PreviewTimeChange(Beatmap, Math.Round(Track.CurrentTime + offset)));
+        return true;
+    }
     [CommandHandler] public void TimingWizard() => Util.Palette.Push(new TimingWizard(this));
     OffsetWizard offsetWizard;
     public void ResetOffsetWizard()

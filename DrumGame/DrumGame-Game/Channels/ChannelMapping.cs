@@ -99,6 +99,12 @@ public static class ChannelMapping
     };
     public static MK MidiKey(this DrumChannel drumChannel) => (MK)((int)drumChannel.InputKey() - 8172);
     public static byte MidiNote(this DrumChannel drumChannel) => (byte)((int)drumChannel.InputKey() - 8172);
+    // includes pedal
+    public static bool IsHiHat(this DrumChannel channel) => channel switch
+    {
+        DrumChannel.OpenHiHat or DrumChannel.HalfOpenHiHat or DrumChannel.ClosedHiHat or DrumChannel.HiHatPedal => true,
+        _ => false
+    };
     public static bool IsFoot(this DrumChannel channel) => channel == DrumChannel.BassDrum || channel == DrumChannel.HiHatPedal; // used to separated voices
     public static bool IsCymbal(this DrumChannel channel) => channel switch
     {
@@ -114,10 +120,10 @@ public static class ChannelMapping
         DrumChannel.Metronome => $"Used for metronome events, should not be bound.",
         DrumChannel.PracticeMetronome => $"Used for the practice metronome, should not be bound.",
         DrumChannel.Rim => $"Rim of any drum. Typically bound to snare rim if your module supports it.",
-        DrumChannel.HalfOpenHiHat => $"A half-open hi-hat hit is triggered when hitting the hi-hat while the MIDI hi-hat control value is between {Util.ConfigManager.HiHatRange.Value.Item1} and {Util.ConfigManager.HiHatRange.Value.Item2}."
+        DrumChannel.HalfOpenHiHat => $"A half open hi-hat hit is triggered when hitting the hi-hat while the MIDI hi-hat control value is between {Util.ConfigManager.HiHatRange.Value.Item1} and {Util.ConfigManager.HiHatRange.Value.Item2}."
             + "\nYou can configure the control range in the game settings."
             + $"\nTo see the range of control values your drum module outputs, use {IHasCommand.GetMarkupTooltipIgnoreUnbound(Command.MidiMonitor)}."
-            + "\n\nTo group all hi-hat inputs, bind MIDI inputs to the half-open channel and set closed and open as equivalents for half-open.",
+            + "\n\nTo group all hi-hat inputs, bind MIDI inputs to the half open channel and set closed and open as equivalents for half open.",
         _ => null
     };
 }

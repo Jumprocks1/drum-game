@@ -951,5 +951,18 @@ public static class Util
         }
         if (group.Count > 0) yield return (currentKey, group);
     }
+
+    public static Stream MakeSeekableAndDisposeIfNeeded(this Stream stream)
+    {
+        if (!stream.CanSeek)
+        {
+            var o = new MemoryStream();
+            stream.CopyTo(o);
+            o.Seek(0, SeekOrigin.Begin);
+            stream.Dispose();
+            return o;
+        }
+        return stream;
+    }
 }
 

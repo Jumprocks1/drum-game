@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using DrumGame.Game.Beatmaps.Loaders;
+using DrumGame.Game.Stores;
 using osu.Framework.Logging;
 
 namespace DrumGame.Game.Beatmaps.Formats;
@@ -20,37 +21,43 @@ public abstract class BeatmapFormat
     public string ConvertTag => $"{Tag}-convert";
     public virtual bool CanSave => false;
 
-    public Beatmap LoadExternal(string fullPath, bool metadataOnly, bool prepareForPlay)
+    public Beatmap LoadExternal(string fullPath, LoadMapIntent intent)
     {
         using var stream = File.Open(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read);
-        return Load(stream, null, fullPath, metadataOnly, prepareForPlay);
+        return Load(stream, null, fullPath, intent);
     }
     // this should always be wrapped in a try-catch
     // mapStoragePath can be null
-    public Beatmap Load(Stream stream, string mapStoragePath, string fullPath, bool metadataOnly, bool prepareForPlay)
+    public Beatmap Load(Stream stream, string mapStoragePath, string fullPath, LoadMapIntent intent)
+        => Load(stream, new LoadMapParameters(intent)
+        {
+            MapStoragePath = mapStoragePath,
+            FullPath = fullPath
+        });
+    public Beatmap Load(Stream stream, LoadMapParameters parameters)
     {
-        if (prepareForPlay && metadataOnly) throw new Exception("Cannot prepare for play with metadata only");
-        var o = LoadInternal(stream, fullPath, metadataOnly, prepareForPlay);
-        o.DisableSaving |= metadataOnly; // if we only loaded metadata, prevent saving
-        if (prepareForPlay)
+        if (parameters.PrepareForPlay && parameters.MetadataOnly) throw new Exception("Cannot prepare for play with metadata only");
+        var o = LoadInternal(stream, parameters);
+        o.DisableSaving |= parameters.MetadataOnly; // if we only loaded metadata, prevent saving
+        if (parameters.PrepareForPlay)
         {
             o.LoadMissingDefaults();
         }
-        o.Source = new BJsonSource(fullPath, this)
+        o.Source = new BJsonSource(parameters.FullPath, this)
         {
-            MapStoragePath = mapStoragePath
+            MapStoragePath = parameters.MapStoragePath
         };
         return o;
     }
     // only called by `Load`
-    protected abstract Beatmap LoadInternal(Stream stream, string fullPath, bool metadataOnly, bool prepareForPlay);
+    protected abstract Beatmap LoadInternal(Stream stream, LoadMapParameters parameters);
 
-    public Beatmap TryLoad(Stream stream, string mapStoragePath, string fullPath, bool metadataOnly, bool prepareForPlay)
+    public Beatmap TryLoad(Stream stream, string mapStoragePath, string fullPath, LoadMapIntent intent)
     {
         Beatmap o;
         try
         {
-            o = Load(stream, mapStoragePath, fullPath, metadataOnly, prepareForPlay);
+            o = Load(stream, mapStoragePath, fullPath, intent);
         }
         catch (Exception e)
         {

@@ -56,7 +56,7 @@ public class BeatmapCard : CompositeDrawable, IHasContextMenu
     SpriteText titleText;
     SpriteText artistText;
     TooltipSpriteText durationText;
-    DelayedImage image;
+    BeatmapCardImage image;
     VoteDisplay ratingText;
     FillFlowContainer mappingText;
     Box background;
@@ -124,7 +124,7 @@ public class BeatmapCard : CompositeDrawable, IHasContextMenu
             Anchor = Anchor.BottomRight,
             Origin = Anchor.BottomRight
         });
-        AddInternal(image = new DelayedImage
+        AddInternal(image = new BeatmapCardImage
         {
             Width = Height,
             Height = Height

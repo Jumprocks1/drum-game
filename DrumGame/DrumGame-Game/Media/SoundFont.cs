@@ -114,6 +114,14 @@ public class SoundFont : ISampleHandler, IDisposable, ISampleHandlerMixDelay
                                 Position = (int)midiDelay
                             }
                         ], 0);
+                        if (e.HitObject?.Preset?.ChokeDelay is double chokeDelay)
+                            BassMidi.StreamEvents(midiStream, MidiEventsMode.Time, [
+                                new MidiEvent {
+                                    EventType = MidiEventType.Note,
+                                    Parameter = BitHelper.MakeWord(midiNote, 0),
+                                    Position = (int)Bass.ChannelSeconds2Bytes(midiStream, delay + chokeDelay)
+                                }
+                            ], 0);
                     }
                     else
                         BassMidi.StreamEvent(midiStream, 0, MidiEventType.Note, BitHelper.MakeWord(midiNote, velocity));

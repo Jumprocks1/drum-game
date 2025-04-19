@@ -29,6 +29,9 @@ public class NotePreset
     public string Description;
     public string Sample; // sample path
 
+    [Description("Sends a MIDI note off event after this time (in seconds).\nSoundfont must be configured to have decay for this to work.")]
+    public double? ChokeDelay;
+
     [DefaultValue(1f)]
     public float Volume = 1; // 1 is default, can go above 1 in most cases
 

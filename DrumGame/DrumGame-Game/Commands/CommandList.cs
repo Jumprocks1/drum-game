@@ -282,6 +282,11 @@ public static class CommandList
         controller.RegisterCommand(Command.AddTagsToAll);
         controller.RegisterCommand(Command.SetDifficultyName);
         controller.RegisterCommand(Command.SetBeatmapPreviewTime);
+        controller.SetParameterInfo(Command.SetBeatmapPreviewTime, new ParameterInfo([typeof(double)])
+        {
+            ParameterNames = ["Offset"],
+            ParameterTooltips = ["Offset (in ms) added to the current timestamp when using this command.\nNegative values will cause the preview to start before the current timestamp.\nDefaults to 0."]
+        });
         controller.RegisterCommand(Command.SetNormalizedRelativeVolume);
         controller[Command.SetNormalizedRelativeVolume].HelperMarkup =
             "This will measure the loudness for the current track (using EBU R 128)\n"

@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using DrumGame.Game.Channels;
 using DrumGame.Game.Components;
@@ -13,16 +14,38 @@ using osu.Framework.Graphics.Sprites;
 
 namespace DrumGame.Game.Views.Settings.SettingInfos;
 
-public class MidiBinding
+public class MidiBindingRow
 {
     public byte Note;
     public DrumChannel DrumChannel;
-    public MidiBinding((byte, DrumChannel) e)
+    public MidiBindingRow((byte, DrumChannel) e)
     {
         Note = e.Item1;
         DrumChannel = e.Item2;
     }
     public DrumButton ConfigButton;
+    public Container Container;
+    public IconButton AdvancedSettingsButton;
+
+    public void Update()
+    {
+        ConfigButton.Enabled.Value = DrumChannel != DrumChannel.None;
+        if (AdvancedSettingsButton != null)
+        {
+            Container.Remove(AdvancedSettingsButton, true);
+            AdvancedSettingsButton = null;
+        }
+        if (AdvancedChannelSettings.SettingsFor(DrumChannel) is (Action, string) advancedSettings)
+        {
+            Container.Add(AdvancedSettingsButton = new IconButton(advancedSettings.Action, FontAwesome.Solid.Cog, 20)
+            {
+                X = 205,
+                Y = 5,
+                MarkupTooltip = advancedSettings.Tooltip,
+                BlockHover = true
+            });
+        }
+    }
 }
 
 public class MidiMappingView : RequestModal
@@ -30,7 +53,7 @@ public class MidiMappingView : RequestModal
     const string midiColumnKey = "midi";
     BindableMidiMapping Bindable => Util.ConfigManager.MidiMapping;
     MidiMapping Mapping => Bindable.Value;
-    TableView<MidiBinding> Table;
+    TableView<MidiBindingRow> Table;
     public MidiMappingView() : base(new RequestConfig
     {
         Title = "Editing MIDI Mapping",
@@ -45,7 +68,7 @@ public class MidiMappingView : RequestModal
             Y = 6,
             X = -6
         });
-        Add(Table = new TableView<MidiBinding>(new()
+        Add(Table = new TableView<MidiBindingRow>(new()
         {
             RowHighlight = DrumColors.RowHighlight.MultiplyAlpha(0.5f),
             CellHighlight = DrumColors.BrightGreen.MultiplyAlpha(0.4f),
@@ -64,7 +87,7 @@ public class MidiMappingView : RequestModal
                 o += $"\nTriggering MIDI note {row.Note} will count for any of the above channels.";
                 return o;
             },
-            Columns = ColumnBuilder.New<MidiBinding>()
+            Columns = ColumnBuilder.New<MidiBindingRow>()
                 .Add("MIDI Number", e => e.Note.ToString())
                     .Modify(e => e.Key = midiColumnKey)
                     .Format((row, column, table) =>
@@ -110,7 +133,7 @@ public class MidiMappingView : RequestModal
                             Bindable.Value.Replace(row.Note, row.Note, e.Value);
                             Bindable.TriggerChange();
                             row.DrumChannel = e.Value;
-                            row.ConfigButton.Enabled.Value = row.DrumChannel != DrumChannel.None;
+                            row.Update();
                         }
                     })
                 .Add("Default Mapping", e => ChannelMapping.StandardMidiMapping(e.Note).ToString())
@@ -126,13 +149,12 @@ public class MidiMappingView : RequestModal
                             X = 30,
                             Action = () => Util.Palette.Push(new ChannelEquivalentsView(row.DrumChannel))
                         };
-                        row.ConfigButton.Enabled.Value = row.DrumChannel != DrumChannel.None;
-                        var res = new Container
+                        row.Container = new Container
                         {
                             Height = 30,
-                            Width = 230,
+                            RelativeSizeAxes = Axes.X,
                             Children = [
-                                new IconButton(() =>
+                                 new IconButton(() =>
                                 {
                                     Mapping.Remove(row.Note);
                                     Table.InvalidateRows();
@@ -144,17 +166,18 @@ public class MidiMappingView : RequestModal
                                     BlockHover = false // keep row highlighted
                                 },
                                 row.ConfigButton
-                            ]
+                             ]
                         };
-                        return res;
+                        row.Update();
+                        return row.Container;
                     })
                     .Modify(e =>
                     {
-                        e.ExactWidth = 200;
+                        e.ExactWidth = 230;
                         e.NoCellHover = true;
                     })
                 .Build()
-        }, () => Util.ConfigManager.MidiMapping.Value.Select(e => new MidiBinding(e)).ToList()));
+        }, () => Util.ConfigManager.MidiMapping.Value.Select(e => new MidiBindingRow(e)).ToList()));
     }
 
     [BackgroundDependencyLoader]

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -9,104 +8,32 @@ using DrumGame.Game.Beatmaps.Formats;
 using DrumGame.Game.Browsers.BeatmapSelection;
 using DrumGame.Game.Utils;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 
 namespace DrumGame.Game.Stores;
 
-public class MetadataCache
+// reason for loading map
+public enum LoadMapIntent
 {
-    [JsonProperty(Required = Required.Always)]
-    public int Version;
-    [JsonProperty(Required = Required.Always)]
-    public Dictionary<string, BeatmapMetadata> Maps;
-
-    // parameterless constructor is used for JSON loading
-    public static MetadataCache New() => new()
-    {
-        Version = BeatmapMetadata.Version,
-        Maps = new()
-    };
+    PlayOrEdit,
+    MetadataPreview,
+    QuickEdit // edit without playing
 }
-public class BeatmapMetadata
+public class LoadMapParameters
 {
-    public string Id;
-    public const int Version = 5;
-    public string Title;
-    public string RomanTitle;
-    public string RomanArtist;
-    public string Artist;
-    public string Mapper;
-    public string Folder;
-    public BeatmapDifficulty Difficulty;
-    public string DifficultyString;
-    public string Tags;
-    public long WriteTime;
-    public string Audio;
-    public string Image;
-    public string ImageUrl;
-    [JsonIgnore] public string SHA; // not used yet
-    public double Duration;
-    public double BPM;
-    public string BpmRange;
-    public string MapSetId;
-    [JsonIgnore] public int PlayCount => Util.MapStorage.GetPlayCount(Id);
-    [JsonIgnore] public bool HasAudio; // depends on if the user has the audio files or not, loaded during runtime (not cached)
-    // this is loaded from replay information. If we eventually upgrade to database metadata, we should be able to store this in the database
-    // we don't want to store it in .cache.json since that gets deleted occasionally
-    [JsonIgnore] public long PlayTime = -1; // -1 for not loaded, 0 for never played, otherwise UtcTicks
-    [JsonIgnore] public int Rating = int.MinValue; // MinValue for not loaded, this is typically modified from a background thread
-    [JsonIgnore] public bool RatingLoaded => Rating != int.MinValue;
-    string _dtxLevel;
-    [JsonIgnore] public string DtxLevel => _dtxLevel ??= Beatmap.FormatDtxLevel(GetDtxLevel()) ?? ""; // return empty string instead of null for caching
-    // note, you can't search based on Difficulty right now
-    // if we want to do that, we should create a BeatmapDifficulty => string mapping
-    public string FilterString() => $"{Title} {Artist} {Mapper} {DifficultyString} {Tags} {RomanTitle} {RomanArtist}";
-    public BeatmapMetadata() { } // used by Newtonsoft
-    public void Update(Beatmap beatmap, long writeTime)
+    public LoadMapParameters(LoadMapIntent intent)
     {
-        _dtxLevel = null; // reset cache if needed
-        Id = beatmap.Id;
-        MapSetId = beatmap.MapSetIdNonNull;
-        Title = beatmap.Title ?? beatmap.Source.FilenameNoExt;
-        Artist = beatmap.Artist;
-        Mapper = beatmap.Mapper;
-        Audio = beatmap.Audio;
-        RomanTitle = beatmap.RomanTitle;
-        RomanArtist = beatmap.RomanArtist;
-        WriteTime = writeTime;
-        DifficultyString = beatmap.DifficultyName ?? beatmap.Difficulty.ToDifficultyString();
-        Difficulty = beatmap.Difficulty;
-        Tags = beatmap.Tags;
-        Image = beatmap.Image;
-        ImageUrl = beatmap.ImageUrl;
-        Duration = beatmap.PlayableDuration;
-        BPM = beatmap.MedianBPM;
-        BpmRange = beatmap.BpmRange;
-        if (beatmap.Source.MapStoragePath != null && beatmap.Source.MapStoragePath.StartsWith('$'))
-        {
-            // for .dtx files we go up 2 layers for this field
-            // this is because the filename is not very useful (ie. mstr.dtx)
-            // we also skip the first character to hide the $
-            // It may seem weird splitting the logic like this, but in reality it works well
-            Folder = Path.GetDirectoryName(beatmap.Source.MapStoragePath[1..]);
-            if (beatmap.Source.Filename.EndsWith(".dtx", true, CultureInfo.InvariantCulture))
-            {
-                var secondParent = Path.GetDirectoryName(Folder);
-                if (!string.IsNullOrWhiteSpace(secondParent))
-                    Folder = secondParent;
-            }
-        }
+        PrepareForPlay = intent == LoadMapIntent.PlayOrEdit;
+        MetadataOnly = intent == LoadMapIntent.MetadataPreview;
     }
-    public BeatmapMetadata(Beatmap beatmap, long writeTime) // write time is separate since it isn't stored in the beatmap
-    {
-        Update(beatmap, writeTime);
-    }
-    public string[] SplitTags() => Tags?.Split(' ', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries) ?? [];
-
-    string GetDtxLevel() => Beatmap.GetDtxLevel(SplitTags());
+    public string MapStoragePath;
+    public string FullPath;
+    public string Difficulty; // optional, only used for song.ini for now
+    public readonly bool PrepareForPlay;
+    public readonly bool MetadataOnly;
 }
+
 public class MapStorage : NativeStorage, IDisposable
 {
     const string cachePath = ".cache.json";
@@ -165,12 +92,17 @@ public class MapStorage : NativeStorage, IDisposable
         foreach (var map in LoadedMetadata.Maps)
             if (!writeTimes.TryGetValue(map.Key, out var v) || v != map.Value.WriteTime)
                 remove.Add(map.Key);
-        if (remove.Count > 0)
+        RemoveCachedMetadata(remove);
+    }
+    void RemoveCachedMetadata(List<string> mapStoragePaths)
+    {
+        if (mapStoragePaths.Count > 0)
         {
+            var metadata = LoadedMetadata;
             dirty = true;
-            foreach (var r in remove)
+            foreach (var e in mapStoragePaths)
             {
-                if (CachedMetadata.Maps.Remove(r, out var meta))
+                if (metadata.Maps.Remove(e, out var meta))
                     MapSets.Remove(meta);
             }
         }
@@ -182,12 +114,7 @@ public class MapStorage : NativeStorage, IDisposable
         foreach (var map in metadata.Maps)
             if (provider.IsInProvider(map.Key))
                 remove.Add(map.Key);
-        if (remove.Count > 0)
-        {
-            dirty = true;
-            foreach (var r in remove)
-                metadata.Maps.Remove(r);
-        }
+        RemoveCachedMetadata(remove);
         MapLibraries.InvokeChanged(provider);
     }
     public Dictionary<string, BeatmapMetadata> GetCachedMetadata() => LoadedMetadata.Maps;
@@ -364,25 +291,29 @@ public class MapStorage : NativeStorage, IDisposable
     // this is not good anymore
     // it doesn't properly consider library paths
     public string RelativePath(string path) => path == null ? null : Path.GetRelativePath(AbsolutePath, path);
-
     public Beatmap LoadMap(BeatmapMetadata metadata) => LoadMapFromId(metadata.Id);
     public void Save(Beatmap beatmap) => beatmap.SaveToDisk(this);
     public Beatmap LoadMapFromId(string mapId) => LoadMapForPlay(LoadedMetadata.Maps.FirstOrDefault(e => e.Value.Id == mapId).Key);
-    public Beatmap LoadMapForPlay(string mapStoragePath)
+    public Beatmap LoadMap(string mapStoragePath, LoadMapIntent intent) => LoadMap(new LoadMapParameters(intent)
+    {
+        MapStoragePath = mapStoragePath
+    });
+    public Beatmap LoadMapForPlay(string mapStoragePath) => LoadMap(mapStoragePath, LoadMapIntent.PlayOrEdit);
+    public Beatmap LoadMap(LoadMapParameters parameters)
     {
         try
         {
-            var fullPath = GetFullPath(mapStoragePath);
-            using var stream = GetStream(mapStoragePath) ?? throw new FileNotFoundException(fullPath);
+            parameters.FullPath = GetFullPath(parameters.MapStoragePath);
+            using var stream = GetStream(parameters.MapStoragePath) ?? throw new FileNotFoundException(parameters.FullPath);
             foreach (var format in BeatmapFormat.Formats)
             {
-                if (format.CanReadFile(fullPath))
-                    return format.Load(stream, mapStoragePath, fullPath, false, true);
+                if (format.CanReadFile(parameters.FullPath))
+                    return format.Load(stream, parameters);
             }
         }
         catch (Exception ex)
         {
-            var msg = $"Failed to load beatmap {mapStoragePath}";
+            var msg = $"Failed to load beatmap {parameters.MapStoragePath}";
             Logger.Error(ex, msg);
             Util.Palette.ShowMessage(msg);
         }
@@ -391,8 +322,10 @@ public class MapStorage : NativeStorage, IDisposable
     Beatmap LoadMapForMetadata(string mapStoragePath, bool savingPlanned)
     {
         var fullPath = GetFullPath(mapStoragePath);
+        // not sure why this uses File.Open instead of GetStream
+        // I think I like File.Open better, but above we use GetStream
+        var intent = savingPlanned ? LoadMapIntent.QuickEdit : LoadMapIntent.MetadataPreview;
         var stream = File.Open(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read);
-        var metadataOnly = !savingPlanned; // don't need to load notes if we are just reading metadata without saving
 
         foreach (var format in BeatmapFormat.Formats)
         {
@@ -400,7 +333,7 @@ public class MapStorage : NativeStorage, IDisposable
             {
                 if (!format.CanSave && savingPlanned)
                     throw new NotImplementedException($"Cannot load a {format.Name} file for editing");
-                return format.TryLoad(stream, mapStoragePath, fullPath, metadataOnly, false);
+                return format.TryLoad(stream, mapStoragePath, fullPath, intent);
             }
         }
 
@@ -458,14 +391,21 @@ public class MapStorage : NativeStorage, IDisposable
                     else
                     {
                         var hash = Util.MD5(File.OpenRead(file)).ToLowerInvariant();
-                        relativePath = Path.Join(folder, hash + "-" + fileName);
-                        target = Path.GetFullPath(relativePath, copyToFolder);
-                        if (File.Exists(target))
-                            Logger.Log("Skipping copy, hashed file already exists", level: LogLevel.Important);
+                        if (sourceInfo.Length == targetInfo.Length && hash.Equals(Util.MD5(File.OpenRead(target)), StringComparison.OrdinalIgnoreCase))
+                        {
+                            Logger.Log("Skipping copy, same length and MD5 hash", level: LogLevel.Important);
+                        }
                         else
                         {
-                            Directory.CreateDirectory(Path.GetDirectoryName(target));
-                            File.Copy(file, target);
+                            relativePath = Path.Join(folder, hash + "-" + fileName);
+                            target = Path.GetFullPath(relativePath, copyToFolder);
+                            if (File.Exists(target))
+                                Logger.Log("Skipping copy, hashed file already exists", level: LogLevel.Important);
+                            else
+                            {
+                                Directory.CreateDirectory(Path.GetDirectoryName(target));
+                                File.Copy(file, target);
+                            }
                         }
                     }
                 }

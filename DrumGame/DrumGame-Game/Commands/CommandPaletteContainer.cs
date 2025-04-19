@@ -46,12 +46,13 @@ public class CommandPaletteContainer : Container
                 OnCommit = value => callback(double.TryParse(value, out var o) ? o : null)
             }
         });
-    public RequestModal RequestString(string title, string label, string value, Action<string> callback, string description = null) =>
+    public RequestModal RequestString(string title, string label, string value, Action<string> callback, string description = null,
+        string tooltip = null) =>
         Request(new RequestConfig
         {
             Title = title,
             Description = description,
-            Field = new StringFieldConfig(label, value) { OnCommit = callback }
+            Field = new StringFieldConfig(label, value) { OnCommit = callback, MarkupTooltip = tooltip }
         });
     public FileRequest RequestFile(string title, string description, Action<string> callback) =>
         Push(new FileRequest(title, description, e => { if (e != null) callback(e); }));
@@ -69,7 +70,10 @@ public class CommandPaletteContainer : Container
     protected override void Dispose(bool isDisposing)
     {
         CommandController.RemoveHandlers(this);
-        CommandController.Palette = null;
+        // disposals are queued async when in `Clear()`
+        // this can cause a replacement CommandPaletteContainer to have already been created before this disposal is run
+        if (CommandController.Palette == this)
+            CommandController.Palette = null;
         _notificationOverlayOverlay?.Dispose();
         base.Dispose(isDisposing);
     }

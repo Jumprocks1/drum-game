@@ -22,21 +22,23 @@ public class FileSystemResources : StorageBackedResourceStore
         GlobalStorage = new GlobalNativeStorage(Util.Host);
         GlobalStorageStore = new StorageBackedResourceStore(GlobalStorage);
         Tracks = trackStore ?? Util.DrumGame.Audio.GetTrackStore(GlobalStorageStore);
-        _largeTextureStore = new Lazy<ITextureStore>(() =>
-        {
-            var loader = Util.Host.CreateTextureLoaderStore(GlobalStorageStore);
-            return new LargeTextureStore(GLUtil.Renderer, loader);
-        });
         ResourceStore = new ResourceStore<byte[]>(this);
         if (Util.Host?.Renderer != null)
         {
+            var loader = Util.Host.CreateTextureLoaderStore(GlobalStorageStore);
+            // mipmaps needed for card thumbnails
+            // couldn't figure out how to do manual mipmaps, so this will have to work
+            // osu-framework has no docs on manual mipmaps
+            LargeTextures = new LargeTextureStore(Util.Host.Renderer, loader, manualMipmaps: false);
+
             var assetStore = new StorageBackedResourceStore(Storage.GetStorageForDirectory("assets"));
-            NearestAssetTextureStore = new TextureStore(Util.Host.Renderer, Util.Host.CreateTextureLoaderStore(assetStore),
+            loader = Util.Host.CreateTextureLoaderStore(assetStore);
+            NearestAssetTextureStore = new TextureStore(Util.Host.Renderer, loader,
                 // nearest helps prevent fringing on edges, there may be a better way though
                 true, TextureFilteringMode.Nearest, true, 1);
-            LinearAssetTextureStore = new TextureStore(Util.Host.Renderer, Util.Host.CreateTextureLoaderStore(assetStore),
+            LinearAssetTextureStore = new TextureStore(Util.Host.Renderer, loader,
                 true, TextureFilteringMode.Linear, true, 1);
-            AssetTextureStoreNoAtlas = new TextureStore(Util.Host.Renderer, Util.Host.CreateTextureLoaderStore(assetStore),
+            AssetTextureStoreNoAtlas = new TextureStore(Util.Host.Renderer, loader,
                 false, TextureFilteringMode.Linear, true, 1);
         }
     }
@@ -46,7 +48,7 @@ public class FileSystemResources : StorageBackedResourceStore
     public Track GetTrack(string path) // simple wrapper so we can load webm
     {
         if (string.IsNullOrWhiteSpace(path)) return null;
-        if (!BassUtil.WebmChecked || !BassUtil.OpusChecked)
+        if (!BassUtil.WebmChecked || !BassUtil.OpusChecked || !BassUtil.AacChecked)
         {
             // this is far from perfect. We don't actually need to load these if it's a .ogg vorbis file
             // we have another issue in that I hard-coded the YouTube track lookup to use .ogg even if it's a .webm file
@@ -59,13 +61,13 @@ public class FileSystemResources : StorageBackedResourceStore
                 {
                     BassUtil.LoadWebm();
                     BassUtil.LoadOpus();
+                    BassUtil.LoadAac();
                 });
             }
         }
         return Tracks.Get(path);
     }
-    Lazy<ITextureStore> _largeTextureStore;
-    public ITextureStore LargeTextures => _largeTextureStore.Value;
+    public ITextureStore LargeTextures;
     public ResourceStore<byte[]> ResourceStore;
     public readonly string AbsolutePath;
     ITrackStore _absoluteTrackStore;

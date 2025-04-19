@@ -91,8 +91,8 @@ public static class FileImporters
             else if (ext == ".bjson") // we should also make a FileProvider .bjson importer
                 ImportBJson(path);
             else if (ext == ".dtx") await DtxLoader.ImportDtx(path);
-            else if (fileName.Equals("song.ini", StringComparison.InvariantCultureIgnoreCase)) SongIniLoader.ImportSongIni(path);
-            else if (fileName.ToLowerInvariant() == "set.def") await DtxLoader.ImportDef(path);
+            else if (fileName.Equals("song.ini", StringComparison.OrdinalIgnoreCase)) SongIniLoader.ImportSongIni(path);
+            else if (fileName.Equals("set.def", StringComparison.OrdinalIgnoreCase)) await DtxLoader.ImportDef(path);
             else if (ext == ".zip")
             {
                 using var provider = new ZipFileProvider(path);
@@ -158,7 +158,7 @@ public static class FileImporters
         // don't need try catch here since it's handled by callers
         var name = Path.GetFileName(fullName);
         var outputTarget = Path.Join(MapStorage.AbsolutePath, name);
-        var map = BJsonFormat.Instance.Load(provider.Open(fullName), null, fullName, false, false);
+        var map = BJsonFormat.Instance.Load(provider.Open(fullName), null, fullName, LoadMapIntent.QuickEdit);
         map.Source = new BJsonSource(outputTarget, BJsonFormat.Instance);
         void TryCopy(string zipPath, string localFolder, Action<string> set)
         {

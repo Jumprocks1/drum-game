@@ -62,6 +62,19 @@ public class BeatmapSelectorState
     public BeatmapOpenMode OpenMode = BeatmapOpenMode.Edit;
     public bool Autoplay = false; // set based on if we start a song with enter key vs midi press
 
+    // only for song.ini
+    string _preferredDiff = "Expert";
+    public string PreferredSubDifficulty
+    {
+        get => _preferredDiff; set
+        {
+            if (_preferredDiff == value) return;
+            _preferredDiff = value;
+            OnDiffChange?.Invoke();
+        }
+    }
+    public event Action OnDiffChange;
+
 
     public List<BeatmapModifier> Modifiers;
     public event Action OnModifiersChange;
@@ -699,10 +712,29 @@ public partial class BeatmapSelector : CompositeDrawable
                 context.ShowMessage("Link loaded from clipboard");
                 return true;
             }
-            context.GetString(e =>
+            var request = context.GetString(e =>
             {
                 TryLoadLink(target, e);
             }, $"Add Link to {target.Metadata?.Title ?? target.MapStoragePath}", "URL", description: "Paste an Amazon or YouTube URL");
+            request.AddFooterButtonSpaced(new DrumButton
+            {
+                Text = "Add As Image",
+                AutoSize = true,
+                Action = () =>
+                {
+                    var link = request.GetValue<string>(0);
+                    var ext = Path.GetExtension(link);
+                    if (link.StartsWith("https://"))
+                    {
+                        MutateBeatmap(target, beatmap =>
+                        {
+                            beatmap.ImageUrl = link;
+                            beatmap.HashImageUrl();
+                        });
+                        request.Close();
+                    }
+                }
+            });
             return true;
         }
         return false;
@@ -736,8 +768,11 @@ public partial class BeatmapSelector : CompositeDrawable
         if (oldRequest != null) Schedule(oldRequest.Close);
         FileRequest = context.GetFile(file =>
         {
+            // note, this will work even if there's a disabled library which targets the folder for the file
+            // this is a bit weird
             if (MapStorage.Contains(file))
             {
+                // TODO this should open with the map storage path instead of an absolute path
                 if (SelectMap(file, false))
                     return;
             }

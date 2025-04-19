@@ -37,6 +37,6 @@
     <ProjectReference Include="..\..\osu-framework\osu.Framework\osu.Framework.csproj" />
   </ItemGroup>
   <ItemGroup Condition="!Exists('..\..\osu-framework\osu.Framework\osu.Framework.csproj')">
-    <PackageReference Include="ppy.osu.Framework" Version="2024.523.0" />
+    <PackageReference Include="ppy.osu.Framework" Version="2025.321.0" />
   </ItemGroup>
 </Project>

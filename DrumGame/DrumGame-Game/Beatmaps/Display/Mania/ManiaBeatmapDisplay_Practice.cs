@@ -15,7 +15,8 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
 
     public override void ExitPractice(PracticeMode practice)
     {
-        RemoveInternal(PracticeInfoPanel, true);
+        if (!IsDisposed) // these fail if we're already disposed/exiting the game (Alt+F4)
+            RemoveInternal(PracticeInfoPanel, true);
         PracticeMode = null;
         PracticeInfoPanel = null;
     }

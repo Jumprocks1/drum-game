@@ -17,6 +17,13 @@ using osu.Framework.Logging;
 
 namespace DrumGame.Game.Beatmaps;
 
+public class BeatmapDifficultyDefinition
+{
+    // since this is the only thing we actually save, this will only work with mounted files for now
+    public string Name;
+    public bool Default;
+}
+
 // Shareable beatmap data
 // Should only be modified by "edit" style functions (not playback/display)
 // When working with beatmap as Json, only the properties of BJson are serialized
@@ -35,6 +42,14 @@ public partial class Beatmap : BJson, IHasHitObjects
     // Must be sorted by TempoChange.Time
     public List<TempoChange> TempoChanges;
     public List<MeasureChange> MeasureChanges;
+
+
+    // we could include this in the BJson, but for now we'll focus on getting this playable
+    // the default difficulty can point to the same list as Beatmap.HitObjects
+    // I expect anything related to this dictionary to change
+    // The current plan is to only use these with song.ini imports, since those have multiple difficulties in a single file
+    public List<BeatmapDifficultyDefinition> DifficultyDefinitions;
+
     public override double StartOffset
     {
         get => base.StartOffset; set

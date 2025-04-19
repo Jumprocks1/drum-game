@@ -85,7 +85,7 @@ public class SoundFontRenderer : IDisposable
 
     List<SoundFontSample> RenderedSamples = new();
 
-    public void Render(string outputPath, byte note, byte velocity)
+    public void Render(string outputPath, byte note, byte velocity, double? chokeDelay)
     {
         var sample = new SoundFontSample { Path = outputPath };
         RenderedSamples.Add(sample);
@@ -104,26 +104,42 @@ public class SoundFontRenderer : IDisposable
                 Logger.Log($"Skipping {outputPath}, already exists");
                 return;
             }
-            var events = new MidiEvent[] {
-                new MidiEvent {
-                    EventType = MidiEventType.Drums,
-                    Parameter = 1,
-                },
-                new MidiEvent {
-                    EventType = MidiEventType.Program,
-                    Parameter = 2,
-                },
-                new MidiEvent {
+            var tickRate = 24 * 10;
+            var eventList = new List<MidiEvent>();
+            eventList.Add(new MidiEvent
+            {
+                EventType = MidiEventType.Drums,
+                Parameter = 1,
+            });
+            eventList.Add(new MidiEvent
+            {
+                EventType = MidiEventType.Program,
+                Parameter = 2,
+            });
+            eventList.Add(new MidiEvent
+            {
+                EventType = MidiEventType.Note,
+                Parameter = BitHelper.MakeWord(note, velocity),
+            });
+            if (chokeDelay is double delay)
+            {
+                eventList.Add(new MidiEvent
+                {
                     EventType = MidiEventType.Note,
-                    Parameter = BitHelper.MakeWord(note, velocity),
-                },
-                new MidiEvent { EventType = MidiEventType.End, Ticks = 24 * 8 } // we leave 2 measures of decay, this gets cropped anyways
-            };
+                    Parameter = BitHelper.MakeWord(note, 0),
+                    // multiply by 2 since default bpm = 120 = 2 beats per second
+                    Ticks = (int)(chokeDelay * tickRate * 2)
+                });
+            }
+            // we leave 2 measures of decay, this gets cropped anyways
+            eventList.Add(new MidiEvent { EventType = MidiEventType.End, Ticks = tickRate * 8 });
 
-            // invert because sound font should really be flipped
+            var events = eventList.ToArray();
+
+            // invert because sound font should really be flipped ?- this comment seems out of date
             sample.Pan = ComputePan(events); // this is expensive unfortunately
 
-            var midiStream = BassMidi.CreateStream(events, 24, BassFlags.Decode | BassFlags.Mono);
+            var midiStream = BassMidi.CreateStream(events, tickRate, BassFlags.Decode | BassFlags.Mono);
             var font = new MidiFont
             {
                 Handle = fontId,

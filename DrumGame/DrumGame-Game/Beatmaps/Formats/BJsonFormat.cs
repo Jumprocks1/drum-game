@@ -4,6 +4,7 @@ using System.IO;
 using System.Reflection;
 using DrumGame.Game.Beatmaps.Data;
 using DrumGame.Game.Beatmaps.Loaders;
+using DrumGame.Game.Stores;
 using DrumGame.Game.Utils;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -22,18 +23,18 @@ public class BJsonFormat : BeatmapFormat
     public override bool CanSave => true;
 
     public override bool CanReadFile(string fullSourcePath) => fullSourcePath.EndsWith(".bjson", StringComparison.OrdinalIgnoreCase);
-    protected override Beatmap LoadInternal(Stream stream, string fullPath, bool metadataOnly, bool prepareForPlay)
+    protected override Beatmap LoadInternal(Stream stream, LoadMapParameters parameters)
     {
         using (stream)
         using (var sr = new StreamReader(stream))
         {
             var settings = Beatmap.SerializerSettings;
-            if (metadataOnly)
+            if (parameters.MetadataOnly)
                 settings.ContractResolver = BeatmapMetadataContractResolver.Default;
             var serializer = JsonSerializer.Create(settings);
             var o = (Beatmap)serializer.Deserialize(sr, typeof(Beatmap)); // can't use generic because of sr
 
-            if (prepareForPlay)
+            if (parameters.PrepareForPlay)
             {
                 o.Notes ??= new();
                 o.Init();

@@ -57,13 +57,22 @@ public class ColorSettingInfo : SettingInfo
             Binding.ValueChanged -= ValueChanged;
         };
         var scroll = control.ScrollContainer;
-        var pickerBottom = control.Y + control.Height + DrumColourPicker.TotalHeight;
-        var target = pickerBottom - scroll.DisplayableContent;
-        if (scroll.Target < target)
+        if (scroll != null)
         {
-            if (scroll.AvailableContent < pickerBottom)
-                scroll.Add(placeholder = new Placeholder { Y = pickerBottom });
-            scroll.ScrollTo(target);
+            var pickerBottom = control.Y + control.Height + DrumColourPicker.TotalHeight;
+            var target = pickerBottom - scroll.DisplayableContent;
+            // we can't scroll past the control's Y value, otherwise it will be hidden
+            // this behavior is very reasonable/intuitive in my testing
+            // it does require that the top of the scroll container be far enough from the bottom of the screen for it to fit the color picker
+            //    this should be the case for all normal scenarios
+            if (target > control.Y)
+                target = control.Y;
+            if (scroll.Target < target)
+            {
+                if (scroll.AvailableContent < pickerBottom)
+                    scroll.Add(placeholder = new Placeholder { Y = pickerBottom });
+                scroll.ScrollTo(target);
+            }
         }
     }
     class Placeholder : Drawable { }

@@ -8,7 +8,7 @@ using osu.Framework.Graphics.Sprites;
 
 namespace DrumGame.Game.Browsers;
 
-public class DelayedImage : Sprite
+public class BeatmapCardImage : Sprite
 {
     double timeVisible;
 
@@ -69,6 +69,8 @@ public class DelayedImage : Sprite
         // we have to use sketchy scheduler so that TextureStore.Get doesn't throw exceptions from WaitSafely
         Task.Factory.StartNew(() =>
         {
+            // TODO mipmap like this
+            // https://github.com/peppy/osu/blob/master/osu.Game/Skinning/MaxDimensionLimitedTextureLoaderStore.cs
             var texture = Util.Resources.LargeTextures.Get(path);
             if (token.IsCancellationRequested)
             {

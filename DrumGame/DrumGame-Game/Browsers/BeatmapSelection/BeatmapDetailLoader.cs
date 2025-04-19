@@ -157,7 +157,14 @@ public class BeatmapDetailLoader : CompositeDrawable
                 RelativeSizeAxes = Axes.Y
             };
 
-            if (MapSet != null && MapSet.Count > 1)
+            if (beatmap.DifficultyDefinitions != null && beatmap.DifficultyDefinitions.Count > 0)
+            {
+                AddInternal(new SubDifficultyDisplay(beatmap.DifficultyDefinitions)
+                {
+                    X = firstColumnWidth
+                });
+            }
+            else if (MapSet != null && MapSet.Count > 1)
             {
                 var selectedIndex = -1;
                 for (var i = 0; i < MapSet.Count; i++)
@@ -167,11 +174,10 @@ public class BeatmapDetailLoader : CompositeDrawable
                 }
                 if (selectedIndex >= 0)
                 {
-                    var mapSetDisplay = new MapSetDisplay(MapSet, selectedIndex)
+                    AddInternal(new MapSetDisplay(MapSet, selectedIndex)
                     {
                         X = firstColumnWidth
-                    };
-                    AddInternal(mapSetDisplay);
+                    });
                 }
             }
 

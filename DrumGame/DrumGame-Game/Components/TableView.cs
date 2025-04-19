@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using DrumGame.Game.Components.Basic;
 using DrumGame.Game.Containers;
 using DrumGame.Game.Interfaces;
@@ -37,16 +38,16 @@ public class ColumnBuilder<T>
     }
     public ColumnBuilder<T> Add(string header, Func<T, string> getter) =>
         Add(new TableViewColumn<T>() { Header = header, GetValue = getter });
-    public ColumnBuilder<T> Add(string fieldName)
+    public ColumnBuilder<T> Add(string fieldName, string headerName = null)
     {
         Func<object, object> getValue = null;
         Action<object, object> setValue = null;
-        string name = null;
         Type type = null;
+        MemberInfo member = null;
         var field = typeof(T).GetField(fieldName);
         if (field != null)
         {
-            name = field.Name;
+            member = field;
             type = field.FieldType;
             getValue = field.GetValue;
             setValue = field.SetValue;
@@ -56,35 +57,44 @@ public class ColumnBuilder<T>
             var prop = typeof(T).GetProperty(fieldName);
             if (prop != null)
             {
-                name = prop.Name;
+                member = prop;
                 type = prop.PropertyType;
                 getValue = prop.GetValue;
                 setValue = prop.SetValue;
             }
         }
-        if (name != null)
+        if (member == null) throw new Exception($"Field not found: {fieldName}");
+
+        return Add(new TableViewColumn<T>
         {
-            return Add(new TableViewColumn<T>
+            Header = headerName ?? fieldName,
+            HelperText = Util.MarkupDescription(member),
+            GetValue = e => getValue(e)?.ToString(),
+            SetValue = (e, v) =>
             {
-                Header = name,
-                GetValue = e => getValue(e)?.ToString(),
-                SetValue = (e, v) =>
+                try
                 {
-                    try
+                    var localType = type;
+                    if (Nullable.GetUnderlyingType(localType) is Type t)
                     {
-                        // note, we don't use invariant culture here
-                        setValue(e, Convert.ChangeType(v, type));
-                        return true;
+                        if (v is string s && string.IsNullOrWhiteSpace(s))
+                        {
+                            setValue(e, null);
+                            return true;
+                        }
+                        localType = t;
                     }
-                    catch (Exception ex)
-                    {
-                        Util.Palette.UserError(ex);
-                        return false;
-                    }
+                    // note, we don't use invariant culture here
+                    setValue(e, Convert.ChangeType(v, localType));
+                    return true;
                 }
-            });
-        }
-        throw new Exception($"Field not found: {fieldName}");
+                catch (Exception ex)
+                {
+                    Util.Palette.UserError(ex);
+                    return false;
+                }
+            }
+        });
     }
     public ColumnBuilder<T> Width(float width)
     {
@@ -121,7 +131,7 @@ public class ColumnBuilder<T>
                         table.Config.OnCellChange?.Invoke(e, column, newValue);
                     }
                 }
-            });
+            }, tooltip: column.HelperText);
         };
         return this;
     }
@@ -142,6 +152,7 @@ public class TableViewColumn<T>
     // could also add HeaderDrawable, similiar to GetDrawable
     public string Header;
     public string HeaderMarkupTooltip;
+    public string HelperText;
     public bool Hidden;
     public Action<T, TableViewColumn<T>, TableView<T>> Edit;
     public bool Editable => Edit != null;
@@ -290,6 +301,7 @@ public class TableView<T> : CompositeDrawable
                     if (column.Editable)
                         rowContextMenuBuilder
                             .Add($"Edit {column.Header}", e => column.Edit(e, column, Table))
+                            .Tooltip(column.HelperText)
                             .Color(DrumColors.BrightYellow);
                 var menu = rowContextMenuBuilder.Build();
                 if (menu.Length > 0)

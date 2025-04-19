@@ -7,6 +7,7 @@ using System.Text;
 using DrumGame.Game.API;
 using DrumGame.Game.Beatmaps.Data;
 using DrumGame.Game.Beatmaps.Formats;
+using DrumGame.Game.Browsers;
 using DrumGame.Game.Channels;
 using DrumGame.Game.Interfaces;
 using DrumGame.Game.IO;
@@ -31,6 +32,24 @@ public class SongIniLoader
     {
         public bool MountOnly;
         public bool MetadataOnly;
+        public SongIniDifficulty Difficulty = SongIniDifficulty.Expert;
+
+        public bool MatchesDifficultyInt(int difficulty)
+        {
+            if (difficulty == -1) return true;
+            return difficulty == (int)Difficulty;
+        }
+        public bool MatchesDifficultyString(string sectionName)
+            => string.Equals(sectionName, Difficulty + "Drums", StringComparison.OrdinalIgnoreCase);
+    }
+
+    public enum SongIniDifficulty
+    {
+        Easy = 0,
+        Medium,
+        Hard,
+        Expert,
+        Other
     }
 
     SongIniLoader(IFileProvider provider, SongIniLoadConfig config = null)
@@ -73,14 +92,15 @@ public class SongIniLoader
         beatmap.HashId();
     }
 
-    public static Beatmap LoadMounted(Stream stream, string fullPath, bool metadataOnly)
+    public static Beatmap LoadMounted(Stream stream, LoadMapParameters parameters)
     {
-        var directory = Path.GetDirectoryName(fullPath);
+        var directory = Path.GetDirectoryName(parameters.FullPath);
         var provider = new FileProvider(directory);
         var loader = new SongIniLoader(provider, new SongIniLoadConfig
         {
             MountOnly = true,
-            MetadataOnly = metadataOnly
+            MetadataOnly = parameters.MetadataOnly,
+            Difficulty = Enum.TryParse<SongIniDifficulty>(parameters.Difficulty, out var o) ? o : SongIniDifficulty.Expert
         });
         return loader.ParseSongIniStream(stream);
     }
@@ -88,8 +108,21 @@ public class SongIniLoader
     void ImportSongIniInternal(string fileName)
     {
         Logger.Log($"Importing {fileName} from {Provider.FolderName}", level: LogLevel.Important);
-        using var ini = Provider.Open(fileName);
-        ParseSongIniStream(ini);
+        using var ini = Provider.Open(fileName)
+            // needed because we have to read the stream multiple times in most cases
+            .MakeSeekableAndDisposeIfNeeded();
+        using var reader = new StreamReader(ini);
+        Config.Difficulty = SongIniDifficulty.Expert;
+        var primaryBeatmap = ParseSongIniStream(reader);
+        foreach (var diff in primaryBeatmap.DifficultyDefinitions)
+        {
+            if (diff.Name != "Expert" && Enum.TryParse<SongIniDifficulty>(diff.Name, out var diffEnum))
+            {
+                Config.Difficulty = diffEnum;
+                ini.Seek(0, SeekOrigin.Begin);
+                ParseSongIniStream(reader);
+            }
+        }
     }
 
     public static readonly string[] AudioFormats = [".opus", ".ogg", ".mp3"];
@@ -123,7 +156,12 @@ public class SongIniLoader
         if (Config.MetadataOnly && !string.IsNullOrWhiteSpace(beatmap.PreviewAudio))
             return; // don't need BGM if we have a preview and we are only looking for metadata
 
-        if (beatmap.Audio != null) return;
+        if (beatmap.Audio != null)
+        {
+            // if it doesn't exist, ignore it
+            if (File.Exists(beatmap.Audio)) return;
+            else beatmap.Audio = null;
+        }
 
         var stems = new StemInfo[] {
             new("song"),
@@ -186,11 +224,18 @@ public class SongIniLoader
 
     Beatmap ParseSongIniStream(Stream stream)
     {
+        using var reader = new StreamReader(stream);
+        return ParseSongIniStream(reader);
+    }
+    // reader doesn't get disposed
+    Beatmap ParseSongIniStream(StreamReader reader)
+    {
         var map = Beatmap.Create();
         map.HitObjects = new();
         map.TempoChanges = new();
         map.MeasureChanges = new();
         map.RelativeVolume = 0.4;
+        map.DifficultyDefinitions = new();
         map.Tags = Config.MountOnly ? "song-ini-mount" : "song-ini-import";
         if (Config.MountOnly)
             map.PreviewAudio = FindAudioFile("preview");
@@ -198,8 +243,13 @@ public class SongIniLoader
             LoadDotChart(map);
         else
             LoadMidi(map);
+        if (map.DifficultyDefinitions.Count > 1)
+        {
+            map.DifficultyDefinitions = [.. map.DifficultyDefinitions
+                .OrderByDescending(e => Enum.TryParse<SongIniDifficulty>(e.Name, out var o) ? (int)o : (int)SongIniDifficulty.Other)];
+            map.AddTags(Browsers.BeatmapSelection.MapSetDisplay.MultipleDifficultiesTag);
+        }
 
-        using var reader = new StreamReader(stream);
         string line;
         string section = null;
         int? diffDrums = null;
@@ -242,10 +292,16 @@ public class SongIniLoader
         var diff = diffDrumsRealPs ?? diffDrumsReal ?? diffDrums;
         if (diff is int d && d >= 0)
         {
+            // expert = 3, so it would be minus 0
+            // easy would be minus 3
+            d -= 3 - (int)Config.Difficulty;
+            var targetD = d;
             if (d <= 0) d = 1;
             if (d >= 6) d = 6;
             // 1 = Easy, 6 = Expert+
             map.Difficulty = (BeatmapDifficulty)d;
+            if (targetD <= 0)
+                map.DifficultyName = map.Difficulty.ToString() + $"({targetD})";
         }
 
         var folderName = Provider.FolderName;
@@ -256,10 +312,12 @@ public class SongIniLoader
         if (folderName.StartsWith("-download"))
             folderName = folderName[9..];
 
-        var outputFilename = (folderName + "-" + map.MetaHash()[0..8].ToLowerInvariant()).ToFilename(".bjson");
         // if we aren't mounting, we need a location to save to
         if (!Config.MountOnly)
+        {
+            var outputFilename = (folderName + "-" + map.MetaHash()[0..8].ToLowerInvariant()).ToFilename(".bjson");
             map.Source = new BJsonSource(Path.Join(Util.MapStorage.AbsolutePath, outputFilename), BJsonFormat.Instance);
+        }
         FindBgm(map);
 
         if (!Config.MountOnly && !Config.MetadataOnly)
@@ -273,7 +331,8 @@ public class SongIniLoader
                     var audioHash = "_" + Util.MD5(Provider.Open(providerAudio))[0..8].ToLowerInvariant();
                     var audioName = $"{folderName}-{Path.GetFileNameWithoutExtension(providerAudio)}".ToFilename();
                     map.Audio = $"audio/{audioName}{audioHash}{audioExt}";
-                    Provider.Copy(providerAudio, map.FullAudioPath());
+                    if (!Util.MapStorage.Exists(map.FullAudioPath()))
+                        Provider.Copy(providerAudio, map.FullAudioPath());
                 }
             }
         }
@@ -311,9 +370,18 @@ public class SongIniLoader
 
     void LoadDotChart(Beatmap o)
     {
+        o.AddTags("notes.chart");
         using var chartReader = new DotChartReader(Provider.Open("notes.chart"));
         foreach (var section in chartReader)
         {
+            if (section.Name.EndsWith("Drums", StringComparison.OrdinalIgnoreCase))
+            {
+                o.DifficultyDefinitions.Add(new BeatmapDifficultyDefinition
+                {
+                    Name = section.Name[..^5],
+                    Default = Config.MatchesDifficultyString(section.Name)
+                });
+            }
             if (section.Name == "Song")
             {
                 foreach (var (Key, Value) in section.Values)
@@ -352,7 +420,7 @@ public class SongIniLoader
                 }
             }
             else if (section.Name == "Events") { }// ignore
-            else if (section.Name == "ExpertDrums")
+            else if (Config.MatchesDifficultyString(section.Name)) // ie. ExpertDrums, HardDrums, EasyDrums
             {
                 // https://github.com/TheNathannator/GuitarGame_ChartFormats/blob/main/doc/FileFormats/.chart/Drums.md#note-and-modifier-types
                 var modifiers = new bool[35];
@@ -380,11 +448,14 @@ public class SongIniLoader
                                 }
                             }
                         }
+                        // special phrase https://github.com/TheNathannator/GuitarGame_ChartFormats/blob/main/doc/FileFormats/.chart/Drums.md#special-phrase-types
+                        else if (spl[0] == "S") { }
                         else Logger.Log($"Unrecognized {section.Name} event: {Key} = {Value}", level: LogLevel.Error);
                     }
                 }
             }
-            else Logger.Log($"Unrecognized section: {section.Name}", level: LogLevel.Error);
+            // not logged normally since there are a lot of these, ie KeyboardEasy, SingleHard
+            else Logger.Log($"Unrecognized section: {section.Name}", level: LogLevel.Verbose);
         }
     }
 
@@ -398,6 +469,7 @@ public class SongIniLoader
     // https://github.com/TheNathannator/GuitarGame_ChartFormats/blob/main/doc/FileFormats/.mid/Core%20Infrastructure.md
     void LoadMidi(Beatmap o)
     {
+        o.AddTags("notes.mid");
         using var midiStream = Provider.Open("notes.mid");
 
         using var reader = new MidiReader(midiStream);
@@ -474,12 +546,19 @@ public class SongIniLoader
                         // not sure why I skip these 2
                         if (midiNote == 12 || midiNote == 13) continue;
                         var diff = SongIniMapping.Difficulty(midiNote);
-                        if (diff != 3 && diff != -1)
+                        if (knownDiffs.Add(diff))
                         {
-                            if (knownDiffs.Add(diff))
+                            if (diff < -1 && diff > 3)
                                 Logger.Log($"Unrecognized difficulty: {diff}, midi: {midiNote}", level: LogLevel.Error);
-                            continue;
+                            else
+                                o.DifficultyDefinitions.Add(new BeatmapDifficultyDefinition
+                                {
+                                    Name = ((SongIniDifficulty)diff).ToString(),
+                                    Default = Config.MatchesDifficultyInt(diff)
+                                });
                         }
+                        if (!Config.MatchesDifficultyInt(diff))
+                            continue;
                         noteQueue.Add(midiNote); // velocity not used
                     }
                     // velocity 0 is equivalent to note off

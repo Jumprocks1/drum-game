@@ -317,6 +317,7 @@ public class NotePresetsView : RequestModal
                         }
                     });
                 })
+                .Add(nameof(NotePreset.ChokeDelay), "Choke Delay").Hide().BasicEdit()
                 .Build()
         }, () => Beatmap.NotePresets.Values.OrderBy(e => e.Key).ToList()));
     }

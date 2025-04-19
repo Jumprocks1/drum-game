@@ -173,6 +173,8 @@ public partial class DtxLoader
             // try to not use file that's named "drums.ogg"
             mainBgm ??= BGMs.FirstOrDefault(e => e.StartTime.HasValue && e.Path != "drums.ogg");
             mainBgm ??= BGMs.FirstOrDefault(e => e.StartTime.HasValue);
+            // these would be chips that appeared on SE lanes
+            mainBgm ??= SamplesDict.Values.FirstOrDefault(e => e.StartTime.HasValue);
             return mainBgm;
         }
     };
@@ -307,6 +309,7 @@ public partial class DtxLoader
                 var channelInt = hex(channel);
                 // https://github.com/limyz/DTXmaniaNX/blob/master/DTXMania/Code/Score%2CSong/EChannel.cs
                 if (channel == "53") { } // cheer section
+                else if (channel == "52") { } // MIDI drum chorus?
                 else if (channel == "02") // measure length
                 {
                     // if these come out of order, we are screwed
@@ -316,8 +319,11 @@ public partial class DtxLoader
                     o.MeasureChanges.Add(new MeasureChange(o.TickFromMeasure(measure), targetLength));
                 }
                 else if (channelInt >= 49 && channelInt <= 60) { } // hidden chips (not played in DTX)
-                // this used to filter out 97, but that is used for timing secondary BGM
-                else if (channelInt >= 98 && channelInt <= 146) { } // background sound triggers
+                // "Invisible object for the 2nd player"
+                // https://osdn.net/projects/dtxmania/wiki/DTX+data+format#:~:text=41%2D46%20%3CInvisible%20object%20for%20the%202nd%20player%3E
+                else if (channelInt >= 65 && channelInt <= 70) { }
+                // this used to filter out 97-105, but those are used for timing secondary BGM
+                else if (channelInt >= 106 && channelInt <= 146) { } // background sound triggers
                 else if (channelInt >= 177 && channelInt <= 190) { } // default sound (when a hit is not matched to a chip)
                 else if (channel == "C2") { } // hide bar lines
                 else if (channel == "4F") { } // bonus effect?
@@ -346,6 +352,7 @@ public partial class DtxLoader
 
         foreach (var (measure, channel, value) in secondPass)
         {
+            var channelInt = hex(channel);
             var dc = ChannelMap(channel);
             var width = value.Length;
             var measureTick = o.TickFromMeasure(measure);
@@ -381,6 +388,12 @@ public partial class DtxLoader
                     mod = NoteModifiers.Left;
                 else if (channel == "16") // 16 is right/main crash
                     mod = NoteModifiers.Right;
+                // 19 is typically the ride channel.
+                // When insterting a ride, the note modifier/sticking is ignored and left at default/central
+                // This is therefore only relevant when a splash is placed in the ride channel
+                // This happened in Furu's 金﨑猛 chart
+                else if (channel == "19")
+                    mod = NoteModifiers.Right;
                 void add(int tick, DrumChannel channel, NoteModifiers modifiers, DtxSample sample)
                 {
                     o.HitObjects.Add(new HitObject(tick, new HitObjectData(channel, modifiers, sample?.NotePreset)));
@@ -411,12 +424,17 @@ public partial class DtxLoader
                     s((tick, id, sample) =>
                     {
                         if (sample != null && sample.Bell)
+                            // ride is always on the right, no mod needed
                             add(tick, DrumChannel.RideBell, NoteModifiers.None, sample);
                         else if (sample != null && sample.Ride)
+                            // ride is always on the right, no mod needed
                             add(tick, DrumChannel.Ride, NoteModifiers.None, sample);
                         else if (sample != null && sample.Splash)
                             // splash can be L/R, so we include mod
                             add(tick, DrumChannel.Splash, mod, sample);
+                        else if (dc == DrumChannel.Ride)
+                            // ride is always on the right, no mod needed
+                            add(tick, dc, NoteModifiers.None, sample);
                         else
                             // this includes the modifier for L/R cymbals
                             add(tick, dc, mod, sample);
@@ -445,7 +463,7 @@ public partial class DtxLoader
                     if (found != null)
                         found.StartTime = tick;
                 });
-            else if (channel == "61")
+            else if (channelInt >= 97 && channelInt <= 105) // these are sometimes secondary BGM
                 s((tick, id, sample) =>
                 {
                     if (sample != null)

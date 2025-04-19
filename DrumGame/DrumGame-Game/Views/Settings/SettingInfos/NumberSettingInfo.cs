@@ -1,5 +1,6 @@
 using System;
 using DrumGame.Game.Components;
+using DrumGame.Game.Components.Fields;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 
@@ -44,7 +45,7 @@ public class ParsableSettingInfo<T> : SettingInfo where T : IParsable<T>
     }
     public override void Render(SettingControl control)
     {
-        var textBox = new DrumTextBox
+        control.Add(new ParsableTextBox<T>(Binding)
         {
             Width = 300,
             Height = Height - 6,
@@ -52,15 +53,8 @@ public class ParsableSettingInfo<T> : SettingInfo where T : IParsable<T>
             Anchor = Anchor.TopRight,
             Origin = Anchor.TopRight,
             X = -SettingControl.SideMargin,
-            Text = Binding.Value.ToString(),
             CommitOnFocusLost = true
-        };
-        control.Add(textBox);
-        textBox.OnCommit += (_, __) =>
-        {
-            Binding.Value = T.TryParse(textBox.Current.Value, null, out var o) ? o : default;
-            textBox.Current.Value = Binding.Value.ToString();
-        };
+        });
     }
 }
 

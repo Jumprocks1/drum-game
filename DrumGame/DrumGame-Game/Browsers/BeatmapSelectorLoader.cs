@@ -198,7 +198,11 @@ public class BeatmapSelectorLoader : CompositeDrawable
             scene.Dispose();
             scene = null;
         }
-        AddInternal(selector = new BeatmapSelector(map => LoadMap(MapStorage.LoadMapForPlay(map)) != null, ref SelectorState)
+        AddInternal(selector = new BeatmapSelector(mapStoragePath => LoadMap(MapStorage.LoadMap(new LoadMapParameters(LoadMapIntent.PlayOrEdit)
+        {
+            MapStoragePath = mapStoragePath,
+            Difficulty = SelectorState.PreferredSubDifficulty
+        })) != null, ref SelectorState)
         {
             RelativeSizeAxes = Axes.Both
         });

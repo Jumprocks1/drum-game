@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using ManagedBass;
 using ManagedBass.Mix;
+using osu.Framework;
 using osu.Framework.Audio.Mixing;
 using osu.Framework.Audio.Track;
 using osu.Framework.Logging;
@@ -46,6 +47,12 @@ public static class BassUtil
     public static bool HasOpus => _opus ??= LoadPlugin("bassopus");
     public static bool OpusChecked => _opus.HasValue;
     public static bool LoadOpus() => HasOpus;
+
+    static bool? _aac;
+    // only need AAC on Linux, works by default on Windows
+    public static bool HasAac => _aac ??= RuntimeInfo.IsUnix && LoadPlugin("bass_aac");
+    public static bool AacChecked => _aac.HasValue;
+    public static bool LoadAac() => HasAac;
 
     static bool? _webm;
     public static bool HasWebm => _webm ??= LoadPlugin("basswebm");

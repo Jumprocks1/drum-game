@@ -12,6 +12,9 @@ using osu.Framework.Input.StateChanges.Events;
 using osu.Framework.Input.States;
 using osu.Framework.Platform;
 using osuTK.Input;
+using SDL;
+using _SDL2 = SDL2.SDL;
+using _SDL3 = SDL.SDL3;
 
 
 namespace DrumGame.Game.Utils;
@@ -94,27 +97,45 @@ public class DrumInputManager : UserInputManager
     }
 
     nint[] _cursors;
-    nint[] Cursors => _cursors ??= new nint[(int)SDL2.SDL.SDL_SystemCursor.SDL_NUM_SYSTEM_CURSORS];
-    SDL2.SDL.SDL_SystemCursor CurrentCursor;
-    void ResetCursor() => SetCursor(SDL2.SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_ARROW);
-    void SetCursor(SDL2.SDL.SDL_SystemCursor cursor)
+    nint[] Cursors => _cursors ??= new nint[(int)_SDL2.SDL_SystemCursor.SDL_NUM_SYSTEM_CURSORS];
+    _SDL2.SDL_SystemCursor CurrentCursor;
+    void ResetCursor() => SetCursor(_SDL2.SDL_SystemCursor.SDL_SYSTEM_CURSOR_ARROW);
+    void SetCursor(_SDL2.SDL_SystemCursor cursor)
     {
-        if (FrameworkEnvironment.UseSDL3 || CurrentCursor == cursor) return; // Not sure how to handle this yet
+        if (CurrentCursor == cursor) return;
         var id = Cursors[(int)cursor];
-        if (id == 0)
-            Cursors[(int)cursor] = id = SDL2.SDL.SDL_CreateSystemCursor(cursor);
         CurrentCursor = cursor;
-        SDL2.SDL.SDL_SetCursor(id);
+        if (FrameworkEnvironment.UseSDL3)
+        {
+            unsafe
+            {
+                if (id == 0)
+                    Cursors[(int)cursor] = id = (nint)_SDL3.SDL_CreateSystemCursor((SDL_SystemCursor)cursor);
+                _SDL3.SDL_SetCursor((SDL_Cursor*)id);
+            }
+        }
+        else
+        {
+            if (id == 0)
+                Cursors[(int)cursor] = id = _SDL2.SDL_CreateSystemCursor(cursor);
+            _SDL2.SDL_SetCursor(id);
+        }
     }
 
     protected override void Dispose(bool isDisposing)
     {
-        if (!FrameworkEnvironment.UseSDL3 && Cursors != null)
+        if (Cursors != null)
         {
             for (var i = 0; i < Cursors.Length; i++)
             {
                 if (Cursors[i] != 0)
-                    SDL2.SDL.SDL_FreeCursor(Cursors[i]);
+                    if (FrameworkEnvironment.UseSDL3)
+                        unsafe
+                        {
+                            _SDL3.SDL_DestroyCursor((SDL_Cursor*)Cursors[i]);
+                        }
+                    else
+                        _SDL2.SDL_FreeCursor(Cursors[i]);
             }
         }
         base.Dispose(isDisposing);
@@ -122,13 +143,12 @@ public class DrumInputManager : UserInputManager
 
     void CheckCursor()
     {
-        if (FrameworkEnvironment.UseSDL3) return;
         var hovered = HoveredDrawables;
         for (var i = 0; i < hovered.Count; i++)
         {
             if (hovered[i] is IHasCursor hasCursor)
             {
-                if (hasCursor.Cursor is SDL2.SDL.SDL_SystemCursor cursor)
+                if (hasCursor.Cursor is _SDL2.SDL_SystemCursor cursor)
                 {
                     SetCursor(cursor);
                     return;

@@ -5,11 +5,6 @@ using System.IO;
 
 namespace DrumGame.Game.IO;
 
-public class DotChart
-{
-    public List<DotChartSection> Sections;
-}
-
 public class DotChartSection
 {
     public string Name;
@@ -24,10 +19,6 @@ public class DotChartReader : IDisposable, IEnumerable<DotChartSection>
     {
         Stream = stream;
         Reader = new StreamReader(stream);
-    }
-    public DotChart Read()
-    {
-        return new DotChart();
     }
     public DotChartSection ReadSection()
     {

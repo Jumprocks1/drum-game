@@ -175,8 +175,11 @@ public class DrumGameGameBase : osu.Framework.Game
         Storage = host.Storage;
         LocalConfig = new DrumGameConfigManager(Host.Storage);
 
-        host.Window.Title = "Drum Game";
-        host.Window.DragDrop += f => fileDrop(new[] { f });
+        if (host.Window != null)
+        {
+            host.Window.Title = "Drum Game";
+            host.Window.DragDrop += f => fileDrop(new[] { f });
+        }
     }
 
     private readonly List<string> droppedFiles = new List<string>();
@@ -203,10 +206,14 @@ public class DrumGameGameBase : osu.Framework.Game
             droppedFiles.Clear();
             Schedule(() =>
             {
+                var alreadyHandled = new HashSet<string>();
                 foreach (var path in paths)
                 {
-                    Logger.Log($"Openning {path}");
-                    command.ActivateCommand(Command.OpenFile, path);
+                    if (alreadyHandled.Add(path))
+                    {
+                        Logger.Log($"Openning {path}");
+                        command.ActivateCommand(Command.OpenFile, path);
+                    }
                 }
             });
         }

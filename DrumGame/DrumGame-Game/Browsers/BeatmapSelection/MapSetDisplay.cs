@@ -13,6 +13,7 @@ namespace DrumGame.Game.Browsers.BeatmapSelection;
 
 public class MapSetDisplay : CompositeDrawable
 {
+    public const string MultipleDifficultiesTag = "multiple-difficulties";
     public MapSetDisplay(IReadOnlyList<MapSetEntry> mapSet, int selectedIndex)
     {
         var y = 0f;
@@ -21,14 +22,17 @@ public class MapSetDisplay : CompositeDrawable
         var selected = mapSet[selectedIndex].Metadata;
 
 
-        List<(BeatmapMetadata Meta, string DtxLevel)> list = mapSet.Select(e => (e.Metadata, e.Metadata.DtxLevel))
-            .OrderBy(e => e.DtxLevel).ToList();
+        var list = mapSet.Select(e => e.Metadata)
+            .OrderByDescending(e => e.DtxLevel)
+            .ThenByDescending(e => e.Difficulty).ToList();
 
         for (var i = 0; i < list.Count; i++)
         {
-            var (Meta, DtxLevel) = list[i];
-            builder.Append(Meta.DifficultyString);
-            if (DtxLevel != null) builder.Append(" - " + DtxLevel);
+            var meta = list[i];
+            var dtxLevel = meta.DtxLevel;
+            builder.Append(meta.DifficultyString);
+            if (!string.IsNullOrWhiteSpace(dtxLevel)) builder.Append(" - " + dtxLevel);
+            if (meta.Tags != null && meta.Tags.Contains(MultipleDifficultiesTag)) builder.Append(" (Multiple)");
             DrumButton button = null;
             button = new DrumButton
             {
@@ -37,11 +41,11 @@ public class MapSetDisplay : CompositeDrawable
                 AutoSize = true,
                 Action = () =>
                 {
-                    if (BeatmapCarousel.Current?.JumpToMap(Meta) == false)
+                    if (BeatmapCarousel.Current?.JumpToMap(meta) == false)
                         button.MarkupTooltip = "This difficulty is not currently visible due to the active filters";
                     else button.MarkupTooltip = null;
                 },
-                BackgroundColour = Meta == selected ? DrumColors.DarkGreen : DrumColors.DarkActiveButton
+                BackgroundColour = meta == selected ? DrumColors.DarkGreen : DrumColors.DarkActiveButton
             };
             AddInternal(button);
             y += button.Height;

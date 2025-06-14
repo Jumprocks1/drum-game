@@ -1,4 +1,33 @@
 {
+  "annotations": [
+    {
+      "time": 400.0,
+      "text": "Choke"
+    }
+  ],
+  "relativeVolume": 0.3214,
+  "audio": "audio\\01 - Sweet Violence.mp3",
+  "drumOnlyAudio": "temp/sweet-violence.wav",
+  "video": "video/F_gelA1Thio.mp4",
+  "videoOffset": 21.34,
+  "image": "images/1def7b0e39fe00c75572ba141ea1302b",
+  "imageUrl": "https://i.scdn.co/image/ab67616d00001e02e32f62b701ab4f63fd510550",
+  "id": "1207b826-17c6-426e-8c79-2b871bc146c2",
+  "offset": 1147.11,
+  "bpm": 170.0,
+  "title": "Sweet ∀iolence",
+  "romanTitle": "Sweet Violence",
+  "artist": "Naked Identity Created by King",
+  "mapper": "Jumprocks",
+  "difficulty": "Hard",
+  "tags": "n.i.c.k nick yuyoyuppe dtx-level-78",
+  "previewTime": 23382.0,
+  "spotify": "7qIeuSqZxu7ZkDLVloO7jv",
+  "youTubeID": "F_gelA1Thio",
+  "youTubeOffset": 21.34,
+  "playableDuration": 145176.0,
+  "medianBPM": 170.0,
+  "creationTimeUtc": "2025-01-06T03:48:08.9494616Z",
   "notePresets": {
     "1": {
       "volume": 0.88,
@@ -13,33 +42,6 @@
       "size": 0.75
     }
   },
-  "annotations": [
-    {
-      "time": 400.0,
-      "text": "Choke"
-    }
-  ],
-  "relativeVolume": 0.3214,
-  "audio": "audio\\01 - Sweet Violence.mp3",
-  "drumOnlyAudio": "temp/sweet-violence.wav",
-  "image": "images/1def7b0e39fe00c75572ba141ea1302b",
-  "imageUrl": "https://i.scdn.co/image/ab67616d00001e02e32f62b701ab4f63fd510550",
-  "id": "1207b826-17c6-426e-8c79-2b871bc146c2",
-  "offset": 1147.11,
-  "bpm": 170.0,
-  "title": "Sweet ∀iolence",
-  "romanTitle": "Sweet Violence",
-  "artist": "Naked Identity Created by King",
-  "mapper": "Jumprocks",
-  "difficulty": "Hard",
-  "tags": "n.i.c.k. nick yuyoyuppe dtx-level-78",
-  "previewTime": 23382.0,
-  "spotify": "7qIeuSqZxu7ZkDLVloO7jv",
-  "youTubeID": "F_gelA1Thio",
-  "youTubeOffset": 21.34,
-  "playableDuration": 145176.0,
-  "medianBPM": 170.0,
-  "creationTimeUtc": "2025-01-06T03:48:08.9494616Z",
   "notes": [
     {
       "time": 0.0,

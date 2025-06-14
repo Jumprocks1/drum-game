@@ -10,20 +10,21 @@
     }
   ],
   "relativeVolume": 0.3278,
-  "audio": "audio/IjeCq3FWSqU.ogg",
+  "audio": "audio\\04 - Hype Art.mp3",
   "drumOnlyAudio": "temp/IjeCq3FWSqU.wav",
-  "image": "images/08e996d30356316b94a0eea72b0b0563",
-  "imageUrl": "https://pbs.twimg.com/media/GoaeFTRX0AAbU7Q?format=jpg&name=small",
+  "image": "images/b21cd0d8e941d2e3eb1e13ed9a350067",
+  "imageUrl": "https://i.scdn.co/image/ab67616d00001e022b4412e11077371add9ec936",
   "id": "28c3cb19-d315-47a8-a424-b9a37f7e5986",
-  "offset": 409.63,
+  "offset": 388.27,
   "bpm": 190.0,
   "title": "Hype ∀rt",
   "romanTitle": "Hype Art",
   "artist": "Naked Identity Created by King",
   "mapper": "Jumprocks",
   "difficulty": "Insane",
-  "tags": "n.i.c.k. nick yuyoyuppe dtx-level-82",
+  "tags": "n.i.c.k nick yuyoyuppe dtx-level-82",
   "previewTime": 45646.0,
+  "spotify": "3dvN1MGdbc2HoZzWW9qS3u",
   "youTubeID": "IjeCq3FWSqU",
   "playableDuration": 179473.0,
   "medianBPM": 190.0,
@@ -996,6 +997,10 @@
     {
       "time": 93.5,
       "channel": "hihat"
+    },
+    {
+      "time": 94.0,
+      "channel": "bass"
     },
     {
       "time": 94.0,
@@ -3308,6 +3313,10 @@
     {
       "time": 285.5,
       "channel": "hihat"
+    },
+    {
+      "time": 286.0,
+      "channel": "bass"
     },
     {
       "time": 286.0,

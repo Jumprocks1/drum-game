@@ -172,7 +172,7 @@ public class SongIniLoader
             new("drums", 4),
             new("vocals", 2),
             new("vocals_explicit", 2),
-            new("crowd"),
+            // new("crowd"), // crowd kinda annoying
         };
         var found = new List<string>();
         foreach (var stem in stems)
@@ -201,7 +201,7 @@ public class SongIniLoader
         {
             try
             {
-                var mergeTarget = "audio/bgm_" + beatmap.MetaHash() + ".ogg";
+                var mergeTarget = "audio/bgm_" + beatmap.MetaHashNoDiff() + ".ogg";
                 var fullMergeTarget = beatmap.FullAssetPath(mergeTarget);
                 if (!File.Exists(fullMergeTarget))
                 {
@@ -247,7 +247,8 @@ public class SongIniLoader
         {
             map.DifficultyDefinitions = [.. map.DifficultyDefinitions
                 .OrderByDescending(e => Enum.TryParse<SongIniDifficulty>(e.Name, out var o) ? (int)o : (int)SongIniDifficulty.Other)];
-            map.AddTags(Browsers.BeatmapSelection.MapSetDisplay.MultipleDifficultiesTag);
+            if (Config.MountOnly) // don't want this tag for full imports
+                map.AddTags(Browsers.BeatmapSelection.MapSetDisplay.MultipleDifficultiesTag);
         }
 
         string line;
@@ -289,12 +290,17 @@ public class SongIniLoader
             }
         }
 
+        // sometimes these are negative, which screws everything up
+        if (diffDrumsRealPs < 0) diffDrumsRealPs = null;
+        if (diffDrumsReal < 0) diffDrumsReal = null;
+        if (diffDrums < 0) diffDrums = null;
         var diff = diffDrumsRealPs ?? diffDrumsReal ?? diffDrums;
+        var subdiff = (int)Config.Difficulty;
         if (diff is int d && d >= 0)
         {
             // expert = 3, so it would be minus 0
             // easy would be minus 3
-            d -= 3 - (int)Config.Difficulty;
+            d -= 3 - subdiff;
             var targetD = d;
             if (d <= 0) d = 1;
             if (d >= 6) d = 6;
@@ -303,6 +309,12 @@ public class SongIniLoader
             if (targetD <= 0)
                 map.DifficultyName = map.Difficulty.ToString() + $"({targetD})";
         }
+        else
+        {
+            map.Difficulty = (BeatmapDifficulty)(subdiff + 1);
+            map.DifficultyName = Config.Difficulty.ToString();
+        }
+        map.AddTags($"subdiff-{subdiff}"); // note, this can break hashes that include tags
 
         var folderName = Provider.FolderName;
         if (folderName.StartsWith("7z-"))
@@ -360,10 +372,15 @@ public class SongIniLoader
         }
 
         CleanMap(map);
+        map.StripHtmlFromMetadata();
         if (!Config.MountOnly)
         {
             map.Export();
             map.SaveToDisk(Util.MapStorage, Context);
+        }
+        else
+        {
+            map.MedianBPM = map.EstimateMedianBpm();
         }
         return map;
     }
@@ -538,11 +555,15 @@ public class SongIniLoader
                     {
                         // https://github.com/TheNathannator/GuitarGame_ChartFormats/blob/main/doc/FileFormats/.mid/Standard/Drums.md#track-notes
                         // https://github.com/TheNathannator/GuitarGame_ChartFormats/blob/main/doc/FileFormats/.mid/Miscellaneous/Rock%20Band/Drums.md
-                        if ((midiNote >= 24 && midiNote <= 51) || (midiNote >= 103 && midiNote <= 127))
+                        // 23 isn't documented there, but pretty sure it's left kick
+                        if ((midiNote >= 23 && midiNote <= 51) || (midiNote >= 103 && midiNote <= 127))
                         {
                             markers[midiNote] = true;
                             continue;
                         }
+                        if (midiNote == 22) continue; // think this is a metronome/count in
+                        // seem to be some section markers during start of song
+                        if (midiNote == 14 || midiNote == 15) continue;
                         // not sure why I skip these 2
                         if (midiNote == 12 || midiNote == 13) continue;
                         var diff = SongIniMapping.Difficulty(midiNote);
@@ -564,7 +585,7 @@ public class SongIniLoader
                     // velocity 0 is equivalent to note off
                     else if (me.type == 8 || (me.type == 9 && me.parameter2 == 0)) // note off
                     {
-                        if ((midiNote >= 24 && midiNote <= 51) || (midiNote >= 103 && midiNote <= 127))
+                        if ((midiNote >= 23 && midiNote <= 51) || (midiNote >= 103 && midiNote <= 127))
                             markers[midiNote] = false;
                     }
                 }

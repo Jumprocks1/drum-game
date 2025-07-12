@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using DrumGame.Game.API;
 using DrumGame.Game.Beatmaps.Data;
 using DrumGame.Game.Beatmaps.Display;
@@ -261,6 +262,7 @@ public partial class Beatmap
         DrumChannel.HalfOpenHiHat,
         DrumChannel.Ride,
         DrumChannel.RideBell,
+        DrumChannel.RideCrash,
         DrumChannel.Crash,
         DrumChannel.Splash,
         DrumChannel.China,
@@ -1051,6 +1053,7 @@ public partial class Beatmap
     public void HashId() => Id = MetaHash();
     public string DifficultyString => DifficultyName ?? Difficulty.ToDifficultyString();
     public string MetaHash() => Util.MD5(Title ?? "", Artist ?? "", DifficultyName ?? DifficultyString ?? "", Mapper ?? "", Description ?? "", Tags ?? "");
+    public string MetaHashNoDiff() => Util.MD5(Title ?? "", Artist ?? "", Mapper ?? "", Description ?? "");
     // note, this doesn't work for things like (TV Size) being in the title, oh well
     // in those cases, we will have to manually set the map set
     public string MapSetHash() => Util.MD5(Title ?? "", Artist ?? "", Mapper ?? "");
@@ -1112,6 +1115,22 @@ public partial class Beatmap
             }
         }
         PlayableDuration = Math.Floor(PlayableDuration);
+    }
+
+    // this could be improved, but honestly it's good enough
+    public double EstimateMedianBpm()
+    {
+        if (TempoChanges == null)
+        {
+            TickRate = DefaultTickRate;
+            BJsonLoadHelpers.LoadTempo(this);
+        }
+        var tempos = TempoChanges.ToList();
+        AddExtraDefault(tempos);
+        var min = tempos.MaxBy(e => e.Tempo.MicrosecondsPerQuarterNote);
+        var max = tempos.MinBy(e => e.Tempo.MicrosecondsPerQuarterNote);
+        if (min == max) return min.BPM;
+        return Math.Round((min.Tempo.BPM + max.Tempo.BPM) / 2, 1);
     }
 
     public string BpmRange
@@ -1220,5 +1239,13 @@ public partial class Beatmap
         }
         // it's fine if there's no left bass if all the notes are slowish
         return smallestGap <= TickRate / 4;
+    }
+
+    public void StripHtmlFromMetadata() // primarily for weird CloneHero charts
+    {
+        var regex = new Regex("<.*?>");
+        if (Title != null) Title = regex.Replace(Title, "");
+        if (Artist != null) Artist = regex.Replace(Artist, "");
+        if (Mapper != null) Mapper = regex.Replace(Mapper, "");
     }
 }

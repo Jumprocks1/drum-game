@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
+using osu.Framework.Logging;
 
 namespace DrumGame.Game.IO.Midi;
 
@@ -12,6 +14,10 @@ public class MidiTrack : MidiFile.Chunk
     public string Name;
     public List<Event> events;
     static HashSet<string> IgnoreTracks = ["PART VOCALS", "PART BASS", "PART GUITAR", "VENUE"];
+    public List<byte> UsedNotes() // useful for debugging
+    {
+        return events.OfType<MidiEvent>().Select(e => e.parameter1).ToHashSet().OrderBy(e => e).ToList();
+    }
     public static MidiTrack Read(MidiReader reader, int length)
     {
         var events = new List<Event>();
@@ -134,7 +140,7 @@ public class MidiTrack : MidiFile.Chunk
                     var denom = 1 << reader.ReadByte();
                     var metro = reader.ReadByte();
                     var n32 = reader.ReadByte();
-                    if (metro != 24) throw new Exception("Memtronome not 24");
+                    if (metro != 24) Logger.Log($"Metronome not 24 ({metro})");
                     if (n32 != 8) throw new Exception("32nd note not 8");
                     var e = new TimingEvent
                     {

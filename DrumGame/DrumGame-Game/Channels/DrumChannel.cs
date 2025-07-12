@@ -23,6 +23,7 @@ public enum DrumChannel
     Splash = 14,
     China = 15,
     Rim = 16,
+    RideCrash = 17,
     // channels below here are not displayed in some places and are subject to index changes
     // TODO we should add L/R crash/china/splash here. Not sure of the best way yet though
     Metronome,
@@ -32,5 +33,6 @@ public enum DrumChannel
     Aux3,
     Aux4,
     Aux5,
+    MAX_VALUE
 }
 

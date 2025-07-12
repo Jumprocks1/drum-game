@@ -19,16 +19,25 @@ public static class SongIniMapping
     public static HitObjectData ToHitObjectData(byte midiNote, byte velocity, bool[,] phrases, bool[] markers, SongIniLoader.TrackType type)
     {
         // markers: https://github.com/TheNathannator/GuitarGame_ChartFormats/blob/main/doc/FileFormats/.mid/Standard/Drums.md#track-notes
+        // also: https://github.com/TheNathannator/GuitarGame_ChartFormats/blob/main/doc/FileFormats/.mid/Miscellaneous/Rock%20Band/Drums.md
         var d = Difficulty(midiNote);
         if (d >= 0)
         {
             var relativeNote = midiNote - 59 - d * 12;
             if (type == SongIniLoader.TrackType.Drums)
             {
-                var crash1 = markers[34] || markers[35] || markers[36] || markers[37];
-                var crash2 = markers[38] || markers[39] || markers[44] || markers[45];
+                // markers aren't guarentees, since there can be multiple notes hit at the same time
+                // additionally, markers can last for more than a single timestamp/tick
+                var crash1 = markers[34] || markers[35] || markers[36] || markers[37] || markers[40];
+                var crash2 = markers[38] || markers[39] || markers[44] || markers[45] || markers[41];
+                var ride = markers[42] || markers[43];
+                var hh = markers[30] || markers[31];
+                var closedHH = hh && !markers[25];
                 if (relativeNote == 3)
-                    return markers[110] ? new HitObjectData(DrumChannel.SmallTom) : new HitObjectData(DrumChannel.OpenHiHat);
+                    return markers[110] ? new HitObjectData(DrumChannel.SmallTom) :
+                        crash1 ? new HitObjectData(DrumChannel.Crash, NoteModifiers.Left) :
+                        closedHH ? new HitObjectData(DrumChannel.ClosedHiHat) :
+                        new HitObjectData(DrumChannel.OpenHiHat);
                 else if (relativeNote == 4)
                 {
                     if (!markers[111])
@@ -39,6 +48,12 @@ public static class SongIniMapping
                             return new HitObjectData(DrumChannel.Crash, NoteModifiers.Left);
                         else if (crash2)
                             return new HitObjectData(DrumChannel.Crash, NoteModifiers.Right);
+                        else if (ride)
+                            return new HitObjectData(DrumChannel.Ride);
+                        else if (hh)
+                            // for some reason HH can be on either lane 3 this one (4). usually it's on 3
+                            return closedHH ? new HitObjectData(DrumChannel.ClosedHiHat) :
+                                new HitObjectData(DrumChannel.OpenHiHat);
                     }
                 }
                 else if (relativeNote == 5)
@@ -47,10 +62,13 @@ public static class SongIniMapping
                     {
                         if (crash1 && crash2)
                             return new HitObjectData(DrumChannel.Crash, NoteModifiers.Accented);
+                        if (!crash1 && !crash2 && ride)
+                            return new HitObjectData(DrumChannel.Ride);
                     }
                 }
             }
-            var o = relativeNote switch
+            // this switch should not depend on Rockband markers (24-51)
+            return relativeNote switch
             {
                 0 => new HitObjectData(DrumChannel.BassDrum, NoteModifiers.Left),
                 1 => new HitObjectData(DrumChannel.BassDrum),
@@ -62,10 +80,10 @@ public static class SongIniMapping
                     new HitObjectData(DrumChannel.Crash, NoteModifiers.Left), // yellow
                 4 => markers[111] ? new HitObjectData(DrumChannel.MediumTom) : new HitObjectData(DrumChannel.Ride), // blue
                 5 => markers[112] ? new HitObjectData(DrumChannel.LargeTom) : new HitObjectData(DrumChannel.Crash, NoteModifiers.Right), // green/orange?
-                6 => markers[112] ? new HitObjectData(DrumChannel.LargeTom) : new HitObjectData(DrumChannel.None), // green
+                // note marker 112 is for green toms, but there's no alternative, so it seems it's left out sometimes
+                6 => new HitObjectData(DrumChannel.LargeTom), // green
                 _ => default
             };
-            return o;
         }
         return default;
     }

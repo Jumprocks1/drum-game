@@ -673,7 +673,11 @@ public static class Util
             return null;
         }
     }
-    public static void SetClipboard(string text) => Clipboard.SetText(text);
+    public static void SetClipboard(string text)
+    {
+        if (text == null) return;
+        Clipboard.SetText(text);
+    }
     public static Stopwatch StartTime;
     public static void CheckStartDuration()
     {

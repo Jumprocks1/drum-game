@@ -294,7 +294,8 @@ public class BeatmapPlayer : CompositeDrawable
         // if we dispose the track before MIDI hooks, we could get invalid events
         base.Dispose(isDisposing);
         Beatmap.LengthChanged -= LengthChanged;
-        Util.DrumGame.VolumeController.MetronomeVolume.Muted.ValueChanged -= MetronomeMuteChanged;
+        if (Util.DrumGame?.VolumeController != null)
+            Util.DrumGame.VolumeController.MetronomeVolume.Muted.ValueChanged -= MetronomeMuteChanged;
         BeatmapPlayerInputHandler?.Dispose();
         PracticeMode?.Exit();
         PracticeMode = null;

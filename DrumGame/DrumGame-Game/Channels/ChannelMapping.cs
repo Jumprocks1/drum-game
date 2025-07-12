@@ -52,7 +52,7 @@ public static class ChannelMapping
         26 => DrumChannel.OpenHiHat, // hi-hat rim, taken from  TD-27
         51 => DrumChannel.Ride, // bow
         53 => DrumChannel.RideBell, // bell
-        59 => DrumChannel.Crash, // ride edge
+        59 => DrumChannel.RideCrash, // ride edge
         54 => DrumChannel.OpenHiHat, // Tambourine
         49 => DrumChannel.Crash, // crash 1
         55 => DrumChannel.Splash, // crash 1 edge
@@ -80,10 +80,11 @@ public static class ChannelMapping
     { // subtract 8172 for midi number
         DrumChannel.Crash => MidiInputKey.MidiCSharp3,
         DrumChannel.OpenHiHat => MidiInputKey.MidiASharp2,
+        DrumChannel.HalfOpenHiHat => MidiInputKey.MidiFSharp3,
         DrumChannel.ClosedHiHat => MidiInputKey.MidiFSharp2,
-        DrumChannel.HalfOpenHiHat => MidiInputKey.MidiFSharp2,
         DrumChannel.Ride => MidiInputKey.MidiDSharp3,
         DrumChannel.RideBell => MidiInputKey.MidiF3,
+        DrumChannel.RideCrash => MidiInputKey.MidiB3,
         DrumChannel.Snare => MidiInputKey.MidiD2,
         DrumChannel.SideStick => MidiInputKey.MidiCSharp2,
         DrumChannel.Rim => MidiInputKey.MidiCSharp2,
@@ -108,7 +109,7 @@ public static class ChannelMapping
     public static bool IsFoot(this DrumChannel channel) => channel == DrumChannel.BassDrum || channel == DrumChannel.HiHatPedal; // used to separated voices
     public static bool IsCymbal(this DrumChannel channel) => channel switch
     {
-        DrumChannel.China or DrumChannel.Crash or DrumChannel.Ride
+        DrumChannel.China or DrumChannel.Crash or DrumChannel.Ride or DrumChannel.RideBell or DrumChannel.RideCrash
             or DrumChannel.OpenHiHat or DrumChannel.ClosedHiHat => true,
         _ => false
     };

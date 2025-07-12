@@ -562,6 +562,7 @@ public partial class BeatmapSelector : CompositeDrawable
         });
         context.ShowMessage("Sync completed");
     }
+    public void SetSearch(string search) => SearchInput.Current.Value = search;
 
     [CommandHandler]
     public bool DeleteMap(CommandContext context)
@@ -859,7 +860,8 @@ public partial class BeatmapSelector : CompositeDrawable
             Util.UpdateThread.Scheduler.Add(() =>
             {
                 var o = Beatmap.Create();
-                o.Source = new BJsonSource(MapStorage.GetFullPath(name + ".bjson"), BJsonFormat.Instance);
+                var mapStoragePath = name + ".bjson";
+                o.Source = new BJsonSource(MapStorage.GetFullPath(mapStoragePath), BJsonFormat.Instance);
                 o.Audio = relativeAudio;
                 o.YouTubeID = name;
                 if (File.Exists(o.Source.AbsolutePath))
@@ -868,7 +870,7 @@ public partial class BeatmapSelector : CompositeDrawable
                     return;
                 }
                 o.SaveToDisk(MapStorage);
-                OnSelect(State.Filename = o.Source.Filename);
+                SelectMap(mapStoragePath, false);
             });
         };
         task.Enqueue();

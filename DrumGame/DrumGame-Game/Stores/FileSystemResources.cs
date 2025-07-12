@@ -19,7 +19,7 @@ public class FileSystemResources : StorageBackedResourceStore
     {
         AbsolutePath = Path.GetFullPath(path);
         Storage = storage;
-        GlobalStorage = new GlobalNativeStorage(Util.Host);
+        GlobalStorage = new GlobalNativeStorage(AbsolutePath, Util.Host);
         GlobalStorageStore = new StorageBackedResourceStore(GlobalStorage);
         Tracks = trackStore ?? Util.DrumGame.Audio.GetTrackStore(GlobalStorageStore);
         ResourceStore = new ResourceStore<byte[]>(this);
@@ -70,9 +70,6 @@ public class FileSystemResources : StorageBackedResourceStore
     public ITextureStore LargeTextures;
     public ResourceStore<byte[]> ResourceStore;
     public readonly string AbsolutePath;
-    ITrackStore _absoluteTrackStore;
-    public ITrackStore AbsoluteTracks => _absoluteTrackStore ??= Util.DrumGame.Audio.GetTrackStore(
-            new StorageBackedResourceStore(new AbsoluteStorage(AbsolutePath)));
     public DirectoryInfo GetDirectory(string path) => Directory.CreateDirectory(GetAbsolutePath(path));
     public DirectoryInfo GetDirectory(params string[] path) => Directory.CreateDirectory(GetAbsolutePath(Path.Join(path)));
     public DirectoryInfo Temp => Directory.CreateDirectory(GetAbsolutePath("temp"));
@@ -139,17 +136,4 @@ public class FileSystemResources : StorageBackedResourceStore
     public Texture GetAssetTextureNoAtlas(string filename,
         WrapMode wrapModeS = default, WrapMode wrapModeT = default)
         => AssetTextureStoreNoAtlas.Get(filename, wrapModeS, wrapModeT);
-}
-
-class AbsoluteStorage : NativeStorage
-{
-    public AbsoluteStorage(string path, GameHost host = null) : base(path, host) { }
-    public override string GetFullPath(string path, bool createIfNotExisting = false)
-    {
-        path = path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
-        string basePath = Path.GetFullPath(BasePath).TrimEnd(Path.DirectorySeparatorChar);
-        string resolvedPath = Path.GetFullPath(Path.Combine(basePath, path));
-        if (createIfNotExisting) Directory.CreateDirectory(Path.GetDirectoryName(resolvedPath));
-        return resolvedPath;
-    }
 }

@@ -48,6 +48,7 @@ public class DrumGameConfigManager : IniConfigManager<DrumGameSetting>
     public Bindable<bool> DiscordRichPresence;
     public Bindable<bool> PreservePitch;
     public Bindable<(byte, byte)> HiHatRange;
+    public Bindable<bool> HiHatCrossTalkCancel;
     public ParsableBindable<KeyboardMapping> KeyboardMapping;
     public Bindable<DisplayPreference> DisplayMode;
 
@@ -95,6 +96,7 @@ public class DrumGameConfigManager : IniConfigManager<DrumGameSetting>
         DiscordRichPresence = SetDefault<bool>(DrumGameSetting.DiscordRichPresence, false);
         MidiThreshold = SetDefault(DrumGameSetting.MidiThreshold, 0, -1, 127);
         PreservePitch = SetDefault(DrumGameSetting.PreservePitch, true);
+        HiHatCrossTalkCancel = SetDefault(DrumGameSetting.HiHatCrossTalkCancel, false);
         SetDefault(DrumGameSetting.AutoLoadVideo, true);
         SetDefault(DrumGameSetting.PreferredMidiInput, "");
         SetDefault(DrumGameSetting.PreferredMidiOutput, "");
@@ -292,6 +294,7 @@ public enum DrumGameSetting
     SoundfontVolume,
     PlaySoundfontOutsideMaps,
     SoundfontUseMidiVelocity,
+    HiHatCrossTalkCancel,
     Version
 }
 

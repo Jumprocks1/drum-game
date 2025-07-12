@@ -7,9 +7,9 @@ namespace DrumGame.Game.Beatmaps.Scoring;
 public record ScoreEvent
 {
     public HitScoreRating Rating;
-    public DrumChannel Channel;
+    public DrumChannel Channel; // this should match InputEvent.HitObject.Channel in most cases. It may not match InputEvent.Channel when equivalents are involved
     public int OriginalObjectIndex = -1;
-    public double? Time; // Time of event ms, can be ignored for misses
+    public double? Time; // Time of event ms, can be ignored (null?) for misses
     public double? ObjectTime; // Intended time of event ms, for ignored and rolls this is null
     public double? HitError => Time - ObjectTime;
     public bool IsMiss => Rating == HitScoreRating.Miss;

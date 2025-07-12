@@ -8,12 +8,14 @@ namespace DrumGame.Game.Beatmaps.Editor;
 
 public static class FilterManager
 {
+    public static string FilterFilePath => Util.Resources.GetAbsolutePath("filters/filters.json");
+    public static void RevealFilterFile() => Util.RevealInFileExplorer(FilterFilePath);
     public static long WriteTime = -1;
     static List<BeatmapFilter> Filters;
     static void LoadFilters()
     {
         // if (Filters != null) return;
-        var fileName = Util.Resources.GetAbsolutePath("filters/filters.json");
+        var fileName = FilterFilePath;
         var writeTime = File.GetLastWriteTimeUtc(fileName).Ticks;
         if (writeTime == WriteTime) return;
 

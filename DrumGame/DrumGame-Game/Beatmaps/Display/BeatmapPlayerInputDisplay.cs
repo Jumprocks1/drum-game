@@ -79,35 +79,11 @@ public class BeatmapPlayerInputDisplay : CompositeDrawable
             ChannelDisplays[(int)DrumChannel.HiHatPedal] = ChannelDisplays[(int)DrumChannel.ClosedHiHat];
             ChannelDisplays[(int)DrumChannel.Splash] = ChannelDisplays[(int)DrumChannel.Crash];
             ChannelDisplays[(int)DrumChannel.China] = ChannelDisplays[(int)DrumChannel.Crash];
+            ChannelDisplays[(int)DrumChannel.RideCrash] = ChannelDisplays[(int)DrumChannel.Ride];
         }
     }
     public class ChannelDisplay
     {
-        private class DragCircle : Circle
-        {
-            protected override bool OnDragStart(DragStartEvent e)
-            {
-                return true;
-            }
-            protected override void OnDrag(DragEvent e)
-            {
-                this.Position += e.Delta;
-                base.OnDrag(e);
-            }
-            protected override void OnDragEnd(DragEndEvent e)
-            {
-                var parent = this.Parent as BeatmapPlayerInputDisplayInner;
-                for (int i = 0; i < parent.ChannelDisplays.Length; i++)
-                {
-                    var ci = parent.ChannelDisplays[i];
-                    if (ci?.Drawable != null)
-                    {
-                        Console.WriteLine($"DrumChannel.{(DrumChannel)i} => new Vector2({ci.Drawable.X:0.#}f, {ci.Drawable.Y:0.#}f),");
-                    }
-                }
-                base.OnDragEnd(e);
-            }
-        }
         public void Parent(BeatmapPlayerInputDisplayInner display)
         {
             display.Add(Drawable);

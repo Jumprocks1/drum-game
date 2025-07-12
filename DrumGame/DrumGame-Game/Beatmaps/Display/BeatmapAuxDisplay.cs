@@ -39,7 +39,7 @@ public class BeatmapAuxDisplay : Container
         CommandController.RegisterHandlers(this);
         if (Util.ConfigManager.Get<bool>(DrumGameSetting.AutoLoadVideo))
         {
-            var videoPath = Beatmap.FullAssetPath(Beatmap.Video);
+            var videoPath = FullVideoPath;
             if (videoPath != null && File.Exists(videoPath))
                 LoadVideo();
         }
@@ -161,7 +161,8 @@ public class BeatmapAuxDisplay : Container
 
     // this is the video from the beatmap, such as an anime OP
     public SyncedVideo Video { get; private set; }
-    public void LoadVideo() => LoadVideo(Beatmap.FullAssetPath(Beatmap.Video));
+    string FullVideoPath => Beatmap.FullAssetPath(Beatmap.Video);
+    public void LoadVideo() => LoadVideo(FullVideoPath);
     public void LoadVideo(string videoPath)
     {
         if (Video != null) return;
@@ -188,7 +189,9 @@ public class BeatmapAuxDisplay : Container
     {
         if (Video == null)
         {
-            if (Beatmap.Video == null && Display.Player is BeatmapEditor editor && Beatmap.YouTubeID != null)
+            var tryLoadYouTube = Beatmap.YouTubeID != null &&
+                (Beatmap.Video == null || !File.Exists(FullVideoPath));
+            if (Display.Player is BeatmapEditor editor && tryLoadYouTube)
             {
                 var modal = new ConfirmationModal(() =>
                 {

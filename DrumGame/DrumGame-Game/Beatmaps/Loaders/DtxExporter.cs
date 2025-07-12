@@ -203,9 +203,11 @@ public class DtxExporter
             return ho.Channel switch
             {
                 DrumChannel.OpenHiHat => "18",
+                DrumChannel.HalfOpenHiHat => "18",
                 DrumChannel.ClosedHiHat => "11",
                 DrumChannel.Ride => "19",
                 DrumChannel.RideBell => "19",
+                DrumChannel.RideCrash => "16", // not really sure if we should do right crash or ride for these
                 DrumChannel.Snare => "12",
                 DrumChannel.SideStick => "12",
                 DrumChannel.SmallTom => "14",
@@ -216,7 +218,7 @@ public class DtxExporter
                 // This lets us use sticking modifiers in Drum Game to set the cymbal channel
                 DrumChannel.Crash or DrumChannel.Splash or DrumChannel.China => StereoSticking(ho) == NoteModifiers.Left ? "1A" : "16",
                 DrumChannel.Rim => "12", // snare for now, should probably be able to set this
-                _ => throw new NotSupportedException()
+                _ => throw new NotSupportedException($"Channel not supported when exporting: {ho.Channel}")
             };
         }
         else if (ev is TempoChange)
@@ -581,7 +583,7 @@ public class DtxExporter
 
     WavChip BgmChip;
 
-    const double GlobalBoost = 4.7; // this is just what I decided on, it's pretty arbitrary
+    const double GlobalBoost = 5.2; // this is just what I decided on, it's pretty arbitrary
 
     void MakeBgmChip()
     {
@@ -880,7 +882,7 @@ public class DtxExporter
 
         fields
             .Add(new StringFieldConfig { Label = "Ghost Note Width", DefaultValue = "80", Key = nameof(ExportConfig.GhostNoteWidth) })
-            .Add(new StringFieldConfig { Label = "Zip Name", DefaultValue = zipName.ToString(), Key = nameof(ExportConfig.ExportName) })
+            .Add(new StringFieldConfig { Label = "Zip Name", DefaultValue = zipName.ToString().Trim(), Key = nameof(ExportConfig.ExportName) })
             .Add(new BoolFieldConfig { Label = "Encode Offset", DefaultValue = true, Key = nameof(ExportConfig.EncodeOffset) })
             .Add(new StringFieldConfig { Label = "Offbeat hihat/ride volume", DefaultValue = "92", Key = nameof(ExportConfig.OffbeatHiHatVolume) })
             .Add(new BoolFieldConfig { Label = "Include Video", DefaultValue = beatmap.YouTubeID != null, Key = nameof(ExportConfig.IncludeVideo) });

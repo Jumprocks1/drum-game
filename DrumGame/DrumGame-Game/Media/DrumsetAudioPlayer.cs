@@ -158,7 +158,12 @@ public class DrumsetAudioPlayer : IDisposable
             // TODO doesn't work for imported double crashes
             if (!sampleCache.TryGetValue(presetSampleFile, out var sample))
             {
-                sampleCache[presetSampleFile] = sample = Samples.Get(ev.CurrentBeatmap.Source.FullAssetPath(presetSampleFile));
+                try
+                {
+                    sample = Samples.Get(ev.CurrentBeatmap.Source.FullAssetPath(presetSampleFile));
+                }
+                catch (Exception e) { Logger.Error(e, $"Error loading sample {presetSampleFile}"); }
+                sampleCache[presetSampleFile] = sample;
             }
             if (sample != null)
                 return new BasicHandler(sample) { Preset = preset };

@@ -8,7 +8,7 @@ public abstract class FieldConfigBase : IFieldConfig
 {
     public object Tooltip { get; set; }
     public abstract Type OutputType { get; }
-    public string MarkupTooltip { get => (Tooltip as MarkupTooltipData)?.Data; set => Tooltip = new MarkupTooltipData(value); }
+    public string MarkupTooltip { get => (Tooltip as MarkupTooltipData)?.Data; set => Tooltip = value == null ? null : new MarkupTooltipData(value); }
     public string Label { get; set; }
     public Drawable[] LabelButtons { get; set; }
     public string Key { get; set; } // optional

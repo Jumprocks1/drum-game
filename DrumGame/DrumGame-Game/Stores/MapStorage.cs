@@ -147,7 +147,7 @@ public class MapStorage : NativeStorage, IDisposable
         if (playTimesLoaded) return;
         using (var context = Util.GetDbContext())
         {
-            var dict = context.Beatmaps.ToDictionary(e => e.Id);
+            var dict = context.Beatmaps.Select(e => new { e.Id, e.PlayTime }).ToDictionary(e => e.Id);
             foreach (var metadata in LoadedMetadata.Maps.Values)
                 metadata.PlayTime = dict.GetValueOrDefault(metadata.Id)?.PlayTime ?? 0;
         }

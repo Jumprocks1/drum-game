@@ -10,7 +10,7 @@ namespace DrumGame.Game.Beatmaps.Scoring;
 public class DrumChannelEvent : IReplayEvent
 {
     [JsonConverter(typeof(DrumChannelConverter))]
-    public DrumChannel Channel;
+    public DrumChannel Channel; // this channel might not match HitObject.Channel if there's equivalents involved
     // public NoteModifiers Modifiers; // TODO should add this for custom sticking event support
     public double Time { get; } // ms
     public byte Velocity;

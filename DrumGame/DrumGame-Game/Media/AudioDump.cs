@@ -15,6 +15,15 @@ public class AudioDump
     public int SampleCount; // per channel
     public int ChannelCount;
     public int SampleRate;
+    public double Duration => (double)SampleCount / SampleRate;
+
+    public AudioDump(int sampleRate, float[,] buffer)
+    {
+        SampleCount = buffer.GetLength(1);
+        ChannelCount = buffer.GetLength(0);
+        SampleRate = sampleRate;
+        SampleBuffer = buffer;
+    }
 
     // Make sure to seek stream to 0 if needed afterwards
     public AudioDump(int decodeStream, ChannelInfo? channelInfo = null, Action<double> progress = null)
@@ -30,7 +39,7 @@ public class AudioDump
         const int samplesPerIteration = 400_000;
         const int bytesPerIteration = 4 * samplesPerIteration;
 
-        float[] sampleBuffer = new float[samplesPerIteration];
+        var sampleBuffer = new float[samplesPerIteration];
 
         var o = new float[channels, length];
 
@@ -43,9 +52,9 @@ public class AudioDump
             var bytesRead = Bass.ChannelGetData(decodeStream, sampleBuffer, bytesPerIteration);
             if (bytesRead <= 0) break;
 
-            var samplesRead = (int)(bytesRead / 4);
+            var samplesRead = bytesRead / 4;
 
-            for (int i = 0; i < samplesRead; i += channels) // sample channels are interleaved L,R,L,R etc
+            for (var i = 0; i < samplesRead; i += channels) // sample channels are interleaved L,R,L,R etc
             {
                 for (var j = 0; j < channels; j++)
                     o[j, position] = sampleBuffer[i + j];
@@ -123,5 +132,29 @@ public class AudioDump
         for (var i = 0; i < SampleCount; i++)
             for (var j = 0; j < ChannelCount; j++)
                 writer.WriteSample(SampleBuffer[j, i]);
+    }
+
+    public static AudioDump FromFunction(int sampleRate, double duration, Func<double, float> function)
+    {
+        var sampleCount = (int)(sampleRate * duration);
+        var res = new float[1, sampleCount];
+        for (var i = 0; i < sampleCount; i++)
+        {
+            res[0, i] = function((double)i / sampleCount * duration);
+        }
+        return new AudioDump(sampleRate, res);
+    }
+    public static AudioDump FromFunction(int channels, int sampleRate, double duration, Func<int, double, float> function)
+    {
+        var sampleCount = (int)(sampleRate * duration);
+        var res = new float[channels, sampleCount];
+        for (var channel = 0; channel < channels; channel++)
+        {
+            for (var i = 0; i < sampleCount; i++)
+            {
+                res[channel, i] = function(channel, (double)i / sampleCount * duration);
+            }
+        }
+        return new AudioDump(sampleRate, res);
     }
 }

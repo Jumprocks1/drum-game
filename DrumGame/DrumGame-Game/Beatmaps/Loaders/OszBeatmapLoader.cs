@@ -120,7 +120,7 @@ public static class OszBeatmapLoader
 
             var audioPath = output.GetFullPath(o.Audio);
             Logger.Log($"Saving audio to {audioPath}");
-            oszReader.Archive.GetEntry(o.Audio).ExtractToFile(audioPath, true);
+            oszReader.Archive.GetEntry(o.Audio)?.ExtractToFile(audioPath, true);
             o.Export();
             o.SaveToDisk(mapStorage);
         }

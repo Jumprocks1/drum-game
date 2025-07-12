@@ -60,6 +60,8 @@ public static class MetadataEditor
             OnCommit = onCommit,
             DisableCommit = disableSave ? "Cannot save this beatmap" : null,
             CommitText = "Save",
+            // bit of spaghetti here
+            // main reason is to prevent having to copy paste the code in CommitProp
             Fields = fields.Select<string, IFieldConfig>(e =>
             {
                 if (e == "Difficulty") return new AutocompleteFieldConfig
@@ -83,9 +85,19 @@ public static class MetadataEditor
                     }
                 };
                 var prop = t.GetProperty(e);
-                return new StringFieldConfig(e, (string)prop.GetValue(beatmap))
+                return new StringFieldConfig(e switch
                 {
-                    OnCommit = v => CommitProp(prop, v)
+                    "RomanTitle" => "Roman Title",
+                    "RomanArtist" => "Roman Artist",
+                    _ => e
+                }, (string)prop.GetValue(beatmap))
+                {
+                    OnCommit = v => CommitProp(prop, v),
+                    MarkupTooltip = e switch
+                    {
+                        "RomanTitle" or "RomanArtist" => "Should only use roman characters (A-Z).\nUseful for searching + making safe filenames.",
+                        _ => null
+                    }
                 };
             }).ToArray(),
             Footer = new Container

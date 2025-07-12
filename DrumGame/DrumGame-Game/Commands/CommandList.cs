@@ -354,7 +354,7 @@ public static class CommandList
         controller.RegisterCommand(Command.EditTiming, InputKey.T)
             .SearchTags = "bpm";
         controller.RegisterCommand(Command.EditBeatsPerMeasure)
-            .SearchTags = "timing";
+            .SearchTags = "timing time-signature";
         controller.RegisterCommand(Command.ToggleBookmark, new KeyCombo(ModifierKey.Ctrl, InputKey.B));
         controller.RegisterCommand(Command.ToggleAnnotation);
         controller.RegisterCommand(Command.TogglePlayback, InputKey.Space);
@@ -620,6 +620,8 @@ public static class CommandList
         { Parameter = DrumChannel.China });
         controller.RegisterCommandInfo(new CommandInfo(Command.ToggleDrumChannel, "Toggle Rim")
         { Parameter = DrumChannel.Rim });
+        controller.RegisterCommandInfo(new CommandInfo(Command.ToggleDrumChannel, "Toggle Ride Crash")
+        { Parameter = DrumChannel.RideCrash });
     }
 
     public static Command[] EditorTools => new Command[] {

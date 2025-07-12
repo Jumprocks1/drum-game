@@ -60,7 +60,7 @@ public class DrumDbContext : DbContext
             Beatmaps.Add(existing = new BeatmapInfo(id));
         return existing;
     }
-    public BeatmapInfo GetOrAddBeatmap(string id, Dictionary<string, BeatmapInfo> lookup)
+    BeatmapInfo GetOrAddBeatmap(string id, Dictionary<string, BeatmapInfo> lookup)
     {
         if (lookup.TryGetValue(id, out var o))
             return o;

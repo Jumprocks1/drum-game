@@ -5,7 +5,7 @@ using DrumGame.Game.Beatmaps.Display;
 using DrumGame.Game.Beatmaps.Loaders;
 using DrumGame.Game.Channels;
 using DrumGame.Game.Commands;
-using Newtonsoft.Json;
+using DrumGame.Game.Components;
 
 namespace DrumGame.Game.Beatmaps.Editor;
 
@@ -116,12 +116,18 @@ public partial class BeatmapEditor
     [CommandHandler]
     public bool ApplyFilter(CommandContext context)
     {
-        context.GetString(FilterManager.GetFilterList().Select(e => e.Name), filterName =>
+        var modal = context.GetString(FilterManager.GetFilterList().Select(e => e.Name), filterName =>
         {
             var filter = FilterManager.GetFilter(filterName);
             if (filter == null) return;
             ApplyFilter(filter);
         }, "Applying Filter", "Filter");
+        modal?.AddFooterButtonSpaced(new DrumButton
+        {
+            Text = "View Filter File",
+            Action = FilterManager.RevealFilterFile,
+            AutoSize = true
+        });
         return true;
     }
     void ApplyFilter(BeatmapFilter filter)
@@ -129,10 +135,10 @@ public partial class BeatmapEditor
         using var _ = UseCompositeChange($"{filter.Name} filter");
         foreach (var action in filter.Actions) ApplyFilterAction(action);
     }
-    void ApplyFilterAction(BeatmapFilter.FilterAction action)
+    void ApplyFilterAction(BeatmapFilter.FilterAction action) => ApplyFilterAction(action, Display.Selection);
+    public void ApplyFilterAction(BeatmapFilter.FilterAction action, BeatSelection selection)
     {
         if (!Editing) return;
-        var selection = Display.Selection;
 
         var target = action.Target;
 
@@ -143,13 +149,24 @@ public partial class BeatmapEditor
             else
                 target = BeatmapFilter.Target.All;
         }
-        if (target == BeatmapFilter.Target.Stride)
-            selection = GetSelectionOrCursor();
+        if (target == BeatmapFilter.Target.SelectionOrAll)
+        {
+            if (selection != null && selection.IsComplete)
+                target = BeatmapFilter.Target.Selection;
+            else
+                target = BeatmapFilter.Target.All;
+        }
+        if (target == BeatmapFilter.Target.Stride || target == BeatmapFilter.Target.Selection)
+            // pretty awkward passing around the input selection like this
+            // I think ideally we would move the selection field to BeatmapEditor to make this easier to test (without a display)
+            selection = GetSelectionOrCursor(sel: selection);
 
         IEnumerable<int> hitsEnum = null;
         var hitObjects = Beatmap.HitObjects;
         if (target == BeatmapFilter.Target.Stride)
             hitsEnum = Beatmap.GetHitObjectsAt(selection, TickStride);
+        else if (target == BeatmapFilter.Target.Selection)
+            hitsEnum = Beatmap.GetHitObjectsIn(selection);
         else if (target == BeatmapFilter.Target.All)
             hitsEnum = Enumerable.Range(0, hitObjects.Count);
         else throw new NotSupportedException(target.ToString());

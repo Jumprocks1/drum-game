@@ -32,6 +32,7 @@ public class DrumLegend : CompositeDrawable
             DrumChannel.OpenHiHat,
             DrumChannel.Ride,
             DrumChannel.RideBell,
+            DrumChannel.RideCrash,
             DrumChannel.Crash,
             DrumChannel.China,
             DrumChannel.Splash,

@@ -94,6 +94,7 @@ public class NotationSkinInfo
             {DrumChannel.ClosedHiHat, new SkinNote(-1, MusicGlyph.noteheadXBlack)},
             {DrumChannel.Ride, new SkinNote(0, MusicGlyph.noteheadXBlack)},
             {DrumChannel.RideBell, new SkinNote(0, MusicGlyph.noteheadDiamondBlack)},
+            {DrumChannel.RideCrash, new SkinNote(0, MusicGlyph.noteheadXOrnate)},
             {DrumChannel.Snare, new SkinNote(3)},
             {DrumChannel.Rim, new SkinNote(1, MusicGlyph.noteheadXBlack)},
             {DrumChannel.SideStick, new SkinNote(3, MusicGlyph.noteheadCircledBlackLarge)},

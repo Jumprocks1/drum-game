@@ -138,6 +138,8 @@ public class MapLibraryView : RequestModal
 
         public MenuItem[] ContextMenuItems => ContextMenuBuilder.New(Library)
             .Add("Reveal In File Explorer", e => Util.RevealInFileExplorer(e.AbsolutePath))
+            .Add("View In Song Select", e => BeatmapCarousel.Current?.Selector.SetSearch("folder=" + e.Name))
+                .Disabled(Library.Disabled ? "Library is disabled" : null)
             .Add("Refresh", e =>
             {
                 Util.MapStorage.CheckWriteTimes();

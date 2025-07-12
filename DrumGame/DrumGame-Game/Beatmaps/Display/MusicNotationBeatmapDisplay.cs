@@ -321,7 +321,7 @@ public partial class MusicNotationBeatmapDisplay : BeatmapDisplay
         StatusContainer.Add(BeatText = new CommandText(Command.SeekToBeat)
         {
             Colour = TextColor,
-            ExtraTooltip = () => $"Beat: {Track.CurrentBeat + Beatmap.BeatEpsilon:0} / {Beatmap.QuarterNotes}\nMeasure: {Track.CurrentMeasure} / {Beatmap.MeasureFromBeat(Beatmap.QuarterNotes)}"
+            ExtraTooltip = () => $"Beat: {Math.Floor(Track.CurrentBeat + Beatmap.BeatEpsilon):0} / {Beatmap.QuarterNotes}\nMeasure: {Track.CurrentMeasure} / {Beatmap.MeasureFromBeat(Beatmap.QuarterNotes)}"
         });
         AddInternal(StatusContainer);
         AddInternal(VolumeControls = new VolumeControlGroup(Player as BeatmapEditor));
@@ -399,7 +399,8 @@ public partial class MusicNotationBeatmapDisplay : BeatmapDisplay
         Beatmap.MeasuresUpdated -= MeasuresUpdated;
         Beatmap.LengthChanged -= UpdateNoteContainerLength;
         Beatmap.AnnotationsUpdated -= LoadAnnotations;
-        foreach (var e in NoteGroupContainers) e.Dispose();
+        if (NoteGroupContainers != null)
+            foreach (var e in NoteGroupContainers) e.Dispose();
         base.Dispose(isDisposing);
     }
     public void LogEvent(EventLog eventLog) => EventContainer?.Add(eventLog);

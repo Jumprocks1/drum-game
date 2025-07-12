@@ -23,9 +23,9 @@ public partial class BeatmapEditor
             return (Beatmap.TickFromMeasure(measure), Beatmap.TickFromMeasure(measure + 1));
         }
     }
-    public BeatSelection GetSelectionOrCursor(bool clone = true)
+    public BeatSelection GetSelectionOrCursor(bool clone = true, BeatSelection sel = null)
     {
-        var sel = Display.Selection;
+        sel ??= Display.Selection;
         if (sel != null && sel.IsComplete)
         {
             return clone ? sel.Clone() : sel;
@@ -36,9 +36,9 @@ public partial class BeatmapEditor
             return new BeatSelection(target) { End = target };
         }
     }
-    public BeatSelection GetSelectionOrNull(bool clone = true)
+    public BeatSelection GetSelectionOrNull(bool clone = true, BeatSelection sel = null)
     {
-        var sel = Display.Selection;
+        sel ??= Display.Selection;
         if (sel != null && sel.IsComplete)
         {
             return clone ? sel.Clone() : sel;

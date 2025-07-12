@@ -110,18 +110,22 @@ public partial class DtxLoader
         public bool Bell;
         public bool Ride;
         public bool Splash;
+        public bool China;
         public bool Open;
         public NotePreset NotePreset; // set after being converted to bjson, only set when not MetadataOnly
         void setPath(string path)
         {
             _path = path;
             if (path.Contains("SideStick", StringComparison.InvariantCultureIgnoreCase)
-                 || path.Contains("Xstick", StringComparison.InvariantCultureIgnoreCase))
+                 || path.Contains("Xstick", StringComparison.InvariantCultureIgnoreCase)
+                 || path.Contains("CrossStick", StringComparison.InvariantCultureIgnoreCase))
                 SideStick = true;
             if (path.Contains("Ride", StringComparison.CurrentCultureIgnoreCase)) Ride = true;
             if (path.Contains("Bell", StringComparison.CurrentCultureIgnoreCase)) Bell = true;
             if (path.Contains("Splash", StringComparison.CurrentCultureIgnoreCase) ||
                 path.Contains("Spl", StringComparison.CurrentCultureIgnoreCase)) Splash = true;
+            if (path.Contains("China", StringComparison.CurrentCultureIgnoreCase) ||
+                path.Contains("Chinese", StringComparison.CurrentCultureIgnoreCase)) China = true;
 
             // Most of these are for old DTX imports which didn't distinguish open/close
             // Many of these are also for the GITADORA releases from APPROVED, which never have open/close
@@ -432,6 +436,9 @@ public partial class DtxLoader
                         else if (sample != null && sample.Splash)
                             // splash can be L/R, so we include mod
                             add(tick, DrumChannel.Splash, mod, sample);
+                        else if (sample != null && sample.China)
+                            // china can be L/R, so we include mod
+                            add(tick, DrumChannel.China, mod, sample);
                         else if (dc == DrumChannel.Ride)
                             // ride is always on the right, no mod needed
                             add(tick, dc, NoteModifiers.None, sample);

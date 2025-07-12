@@ -65,6 +65,10 @@ public class BeatmapScorerBase : IDisposable
     public MultiplierHandler MultiplierHandler = new();
     // Notes in here can be hit a second time. The second time will be inserted as an ignored hit
     public List<HitObjectRealTime> RehitNotes = new();
+    // crosstalk notes are successful hits (must be good or perfect) that allow ignoring future bad or miss hits based on crosstalk conditions
+    // they should be cleared similarly to rehit notes
+    // note, in the future we might want to allow crosstalk on non-good/perfect hits, but I'm not sure yet
+    public List<ScoreEvent> CrosstalkEvents = new();
     public void TriggerIgnore(DrumChannelEvent ev, HitObjectRealTime hitObject) => TriggerScoreEvent(new ScoreEvent
     {
         Channel = ev.Channel,
@@ -137,6 +141,10 @@ public class BeatmapScorerBase : IDisposable
                     return;
             }
         }
+        if (scoreEvent.Rating == HitScoreRating.Perfect || scoreEvent.Rating == HitScoreRating.Good
+            // we include ignore events since there are cases where you have to close the hh pedal, but there's no hh pedal not to hit
+            || scoreEvent.Rating == HitScoreRating.Ignored)
+            CrosstalkEvents.Add(scoreEvent);
         if (!roll) ReplayInfo.CountHit(scoreEvent.Rating);
         switch (scoreEvent.Rating)
         {
@@ -188,6 +196,7 @@ public class BeatmapScorerBase : IDisposable
     {
         ActiveRolls.Clear();
         RehitNotes.Clear();
+        CrosstalkEvents.Clear();
         MultiplierHandler.Reset();
         ReplayInfo.ResetTo(position);
         // we subtract a little to make sure if we seek exactly on a note that we don't mark it as hit already
@@ -241,7 +250,7 @@ public class BeatmapScorerBase : IDisposable
             OriginalObjectIndex = hit.OriginalObjectIndex,
             InputEvent = ev
         });
-        // if we were in the early bad window, add to recently skipped
+        // if we were in the early bad window, allow rehitting this note without penalty
         if (t - hit.Time < -HitWindows.GoodWindow) RehitNotes.Add(hit);
         if (hit.IsRoll && rating != HitScoreRating.Miss) ActiveRolls.Add(new RollEvent(hit.Data.Channel, hit.Time + hit.Duration));
         HitThrough = hitIndex;
@@ -356,9 +365,9 @@ public class BeatmapScorerBase : IDisposable
             }
             target += 1;
         }
-        // note that we only check for rolls and rehits if we are early by more than the perfect window
         if (hitIndex.HasValue)
         {
+            // we only check for rolls, rehits, and crosstalk if we are early by more than the perfect window
             if (t - HitObjects[hitIndex.Value].Time < -HitWindows.PerfectWindow)
             {
                 if (CheckRolls(ev)) return;
@@ -366,7 +375,7 @@ public class BeatmapScorerBase : IDisposable
                 // if we find something in recently skiped that is closer than the current target,
                 //    we will output an ignore event instead
                 HitObjectRealTime remove = null;
-                for (int i = RehitNotes.Count - 1; i >= 0; i--)
+                for (var i = RehitNotes.Count - 1; i >= 0; i--)
                 {
                     var ho = RehitNotes[i];
                     var diff = t - ho.Time;
@@ -389,6 +398,34 @@ public class BeatmapScorerBase : IDisposable
                     RehitNotes.Remove(remove);
                     TriggerIgnore(ev, remove);
                     return;
+                }
+                // crosstalk checks only apply for potential early misses/bads
+                if (t - HitObjects[hitIndex.Value].Time < -HitWindows.GoodWindow)
+                {
+                    var crosstalk = false;
+                    for (var i = CrosstalkEvents.Count - 1; i >= 0; i--)
+                    {
+                        var crosstalkEvent = CrosstalkEvents[i];
+                        var diff = t - crosstalkEvent.Time;
+                        if (!crosstalkEvent.Time.HasValue || diff > HitWindows.HitWindow) CrosstalkEvents.RemoveAt(i);
+                        else
+                        {
+                            // TODO should move this logic to separate function
+                            if (diff < 50)
+                            {
+                                if (crosstalkEvent.Channel == DrumChannel.HiHatPedal && ev.Channel.IsHiHat()
+                                    && Util.ConfigManager.HiHatCrossTalkCancel.Value)
+                                {
+                                    crosstalk = true;
+                                }
+                            }
+                        }
+                    }
+                    if (crosstalk)
+                    {
+                        TriggerIgnore(ev, null);
+                        return;
+                    }
                 }
             }
             ActivateHit(ev, hitIndex.Value, t);

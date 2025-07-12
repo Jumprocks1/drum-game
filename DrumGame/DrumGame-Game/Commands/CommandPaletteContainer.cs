@@ -70,6 +70,7 @@ public class CommandPaletteContainer : Container
     protected override void Dispose(bool isDisposing)
     {
         CommandController.RemoveHandlers(this);
+        CommandController.RemoveHandler(Command.Close, CloseSingle);
         // disposals are queued async when in `Clear()`
         // this can cause a replacement CommandPaletteContainer to have already been created before this disposal is run
         if (CommandController.Palette == this)
@@ -155,6 +156,7 @@ public class CommandPaletteContainer : Container
     // this is typically desirable
     public T Push<T>(T modal, bool keepAliveOnClose = false, bool unique = true) where T : Drawable, IModal
     {
+        if (modal == null) return null;
         if (unique)
         {
             foreach (var e in ModalStack.OfType<T>().ToList())

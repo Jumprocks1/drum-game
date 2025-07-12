@@ -59,6 +59,7 @@ public class BJsonNote
         { "open-hihat", DrumChannel.OpenHiHat },
         { "ride", DrumChannel.Ride },
         { "ride-bell", DrumChannel.RideBell },
+        { "ride-crash", DrumChannel.RideCrash },
         { "sidestick", DrumChannel.SideStick },
         { "high-tom", DrumChannel.SmallTom },
         { "mid-tom", DrumChannel.MediumTom },

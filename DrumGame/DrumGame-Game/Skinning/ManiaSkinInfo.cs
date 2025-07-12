@@ -188,7 +188,7 @@ public class ManiaSkinInfo
             },
             new(46f, 2f, DrumColors.Orange, DrumChannel.LargeTom),
             new(64f, 2f, DrumColors.Cyan, DrumChannel.Crash) {
-                Secondary = [new(DrumChannel.Ride), new(DrumChannel.RideBell)],
+                Secondary = [new(DrumChannel.Ride), new(DrumChannel.RideBell), new(DrumChannel.RideCrash)],
                 JudgementTextPosition = DefaultJudgementTextPosition + 2 * TextOffsetIncrement
             }
         };

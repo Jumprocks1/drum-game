@@ -2,11 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using Newtonsoft.Json;
 
 namespace DrumGame.Game.IO.Midi;
 
 public class MidiFile
 {
+    public void ToJson(string outputPath)
+    {
+        using var outputStream = File.OpenWrite(outputPath);
+        using var writer = new StreamWriter(outputStream);
+        new JsonSerializer().Serialize(writer, this);
+    }
     public List<MidiTrack> Tracks;
     public MidiHeader Header;
     public MidiFile(Stream stream) : this(new MidiReader(stream)) { }

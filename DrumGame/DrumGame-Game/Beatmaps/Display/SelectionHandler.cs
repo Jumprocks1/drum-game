@@ -88,6 +88,11 @@ public class BeatSelection
     {
         Start = Math.Max(0, start);
     }
+    public BeatSelection(double start, double? end)
+    {
+        Start = Math.Max(0, start);
+        End = end;
+    }
     public readonly double Start;
     public double? End;
     public double Left => Math.Min(Start, End.Value);

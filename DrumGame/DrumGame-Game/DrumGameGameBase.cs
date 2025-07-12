@@ -149,7 +149,7 @@ public class DrumGameGameBase : osu.Framework.Game
         dependencies.CacheAs(this);
 
         dependencies.Cache(Drumset = new Lazy<DrumsetAudioPlayer>(() => new DrumsetAudioPlayer(
-            Audio.GetSampleStore(FileSystemResources), Host, command, VolumeController)));
+            Audio.GetSampleStore(FileSystemResources.GlobalStorageStore), Host, command, VolumeController)));
 
         // loading MusicFont takes between 20-60ms, so it helps a ton to save it!
         // we lazy load it so that the initial boot can be faster

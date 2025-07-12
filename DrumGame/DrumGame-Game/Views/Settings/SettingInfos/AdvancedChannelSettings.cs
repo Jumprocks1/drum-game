@@ -45,6 +45,12 @@ public static class AdvancedChannelSettings
                         Tooltip = "Hi-hat hits with a control value greater than this will be treated as closed."
                         + "\nHits between the open and close thresholds will trigger the half open hi-hat channel"
                         + "\nRecommend 80 or greater."
+                    })
+                    .Add(new BooleanSettingInfo("Pedal XTalk Cancel", Util.ConfigManager.HiHatCrossTalkCancel)
+                    {
+                        Tooltip = "Enabling hi-hat pedal crosstalk cancellation can help if using a physical hi-hat stand."
+                            + "\nEnable this if pressing the hi-hat pedal frequently causes extra hi-hat hits."
+                            + "\nIf you have a hi-hat pedal that is not physically linked to the hi-hat pad, this should be disabled."
                     }),
                     "These settings cause pressing the HH pedal to trigger different channels based on how hard it is pressed."
                     + "\nTo disable this feature, set the open threshold to 255."

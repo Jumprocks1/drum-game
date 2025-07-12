@@ -10,12 +10,12 @@ namespace DrumGame.Game.Stores;
 // Not a security concern since File.Open works globally anyways
 public class GlobalNativeStorage : NativeStorage
 {
-    public GlobalNativeStorage(GameHost host = null) : base("", host)
+    public GlobalNativeStorage(string basePath, GameHost host = null) : base(basePath, host)
     {
     }
     public override string GetFullPath(string path, bool createIfNotExisting = false)
     {
-        var resolvedPath = Path.GetFullPath(path);
+        var resolvedPath = Path.GetFullPath(path, BasePath);
         if (createIfNotExisting) Directory.CreateDirectory(Path.GetDirectoryName(resolvedPath));
         return resolvedPath;
     }

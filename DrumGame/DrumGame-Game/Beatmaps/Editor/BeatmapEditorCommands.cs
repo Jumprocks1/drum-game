@@ -197,7 +197,15 @@ public partial class BeatmapEditor
         offsetWizard.Dispose();
         offsetWizard = null;
     }
-    [CommandHandler] public void OffsetWizard() => Util.Palette.Push(offsetWizard ??= new OffsetWizard(this), true);
+    [CommandHandler]
+    public void OffsetWizard()
+    {
+        Util.Palette.Push(offsetWizard ??= new OffsetWizard(this), true);
+        // If paused when opening, it's almost always preferred to seek to the current target beat
+        // without this I instinctively press `,.` to snap manually
+        if (!Track.IsRunning)
+            Track.SeekToBeat(offsetWizard.TargetBeat);
+    }
     [CommandHandler]
     public void AutoMapperPlot()
     {
@@ -563,11 +571,12 @@ public partial class BeatmapEditor
     }
 
     [CommandHandler]
-    public bool FrequencyImage(CommandContext context) => context.Palette.Toggle(() => new FrequencyImageModal(this));
+    public bool FrequencyImage(CommandContext context) => context.Palette.Toggle(() => GetFFT() == null ? null : new FrequencyImageModal(this));
 
     [CommandHandler]
     public void AutoMapper()
     {
+        if (GetFFT() == null) return;
         var range = GetSelectionOrNull();
         var settings = new AutoMapper.AutoMapperSettings
         {

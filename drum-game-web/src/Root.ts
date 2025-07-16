@@ -8,6 +8,7 @@ import BeatmapPlayerPage from "./pages/BeatmapPlayerPage";
 import DtxPage from "./pages/DtxPage";
 import LogoPage from "./pages/logo/LogoPage";
 import RequestListPage from "./pages/RequestListPage";
+import FileUploadPlayerPage from "./pages/FileUploadPlayerPage";
 
 const pages: PageType[] = [
     TestPage,
@@ -16,7 +17,8 @@ const pages: PageType[] = [
     DtxPage,
     LogoPage,
     RequestListPage,
-    MapSelectorPage,
+    FileUploadPlayerPage,
+    MapSelectorPage
 ]
 
 export default class Root extends Component {

@@ -1,10 +1,11 @@
 import MapCarousel, { CarouselState } from "../selector/MapCarousel";
 import PageComponent from "../framework/PageComponent";
-import Router from "../framework/Router";
+import Router, { GlobalRouter } from "../framework/Router";
 import GlobalData from "../GlobalData";
 import { CacheMap } from "../interfaces/Cache";
 import BeatmapPlayerPage from "./BeatmapPlayerPage";
 import MapPreview from "../components/MapPreview";
+import FileUploadPlayerPage from "./FileUploadPlayerPage";
 
 export default class MapSelectorPage extends PageComponent {
     static Route = ".*"
@@ -28,6 +29,16 @@ export default class MapSelectorPage extends PageComponent {
             if (!this.Alive) return;
             const o: CacheMap[] = Object.values(maps.Maps);
             carousel.SetItems(o.sort((a, b) => a.Difficulty - b.Difficulty));
+        })
+
+        this.HTMLElement.addEventListener("dragenter", e => e.preventDefault());
+        this.HTMLElement.addEventListener("dragover", e => e.preventDefault());
+        this.HTMLElement.addEventListener("drop", e => {
+            const files = e.dataTransfer?.files
+            if (files && files.length > 0 && files[0].name.endsWith(".bjson")) {
+                GlobalRouter?.NavigateTo({ page: FileUploadPlayerPage, rawData: files })
+                e.preventDefault()
+            }
         })
     }
 

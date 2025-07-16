@@ -25,6 +25,7 @@ export interface RouterState {
     page: PageType
     parameters?: RouteParameters
     data?: any
+    rawData?: any // doesn't get pushed to browser history
 }
 
 export default class Router extends NoDOMComponent {
@@ -75,10 +76,10 @@ export default class Router extends NoDOMComponent {
         this.State = state;
     }
 
-    NavigateTo(state: RouterState) { // this sets the route and loads the page
+    NavigateTo(state: RouterState, force = false) { // this sets the route and loads the page
         history.pushState(state.data, "", Router.BuildRoute(state));
         if (this.State) this.History.push(this.State);
-        this.LoadPage(state); // this will set this.State for us
+        this.LoadPage(state, force); // this will set this.State for us
     }
 
     NavigateBack(fallbackState?: RouterState) {
@@ -91,9 +92,11 @@ export default class Router extends NoDOMComponent {
         }
     }
 
-    LoadPage(state: RouterState) {
+    // force will trigger a reload of the page even if it's the same
+    LoadPage(state: RouterState, force = false) {
         const page = state.page;
-        if (this.State?.page === page && state.parameters === this.State.parameters) return;
+        // this check usually doesn't work since parameters is an array
+        if (!force && this.State?.page === page && state.parameters === this.State.parameters) return;
         this.State = state;
         this.Clear();
         const newPage = new page();

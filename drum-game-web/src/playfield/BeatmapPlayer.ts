@@ -42,9 +42,11 @@ export default class BeatmapPlayer extends NoDOMComponent {
         this.Track.Dispose();
     }
 
+    OnEscape = () => this.FindParent(Router).NavigateBack({ page: MapSelectorPage })
+
     OnKeyDown = (e: KeyboardEvent) => {
         if (e.key === "Escape") {
-            this.FindParent(Router).NavigateBack({ page: MapSelectorPage });
+            this.OnEscape()
         } else if (e.key === " ") {
             this.Track.Playing = !this.Track.Playing
         } else if (e.key === "ArrowRight") {

@@ -15,6 +15,7 @@ const o: {
         "hihat": [-0.5, "\uE0A9"],
         "ride": [0, "\uE0A9"],
         "ride-bell": [0, "\uE0DB"],
+        "ride-crash": [0, "\uE0AA"],
         "snare": [1.5, "\uE0A4"],
         "rim": [0.5, "\uE0A9"],
         "sidestick": [1.5, "\uE0E8"],

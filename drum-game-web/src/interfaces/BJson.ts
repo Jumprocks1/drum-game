@@ -105,6 +105,7 @@ export type DrumChannel =
     | "half-hihat"
     | "ride"
     | "ride-bell"
+    | "ride-crash"
     | "sidestick"
     | "high-tom"
     | "mid-tom"

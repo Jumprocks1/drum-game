@@ -23,6 +23,9 @@ export interface CacheMap {
     WriteTime: number
     Audio: string
     FileName?: string
+    // C# ticks on load, gets converted to JS ms. If it's null it gets converted to 0 when processing request list
+    // currently not set for non-request list stuff
+    CreationTime?: number
 }
 
 export function CacheMapLink(map: CacheMap) {

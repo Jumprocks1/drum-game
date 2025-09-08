@@ -27,21 +27,6 @@ export function ExpLerp(current: number, target: number, pow: number, dt: number
     return current;
 }
 
-export function Filter(search: string, maps: CacheMap[]) {
-    const query = search.toLowerCase().split(" ").filter(e => e.length > 0);
-    if (maps.length > 0 && maps[0].FilterString === undefined) {
-        for (const map of maps) {
-            if (map.FilterString === undefined)
-                map.FilterString = `${map.Title ?? ""} ${map.Artist ?? ""} ${map.Mapper ?? ""} ${map.DifficultyString ?? ""} ${map.Tags ?? ""} ${map.RomanTitle ?? ""} ${map.RomanArtist ?? ""}`.toLowerCase();
-        }
-    }
-    let res = maps;
-    for (const s of query) {
-        res = res.filter(e => e.FilterString!.includes(s));
-    }
-    return res;
-}
-
 export function EnsureParent(parent: Node, child: Node, setParent: boolean = true) {
     if (setParent) {
         if (child.parentNode !== parent) parent.appendChild(child);

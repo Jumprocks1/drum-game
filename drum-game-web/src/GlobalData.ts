@@ -35,9 +35,19 @@ class GlobalData {
 
     LoadRequestList() {
         if (window.location.hostname === "localhost")
-            return this.LoadCacheItem("requestList", "/request-list.json");
+            return this.LoadCacheItem("requestList", "/request-list.json", GlobalData.ProcessRequestList);
         else
-            return this.LoadCacheItem("requestList", "https://f005.backblazeb2.com/file/DrumGameDTX/request-list.json");
+            return this.LoadCacheItem("requestList", "https://f005.backblazeb2.com/file/DrumGameDTX/request-list.json", GlobalData.ProcessRequestList);
+    }
+
+    private static ProcessRequestList(maps: CacheMap[]) {
+        for (const map of maps) {
+            if (map.CreationTime)
+                // technically not perfectly accurate due to floating point, but it's fine
+                map.CreationTime = map.CreationTime / 10000 - 62136892800000
+            else
+                map.CreationTime = 0
+        }
     }
 
     private static ProcessMaps(res: Cache) {

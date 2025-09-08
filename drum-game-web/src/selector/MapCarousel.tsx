@@ -2,7 +2,8 @@ import Component from "../framework/Component";
 import { BindTouchEvents, RegisterListener, RemoveListener, StartDrag } from "../framework/Framework";
 import { CacheMap } from "../interfaces/Cache";
 import MapSelectorPage from "../pages/MapSelectorPage";
-import { Clamp, EnsureParent, ExpLerp, Filter } from "../utils/Util";
+import { Filter } from "../utils/MapFilter";
+import { Clamp, EnsureParent, ExpLerp } from "../utils/Util";
 import BeatmapCard from "./BeatmapCard";
 import Search from "./Search";
 

@@ -68,6 +68,13 @@ export default class MapCarousel extends Component { // could merge this back wi
     }
 
     constructor() {
+        // this has to run before super since super initializes `this` (which includes `new Search(CarouselState.search)`)
+        const search = location.search;
+        if (search) {
+            const params = new URLSearchParams(search)
+            const q = params.get("q");
+            if (q) CarouselState.search = q
+        }
         super();
         this.HTMLElement = <div id="map-selector" />
         this.HTMLElement.onmousedown = e => { // TODO this makes it so you can't search on mobile D:
@@ -89,7 +96,18 @@ export default class MapCarousel extends Component { // could merge this back wi
         }
         BindTouchEvents(this.HTMLElement)
 
-        this.Search.OnChange = this.OnSearch;
+        this.Search.OnChange = (v) => {
+            const search = location.search;
+            if (search) {
+                const url = new URL(window.location.href);
+                const q = url.searchParams.get("q");
+                if (q !== null && q !== undefined) {
+                    url.searchParams.set("q", v);
+                    window.history.pushState(undefined, "", url.toString());
+                }
+            }
+            this.OnSearch(v)
+        }
 
         this.Add(this.Search);
     }

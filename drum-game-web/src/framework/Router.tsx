@@ -49,6 +49,8 @@ export default class Router extends NoDOMComponent {
 
     AfterParent() {
         super.AfterParent();
+        // doesn't trigger for replaceState it seems.
+        // Think that's fine, if we want to update routing we can manually trigger after replaceState
         window.addEventListener("popstate", this.OnHistoryChange)
         this.UpdateRouting();
     }

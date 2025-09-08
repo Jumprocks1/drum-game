@@ -103,8 +103,8 @@ export default class MapPreview extends Component {
             if (spotifyUrl) {
                 this.SpotifyPreview.href = spotifyUrl;
             }
-            if (this.Image.src) {
-                // blank out image whie loading
+            if (this.Image.src && this.Image.src != imageUrl) {
+                // blank out image while loading
                 // without this, it will display the previous image while it loads the next one
                 this.Image.src = ""
             }

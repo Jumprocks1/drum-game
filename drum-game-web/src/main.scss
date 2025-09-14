@@ -90,18 +90,33 @@
         padding: $s $s2;
     }
 
-    >input {
-        color: inherit;
-        background: none;
-        width: 100%;
-        font-size: 26px;
-        padding: $s2;
+    .search-row-1 {
+        >input {
+            color: inherit;
+            background: none;
+            width: 100%;
+            font-size: 26px;
+            padding: $s2;
 
-        &::placeholder {
-            color: white;
-            opacity: 0.4;
+            &::placeholder {
+                color: white;
+                opacity: 0.4;
+            }
+        }
+        display: flex;
+        align-items: center;
+        #clear-button {
+            padding: $s $s2;
+            cursor: pointer;
+            svg {
+                color: white;
+                fill: white;
+                height: 24px;
+                width: 24px;
+            }
         }
     }
+
 
 }
 

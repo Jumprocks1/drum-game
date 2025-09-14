@@ -196,6 +196,8 @@ export default class MapCarousel extends Component { // could merge this back wi
             this.SelectedIndex -= 1;
         else if (e.key === "F2")
             this.SelectedIndex = Math.floor(Math.random() * this.FilteredMaps.length);
+        else if (e.key === "Escape")
+            this.Search.ClearAndFocus()
         else return false;
         e.preventDefault();
         return true;

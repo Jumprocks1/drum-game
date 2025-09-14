@@ -44,7 +44,7 @@ class GlobalData {
         for (const map of maps) {
             if (map.CreationTime)
                 // technically not perfectly accurate due to floating point, but it's fine
-                map.CreationTime = map.CreationTime / 10000 - 62136892800000
+                map.CreationTime = map.CreationTime / 10000 - 62135596800000
             else
                 map.CreationTime = 0
         }

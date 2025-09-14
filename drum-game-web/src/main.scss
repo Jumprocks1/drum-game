@@ -132,6 +132,7 @@ $card-indent: $card-height + $s2;
     width: $card-width + $s2 * 2;
     position: absolute;
     right: 0;
+    line-height: 1;
 }
 
 .beatmap-card-wrapper>div {
@@ -179,8 +180,12 @@ $card-indent: $card-height + $s2;
 
     $title-height: $FontSize * 1.4;
 
+    .title {
+        top: 4px;
+    }
+
     .artist {
-        top: $title-height;
+        top: $title-height + 2px;
     }
 
     .bottom-line {

@@ -12,7 +12,6 @@ export default class Search extends Component {
     constructor(value?: string) {
         super();
         this.UpdateNumbers(0, 0)
-        // @ts-ignore
         const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
         svg.setAttribute("aria-hidden", "true");
         svg.setAttribute("viewbox", "0 0 24 24")

@@ -1,19 +1,31 @@
 {
-  "bookmarks": [],
-  "annotations": [],
-  "relativeVolume": 0.3,
+  "bookmarks": [
+    {
+      "time": 0.0,
+      "title": "!v 85"
+    },
+    {
+      "time": 28.0,
+      "title": "!v"
+    }
+  ],
+  "relativeVolume": 0.3323,
   "audio": "audio/01. Pride Kakumei.mp3",
-  "image": "images/8d4959abc4b25c328b286bec024610e2.jpg",
-  "imageUrl": "https://m.media-amazon.com/images/I/81dAxwizyvL._SS400_.jpg",
+  "image": "images/2c78d45f5f901404915425d90e60c3b1",
+  "imageUrl": "https://i.scdn.co/image/ab67616d00001e02377c7be7d134e67d694c3a50",
   "id": "7189b8e0-d81f-4cdd-9d1c-a2950e2f8f80",
-  "offset": 864.34,
-  "leadIn": 0.0,
+  "offset": 862.59,
   "bpm": 185.0,
-  "title": "Pride Kakumei",
+  "title": "プライド革命",
+  "romanTitle": "Pride Kakumei",
   "artist": "CHiCO with HoneyWorks",
   "mapper": "Jumprocks",
   "difficulty": "Hard",
+  "tags": "dtx-level-77",
+  "previewTime": 66863.0,
+  "spotify": "2UfQ8bejhARFxIOUCScLsD",
   "youTubeID": "KH5schMZtyg",
+  "youTubeOffset": -0.04,
   "amazonASIN": "B073RTSNHX",
   "playableDuration": 228324.0,
   "medianBPM": 185.0,
@@ -387,10 +399,6 @@
       "channel": "open-hihat"
     },
     {
-      "time": 26.0,
-      "channel": "bass"
-    },
-    {
       "time": 26.5,
       "channel": "bass"
     },
@@ -424,7 +432,8 @@
     },
     {
       "time": 36.0,
-      "channel": "crash"
+      "channel": "crash",
+      "modifier": "accent"
     },
     {
       "time": 37.0,
@@ -452,7 +461,8 @@
     },
     {
       "time": 39.5,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 39.5,
@@ -497,7 +507,8 @@
     },
     {
       "time": 44.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 44.0,
@@ -538,7 +549,8 @@
     },
     {
       "time": 47.5,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 48.5,
@@ -589,7 +601,8 @@
     },
     {
       "time": 52.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 52.0,
@@ -630,7 +643,8 @@
     },
     {
       "time": 55.5,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 56.5,
@@ -681,7 +695,8 @@
     },
     {
       "time": 60.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 60.0,
@@ -722,7 +737,8 @@
     },
     {
       "time": 63.5,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 64.5,
@@ -770,7 +786,8 @@
     },
     {
       "time": 76.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 76.0,
@@ -1096,6 +1113,10 @@
       "channel": "hihat"
     },
     {
+      "time": 99.75,
+      "channel": "hihat"
+    },
+    {
       "time": 100.0,
       "channel": "open-hihat"
     },
@@ -1153,7 +1174,8 @@
     },
     {
       "time": 108.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 109.0,
@@ -1474,7 +1496,8 @@
     },
     {
       "time": 137.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 137.75,
@@ -1502,7 +1525,8 @@
     },
     {
       "time": 140.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 141.0,
@@ -1650,7 +1674,8 @@
     },
     {
       "time": 155.5,
-      "channel": "splash"
+      "channel": "splash",
+      "sticking": "left"
     },
     {
       "time": 156.0,
@@ -1658,7 +1683,8 @@
     },
     {
       "time": 156.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 157.0,
@@ -1775,7 +1801,8 @@
     },
     {
       "time": 168.0,
-      "channel": "china"
+      "channel": "china",
+      "sticking": "right"
     },
     {
       "time": 168.5,
@@ -1787,7 +1814,8 @@
     },
     {
       "time": 169.0,
-      "channel": "china"
+      "channel": "china",
+      "sticking": "right"
     },
     {
       "time": 170.0,
@@ -1823,7 +1851,8 @@
     },
     {
       "time": 172.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 173.0,
@@ -1979,6 +2008,10 @@
     },
     {
       "time": 184.0,
+      "channel": "open-hihat"
+    },
+    {
+      "time": 184.0,
       "channel": "bass"
     },
     {
@@ -2019,7 +2052,8 @@
     },
     {
       "time": 187.0,
-      "channel": "china"
+      "channel": "china",
+      "sticking": "right"
     },
     {
       "time": 188.0,
@@ -2027,7 +2061,8 @@
     },
     {
       "time": 188.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 189.0,
@@ -2122,7 +2157,8 @@
     },
     {
       "time": 196.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 204.0,
@@ -2130,7 +2166,8 @@
     },
     {
       "time": 204.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 205.0,
@@ -2311,7 +2348,8 @@
     },
     {
       "time": 220.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 220.0,
@@ -2447,7 +2485,8 @@
     },
     {
       "time": 232.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 232.0,
@@ -2463,7 +2502,8 @@
     },
     {
       "time": 233.0,
-      "channel": "crash"
+      "channel": "china",
+      "sticking": "right"
     },
     {
       "time": 234.0,
@@ -2499,7 +2539,8 @@
     },
     {
       "time": 236.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 236.0,
@@ -2507,7 +2548,8 @@
     },
     {
       "time": 237.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 237.0,
@@ -2684,7 +2726,8 @@
     },
     {
       "time": 252.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 252.0,
@@ -2826,7 +2869,8 @@
     },
     {
       "time": 263.5,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 264.5,
@@ -2834,7 +2878,8 @@
     },
     {
       "time": 264.5,
-      "channel": "china"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 265.0,
@@ -2842,7 +2887,8 @@
     },
     {
       "time": 265.0,
-      "channel": "china"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 265.5,
@@ -2850,7 +2896,8 @@
     },
     {
       "time": 265.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 266.0,
@@ -2858,7 +2905,8 @@
     },
     {
       "time": 266.0,
-      "channel": "china"
+      "channel": "china",
+      "sticking": "right"
     },
     {
       "time": 266.5,
@@ -2890,7 +2938,8 @@
     },
     {
       "time": 268.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 269.0,
@@ -2918,7 +2967,8 @@
     },
     {
       "time": 271.5,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 271.5,
@@ -2973,7 +3023,8 @@
     },
     {
       "time": 276.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 276.0,
@@ -3014,7 +3065,8 @@
     },
     {
       "time": 279.5,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 280.5,
@@ -3065,7 +3117,8 @@
     },
     {
       "time": 284.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 284.0,
@@ -3106,7 +3159,8 @@
     },
     {
       "time": 287.5,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 288.5,
@@ -3157,7 +3211,8 @@
     },
     {
       "time": 292.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 292.0,
@@ -3198,7 +3253,8 @@
     },
     {
       "time": 295.5,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 296.5,
@@ -3246,7 +3302,8 @@
     },
     {
       "time": 300.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 300.0,
@@ -3328,10 +3385,18 @@
     },
     {
       "time": 307.0,
+      "channel": "hihat"
+    },
+    {
+      "time": 307.0,
       "channel": "snare"
     },
     {
       "time": 307.5,
+      "channel": "hihat"
+    },
+    {
+      "time": 307.75,
       "channel": "hihat"
     },
     {
@@ -3469,10 +3534,6 @@
       "channel": "snare"
     },
     {
-      "time": 319.5,
-      "channel": "hihat"
-    },
-    {
       "time": 320.0,
       "channel": "hihat"
     },
@@ -3502,10 +3563,18 @@
     },
     {
       "time": 323.0,
+      "channel": "hihat"
+    },
+    {
+      "time": 323.0,
       "channel": "snare"
     },
     {
       "time": 323.5,
+      "channel": "hihat"
+    },
+    {
+      "time": 323.75,
       "channel": "hihat"
     },
     {
@@ -3566,7 +3635,8 @@
     },
     {
       "time": 332.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 333.0,
@@ -3920,7 +3990,8 @@
     },
     {
       "time": 364.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 365.0,
@@ -4063,7 +4134,8 @@
     },
     {
       "time": 380.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 381.0,
@@ -4188,7 +4260,8 @@
     },
     {
       "time": 392.0,
-      "channel": "china"
+      "channel": "china",
+      "sticking": "right"
     },
     {
       "time": 392.5,
@@ -4200,7 +4273,8 @@
     },
     {
       "time": 393.0,
-      "channel": "china"
+      "channel": "china",
+      "sticking": "right"
     },
     {
       "time": 394.0,
@@ -4236,7 +4310,8 @@
     },
     {
       "time": 396.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 397.0,
@@ -4396,6 +4471,11 @@
     },
     {
       "time": 408.5,
+      "channel": "crash",
+      "sticking": "right"
+    },
+    {
+      "time": 408.5,
       "channel": "snare"
     },
     {
@@ -4404,7 +4484,8 @@
     },
     {
       "time": 409.25,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 409.5,
@@ -4420,7 +4501,8 @@
     },
     {
       "time": 410.25,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 410.5,
@@ -4435,12 +4517,18 @@
       "channel": "bass"
     },
     {
+      "time": 411.25,
+      "channel": "bass",
+      "sticking": "left"
+    },
+    {
       "time": 411.5,
       "channel": "snare"
     },
     {
       "time": 411.5,
-      "channel": "china"
+      "channel": "china",
+      "sticking": "right"
     },
     {
       "time": 412.0,
@@ -4448,7 +4536,8 @@
     },
     {
       "time": 412.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 412.5,
@@ -4456,11 +4545,11 @@
     },
     {
       "time": 413.0,
-      "channel": "snare"
+      "channel": "low-tom"
     },
     {
       "time": 413.0,
-      "channel": "crash"
+      "channel": "snare"
     },
     {
       "time": 413.75,
@@ -4480,8 +4569,11 @@
     },
     {
       "time": 415.0,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "low-tom"
+    },
+    {
+      "time": 415.0,
+      "channel": "snare"
     },
     {
       "time": 415.5,
@@ -4493,11 +4585,19 @@
     },
     {
       "time": 416.0,
+      "channel": "low-tom"
+    },
+    {
+      "time": 416.0,
       "channel": "bass"
     },
     {
       "time": 416.5,
       "channel": "bass"
+    },
+    {
+      "time": 417.0,
+      "channel": "low-tom"
     },
     {
       "time": 417.0,
@@ -4513,14 +4613,23 @@
     },
     {
       "time": 418.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 418.5,
       "channel": "high-tom"
     },
     {
+      "time": 418.75,
+      "channel": "high-tom"
+    },
+    {
       "time": 419.0,
+      "channel": "mid-tom"
+    },
+    {
+      "time": 419.25,
       "channel": "mid-tom"
     },
     {
@@ -4537,7 +4646,8 @@
     },
     {
       "time": 420.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 428.0,
@@ -4545,7 +4655,8 @@
     },
     {
       "time": 428.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 429.0,
@@ -4713,7 +4824,8 @@
     },
     {
       "time": 444.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 444.0,
@@ -4852,7 +4964,8 @@
     },
     {
       "time": 456.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 457.0,
@@ -4860,7 +4973,8 @@
     },
     {
       "time": 457.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 457.5,
@@ -4868,7 +4982,8 @@
     },
     {
       "time": 457.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 458.0,
@@ -4876,7 +4991,8 @@
     },
     {
       "time": 458.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 458.5,
@@ -4884,7 +5000,8 @@
     },
     {
       "time": 458.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 459.0,
@@ -4892,11 +5009,13 @@
     },
     {
       "time": 459.0,
-      "channel": "china"
+      "channel": "china",
+      "sticking": "right"
     },
     {
       "time": 460.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 460.0,
@@ -4904,7 +5023,8 @@
     },
     {
       "time": 461.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 461.0,
@@ -5076,7 +5196,8 @@
     },
     {
       "time": 476.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 476.0,
@@ -5154,7 +5275,8 @@
     },
     {
       "time": 483.0,
-      "channel": "china"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 483.0,
@@ -5170,6 +5292,10 @@
     },
     {
       "time": 484.5,
+      "channel": "low-tom"
+    },
+    {
+      "time": 484.75,
       "channel": "mid-tom"
     },
     {
@@ -5178,7 +5304,8 @@
     },
     {
       "time": 485.25,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 485.5,
@@ -5202,7 +5329,8 @@
     },
     {
       "time": 486.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 487.0,
@@ -5210,12 +5338,16 @@
     },
     {
       "time": 487.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
-      "time": 487.6666666666667,
-      "channel": "snare",
-      "sticking": "left"
+      "time": 487.5,
+      "channel": "snare"
+    },
+    {
+      "time": 487.75,
+      "channel": "snare"
     },
     {
       "time": 488.0,
@@ -5235,7 +5367,8 @@
     },
     {
       "time": 489.3333333333333,
-      "channel": "high-tom"
+      "channel": "high-tom",
+      "sticking": "right"
     },
     {
       "time": 489.6666666666667,
@@ -5271,7 +5404,8 @@
     },
     {
       "time": 492.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 506.0,
@@ -5379,7 +5513,8 @@
     },
     {
       "time": 524.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 524.0,
@@ -5391,6 +5526,10 @@
     },
     {
       "time": 525.0,
+      "channel": "low-tom"
+    },
+    {
+      "time": 525.0,
       "channel": "snare"
     },
     {
@@ -5399,11 +5538,19 @@
     },
     {
       "time": 526.0,
+      "channel": "low-tom"
+    },
+    {
+      "time": 526.0,
       "channel": "snare"
     },
     {
       "time": 526.0,
       "channel": "bass"
+    },
+    {
+      "time": 527.0,
+      "channel": "low-tom"
     },
     {
       "time": 527.0,
@@ -5419,7 +5566,15 @@
     },
     {
       "time": 528.0,
+      "channel": "low-tom"
+    },
+    {
+      "time": 528.0,
       "channel": "bass"
+    },
+    {
+      "time": 529.0,
+      "channel": "low-tom"
     },
     {
       "time": 529.0,
@@ -5428,6 +5583,10 @@
     {
       "time": 529.0,
       "channel": "bass"
+    },
+    {
+      "time": 530.0,
+      "channel": "low-tom"
     },
     {
       "time": 530.0,
@@ -5443,15 +5602,25 @@
     },
     {
       "time": 531.0,
+      "channel": "low-tom"
+    },
+    {
+      "time": 531.0,
       "channel": "bass"
     },
     {
       "time": 532.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 532.0,
       "channel": "bass"
+    },
+    {
+      "time": 532.5,
+      "channel": "snare",
+      "modifier": "ghost"
     },
     {
       "time": 532.75,
@@ -5475,11 +5644,25 @@
     },
     {
       "time": 534.0,
+      "channel": "snare",
+      "modifier": "ghost"
+    },
+    {
+      "time": 534.0,
       "channel": "bass"
     },
     {
       "time": 534.5,
       "channel": "snare"
+    },
+    {
+      "time": 534.75,
+      "channel": "snare"
+    },
+    {
+      "time": 535.0,
+      "channel": "snare",
+      "modifier": "ghost"
     },
     {
       "time": 535.0,
@@ -5499,7 +5682,8 @@
     },
     {
       "time": 540.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 540.0,
@@ -5651,7 +5835,8 @@
     },
     {
       "time": 556.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 556.0,
@@ -5731,7 +5916,8 @@
     },
     {
       "time": 564.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 564.5,
@@ -5743,7 +5929,8 @@
     },
     {
       "time": 565.5,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 565.5,
@@ -5759,7 +5946,8 @@
     },
     {
       "time": 567.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 567.0,
@@ -5775,7 +5963,8 @@
     },
     {
       "time": 568.5,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 568.5,
@@ -5803,7 +5992,8 @@
     },
     {
       "time": 570.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 571.0,
@@ -5811,7 +6001,8 @@
     },
     {
       "time": 571.0,
-      "channel": "china"
+      "channel": "china",
+      "sticking": "right"
     },
     {
       "time": 572.0,
@@ -5831,8 +6022,11 @@
     },
     {
       "time": 574.0,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "snare"
+    },
+    {
+      "time": 574.0833333333334,
+      "channel": "snare"
     },
     {
       "time": 574.5,
@@ -5848,7 +6042,8 @@
     },
     {
       "time": 575.5,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 576.5,
@@ -5872,7 +6067,8 @@
     },
     {
       "time": 577.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 578.0,
@@ -5888,7 +6084,8 @@
     },
     {
       "time": 578.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 579.0,
@@ -5912,7 +6109,8 @@
     },
     {
       "time": 580.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 581.0,
@@ -5976,7 +6174,8 @@
     },
     {
       "time": 587.0,
-      "channel": "china"
+      "channel": "china",
+      "sticking": "right"
     },
     {
       "time": 587.0,
@@ -5984,7 +6183,8 @@
     },
     {
       "time": 588.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 588.0,
@@ -6044,7 +6244,8 @@
     },
     {
       "time": 593.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 594.0,
@@ -6060,7 +6261,8 @@
     },
     {
       "time": 594.75,
-      "channel": "bass"
+      "channel": "bass",
+      "sticking": "left"
     },
     {
       "time": 595.0,
@@ -6068,11 +6270,13 @@
     },
     {
       "time": 595.0,
-      "channel": "china"
+      "channel": "china",
+      "sticking": "right"
     },
     {
       "time": 596.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 596.0,
@@ -6092,7 +6296,8 @@
     },
     {
       "time": 597.5,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 598.0,
@@ -6108,7 +6313,8 @@
     },
     {
       "time": 599.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 599.5,
@@ -6124,7 +6330,8 @@
     },
     {
       "time": 600.5,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 601.0,
@@ -6160,11 +6367,11 @@
     },
     {
       "time": 603.5,
-      "channel": "snare"
+      "channel": "open-hihat"
     },
     {
       "time": 603.5,
-      "channel": "low-tom"
+      "channel": "snare"
     },
     {
       "time": 604.0,
@@ -6172,7 +6379,8 @@
     },
     {
       "time": 608.0,
-      "channel": "crash"
+      "channel": "crash",
+      "modifier": "accent"
     },
     {
       "time": 608.0,
@@ -6184,11 +6392,13 @@
     },
     {
       "time": 612.0,
-      "channel": "crash"
+      "channel": "crash",
+      "modifier": "accent"
     },
     {
       "time": 616.0,
-      "channel": "crash"
+      "channel": "crash",
+      "modifier": "accent"
     },
     {
       "time": 616.0,
@@ -6200,7 +6410,8 @@
     },
     {
       "time": 620.0,
-      "channel": "crash"
+      "channel": "crash",
+      "modifier": "accent"
     },
     {
       "time": 621.5,
@@ -6228,7 +6439,8 @@
     },
     {
       "time": 624.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 625.0,
@@ -6304,7 +6516,8 @@
     },
     {
       "time": 632.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 632.5,
@@ -6364,7 +6577,8 @@
     },
     {
       "time": 641.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 642.0,
@@ -6482,7 +6696,8 @@
     },
     {
       "time": 652.0,
-      "channel": "china"
+      "channel": "china",
+      "sticking": "right"
     },
     {
       "time": 652.5,
@@ -6494,7 +6709,8 @@
     },
     {
       "time": 653.0,
-      "channel": "china"
+      "channel": "china",
+      "sticking": "right"
     },
     {
       "time": 653.5,
@@ -6530,7 +6746,8 @@
     },
     {
       "time": 656.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 656.0,
@@ -6623,8 +6840,11 @@
     },
     {
       "time": 664.0,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "snare"
+    },
+    {
+      "time": 664.0833333333334,
+      "channel": "snare"
     },
     {
       "time": 667.5,
@@ -6632,7 +6852,8 @@
     },
     {
       "time": 667.5,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 668.5,
@@ -6640,8 +6861,12 @@
     },
     {
       "time": 669.0,
-      "channel": "snare",
-      "modifier": "accent"
+      "channel": "china",
+      "sticking": "left"
+    },
+    {
+      "time": 669.0,
+      "channel": "snare"
     },
     {
       "time": 669.5,
@@ -6653,7 +6878,15 @@
     },
     {
       "time": 670.5,
+      "channel": "low-tom"
+    },
+    {
+      "time": 670.5,
       "channel": "snare"
+    },
+    {
+      "time": 671.0,
+      "channel": "low-tom"
     },
     {
       "time": 671.0,
@@ -6661,11 +6894,16 @@
     },
     {
       "time": 671.5,
+      "channel": "low-tom"
+    },
+    {
+      "time": 671.5,
       "channel": "snare"
     },
     {
       "time": 672.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 672.0,
@@ -6701,7 +6939,8 @@
     },
     {
       "time": 675.5,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 676.5,
@@ -6747,7 +6986,8 @@
     },
     {
       "time": 680.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 680.0,
@@ -6788,7 +7028,8 @@
     },
     {
       "time": 683.5,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 684.5,
@@ -6821,7 +7062,8 @@
     },
     {
       "time": 687.0,
-      "channel": "crash"
+      "channel": "china",
+      "sticking": "right"
     },
     {
       "time": 687.0,
@@ -6829,7 +7071,8 @@
     },
     {
       "time": 688.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 688.0,
@@ -6865,7 +7108,8 @@
     },
     {
       "time": 691.5,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 692.5,
@@ -6910,7 +7154,8 @@
     },
     {
       "time": 696.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 697.0,
@@ -6946,7 +7191,8 @@
     },
     {
       "time": 699.5,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "left"
     },
     {
       "time": 700.5,
@@ -6982,7 +7228,8 @@
     },
     {
       "time": 704.0,
-      "channel": "crash"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 704.0,

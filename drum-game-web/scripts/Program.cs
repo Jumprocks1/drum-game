@@ -40,6 +40,7 @@ public class BeatmapMetadata
     public string ImageUrl;
     public string DownloadUrl;
     public string Spotify;
+    public string YouTubeId;
     public string Date;
     public string Audio;
     public double PlayableDuration;

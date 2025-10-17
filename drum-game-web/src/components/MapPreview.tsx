@@ -27,6 +27,7 @@ export default class MapPreview extends Component {
 
     Preview = <RouteLink page={BeatmapPlayerPage}>Preview Sheet Music</RouteLink>
     SpotifyPreview = <a className="clickable-text" target="_blank" rel="noreferrer noopener">Listen on Spotify</a> as HTMLAnchorElement
+    YouTubePreview = <a className="clickable-text" target="_blank" rel="noreferrer noopener">Listen on YouTube</a> as HTMLAnchorElement
 
 
     constructor(dtx = false) {
@@ -59,6 +60,7 @@ export default class MapPreview extends Component {
             {requestListButton}
             <div style={{ fontSize: "0.7em" }}>
                 <div>{this.SpotifyPreview}</div>
+                <div>{this.YouTubePreview}</div>
                 {this.Preview}
             </div>
         </div>
@@ -102,6 +104,10 @@ export default class MapPreview extends Component {
             this.SpotifyPreview.style.display = spotifyUrl ? "unset" : "none";
             if (spotifyUrl) {
                 this.SpotifyPreview.href = spotifyUrl;
+            }
+            this.YouTubePreview.style.display = map.YouTubeId ? "unset" : "none";
+            if (map.YouTubeId) {
+                this.YouTubePreview.href = `https://youtube.com/watch?v=${map.YouTubeId}`;
             }
             if (this.Image.src && this.Image.src != imageUrl) {
                 // blank out image while loading

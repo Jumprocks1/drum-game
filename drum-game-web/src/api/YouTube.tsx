@@ -21,6 +21,7 @@ export async function loadVideo(id: string) {
         const player: YT.Player = new YT.Player(id, {
             height: '720',
             width: '1280',
+            host: 'https://www.youtube-nocookie.com',
             playerVars: {
                 playsinline: 1,
                 // we can also hide a lot of fluff from YouTube such as showing videos at the end

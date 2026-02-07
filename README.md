@@ -26,8 +26,11 @@ You can also load an existing map library of `.dtx` files by running the command
 ## Running/Compiling from Source
 See [running from source](DrumGame/README.md#running-from-source)
 
-## Android/iOS
-If you are interested in getting Drum Game on one of these platforms, please [create an issue](https://github.com/Jumprocks1/drum-game/issues) and I will set up a build for that platform. The source code is already cross-platform, so it should just be a matter of building and testing.
+## Android
+Android is supported as of recently, though the setup is a bit complicated. Read more here [Android.md](docs/Android.md)
+
+## iOS
+I can't support iOS on my own since I don't own any Apple devices. If anyone would like to build/test the iOS version, please create an issue and let me know.
 
 ## Tutorial
 - Most things can be learned and accessed through the use of the command palette. To start, just press <kbd>F1</kbd> or <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd> and begin searching.

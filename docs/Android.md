@@ -31,5 +31,11 @@ I test with something like this https://www.amazon.com/Adapter-Anker-High-Speed-
 - MIDI Mapping - press the music note in the top right to configure MIDI input device
 - Cursor Inset - if you're zoomed in a lot, you can decrease this to move the (notation) cursor closer to the left side of the screen
 
+## Adding maps
+Bit awkward currently, but there are 3 options:
+1. Copy files to a subfolder inside `resources`. On Android, click the folder button in the bottom center > Add new library. Folder Path = subfolder name. Enable scanning for desired formats.
+2. Close the game on Android. Copy drumgame.ini off the Android folder. Edit and set WatchImportFolder = True, should be around line 30. Copy back to Android. Create `resources/import`. Place .zip files in the import folder. When you boot the Android game, it should load all files in that folder.
+3. Export maps on desktop using `F1 > Export Map`. Extract the resultant .zip into the `resources/maps` folder on Android.
+
 ## Source code
 I haven't uploaded the source for the .apk yet since I've been messing with it locally, I'll get it in the main branch soon.

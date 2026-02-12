@@ -186,7 +186,7 @@ public static class Program
                 var extraTags = $@"
 <meta property=""og:title"" content=""{artist} - {title}"" />
 <meta property=""og:description"" content=""{metadata.MedianBPM} BPM - {diffString} - Length: {durationString}"" />
-<meta property=""og:image"" content=""{metadata.ImageUrl}"" />
+<meta property=""og:image"" content=""{image}"" />
             ";
                 var mapHtml = index.Replace(repl, repl + extraTags);
                 var dir = Path.Join("../dist/", "dtx", Path.GetFileNameWithoutExtension(map.Filename));

@@ -174,6 +174,15 @@ public static class Program
                 var durationString = FormatTime(metadata.PlayableDuration);
                 var artist = HttpUtility.HtmlEncode(metadata.Artist);
                 var title = HttpUtility.HtmlEncode(metadata.Title);
+                var image = metadata.ImageUrl;
+                if (image.StartsWith("https://") && image.Contains("img.youtube.com") && image.Contains("hq720.jpg"))
+                {
+                    image = image.Substring("https://".Length);
+                    // makes the image square so it looks better in Discord
+                    // bit overkill, but was fun to experiment with
+                    // if this ever stops working, just remove these few lines
+                    image = "https://wsrv.nl/?url=" + image + "&w=720&h=720&fit=cover";
+                }
                 var extraTags = $@"
 <meta property=""og:title"" content=""{artist} - {title}"" />
 <meta property=""og:description"" content=""{metadata.MedianBPM} BPM - {diffString} - Length: {durationString}"" />

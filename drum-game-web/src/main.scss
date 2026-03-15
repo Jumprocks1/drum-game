@@ -179,6 +179,10 @@ $card-indent: $card-height + $s2;
         padding-left: $s2;
     }
 
+    .bottom-line.long {
+        font-size: $FontSize * 0.62;
+    }
+
     .map-image {
         position: absolute;
         display: block;

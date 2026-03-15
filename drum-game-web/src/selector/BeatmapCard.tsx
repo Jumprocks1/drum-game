@@ -52,6 +52,11 @@ export default class BeatmapCard extends Component {
         this.MappedBy.textContent = map.Mapper ? ` mapped by ${map.Mapper}` : "";
         this.Difficulty.textContent = map.Difficulty ? map.DifficultyString! : "";
         this.Difficulty.className = "difficulty-" + map.Difficulty;
+
+        // this is pretty sketchy, but it should be pretty rare for it to matter
+        const bottomLength = this.BottomLine.textContent!.length
+        if (bottomLength > 40) this.BottomLine.classList.add("long")
+        else this.BottomLine.classList.remove("long")
     }
 
     Click() {

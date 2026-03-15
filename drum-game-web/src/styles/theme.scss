@@ -96,10 +96,11 @@ input {
 
 .difficulty-6 {
     color: $ExpertPlus;
+    font-weight: bold;
     text-shadow:
         white 0 0 3px,
-        white 0 0 5px,
-        white 0 0 5px;
+        white 0 0 3px,
+        white 0 0 3px;
 }
 
 .spacer {

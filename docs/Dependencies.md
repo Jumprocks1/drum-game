@@ -7,7 +7,7 @@ The cross-platform version of Drum Game doesn't come with some BASS plugins. The
 - Loading `aac`, `webm`, and `opus` audio on some platforms
 
 To allow the game to use these plugins, download them and place them in `resources/lib`:
-- Download from https://www.un4seen.com/ under Add-ons
+- Download from https://www.un4seen.com/bass.html#addons
 - In-game, you can locate your `resources` folder using <kbd>F1</kbd> > `Open Resources Folder`
 - You only need to place the lib*.so files in the `lib` folder
 

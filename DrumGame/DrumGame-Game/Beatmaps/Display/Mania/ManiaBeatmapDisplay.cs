@@ -361,6 +361,7 @@ public partial class ManiaBeatmapDisplay : BeatmapDisplay
         AddInternal(Timeline = new(this));
         SkinManager.RegisterTarget(SkinAnchorTarget.PositionIndicator, Timeline);
         AddInternal(new SongInfoPanel(Beatmap, true));
+        AddInternal(new VolumeControlGroup(mania: true));
         AddInternal(new ManiaVideo(Player));
         var extras = Util.Skin.Mania.ExtraElements;
         if (extras != null)

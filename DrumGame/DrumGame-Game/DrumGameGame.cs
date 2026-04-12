@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using DrumGame.Game.Beatmaps;
 using DrumGame.Game.Beatmaps.Formats;
 using DrumGame.Game.Beatmaps.Loaders;
@@ -8,11 +9,17 @@ using DrumGame.Game.IO;
 using DrumGame.Game.Utils;
 using DrumGame.Game.Views;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 
 namespace DrumGame.Game;
 
 public class DrumGameGame : DrumGameGameBase
 {
+    public DrumGameGame() { }
+    public DrumGameGame(string extraResourcesPath)
+    {
+        ExtraResourcesPath = extraResourcesPath;
+    }
     public BeatmapSelectorLoader Loader;
     [BackgroundDependencyLoader]
     private void load()
@@ -93,12 +100,30 @@ public class DrumGameGame : DrumGameGameBase
     }
 
     ImportWatcher Importer;
+    Bindable<bool> WatchImport;
     public void SetupImportWatcher()
     {
-        var watch = Util.ConfigManager.Get<bool>(Stores.DrumGameSetting.WatchImportFolder);
-        if (!watch || Util.Resources == null) return;
-        Importer ??= new ImportWatcher();
-        Importer.Init();
+        if (WatchImport == null)
+        {
+            WatchImport = Util.ConfigManager.GetBindable<bool>(Stores.DrumGameSetting.WatchImportFolder);
+            WatchImport.BindValueChanged(ev =>
+            {
+                if (ev.NewValue)
+                {
+                    if (Util.Resources == null || Importer != null) return;
+                    Importer = new ImportWatcher();
+                    Importer.Init();
+                }
+                else
+                {
+                    if (Importer != null)
+                    {
+                        Importer.Dispose();
+                        Importer = null;
+                    }
+                }
+            }, true);
+        }
     }
 
     [CommandHandler]

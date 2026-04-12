@@ -173,7 +173,8 @@ public class RenderContext
     public RenderContext(IShader shader)
     {
         // have to pull first one with GetUniform since this calls EnsureShaderCompiled
-        ProjectionMatrix = shader.GetUniform<Matrix4>("m_ProjMatrix").Location;
+        // TODO this will be broken
+        // ProjectionMatrix = shader.GetUniform<Matrix4>("m_ProjMatrix").Location;
         var shaderId = shader.ProgramId();
         ModelMatrix = GL.GetUniformLocation(shaderId, "m_ModelMatrix");
         BoneMatrices = GL.GetUniformLocation(shaderId, "m_bone");

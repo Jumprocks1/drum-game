@@ -253,7 +253,11 @@ public class DrumInputManager : UserInputManager
                                 {
                                     Util.InputManager.Schedule(() =>
                                     {
-                                        Util.CommandController.ActivateCommand(command.CommandInfo);
+                                        var parameters = command.CommandParameters;
+                                        if (parameters != null)
+                                            Util.CommandController.ActivateCommand(command.CommandInfo.Command, parameters);
+                                        else
+                                            Util.CommandController.ActivateCommand(command.CommandInfo);
                                         if (command is Components.CommandButton cb)
                                             cb.AfterActivate?.Invoke();
                                     });

@@ -3,12 +3,40 @@ using DrumGame.Game.Beatmaps;
 using DrumGame.Game.Beatmaps.Scoring;
 using DrumGame.Game.Channels;
 using System;
+using DrumGame.Game.Utils;
 
 namespace DrumGame.Game.Timing;
 
-public class Metronome(BeatmapPlayer Player, DrumsetAudioPlayer Drumset) : IBeatEventHandler
+public enum MetronomeMode
 {
-    Beatmap beatmap => Player.Beatmap;
+    // value = 0 is the default for practice mode
+    LeadIn,
+    Disabled,
+    Always
+}
+
+public class GlobalMetronome(BeatmapPlayer _player, DrumsetAudioPlayer _drumset) : Metronome(_player, _drumset)
+{
+    protected override double GetNextBeat(int currentMeasure, double currentBeat)
+    {
+        var next = base.GetNextBeat(currentMeasure, currentBeat);
+        var config = Util.ConfigManager;
+        var mode = config.MetronomeModeBindable.Value;
+        if (mode == MetronomeMode.Disabled)
+            return double.PositiveInfinity;
+        if (mode == MetronomeMode.LeadIn)
+        {
+            var firstBeat = Beatmap.FirstBeat;
+            if (next > firstBeat)
+                return double.PositiveInfinity;
+        }
+        return next;
+    }
+}
+
+public abstract class Metronome(BeatmapPlayer Player, DrumsetAudioPlayer Drumset) : IBeatEventHandler
+{
+    protected Beatmap Beatmap => Player.Beatmap;
     double nextBeat = double.NaN;
     double nextBeatTime = double.NaN;
     bool measureBeat; // if nextBeatTime is a measure start beat
@@ -21,13 +49,13 @@ public class Metronome(BeatmapPlayer Player, DrumsetAudioPlayer Drumset) : IBeat
     // if current beat is an integer, this should NOT return that beat
     protected virtual double GetNextBeat(int currentMeasure, double currentBeat)
     {
-        var measureStart = beatmap.BeatFromMeasure(currentMeasure);
+        var measureStart = (double)Beatmap.TickFromMeasureNegative(currentMeasure) / Beatmap.TickRate;
         return measureStart + Math.Floor(currentBeat - measureStart + Beatmap.BeatEpsilon) + 1;
     }
 
     void UpdateNextBeat(double currentBeat)
     {
-        var currentMeasure = beatmap.MeasureFromBeat(currentBeat);
+        var currentMeasure = Beatmap.MeasureFromTickNegative(Beatmap.TickFromBeatSlow(currentBeat));
 
         nextBeat = GetNextBeat(currentMeasure, currentBeat);
         if (double.IsPositiveInfinity(nextBeat))
@@ -36,12 +64,12 @@ public class Metronome(BeatmapPlayer Player, DrumsetAudioPlayer Drumset) : IBeat
             return;
         }
 
-        var nextMeasure = beatmap.BeatFromMeasure(currentMeasure + 1);
+        var nextMeasure = Beatmap.BeatFromMeasure(currentMeasure + 1);
 
         measureBeat = nextBeat >= nextMeasure;
         if (measureBeat) nextBeat = nextMeasure;
 
-        nextBeatTime = beatmap.MillisecondsFromBeat(nextBeat);
+        nextBeatTime = Beatmap.MillisecondsFromBeat(nextBeat);
     }
 
     SyncQueue Queue = new();

@@ -13,6 +13,7 @@ using DrumGame.Game.Utils;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using osu.Framework.Extensions.EnumExtensions;
+using osu.Framework.Logging;
 
 namespace DrumGame.Game.Beatmaps.Loaders;
 
@@ -71,8 +72,14 @@ public class BJsonNote
     };
     static readonly Lazy<Dictionary<DrumChannel, string>> InverseMap = new(() =>
         ChannelMapping.ToDictionary(g => g.Value, g => g.Key));
-    public static DrumChannel GetDrumChannel(string channel) => ChannelMapping.TryGetValue(channel, out var dc) ? dc
-        : Enum.TryParse<DrumChannel>(channel, true, out var dc2) ? dc2 : DrumChannel.Snare;
+    public static DrumChannel GetDrumChannel(string channel)
+    {
+        if (string.IsNullOrWhiteSpace(channel)) return DrumChannel.None;
+        if (ChannelMapping.TryGetValue(channel, out var dc)) return dc;
+        if (Enum.TryParse(channel, true, out dc)) return dc;
+        Logger.Log($"Unrecognized drum channel string: {channel}, using `None`", level: LogLevel.Error);
+        return DrumChannel.None;
+    }
     public DrumChannel GetDrumChannel() => GetDrumChannel(Channel);
     public static string GetChannelString(DrumChannel channel) => InverseMap.Value.GetValueOrDefault(channel) ?? channel.ToString();
 }
@@ -143,6 +150,7 @@ public class Annotation : IBeatTime
         Text = text;
     }
     double IBeatTime.Time => Time;
+    public Annotation With(double time) => new(time, Text);
 }
 // this is serialized with NullValueHandling ignore
 // for non-null defaults, we have to set DefaultValueHandling

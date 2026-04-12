@@ -83,8 +83,14 @@ internal class DiscordRichPresence : IDisposable
             var activity = UserActivity.Activity;
             if (activity == null) return;
 
-            presence.State = activity.State;
-            presence.Details = activity.Details;
+            // this crashes if too long
+            static string clamp(string s)
+            {
+                if (s != null && s.Length > 128) return s[..128];
+                return s;
+            }
+            presence.State = clamp(activity.State);
+            presence.Details = clamp(activity.Details);
             presence.Assets ??= new()
             {
                 LargeImageKey = "logo-thick-1024",

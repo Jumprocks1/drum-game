@@ -6,7 +6,9 @@ using System.Linq;
 using DrumGame.Game.Beatmaps.Loaders;
 using DrumGame.Game.Channels;
 using DrumGame.Game.Commands;
+using DrumGame.Game.Commands.Requests;
 using DrumGame.Game.Components;
+using DrumGame.Game.Modals;
 using DrumGame.Game.Notation;
 using DrumGame.Game.Stores;
 using DrumGame.Game.Utils;
@@ -18,6 +20,8 @@ using osu.Framework.Bindables;
 using osu.Framework.Development;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Graphics.Shapes;
+using osu.Framework.Graphics.Sprites;
 using osu.Framework.Logging;
 using osuTK;
 
@@ -72,6 +76,18 @@ public static class SkinManager
             Binding.Value = skinPath;
     }
 
+    // use when we're okay with delaying the skin change with a modal
+    public static bool TryChangeSkin(string skin)
+    {
+        if (Util.Skin != null && Util.Skin.Dirty)
+        {
+            HandleDirtySkin(() => ChangeSkinTo(skin), reloadOnDiscard: false);
+            return false;
+        }
+        ChangeSkinTo(skin);
+        return true;
+    }
+
     static void ChangeSkin(Skin skin) // called for first skin too
     {
         Util.Skin?.UnloadStores();
@@ -86,26 +102,22 @@ public static class SkinManager
         {
             var v = e.NewValue;
             if (Util.Skin?.Source == v) return;
-            if (v == null)
+            var newSkin = ParseSkin(v);
+            // for default skin, we allow loading not from file
+            if (newSkin == null && string.IsNullOrWhiteSpace(v))
+                newSkin = LoadDefaultSkin();
+            // note that if the skin fails to load, we don't change anything
+            if (newSkin != null)
             {
-                ChangeSkin(LoadDefaultSkin());
+                ChangeSkin(newSkin);
                 SkinChanged?.Invoke();
-            }
-            else
-            {
-                if (FileWatcher != null) SetHotWatcher(v);
-                // note that if the skin fails to load, we don't change anything
-                var newSkin = ParseSkin(v);
-                if (newSkin != null)
-                {
-                    ChangeSkin(newSkin);
-                    SkinChanged?.Invoke();
-                }
+                AfterSkinChanged();
             }
         };
         ChangeSkin(ParseSkin(Binding.Value) ?? LoadDefaultSkin());
         Util.CommandController.RegisterHandler(Command.ReloadSkin, ReloadSkin); // don't need to unregister
         Util.CommandController.RegisterHandler(Command.ExportCurrentSkin, ExportCurrentSkin); // don't need to unregister
+        Util.CommandController.RegisterHandler(Command.SavePendingSkinChanges, SavePendingSkinChanges); // don't need to unregister
     }
 
     public static IEnumerable<string> ListSkins()
@@ -113,7 +125,7 @@ public static class SkinManager
         var dir = Util.Resources.GetDirectory("skins");
         var subDirs = dir.GetDirectories();
         return dir.GetFiles("*.json")
-            .Where(e => e.Name != "skin-schema.json")
+            .Where(e => e.Name != "skin-schema.json" && !e.Name.StartsWith('_'))
             .Select(e => Path.GetFileNameWithoutExtension(e.Name))
             .Concat(subDirs.Select(e => e.Name));
     }
@@ -159,22 +171,34 @@ public static class SkinManager
             if (throttle && now - LastReload < Stopwatch.Frequency) return;
             LastReload = now;
             var v = Binding.Value;
-            if (v != null)
+            var newSkin = ParseSkin(v);
+            if (newSkin != null)
             {
-                var newSkin = ParseSkin(v);
-                if (newSkin != null)
-                {
-                    ChangeSkin(newSkin);
-                    SkinChanged?.Invoke();
-                    SetHotWatcher(v);
-                    Util.Palette.ShowMessage("Skin reloaded");
-                }
+                ChangeSkin(newSkin);
+                SkinChanged?.Invoke();
+                StartHotWatcher();
+                Util.Palette.ShowMessage("Skin reloaded");
+                AfterSkinChanged();
             }
         });
+    }
+    static void AfterSkinChanged()
+    {
+        if (Util.DrumGame != null)
+        {
+            try
+            {
+                // bit sketchy, but much better than adding a bunch of event listeners
+                foreach (var element in Util.FindAll<AdjustableSkinElement>(Util.DrumGame))
+                    element.LoadFromCurrentSkin();
+            }
+            catch (Exception e) { Util.Palette.UserError("Error after changing skin", e); }
+        }
     }
 
     // costs ~16ms to parse skin first time
     // <1ms on second parse - this is likely because Newtonsoft has to generate a bunch of reflection code the first time
+    // this will try loading default.json if name is null
     public static Skin ParseSkin(string skinName)
     {
         // using var _ = Util.WriteTime();
@@ -184,8 +208,8 @@ public static class SkinManager
     }
     public static string FindSkin(string skinName)
     {
-        if (string.IsNullOrWhiteSpace(skinName)) return null;
-        var path = Util.Resources.GetAbsolutePath(Path.Join("skins", skinName));
+        if (string.IsNullOrWhiteSpace(skinName)) skinName = DefaultSkinFilename;
+        var path = Path.Join(SkinsFolder, skinName);
         if (File.Exists(path)) return path;
         var json = path + ".json";
         if (File.Exists(json)) return json;
@@ -208,14 +232,57 @@ public static class SkinManager
         return skin;
     }
 
+    public static Skin LoadExtensions(Skin skin, JsonSerializerSettings settings)
+    {
+        if (skin.Extensions == null) return skin;
+        var extensions = skin.Extensions;
+        skin.Extensions = null; // set to null so we can call this recursively after loading other extensions
+        foreach (var extension in extensions)
+        {
+            try
+            {
+                string tryLoadFrom(string folder)
+                {
+                    if (folder == null) return null;
+                    var check = Util.SafeFullPath(extension, folder);
+                    if (File.Exists(check))
+                    {
+                        // prevent loading extensions twice
+                        if (skin.LoadedExtensions == null || !skin.LoadedExtensions.Contains(check))
+                        {
+                            (skin.LoadedExtensions ??= []).Add(check);
+                            JsonConvert.PopulateObject(File.ReadAllText(check), skin, settings);
+                            LoadExtensions(skin, settings); // recurse if extension has it's own extensions
+                        }
+                        return check;
+                    }
+                    return null;
+                }
+                // we only check the skin's folder and the root folder
+                // I don't think it's worth allowing adjacent files for extensions inside other folder, they can just include the folder path relative to the root
+                var extensionPath = tryLoadFrom(skin.SourceFolder) ?? tryLoadFrom(SkinsFolder);
+                if (extensionPath == null)
+                    Logger.Log($"Failed to find skin extension {extension}", level: LogLevel.Error);
+
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e, $"Failed to load skin extension {extension}");
+            }
+        }
+        return skin;
+    }
+
     public static Skin SkinFromFile(string filename)
     {
         try
         {
             var text = File.ReadAllText(filename);
-            var skin = JsonConvert.DeserializeObject<Skin>(text, new ColorHexConverter(), new DrumChannelConverter());
+            var settings = new JsonSerializerSettings { Converters = [new ColorHexConverter(), new DrumChannelConverter()] };
+            var skin = JsonConvert.DeserializeObject<Skin>(text, settings);
             skin.Source = filename;
             skin.SourceFolder = Path.GetDirectoryName(filename);
+            LoadExtensions(skin, settings);
             skin.LoadDefaults();
             return skin;
         }
@@ -232,37 +299,28 @@ public static class SkinManager
     }
 
     static FileWatcher FileWatcher;
-    static void SetHotWatcher(string skin)
+    // we used to only watch certain folders/files for this,
+    //   but I think it's safe to say if you're modifying skins with the game open, you probably want it to reload on every change
+    //   I changed this when I added skin extensions, since those can exist in odd locations
+    // the watcher only starts after skin is manually changed/edited/reloaded anyways
+    // we also throttle ReloadSkin at 1/s
+    public static void StartHotWatcher()
     {
-        var path = File.Exists(skin) ? skin : FindSkin(skin);
-        if (path == null) return;
         if (FileWatcher == null)
         {
-            FileWatcher = new(path)
-            {
-                ExtraFilters = ["*.fs"]
-            };
+            FileWatcher = new(SkinsFolder, null);
             FileWatcher.Changed += () => ReloadSkin(true);
             FileWatcher.Register();
         }
-        else
-            FileWatcher.UpdatePath(path);
     }
-    public static void SetHotWatcher(Skin skin) => SetHotWatcher(skin?.Source);
     public static void MarkDirty(Skin skin, string path) => skin.AddDirtyPath(path);
-    public static void Cleanup()
-    {
-        if (Util.Skin != null && Util.Skin.Dirty)
-            SavePartialSkin(Util.Skin);
-    }
     public static void SavePartialSkin(Skin skin, string outPath = null)
     {
         if (skin == null || !skin.Dirty) return;
         if (skin.Source == null && outPath == null)
         {
-            Util.Palette.ShowMessage("Default skin cannot be saved. Please create a new skin before saving changes.");
-            skin.DirtyPaths.Clear();
-            return;
+            EnsureDefaultSkinExists();
+            skin.Source = DefaultSkinPath;
         }
         try
         {
@@ -302,6 +360,8 @@ public static class SkinManager
         DefaultValueHandling = DefaultValueHandling.Ignore,
     };
 
+    public static void SavePendingSkinChanges() => SavePartialSkin(Util.Skin);
+
     public static void ExportCurrentSkin()
     {
         try
@@ -309,7 +369,7 @@ public static class SkinManager
             var skin = Util.Skin;
             var name = skin.Name ?? "Default Export";
             var exportName = Util.ToFilename($"export {name}", ".json");
-            var outputPath = Util.Resources.GetAbsolutePath(Path.Join("skins", exportName));
+            var outputPath = Path.Join(SkinsFolder, exportName);
             var settings = SerializerSettings;
             skin.GameVersion ??= Util.VersionString;
             skin.Comments ??= "This is an exported version of a skin. It may contain extra fields that are not needed.";
@@ -324,11 +384,14 @@ public static class SkinManager
         }
     }
     public const string DefaultSkinFilename = "default";
+    static string _skinFolder;
+    public static string SkinsFolder => _skinFolder ??= Util.Resources.GetAbsolutePath("skins");
+    public static string DefaultSkinPath => Path.Join(SkinsFolder, DefaultSkinFilename + ".json");
     public static bool EnsureDefaultSkinExists()
     {
         try
         {
-            var outputPath = Util.Resources.GetAbsolutePath(Path.Join("skins", DefaultSkinFilename + ".json"));
+            var outputPath = DefaultSkinPath;
             if (File.Exists(outputPath)) return true;
             var skin = new Dictionary<string, string>()
             {
@@ -345,6 +408,117 @@ public static class SkinManager
             Util.Palette.UserError("Export failed, see log for exception");
             return false;
         }
+    }
+
+    // returns true if no pending changes
+    // returns false if we have pending changes and need to ask the user about them
+    public static bool TryQuit()
+    {
+        if (Util.Skin != null && Util.Skin.Dirty)
+        {
+            // we still reload skin since QuitGame could still get blocked by something else
+            // if it was a force quit, we wouldn't need this
+            HandleDirtySkin(() => Util.ActivateCommandUpdateThread(Command.QuitGame), reloadOnDiscard: true);
+            return false;
+        }
+        return true;
+    }
+
+    static void HandleDirtySkin(Action action, bool reloadOnDiscard)
+    {
+        var modal = new RequestModal(new RequestConfig
+        {
+            Title = $"You have pending skin changes ({Util.Skin.Name})",
+            CloseText = null
+        });
+        var y = 0;
+        modal.Add(new SpriteText
+        {
+            Font = FrameworkFont.Regular.With(size: 24),
+            Text = "Changes:",
+            Y = y,
+        });
+        y += 24;
+        // this list is pretty sketchy, but works so far
+        var rows = new List<(string Path, IconButton Button, SpriteText Text)>();
+        void updateDisplay()
+        {
+            for (var i = 0; i < rows.Count; i++)
+            {
+                var e = rows[i];
+                if (!Util.Skin.DirtyPaths.Contains(e.Path) && e.Button != null)
+                {
+                    e.Text.Colour = DrumColors.FadedText;
+                    modal.Remove(e.Button, true);
+                    e.Button = null;
+                    rows[i] = e; // have to copy it back to the array, unlike a normal reference type
+                    modal.Add(new Box
+                    {
+                        Y = e.Text.Y + e.Text.Height / 2,
+                        Origin = Anchor.CentreLeft,
+                        Width = e.Text.Width + 10,
+                        Height = 2,
+                        X = e.Text.X - 5
+                    });
+                }
+            }
+        }
+        foreach (var path in Util.Skin.DirtyPaths)
+        {
+            var ignoreButton = new IconButton(() =>
+            {
+                Util.Skin.MarkClean(path);
+                updateDisplay();
+            }, FontAwesome.Solid.Times, 18)
+            {
+                Y = y,
+                X = 10,
+                MarkupTooltip = "Ignore"
+            };
+            modal.Add(ignoreButton);
+            var text = new SpriteText
+            {
+                Font = FrameworkFont.Regular.With(size: 18),
+                Text = path,
+                Y = y,
+                X = 10 + 22
+            };
+            modal.Add(text);
+            rows.Add((path, ignoreButton, text));
+            y += 18;
+        }
+        modal.Add(
+            new ButtonArray(i =>
+            {
+                modal.Close();
+                if (i == 0)
+                {
+                    SavePartialSkin(Util.Skin);
+                    action();
+                }
+                else if (i == 1)
+                {
+                    Util.Skin.DirtyPaths?.Clear();
+                    if (reloadOnDiscard) ReloadSkin();
+                    action();
+                }
+            }, new ButtonOption
+            {
+                Text = "Save Changes"
+            }, new ButtonOption
+            {
+                Text = "Discard Changes"
+            }, new ButtonOption
+            {
+                Text = "Cancel"
+            })
+            {
+                Anchor = Anchor.TopCentre,
+                Origin = Anchor.TopCentre,
+                Y = y + 10
+            }
+        );
+        Util.Palette.Push(modal);
     }
 
     public class SkinChannelConverter : JsonConverter<Dictionary<DrumChannel, SkinNote>>

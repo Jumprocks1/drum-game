@@ -61,12 +61,15 @@ public class BeatmapSelectorMap : ISearchable<BeatmapSelectorMap>, IBeatmapCarou
         + "Examples:\n<code>col!=fav</> - excludes maps in the favorites collection."),
         new("bpm", "Filters by median beats per minute\nExample: <code>bpm>120</>"),
         new("folder", "Filters by the folder a map was loaded from. Only set for maps outside of the main library."),
+        new("library", "Filters by the map library name.\nExample: <code>library=main</code>"),
         new("random", "Example: <code>random^</> - sorts maps in a random order"),
         new("audio", "Filters for maps based on if they have audio or not. Currently only works with main library maps.\nExample: <code>audio=0</> - shows maps with missing audio"),
         new("imageurl", "Example: <code>imageurl=i.scdn.co</>"),
         new("image"),
         new("mapstoragepath", "Filters by the file/path name."),
         new("playcount", "Filters by the number of scores in the score database.\nOnly updates once per game launch.\nExamples:\n<code>playcount=0</>\n<code>playcount>=5</code>"),
+        new("creationtime", "Filters by the created date.\nIf no created date is available, fallback to the import date.\nExample:\n<code>creation>30d</> - shows maps created within the last 30 days",
+            alias: "addedon"),
     ];
     public static IEnumerable<BeatmapSelectorMap> ApplyFilter(IEnumerable<BeatmapSelectorMap> exp, FilterOperator<BeatmapSelectorMap> op,
         FilterFieldInfo<BeatmapSelectorMap> fieldInfo, string value)
@@ -75,7 +78,7 @@ public class BeatmapSelectorMap : ISearchable<BeatmapSelectorMap>, IBeatmapCarou
         {
             var storage = Util.DrumGame.CollectionStorage;
             var collection = storage.GetCollectionByQuery(value);
-            if (collection == null) return Enumerable.Empty<BeatmapSelectorMap>();
+            if (collection == null) return [];
             else
             {
                 if (op.Identifier == "!=")
@@ -87,6 +90,16 @@ public class BeatmapSelectorMap : ISearchable<BeatmapSelectorMap>, IBeatmapCarou
                 else
                     return collection.Apply(exp, storage);
             }
+        }
+        else if (fieldInfo.Name == "library")
+        {
+            var libraries = Util.MapStorage.MapLibraries;
+            var library = libraries.GetLibraryByQuery(value);
+            if (library == null) return [];
+            if (op.Identifier == "!=")
+                return exp.Where(e => !library.IsInProvider(e.MapStoragePath));
+            else
+                return exp.Where(e => library.IsInProvider(e.MapStoragePath));
         }
         else if (fieldInfo.Name == "random")
         {

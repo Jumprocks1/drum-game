@@ -5,24 +5,39 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": ".NET Meteor Debugger",
+            "type": "dotnet-meteor.debugger",
+            "request": "launch",
+            "preLaunchTask": "dotnet-meteor: Build"
+        },
+        {
             "name": "Desktop Attach",
             "type": "coreclr",
             "request": "attach",
             "processName": "DrumGame.exe",
             "linux": {
                 "processName": "DrumGame"
+            },
+            "logging": {
+                "moduleLoad": false
             }
         },
         {
             "name": "Desktop Attach (Choose)",
             "type": "coreclr",
-            "request": "attach"
+            "request": "attach",
+            "logging": {
+                "moduleLoad": false
+            }
         },
         {
             "name": "Test Attach",
             "type": "coreclr",
             "request": "attach",
-            "processName": "DrumGame.Game.Tests.exe"
+            "processName": "DrumGame.Game.Tests.exe",
+            "logging": {
+                "moduleLoad": false
+            }
         },
         {
             "name": "VisualTests (Debug)",

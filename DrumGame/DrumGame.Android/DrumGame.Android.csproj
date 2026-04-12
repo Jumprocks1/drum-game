@@ -1,0 +1,46 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <CheckEolWorkloads>false</CheckEolWorkloads>
+
+    <SupportedOSPlatformVersion>21.0</SupportedOSPlatformVersion>
+    <!-- <RuntimeIdentifiers>android-x86;android-arm;android-arm64</RuntimeIdentifiers> -->
+    <RuntimeIdentifiers>android-arm64</RuntimeIdentifiers>
+    <AndroidPackageFormat>apk</AndroidPackageFormat>
+    <MandroidI18n>CJK;Mideast;Rare;West;Other;</MandroidI18n>
+    <AndroidHttpClientHandlerType>Xamarin.Android.Net.AndroidMessageHandler</AndroidHttpClientHandlerType>
+    <!-- NullabilityInfoContextSupport is disabled by default for Android -->
+    <NullabilityInfoContextSupport>true</NullabilityInfoContextSupport>
+    <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
+
+    <!-- TODO can probably remove this eventually once everything is updated? -->
+    <XamarinAndroidVersion>14.0.0</XamarinAndroidVersion>
+    
+    <NoWarn>$(NoWarn);XA4218</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-android</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>DrumGame.Android</RootNamespace>
+    <AssemblyName>DrumGame.Android</AssemblyName>
+    
+    <LangVersion>preview</LangVersion>
+    <EnablePreviewFeatures>True</EnablePreviewFeatures>
+
+    <!-- TODO auto set these somehow -->
+    <ApplicationVersion>3</ApplicationVersion>
+    <ApplicationDisplayVersion>0.9.4</ApplicationDisplayVersion>
+  </PropertyGroup>
+  <ItemGroup Condition="Exists('..\..\osu-framework\osu.Framework.Android\osu.Framework.Android.csproj')">
+    <ProjectReference Include="..\..\osu-framework\osu.Framework.Android\osu.Framework.Android.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition="!Exists('..\..\osu-framework\osu.Framework.Android\osu.Framework.Android.csproj')">
+    <PackageReference Include="ppy.osu.Framework.Android" Version="2026.318.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DrumGame-Game\DrumGame.Game.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\icon.png" />
+  </ItemGroup>
+</Project>

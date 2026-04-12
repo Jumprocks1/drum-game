@@ -113,14 +113,17 @@ public class SongIniLoader
             .MakeSeekableAndDisposeIfNeeded();
         using var reader = new StreamReader(ini);
         Config.Difficulty = SongIniDifficulty.Expert;
+        var creationTime = Provider.WriteTimeUtc(fileName);
         var primaryBeatmap = ParseSongIniStream(reader);
+        primaryBeatmap.CreationTimeUtc = creationTime;
         foreach (var diff in primaryBeatmap.DifficultyDefinitions)
         {
             if (diff.Name != "Expert" && Enum.TryParse<SongIniDifficulty>(diff.Name, out var diffEnum))
             {
                 Config.Difficulty = diffEnum;
                 ini.Seek(0, SeekOrigin.Begin);
-                ParseSongIniStream(reader);
+                var beatmap = ParseSongIniStream(reader);
+                beatmap.CreationTimeUtc = creationTime;
             }
         }
     }

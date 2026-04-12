@@ -3,6 +3,7 @@ extern alias OriginalManagedBass;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -170,7 +171,7 @@ public class SoundFontRenderer : IDisposable
             process.AddArguments("-ar", "44.1k");
             process.AddArguments("-ac", "1");
             process.AddInput("-");
-            if (sample.Boost > 1) process.AddArguments("-filter:a", $@"volume={sample.Boost}");
+            if (sample.Boost > 1) process.AddArguments("-filter:a", $@"volume={sample.Boost.ToString(CultureInfo.InvariantCulture)}");
             process.AddOutput(outputPath);
             process.AfterStart = proc =>
             {

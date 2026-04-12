@@ -24,6 +24,7 @@ using DrumGame.Game.Stores;
 using DrumGame.Game.Stores.DB;
 using DrumGame.Game.Utils;
 using Newtonsoft.Json;
+using osu.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
@@ -59,7 +60,7 @@ public class BeatmapSelectorState
     public string Collection { get => CollectionBindable.Value; set => CollectionBindable.Value = value; }
     public string Search { get => SearchBindable.Value; set => SearchBindable.Value = value; }
     public string Filename = null;
-    public BeatmapOpenMode OpenMode = BeatmapOpenMode.Edit;
+    public BeatmapOpenMode OpenMode = RuntimeInfo.IsMobile ? BeatmapOpenMode.Play : BeatmapOpenMode.Edit;
     public bool Autoplay = false; // set based on if we start a song with enter key vs midi press
 
     // only for song.ini
@@ -209,21 +210,26 @@ public partial class BeatmapSelector : CompositeDrawable
         FilteredMaps = Maps;
         AddInternal(Carousel);
 
-        AddInternal(new ModeSelector(new ModeOption[]
+        var modeOptions = new List<ModeOption>
         {
             new(BeatmapOpenMode.Edit,"Edit", DrumColors.DarkRed,
             "<brightRed>Edit Mode</>\nDefault mode. Works for regular playing, but also allows you to pause and make changes if you find any issues with the map.\n"+
-            $"Starting the song with {IHasCommand.GetMarkupTooltip(Command.SelectAutostart)} will start the song immediately (instead of pausing at the start)."),
+            $"Starting the song with {IHasCommand.GetMarkupTooltip(Command.SelectAutostart)} will start the song immediately (instead of pausing at the start).\n"+
+            "Edit mode is not supported with Mania display mode and will instead default to Play mode."),
             new(BeatmapOpenMode.Play,"Play", DrumColors.DarkGreen,
             "<brightGreen>Play Mode</>\nSimilar to edit mode, but does not allow you to make/save changes to the map."),
             new(BeatmapOpenMode.Listen,"Listen", DrumColors.DarkOrange,
             "<brightOrange>Listen Mode</>\nPlays the song and scrolls the sheet music. Disables scoring."),
-            new(BeatmapOpenMode.Record,"Record", DrumColors.DarkBlue,
-            "<brightBlue>Record Mode</>\nSimilar to edit mode, but also records audio from an active recording device.\nUseful for making videos without external software.\n"+
-            $"You can record a replay to a video file with {IHasCommand.GetMarkupTooltipIgnoreUnbound(Command.RecordVideo)}. Requires FFmpeg.") {
+        };
+        if (!RuntimeInfo.IsMobile)
+            modeOptions.Add(new(BeatmapOpenMode.Record, "Record", DrumColors.DarkBlue,
+                        "<brightBlue>Record Mode</>\nSimilar to edit mode, but also records audio from an active recording device.\nUseful for making videos without external software.\n" +
+                        $"You can record a replay to a video file with {IHasCommand.GetMarkupTooltipIgnoreUnbound(Command.RecordVideo)}. Requires FFmpeg.")
+            {
                 FontScale = 0.9f
-            },
-        }, State)
+            });
+
+        AddInternal(new ModeSelector(modeOptions, State)
         {
             Anchor = Anchor.BottomLeft,
             Origin = Anchor.BottomLeft,
@@ -630,10 +636,10 @@ public partial class BeatmapSelector : CompositeDrawable
                 if (b.ImageUrl == null && b.Image == null) {
                     if (spotifyReference.Resource == Spotify.SpotifyResource.Track) {
                         Task.Run(async () => {
-                            var track = await Spotify.GetTrack(b.Spotify);
+                            var track = await Spotify.GetTrackOembed(b.Spotify);
                             Schedule(() => {
                                 MutateBeatmap(target, b => {
-                                    b.ImageUrl = track.Album.GoodImage.Url;
+                                    b.ImageUrl = track.CleanedThumbnailUrl;
                                     b.HashImageUrl();
                                 });
                             });
@@ -1186,7 +1192,8 @@ public partial class BeatmapSelector : CompositeDrawable
                             e.RomanArtist,
                             e.RomanTitle,
                             e.Tags,
-                            PlayableDuration = e.Duration
+                            PlayableDuration = e.Duration,
+                            e.CreationTime
                         };
                     })));
                 }

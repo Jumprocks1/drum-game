@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using DrumGame.Game.Beatmaps.Data;
 using DrumGame.Game.Beatmaps.Display;
 using DrumGame.Game.Beatmaps.Editor.Timing;
@@ -180,7 +181,7 @@ public partial class BeatmapEditor : BeatmapPlayer
         return false;
     }
 
-    void PresetPressed(NotePreset preset)
+    public void PresetPressed(NotePreset preset)
     {
         if (preset == null || preset.Channel == DrumChannel.None) return;
         var data = preset.GetData();
@@ -368,12 +369,13 @@ public partial class BeatmapEditor : BeatmapPlayer
     }
 
 
-    void InsertMeasureAt(int measure)
+    void InsertMeasureAt(int measure, bool shiftPoints)
     {
+        var changes = new List<IHistoryChange>();
         var beat = Beatmap.BeatFromMeasure(measure);
         var start = Beatmap.TickFromMeasure(measure);
         var gap = Beatmap.TickFromMeasure(measure + 1) - start;
-        var noteChange = new NoteBeatmapChange(() =>
+        changes.Add(new NoteBeatmapChange(() =>
         {
             var replace = new List<HitObject>(Beatmap.HitObjects.Capacity);
             foreach (var hit in Beatmap.HitObjects)
@@ -383,26 +385,36 @@ public partial class BeatmapEditor : BeatmapPlayer
             Beatmap.HitObjects = replace;
             var last = Beatmap.HitObjects.Count > 0 ? Math.Max(start, Beatmap.HitObjects[^1].Time) : start;
             return new AffectedRange(start, last + 1);
-        }, null);
-        var timingChange = new TempoBeatmapChange(Beatmap, () =>
+        }, null));
+        if (shiftPoints)
         {
-            var replace = new List<TempoChange>();
-            foreach (var timing in Beatmap.TempoChanges)
+            // should probably keep track of these "point lists" so I don't forget to shift them elsewhere
+            changes.Add(new TempoBeatmapChange(Beatmap, () =>
             {
-                replace.Add(timing.Time < start || timing.Time == 0 ? timing : timing.WithTime(timing.Time + gap));
-            }
-            Beatmap.TempoChanges = replace;
-            Beatmap.RemoveExtras<TempoChange>();
-        }, null);
-        PushChange(new CompositeHistoryChange($"insert measure at beat {beat}", noteChange, timingChange));
+                Beatmap.TempoChanges = [.. Beatmap.TempoChanges.Select(e => e.Time < start || e.Time == 0 ? e : e.WithTime(e.Time + gap))];
+                Beatmap.RemoveExtras<TempoChange>();
+            }, null));
+            changes.Add(new MeasureBeatmapChange(Beatmap, () =>
+            {
+                Beatmap.MeasureChanges = [.. Beatmap.MeasureChanges.Select(e => e.Time < start || e.Time == 0 ? e : e.WithTime(e.Time + gap))];
+                Beatmap.RemoveExtras<MeasureChange>();
+            }, null));
+            if (Beatmap.Bookmarks != null && Beatmap.Bookmarks.Count > 0)
+                changes.Add(new BookmarkBeatmapChange(Beatmap, () =>
+                    Beatmap.Bookmarks = [.. Beatmap.Bookmarks.Select(e => e.With(e.Time + (double)gap / Beatmap.TickRate))], null));
+            if (Beatmap.Annotations != null && Beatmap.Annotations.Count > 0)
+                changes.Add(new AnnotationChange(Beatmap, () =>
+                    Beatmap.Annotations = [.. Beatmap.Annotations.Select(e => e.With(e.Time + (double)gap / Beatmap.TickRate))], null));
+        }
+        PushChange(new CompositeHistoryChange($"insert measure at beat {beat}", [.. changes]));
     }
 
-    [CommandHandler] public void InsertMeasure() => InsertMeasureAt(Track.CurrentMeasure);
+    [CommandHandler] public void InsertMeasure() => InsertMeasureAt(Track.CurrentMeasure, false);
     [CommandHandler]
     public void InsertMeasureAtStart()
     {
         using var _ = UseCompositeChange("insert measure at start");
-        InsertMeasureAt(0);
+        InsertMeasureAt(0, shiftPoints: true);
         var measureSize = Beatmap.MillisecondsFromBeat(Beatmap.BeatFromMeasure(1)) - Beatmap.StartOffset;
         var newOffset = Beatmap.StartOffset - measureSize;
         PushChange(new OffsetBeatmapChange(this, newOffset, false));
@@ -461,17 +473,16 @@ public partial class BeatmapEditor : BeatmapPlayer
     {
         var beat = Beatmap.BeatFromMeasure(CurrentMeasure);
         var currentMeasureChange = Beatmap.ChangeAt<MeasureChange>(beat);
-        return context.Palette.RequestNumber($"Setting Beats Per Measure at Beat {beat}", "Beats", currentMeasureChange.Beats,
-            o =>
+        return context.GetNumber(o =>
+        {
+            var description = $"set beats per measure at {beat} to {o}";
+            PushChange(new MeasureBeatmapChange(Beatmap, () =>
             {
-                var description = $"set beats per measure at {beat} to {o}";
-                PushChange(new MeasureBeatmapChange(Beatmap, () =>
-                {
-                    Beatmap.UpdateChangePoint<MeasureChange>(Beatmap.TickFromBeat(beat), e => e.WithBeats(o));
-                    Beatmap.SnapMeasureChanges();
-                    Beatmap.RemoveExtras<MeasureChange>();
-                }, description));
-            });
+                Beatmap.UpdateChangePoint<MeasureChange>(Beatmap.TickFromBeat(beat), e => e.WithBeats(o));
+                Beatmap.SnapMeasureChanges();
+                Beatmap.RemoveExtras<MeasureChange>();
+            }, description));
+        }, $"Setting Beats Per Measure at Beat {beat}", "Beats", currentMeasureChange.Beats);
     }
     [CommandHandler]
     public bool EditTiming(CommandContext context)
@@ -480,7 +491,7 @@ public partial class BeatmapEditor : BeatmapPlayer
         var ticks = Beatmap.TickFromBeat(beat);
         var existingTiming = Beatmap.RecentChangeTicks<TempoChange>(ticks);
         var title = existingTiming.Time == ticks ? "Editing Tempo Change" : "Adding Tempo Change";
-        return context.Palette.RequestNumber($"{title} at Beat {beat}", "BPM", existingTiming.Tempo.HumanBPM,
+        return context.RequestNumber($"{title} at Beat {beat}", "BPM", existingTiming.Tempo.HumanBPM,
             o =>
             {
                 var description = $"set bpm at {beat} to {o}";

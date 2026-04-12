@@ -6,6 +6,7 @@ using System.Text;
 using DrumGame.Game.Beatmaps.Loaders;
 using DrumGame.Game.Channels;
 using DrumGame.Game.Utils;
+using Microsoft.EntityFrameworkCore.Query;
 using Newtonsoft.Json.Linq;
 
 namespace DrumGame.Game.Skinning;
@@ -142,8 +143,11 @@ public static class SkinPathUtil
         return false;
     }
 
-    public static void Set<T>(this Expression<Func<Skin, T>> pathExpression, T value) => pathExpression.Set(Util.Skin, value);
-    public static void Set<T>(this Expression<Func<Skin, T>> pathExpression, Skin skin, T value)
+    public static void SetNoDirty<T>(this Expression<Func<Skin, T>> pathExpression, T value)
+        => Set(pathExpression, Util.Skin, value);
+
+    // not public since it doesn't mark dirty/clean
+    static void Set<T>(this Expression<Func<Skin, T>> pathExpression, Skin skin, T value)
     {
         var (instance, member, arguments) = pathExpression.FinalMember(skin); // if member is null, it will skip setting
         if (member is PropertyInfo pi)
@@ -151,16 +155,31 @@ public static class SkinPathUtil
         else if (member is FieldInfo fi)
             fi.SetValue(instance, value);
     }
-    public static void SetAndDirty<T>(this Expression<Func<Skin, T>> pathExpression, T value) => pathExpression.SetAndDirty(Util.Skin, value);
-    public static void SetAndDirty<T>(this Expression<Func<Skin, T>> pathExpression, Skin skin, T value)
+    public static void SetAndDirty<T>(this Expression<Func<Skin, T>> pathExpression, T value)
     {
-        pathExpression.Set(skin, value);
+        pathExpression.Set(Util.Skin, value);
         pathExpression.Dirty();
     }
-    public static void Dirty<T>(this Expression<Func<Skin, T>> pathExpression)
+    // should only been used when reloading a portion of the skin from disk
+    public static void SetAndClean<T>(this Expression<Func<Skin, T>> pathExpression, T value)
     {
-        Util.Skin.AddDirtyPath(pathExpression.PathString());
+        pathExpression.Set(Util.Skin, value);
+        pathExpression.MarkClean();
     }
+
+    // ex: Extend(e => e.Notation, e => e.VolumeControlGroup) => e.Notation.VolumeControlGroup
+    // not used currently, but it's a cool function
+    public static Expression<Func<Skin, K>> Extend<T, K>(this Expression<Func<Skin, T>> pathExpression, Expression<Func<T, K>> access)
+    {
+        var parameter = pathExpression.Parameters[0];
+        var firstResult = pathExpression.Body;
+        var newBody = ReplacingExpressionVisitor.Replace(access.Parameters[0], firstResult, access.Body);
+        return (Expression<Func<Skin, K>>)Expression.Lambda(newBody, parameter);
+    }
+    public static void Dirty<T>(this Expression<Func<Skin, T>> pathExpression)
+        => Util.Skin.AddDirtyPath(pathExpression.PathString());
+    public static void MarkClean<T>(this Expression<Func<Skin, T>> pathExpression)
+        => Util.Skin.MarkClean(pathExpression.PathString());
 
     public static string GetDescriptionFromExpression<T>(this Expression<Func<Skin, T>> pathExpression)
         => Util.MarkupDescription(((MemberExpression)pathExpression.Body).Member);

@@ -110,7 +110,7 @@ public class CollectionRuleList : CollectionRule
     public override void ApplyAnd(CollectionContext context)
     {
         if (List.Count > 0) base.ApplyAnd(context);
-        else context.FilteredMaps = Enumerable.Empty<BeatmapSelectorMap>();
+        else context.FilteredMaps = [];
     }
     public override void ApplyNot(CollectionContext context)
     {

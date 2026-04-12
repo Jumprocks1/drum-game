@@ -13,7 +13,7 @@ public class BarJudgementDisplay : CompositeDrawable
     {
         var w = (float)Math.Clamp(proportion, -1, 1) * barInfo.MaxWidth;
         // make sure w / h is at least 1.62
-        var ratio = Math.Max(Math.Abs(w) / barInfo.MaxHeight, barInfo.MinmumAspectRatio);
+        var ratio = Math.Max(Math.Abs(w) / barInfo.MaxHeight, barInfo.MinimumAspectRatio);
         var h = Math.Abs(w) / ratio;
         var sign = Math.Sign(w);
         var padding = h * barInfo.Padding;

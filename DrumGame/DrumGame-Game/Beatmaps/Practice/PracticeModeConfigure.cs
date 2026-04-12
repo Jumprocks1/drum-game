@@ -5,6 +5,7 @@ using DrumGame.Game.Modals;
 using DrumGame.Game.Utils;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics;
+using DrumGame.Game.Timing;
 
 namespace DrumGame.Game.Beatmaps.Practice;
 
@@ -76,7 +77,7 @@ public partial class PracticeMode
                 new IntFieldConfig{ Label = "Minimum Streak", RefN = () => ref Config.MinimumStreak, MarkupTooltip =
                         "The speed will only increase when you have successfully completed\n" +
                         "the section at least this many times."},
-                new EnumFieldConfig<PracticeMetronomeSetting> { Label = "Metronome", DefaultValue = Config.Metronome,
+                new EnumFieldConfig<MetronomeMode> { Label = "Metronome", DefaultValue = Config.Metronome,
                     OnCommit = e => { if (Config.Metronome != e) { Config.Metronome = e; RefreshMetronome(); } } },
                 new NumberFieldConfig { Label = "Metronome Volume", RefN = () => ref Config.MetronomeVolumePercent },
                 new NumberFieldConfig {

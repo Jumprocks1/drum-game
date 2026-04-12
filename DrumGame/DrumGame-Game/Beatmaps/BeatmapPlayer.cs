@@ -85,8 +85,8 @@ public class BeatmapPlayer : CompositeDrawable
             {
                 var edit = value.HasFlagFast(BeatmapPlayerMode.Edit);
                 var record = value == BeatmapPlayerMode.Record;
-                var measureLines = (edit && !record) || Util.Skin.Notation.MeasureLines;
-                if (d.MeasureLines == null == measureLines) d.ToggleMeasureLines();
+                var beatLines = (edit && !record) || Util.Skin.Notation.AlwaysShowBeatLines;
+                if (d.BeatLines == null == beatLines) d.ToggleBeatLines();
             }
             ProtectedModeChanged(value);
             ModeChanged?.Invoke(value);
@@ -119,7 +119,7 @@ public class BeatmapPlayer : CompositeDrawable
         Track = new BeatClock(Beatmap, LoadTrack(true));
         Track.BeforeSeek += _ =>
         {
-            if (Util.DrumGame.Drumset.IsValueCreated)
+            if (Util.DrumGame.Drumset?.IsValueCreated == true)
                 Util.DrumGame.Drumset.Value.ClearQueue();
         };
         Command.RegisterHandlers(this);
@@ -576,7 +576,7 @@ public class BeatmapPlayer : CompositeDrawable
         }
         else
         {
-            _metronome = new Metronome(this, Util.DrumGame.Drumset.Value);
+            _metronome = new GlobalMetronome(this, Util.DrumGame.Drumset.Value);
             Track.RegisterEvents(_metronome);
         }
     }

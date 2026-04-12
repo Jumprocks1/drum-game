@@ -1,5 +1,6 @@
 using System;
 using DrumGame.Game.Beatmaps;
+using DrumGame.Game.Utils;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -46,6 +47,8 @@ public partial class MusicFont
             // where b is ride bell, s is snare - the spacing on the ride notes will be awful if we don't use noteheadBlack
             var bottomAnchor = (GetNoteheadAnchor(MusicGlyph.noteheadBlack, down).x,
                 GetNoteheadAnchor(flag.BottomNote.Note.Notehead, down).y);
+            if (Util.Skin.Notation.CenterNoteheads)
+                bottomAnchor.x -= GetNoteheadAnchor(MusicGlyph.noteheadBlack, false).x / 2;
 
             // this is the X position of the bottom note
             // all other notes in this flag group will be positioned based on this

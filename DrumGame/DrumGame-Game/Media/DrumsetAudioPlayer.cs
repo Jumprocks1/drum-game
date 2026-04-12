@@ -113,6 +113,9 @@ public class DrumsetAudioPlayer : IDisposable
                     if (pan != 0)
                         Bass.ChannelSetAttribute(channelHandle, ChannelAttribute.Pan, pan);
                     var mixer = Util.TrackMixerHandle;
+                    // TODO looks like I could use BASS_MIXER_CHAN_ABSOLUTE here instead
+                    // that would likely make it so I don't even need the SnycCallback code
+                    // https://github.com/ppy/osu-framework/issues/6650
                     BassMix.MixerAddChannel(mixer, channelHandle, BassFlags.MixerChanBuffer | BassFlags.MixerChanNoRampin, Bass.ChannelSeconds2Bytes(mixer, delay), 0);
                 }
             }
@@ -230,22 +233,23 @@ public class DrumsetAudioPlayer : IDisposable
         return true;
     }
 
-    public int PlayAt(DrumChannelEvent ev, TrackClock clock, double targetTime, SyncQueue queue = null)
+    public void PlayAt(DrumChannelEvent ev, TrackClock clock, double targetTime, SyncQueue queue = null)
     {
         var track = clock.Track;
         var trackHandle = track is TrackBass tb ? Util.Get<int>(tb, "activeStream") : 0;
         var handler = PreparePlay(ev);
-        if (handler == null) return 0;
+        if (handler == null) return;
         if (track.IsRunning && track.CurrentTime > targetTime)
         {
             Logger.Log("Skipping event due to missed prefire.", level: LogLevel.Important);
-            return 0;
+            return;
         }
-        if (trackHandle == 0) // can't queue if track is dead
+        if (trackHandle == 0 || targetTime < 0) // can't queue if track is dead
         {
-            Util.DrumGame.AudioThread.Scheduler.AddDelayed(() => handler?.Play(ev),
+            var dequeue = queue.Add();
+            Util.DrumGame.AudioThread.Scheduler.AddDelayed(() => dequeue(() => handler?.Play(ev)),
                 (targetTime - clock.CurrentTime) / clock.Rate - handler.Latency);
-            return 0;
+            return;
         }
         var sync = 0;
         if (!handler.BassNative) // if we aren't native, we should target the regular track (instead of the mix time track)
@@ -270,6 +274,9 @@ public class DrumsetAudioPlayer : IDisposable
                 {
                     var mixerHandle = BassMix.ChannelGetMixer(trackHandle);
                     var rawTime = Bass.ChannelGetPosition(trackHandle);
+                    // nextPlayByte and rawTime weren't always equal
+                    // rawTime used to be rounded down to ~10ms
+                    // I'm thinking it was an audio driver update that changed things, though I don't really know
                     hMixDelay.Play(ev, Bass.ChannelBytes2Seconds(trackHandle, nextPlayByte - rawTime));
                 }
                 else handler.Play(ev);
@@ -278,7 +285,7 @@ public class DrumsetAudioPlayer : IDisposable
             sync = BassMix.ChannelSetSync(trackHandle, SyncFlags.Position | SyncFlags.Onetime | SyncFlags.Mixtime, nextPlayByte, callback.Callback, callback.Handle);
         }
         queue?.Add((trackHandle, sync));
-        return sync;
+        return;
     }
 
     public readonly GameHost Host;

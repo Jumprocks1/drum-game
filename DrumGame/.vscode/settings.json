@@ -32,7 +32,7 @@
             "url": "../bjson-schema.json"
         }
     ],
-    "dotnet.server.useOmnisharp": true,
+    "dotnet.server.useOmnisharp": false,
     "search.exclude": {
         "resources/maps": true
     },

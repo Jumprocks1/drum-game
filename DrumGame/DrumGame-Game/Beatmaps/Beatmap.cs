@@ -62,9 +62,25 @@ public partial class Beatmap : BJson, IHasHitObjects
 
     public double ComputedLeadIn()
     {
-        var minimumLeadIn = Util.ConfigManager.Get<double>(Stores.DrumGameSetting.MinimumLeadIn) * 1000;
         if (HitObjects.Count == 0) return LeadIn;
-        return Math.Max(LeadIn, -(MillisecondsFromTick(HitObjects[0].Time) - minimumLeadIn));
+        var minimumLeadIn = Util.ConfigManager.Get<double>(Stores.DrumGameSetting.MinimumLeadIn) * 1000;
+        var metronomeLeadIn = Util.ConfigManager.MetronomeLeadIn.Value;
+        if (Util.ConfigManager.MetronomeModeBindable.Value == MetronomeMode.Disabled) metronomeLeadIn = 0;
+        var firstHitTick = HitObjects[0].Time;
+        var res = Math.Max(LeadIn, -(MillisecondsFromTick(firstHitTick) - minimumLeadIn));
+        if (metronomeLeadIn > 0)
+        {
+            var firstBeat = BeatFromTick(firstHitTick);
+            var idealMetronomeStartBeatInsideMeasure = firstBeat - metronomeLeadIn;
+            var idealMetronomeStartMeasure = MeasureFromTickNegative(TickFromBeatSlow(idealMetronomeStartBeatInsideMeasure));
+            var idealMetronomeStartTick = TickFromMeasureNegative(idealMetronomeStartMeasure);
+            var idealMetronomeStartBeat = BeatFromTick(idealMetronomeStartTick);
+            // will be negative sometimes
+            // at 200bpm, the prefire will trigger another metronome sometimes
+            var idealMetronomeStartTime = MillisecondsFromBeat(idealMetronomeStartBeat) - IBeatEventHandler.Prefire;
+            res = Math.Max(res, -idealMetronomeStartTime);
+        }
+        return res;
     }
 
     public override double LeadIn
@@ -104,6 +120,14 @@ public partial class Beatmap : BJson, IHasHitObjects
     public string FullAudioPath() => FullAssetPath(Audio);
     public string YouTubeAudioPath => Util.Resources.YouTubeAudioPath(YouTubeID);
     double _length;
+    public double FirstBeat
+    {
+        get
+        {
+            if (HitObjects == null || HitObjects.Count == 0) return 0;
+            else return (double)HitObjects[0].Time / TickRate;
+        }
+    }
     public double QuarterNotes
     {
         get => _length; set
@@ -144,7 +168,9 @@ public partial class Beatmap : BJson, IHasHitObjects
             if (roll)
                 modifiers |= NoteModifiers.Roll;
             var preset = (note.Preset != null && presets.TryGetValue(note.Preset, out var tempPreset)) ? tempPreset : null;
-            var data = new HitObjectData(note.GetDrumChannel(), modifiers, preset);
+            var channel = note.GetDrumChannel();
+            if (channel == DrumChannel.None) continue;
+            var data = new HitObjectData(channel, modifiers, preset);
             if (roll)
             {
                 HitObjects.Add(new RollHitObject(TickFromBeat(t), data, TickFromBeat(note.Duration.Value)));

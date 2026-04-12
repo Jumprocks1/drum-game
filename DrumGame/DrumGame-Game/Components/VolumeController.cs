@@ -1,6 +1,8 @@
 using System;
 using DrumGame.Game.Commands;
+using DrumGame.Game.Components.Fields;
 using DrumGame.Game.Stores;
+using DrumGame.Game.Utils;
 using osu.Framework.Audio;
 using osu.Framework.Bindables;
 
@@ -24,26 +26,26 @@ public class VolumeController : IDisposable
         this.manager = manager;
 
         MasterVolume = new ConfigVolumeBinding(
-            config.GetBindable<double>(DrumGameSetting.MasterVolume),
+            (BindableNumber<double>)config.GetBindable<double>(DrumGameSetting.MasterVolume),
             config.GetBindable<bool>(DrumGameSetting.MasterMuted));
         manager.Volume.BindTo(MasterVolume.Aggregate);
 
         TrackVolume = new ConfigVolumeBinding(
-            config.GetBindable<double>(DrumGameSetting.TrackVolume),
+            (BindableNumber<double>)config.GetBindable<double>(DrumGameSetting.TrackVolume),
             config.GetBindable<bool>(DrumGameSetting.TrackMuted));
         manager.Tracks.Volume.BindTo(TrackVolume.Aggregate);
 
         SampleVolume = new ConfigVolumeBinding(
-            config.GetBindable<double>(DrumGameSetting.SampleVolume),
+            (BindableNumber<double>)config.GetBindable<double>(DrumGameSetting.SampleVolume),
             config.GetBindable<bool>(DrumGameSetting.SampleMuted));
         manager.Samples.Volume.BindTo(SampleVolume.Aggregate);
 
         HitVolume = new ConfigVolumeBinding(
-            config.GetBindable<double>(DrumGameSetting.HitVolume),
+            (BindableNumber<double>)config.GetBindable<double>(DrumGameSetting.HitVolume),
             config.GetBindable<bool>(DrumGameSetting.HitMuted));
 
         MetronomeVolume = new ConfigVolumeBinding(
-            config.GetBindable<double>(DrumGameSetting.MetronomeVolume),
+            (BindableNumber<double>)config.GetBindable<double>(DrumGameSetting.MetronomeVolume),
             config.GetBindable<bool>(DrumGameSetting.MetronomeMuted));
 
         command.RegisterHandlers(this);
@@ -84,11 +86,16 @@ public class ConfigVolumeBinding : IDisposable, IVolumeBinding
     public BindableNumber<double> Aggregate { get; }
     public event Action<double> ComputedValueChanged;
     public double ComputedValue => Aggregate.Value;
-    public ConfigVolumeBinding(Bindable<double> level, Bindable<bool> muted)
+    public ConfigVolumeBinding(BindableNumber<double> level, Bindable<bool> muted)
     {
         Level = level;
         Muted = muted;
-        Aggregate = new BindableNumber<double>(muted.Value ? 0 : level.Value);
+        Aggregate = new BindableNumber<double>(muted.Value ? 0 : level.Value)
+        {
+            MaxValue = level.MaxValue,
+            MinValue = level.MinValue,
+            Precision = level.Precision
+        };
         Muted.ValueChanged += MutedChanged;
         Level.ValueChanged += LevelChanged;
         Aggregate.ValueChanged += AggregateChanged;
@@ -131,8 +138,12 @@ public class ConfigVolumeBinding : IDisposable, IVolumeBinding
     {
         if (ComputedValue > 0) Mute(); else Unmute();
     }
-    public void IncreaseLevel() { Level.Value += 0.02; if (Muted.Value) { Muted.Value = false; } }
-    public void DecreaseLevel() => Level.Value -= 0.02;
+    public void IncreaseLevel()
+    {
+        Level.Value = VolumeSlider.AdjustVolumeLevel(Level.Value, true);
+        if (Muted.Value) { Muted.Value = false; }
+    }
+    public void DecreaseLevel() => Level.Value = VolumeSlider.AdjustVolumeLevel(Level.Value, false);
 }
 public class LevelVolumeBinding : IDisposable, IVolumeBinding
 {

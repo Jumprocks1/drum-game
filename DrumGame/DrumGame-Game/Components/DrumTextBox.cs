@@ -7,6 +7,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Input;
 using osu.Framework.Input.Events;
 using osuTK.Graphics;
 
@@ -17,7 +18,7 @@ public class DrumTextBoxTooltip : DrumTextBox, IHasMarkupTooltip
     public string MarkupTooltip { get; set; }
 }
 
-public class DrumTextBox : TextBox
+public class DrumTextBox : TextBox, IAcceptFocus
 {
     protected virtual float CaretWidth => 2;
 
@@ -78,4 +79,6 @@ public class DrumTextBox : TextBox
         CaretWidth = CaretWidth,
         SelectionColour = DrumColors.Selection,
     };
+
+    public void Focus(IFocusManager focusManager) => focusManager.ChangeFocus(this);
 }

@@ -228,7 +228,7 @@ public class CollectionManager : CompositeDrawable
         var targetFile = targetMap?.MapStoragePath;
         if (targetFile == null) return false;
         EnsureCollectionExists(context);
-        context.GetItem(CollectionStorage.GetCollections().Select(e => CollectionStorage.GetCollection(e)).Where(e => !e.Locked),
+        context.GetItem(CollectionStorage.GetCollections().Select(CollectionStorage.GetCollection).Where(e => !e.Locked),
             e => e.Name, collection =>
         {
             if (collection.Locked) return;
@@ -237,16 +237,40 @@ public class CollectionManager : CompositeDrawable
         return true;
     }
     [CommandHandler]
-    public bool RemoveFromCollection(CommandContext context)
+    public bool RemoveFromCurrentCollection(CommandContext context)
     {
         var col = CollectionStorage.GetCollection(Selector.State.Collection);
-        if (col == null || col.Locked) return false;
+        if (col == null)
+        {
+            context.ShowMessage("No collection currently selected");
+            return false;
+        }
+        if (col.Locked)
+        {
+            context.ShowMessage($"Collection {col.Name} is locked");
+            return false;
+        }
         var targetMap = context.TryGetParameter(out BeatmapSelectorMap o) ? o : Selector.TargetMap;
         ModifyCollection(context, col, targetMap, false);
         return true;
     }
+    [CommandHandler]
+    public bool RemoveFromCollection(CommandContext context)
+    {
+        var targetMap = context.TryGetParameter(out BeatmapSelectorMap o) ? o : Selector.TargetMap;
+        var targetFile = targetMap?.MapStoragePath;
+        if (targetFile == null) return false;
+        EnsureCollectionExists(context);
+        context.GetItem(CollectionStorage.GetCollections().Select(CollectionStorage.GetCollection).Where(e => !e.Locked),
+            e => e.Name, collection =>
+        {
+            if (collection.Locked) return;
+            ModifyCollection(context, collection, targetMap, false);
+        }, $"Removing {targetMap.LoadedMetadata.Title} from Collection", description: targetFile);
+        return true;
+    }
 
-    public bool EnsureCollectionExists(CommandContext context) => context.TryGetParameter<string>(out var s) ? EnsureCollectionExists(s) : false;
+    public bool EnsureCollectionExists(CommandContext context) => context.TryGetParameter<string>(out var s) && EnsureCollectionExists(s);
     public bool EnsureCollectionExists(string name)
     {
         if (name == "Default") return false;

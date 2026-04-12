@@ -204,7 +204,7 @@ public class CommandPaletteContainer : Container
         return Push(modal ?? new());
     }
     [CommandHandler] public void EditKeybinds() => Push<KeybindEditor>();
-    [CommandHandler] public void OpenSettings() => Push<SettingsView>();
+    [CommandHandler] public void OpenSettings() => Push<OverlayModal<SettingsView>>();
     [CommandHandler] public void OpenSkinSettings() => Push<OverlayModal<SkinSettingsView>>();
     [CommandHandler] public void Notifications() => Push(NotificationOverlayOverlay, true);
     [CommandHandler] public void OpenKeyboardView() => Push<OverlayModal<KeyBindingBrowser>>();

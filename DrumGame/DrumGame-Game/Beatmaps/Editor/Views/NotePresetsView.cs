@@ -8,6 +8,8 @@ using DrumGame.Game.Containers;
 using DrumGame.Game.Modals;
 using DrumGame.Game.Utils;
 using osu.Framework.Allocation;
+using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Sprites;
 
 namespace DrumGame.Game.Beatmaps.Editor.Views;
 
@@ -135,6 +137,47 @@ public class NotePresetsView : RequestModal
     void PresetAdded(NotePreset preset) => Table.InvalidateRows();
     void PresetRemoved(NotePreset preset) => Table.InvalidateRows();
     void PresetChanged(NotePreset preset, string _) => Table.UpdateRow(preset);
+    void RemoveZeroUsages()
+    {
+        var remove = new HashSet<NotePreset>();
+        foreach (var (key, value) in Beatmap.NotePresets)
+            if (usageCount(value) == 0)
+                remove.Add(value);
+
+        Editor.PushChange(new PresetBeatmapChange(editor =>
+        {
+            foreach (var e in remove)
+                Editor.Beatmap.NotePresets.Remove(e);
+        }, editor =>
+        {
+            foreach (var e in remove)
+                Editor.Beatmap.NotePresets.Add(e);
+        }, "remove 0 usage presets"));
+    }
+    void StopUsingSimplePresets()
+    {
+        var remove = new HashSet<NotePreset>();
+        static bool canRemove(NotePreset preset) => preset.Size == 1 && preset.ChokeDelay == default && preset.Color == default;
+        Editor.PushChange(new NoteBeatmapChange(() =>
+        {
+            var hitObjects = Beatmap.HitObjects;
+            for (var i = 0; i < hitObjects.Count; i++)
+            {
+                var ho = hitObjects[i];
+                if (canRemove(ho.Preset))
+                    hitObjects[i] = ho.With(new HitObjectData(ho.Channel, ho.Modifiers));
+            }
+            return true;
+        }, null));
+    }
+    void RemoveSampleFiles()
+    {
+        foreach (var (_, preset) in Beatmap.NotePresets)
+        {
+            preset.Sample = null;
+            preset.Volume = preset.Size;
+        }
+    }
     [BackgroundDependencyLoader]
     private void load()
     {
@@ -159,22 +202,20 @@ public class NotePresetsView : RequestModal
         {
             Text = "Remove 0 Usages",
             AutoSize = true,
+            Action = RemoveZeroUsages
+        });
+        AddFooterButtonSpaced(new DrumButton
+        {
+            Text = "Simplify",
+            AutoSize = true,
+            MarkupTooltip = "Primarily meant to clean up DTX imports",
             Action = () =>
             {
-                var remove = new HashSet<NotePreset>();
-                foreach (var (key, value) in Beatmap.NotePresets)
-                    if (usageCount(value) == 0)
-                        remove.Add(value);
-
-                Editor.PushChange(new PresetBeatmapChange(editor =>
-                {
-                    foreach (var e in remove)
-                        Editor.Beatmap.NotePresets.Remove(e);
-                }, editor =>
-                {
-                    foreach (var e in remove)
-                        Editor.Beatmap.NotePresets.Add(e);
-                }, "remove 0 usage presets"));
+                using var composite = Editor.UseCompositeChange("simplify note presets");
+                StopUsingSimplePresets();
+                RemoveSampleFiles();
+                _usages = null;
+                RemoveZeroUsages();
             }
         });
         Beatmap.NotePresets.PresetAdded += PresetAdded;
@@ -290,6 +331,29 @@ public class NotePresetsView : RequestModal
                 .Add(nameof(NotePreset.Pan)).Hide()
                 .Add(nameof(NotePreset.Volume)).BasicEdit()
                 .Add(nameof(NotePreset.Size)).BasicEdit()
+                .Add(null, e => null)
+                    .Format((row, column, table) => new Container
+                    {
+                        Height = 18,
+                        Width = 18,
+                        Children = [
+                            new IconButton(() => {
+                                Editor.PresetPressed(row);
+                                Table.UpdateRow(row);
+                            }, FontAwesome.Solid.Plus, 16)
+                            {
+                                X = 1,
+                                Y = 1,
+                                MarkupTooltip = "Insert",
+                                BlockHover = false // keep row highlighted
+                            }
+                        ]
+                    })
+                    .Modify(e =>
+                    {
+                        e.ExactWidth = 30;
+                        e.NoCellHover = true;
+                    })
                 .Add("Hotkey", e => e.Keybind.ToString()).Hide().Editable((e, column, table) =>
                 {
                     RequestModal req = null;

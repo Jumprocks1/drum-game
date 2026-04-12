@@ -126,6 +126,10 @@ public class FooterCommand : CommandButton
 // basically just RequestConfig.Title
 public class RequestModal : TabbableContainer, IModal, IAcceptFocus
 {
+    // these help block inputs/focus from falling through
+    public override bool RequestsFocus => true;
+    public override bool HandlePositionalInput => true;
+
     class MainContainer : FillFlowContainer
     {
         protected override bool Handle(UIEvent e)

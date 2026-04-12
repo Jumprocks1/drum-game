@@ -8,7 +8,7 @@ namespace DrumGame.Game.Components;
 
 public abstract class NonPositionalTextBox : TextBox
 {
-    public override bool HandleNonPositionalInput => HoldFocus;
+    public override bool HandleNonPositionalInput => HoldFocus || HasFocus;
     public override bool RequestsFocus => HoldFocus;
     private bool allowImmediateFocus => host?.OnScreenKeyboardOverlapsGameWindow != true;
     public void TakeFocus()

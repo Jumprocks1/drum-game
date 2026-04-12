@@ -6,16 +6,21 @@ using System.Reflection;
 
 namespace DrumGame.Game.Utils;
 
-public struct FilterFieldInfo<T> where T : ISearchable<T>
+// used to be a struct, not sure why
+// struct was bad since we cache Accessor, but cache doesn't propogate after struct is copied
+public class FilterFieldInfo<T> where T : ISearchable<T>
 {
-    public string Name;
-    public string MarkupDescription;
-    public FilterFieldInfo(string name, string description = null)
+    public readonly string Name;
+    public readonly string MarkupDescription;
+    public readonly string Alias; // could add support for alias array instead, not needed yet
+    // TODO allow name to be string[] instead of allowing aliases
+    public FilterFieldInfo(string name, string description = null, string alias = null)
     {
         Name = name;
         MarkupDescription = description;
+        Alias = alias;
     }
-    public FilterAccessor Accessor;
+    FilterAccessor Accessor;
     public static implicit operator FilterFieldInfo<T>(string name) => new(name, null);
     public FilterAccessor GetAccessor()
     {
@@ -55,7 +60,7 @@ public interface ISearchable<T> where T : ISearchable<T>
     public static IEnumerable<T> ApplyFilterBase(IEnumerable<T> exp, FilterOperator<T> op, FilterFieldInfo<T> field, string value)
     {
         var accessor = field.GetAccessor();
-        if (accessor == null) return Enumerable.Empty<T>();
+        if (accessor == null) return [];
         return op.Apply(exp, accessor, value);
     }
 }
@@ -113,7 +118,7 @@ public static class GenericFilterer<T> where T : ISearchable<T>
         public override IEnumerable<T> Apply(IEnumerable<T> exp, FilterAccessor accessor, string value)
         {
             if (accessor.Delegate is Func<T, string> s)
-                return exp.Where(e => Invert ^ (s(e)?.ToLower()?.Contains(value) ?? false));
+                return exp.Where(e => Invert ^ (s(e)?.Contains(value, StringComparison.InvariantCultureIgnoreCase) ?? false));
             else if (accessor.Delegate is Func<T, long> l)
             {
                 if (long.TryParse(value, out var valueNumber))
@@ -289,7 +294,7 @@ public static class GenericFilterer<T> where T : ISearchable<T>
                 if (int.TryParse(value, out var valueNumber))
                     return exp.Where(e => OperateLong((int)del.DynamicInvoke(e), valueNumber));
             }
-            return Enumerable.Empty<T>();
+            return [];
         }
 
         public NumericOp(string identifier, Func<long, long, bool> f, Func<int, bool> f2)
@@ -315,12 +320,14 @@ public static class GenericFilterer<T> where T : ISearchable<T>
 
     public static FilterFieldInfo<T> LookupField(string field)
     {
+        // note, we intentionally don't filter out empty/whitespace fields
+        // this results in the filter applying to the first field
         foreach (var s in Fields)
-            if (field == s.Name) return s;
+            if (field == s.Name || (s.Alias != null && field == s.Alias)) return s;
         foreach (var s in Fields)
-            if (s.Name.StartsWith(field)) return s;
+            if (s.Name.StartsWith(field) || (s.Alias != null && s.Alias.StartsWith(field))) return s;
         foreach (var s in Fields)
-            if (s.Name.Contains(field)) return s;
+            if (s.Name.Contains(field) || (s.Alias != null && s.Alias.Contains(field))) return s;
         return new FilterFieldInfo<T>(null);
     }
 

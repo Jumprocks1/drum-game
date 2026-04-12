@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using DrumGame.Game.Beatmaps.Data;
 using DrumGame.Game.Beatmaps.Display;
 using DrumGame.Game.Beatmaps.Loaders;
+using DrumGame.Game.Utils;
 
 namespace DrumGame.Game.Beatmaps.Editor;
 
@@ -220,12 +221,18 @@ public class AnnotationChange : ListBeatmapChange<Annotation>
 }
 public class MeasureBeatmapChange : ListBeatmapChange<MeasureChange>
 {
+    public bool CatchExceptions = false;
+    // doesn't feel safe enough to catch all exceptions without looking at implementations
+    // for composite changes, this could behave oddly
+    // if the exception occurs in an intermediate state, it would have weird consequences
+    protected override bool _catchExceptions => CatchExceptions;
     public MeasureBeatmapChange(Beatmap beatmap, Action action, string description) : base(beatmap, action, description) { }
     public override List<MeasureChange> List { get => beatmap.MeasureChanges; set => beatmap.MeasureChanges = value; }
     public override void FireUpdate() => beatmap.FireMeasuresUpdated();
 }
 public abstract class ListBeatmapChange<T> : IHistoryChange
 {
+    protected virtual bool _catchExceptions => false;
     Action action;
     protected Beatmap beatmap;
     public string Description { get; }
@@ -241,7 +248,23 @@ public abstract class ListBeatmapChange<T> : IHistoryChange
     public bool Do(BeatmapEditor editor)
     {
         Clone = new List<T>(List);
-        action();
+        if (_catchExceptions)
+        {
+            try
+            {
+                action();
+            }
+            catch (Exception e)
+            {
+                Util.Palette.UserError("Error when applying change", e);
+                Undo(editor);
+                return false;
+            }
+        }
+        else
+        {
+            action();
+        }
         FireUpdate();
         return true;
     }

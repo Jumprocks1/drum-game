@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using DrumGame.Game.Commands;
 using DrumGame.Game.Components;
 using DrumGame.Game.Components.Basic;
@@ -33,6 +34,20 @@ public class SettingControl : BasicButton, IHasCommand, IHasCursor
         }
     }
 
+    public IAcceptFocus FocusTarget;
+    public void Focus()
+    {
+        var target = FocusTarget ?? Children.OfType<IAcceptFocus>().FirstOrDefault();
+        target?.Focus(GetContainingFocusManager());
+    }
+    public void Clicked()
+    {
+        if (Command != Command.None)
+            Util.CommandController.ActivateCommand(Command);
+        else
+            Focus();
+    }
+
     public Command Command { get; set; }
 
     protected override SpriteText CreateText()
@@ -52,16 +67,44 @@ public class SettingControl : BasicButton, IHasCommand, IHasCursor
     public const float SideMargin = 20;
     public const float InputWidth = 300;
     public SettingInfo Info;
-    public SettingControl(SettingInfo info, bool even)
+    public SettingControl(SettingInfo info)
     {
         Info = info;
         Height = info.Height;
         RelativeSizeAxes = Axes.X;
-        BackgroundColour = even ? DrumColors.RowHighlight : DrumColors.RowHighlightSecondary;
         Text = info.Label;
         info.Render(this);
         info.AfterRender?.Invoke(this);
         Action = () => Info.OnClick(this);
+    }
+
+    string _filterString;
+    public string FilterString => _filterString ??= MakeFilterString();
+    string MakeFilterString() => $"{Info.Label} {Info.Tags} {BlockHeader?.FilterString}";
+    public SettingsBlockHeader BlockHeader;
+
+    public bool MatchesSearch(string[] search)
+    {
+        if (search == null || search.Length == 0) return true;
+        return search.All(e => FilterString.Contains(e, StringComparison.OrdinalIgnoreCase));
+    }
+
+    // this should be called shortly after adding the control to it's parent
+    public void UpdateDisplay(bool even)
+    {
+        BackgroundColour = even ? DrumColors.RowHighlight : DrumColors.RowHighlightSecondary;
+    }
+    public void UpdateDisplay(bool even, bool visible)
+    {
+        if (visible)
+        {
+            Alpha = 1;
+            UpdateDisplay(even);
+        }
+        else
+        {
+            Alpha = 0;
+        }
     }
 
     public void AddCommandIconButton(Command command, IconUsage icon)

@@ -152,4 +152,6 @@ public class CommandContext
         return false;
     }
     public void ShowMessage(string message) => Palette?.ShowMessage(message);
+    // prefer GetNumber instead
+    public bool RequestNumber(string title, string label, double value, Action<double> callback) => GetNumber(callback, title, label, value);
 }

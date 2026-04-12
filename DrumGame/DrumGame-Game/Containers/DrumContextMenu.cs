@@ -90,6 +90,8 @@ public class DrumContextMenu : Menu
         {
             base.LoadComplete();
 
+            if (text is MarkupText mt)
+                mt.UpdateSubTree(); // bit sketchy, but works
             MinimumDrawWidth += text.DrawWidth;
             if (hotkeyDisplay != null)
             {
@@ -168,7 +170,13 @@ public class ContextMenuBuilder<T>
     }
     public ContextMenuBuilder<T> Modify(Action<ContextMenuBuilder<T>> modify)
     {
-        modify?.Invoke(this);
+        modify.Invoke(this);
+        return this;
+    }
+    // don't call this after hide
+    public ContextMenuBuilder<T> ModifyLast(Action<DrumMenuItem> modify)
+    {
+        modify.Invoke(items[^1]);
         return this;
     }
     public ContextMenuBuilder<T> Add(string name, Action<T> action)

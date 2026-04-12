@@ -26,8 +26,20 @@ public interface IHasCommandInfo : IHasMarkupTooltip, IHasCursor
     SDL2.SDL.SDL_SystemCursor? IHasCursor.Cursor => DisableClick ? null : SDL2.SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_HAND;
     CommandInfo CommandInfo { get; }
     bool DisableClick => CommandInfo == null;
-    string IHasMarkupTooltip.MarkupTooltip => GetMarkupTooltip(CommandInfo);
+    string IHasMarkupTooltip.MarkupTooltip => GetMarkupTooltip(this);
 
+    public string CommandName => null; // throws if no null check
+    // This is different from CommandInfo parameters in that binding a hotkey to it will instead bind to the default command
+    // This should be used when the current parameters are unlikely to be the desired binding target
+    // For example, upvoting a map uses the map as a parameter, but I doubt anyone would ever want to have a hotkey for changing the votes on a single map
+    public object[] CommandParameters => null;
+
+    public static string GetMarkupTooltip(IHasCommandInfo hasCommand, bool modify = true)
+    {
+        var commandInfo = hasCommand.CommandInfo;
+        if (commandInfo == null) return null;
+        return GetMarkupTooltip(hasCommand.CommandName ?? commandInfo.Name, GetMarkupHotkeyString(commandInfo, modify), commandInfo.HelperMarkup);
+    }
     public static string GetMarkupTooltip(CommandInfo commandInfo, bool modify = true)
         => commandInfo == null ? null : GetMarkupTooltip(commandInfo.Name, GetMarkupHotkeyString(commandInfo, modify), commandInfo.HelperMarkup);
     public static string GetMarkupTooltipNoModify(CommandInfo commandInfo) => GetMarkupTooltip(commandInfo, false);

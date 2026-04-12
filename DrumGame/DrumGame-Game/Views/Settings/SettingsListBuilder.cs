@@ -17,11 +17,13 @@ namespace DrumGame.Game.Views.Settings;
 public interface IHandleSettingInfo
 {
     void AddSetting(SettingInfo setting);
+    void AddBlockHeader(string text);
 }
 
 public class SettingsListBuilder
 {
     List<SettingInfo> settings = new();
+    List<(string Header, int Index)> blockHeaders = new();
     public SettingsListBuilder Modify(Action<SettingsListBuilder> modify)
     {
         modify?.Invoke(this);
@@ -62,11 +64,12 @@ public class SettingsListBuilder
         var y = 0f;
         foreach (var e in subSettings)
         {
-            var control = new SettingControl(e, even)
+            var control = new SettingControl(e)
             {
                 Y = y,
                 Depth = depth++
             };
+            control.UpdateDisplay(even);
             scrollContainer.Add(control);
             y += control.Height;
             even = !even;
@@ -103,12 +106,27 @@ public class SettingsListBuilder
         => Add(new EnumSettingInfo<T>(path.GetName(), Bind(path)));
     public SettingsListBuilder AddParsable<T>(Expression<Func<Skin, T>> path) where T : IParsable<T>
         => Add(new ParsableSettingInfo<T>(path.GetName(), Bind(path)));
+    public SettingsListBuilder AddParsable<T>(string label, Expression<Func<Skin, T>> path) where T : IParsable<T>
+        => Add(new ParsableSettingInfo<T>(label, Bind(path)));
     public SettingsListBuilder AddNullableParsable<T>(Expression<Func<Skin, T?>> path) where T : struct, IParsable<T>
         => Add(new NullableParsableSettingInfo<T>(path.GetName(), Bind(path)));
+    public SettingsListBuilder Add(Expression<Func<Skin, bool>> path, string label = null)
+        => Add(new BooleanSettingInfo(label ?? path.GetName(), Bind(path)));
     public SettingsListBuilder Add(string label, Expression<Func<Skin, Colour4>> path)
         => Add(new ColorSettingInfo(label, Bind(path)));
     public SettingsListBuilder Add(Expression<Func<Skin, Colour4>> path)
         => Add(new ColorSettingInfo(path.GetName(), Bind(path)));
+    public SettingsListBuilder AddBlockHeader(string name)
+    {
+        blockHeaders.Add((name, settings.Count));
+        return this;
+    }
+    public SettingsListBuilder AddTags(string tags)
+    {
+        var target = settings[^1];
+        target.Tags = tags;
+        return this;
+    }
     public SettingsListBuilder Add(SettingInfo settingInfo)
     {
         settings.Add(settingInfo);
@@ -116,7 +134,17 @@ public class SettingsListBuilder
     }
     public void BuildTo(IHandleSettingInfo view)
     {
-        foreach (var e in settings) view.AddSetting(e);
+        var j = 0;
+        for (var i = 0; i < settings.Count; i++)
+        {
+            if (j < blockHeaders.Count && blockHeaders[j].Index == i)
+            {
+                view.AddBlockHeader(blockHeaders[j].Header);
+                j += 1;
+            }
+            var e = settings[i];
+            view.AddSetting(e);
+        }
         settings = null;
     }
 }

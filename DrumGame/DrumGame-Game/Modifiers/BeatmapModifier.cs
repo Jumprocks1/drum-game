@@ -133,8 +133,8 @@ public abstract class BeatmapModifier
         var t = GetType();
         var fresh = Activator.CreateInstance(t);
         // only resets fields, if you need to reset properties, override this method
-        foreach (var field in t.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
-            field.SetValue(this, field.GetValue(fresh));
+        foreach (var f in t.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
+            f.SetValue(this, f.GetValue(fresh));
         TriggerChanged();
     }
     protected void TriggerChanged() => Util.SelectorLoader?.SelectorState.ModifierConfigured(this);
@@ -145,8 +145,8 @@ public abstract class BeatmapModifier
         {
             var t = GetType();
             var fresh = Activator.CreateInstance(t);
-            foreach (var field in t.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
-                if (!field.GetValue(this).Equals(field.GetValue(fresh))) return false;
+            foreach (var f in t.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
+                if (!f.GetValue(this).Equals(f.GetValue(fresh))) return false;
             return true;
         }
     }

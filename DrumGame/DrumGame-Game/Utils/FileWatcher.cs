@@ -47,20 +47,18 @@ public class FileWatcher : IDisposable
         Directory = directory;
     }
 
-    public List<string> ExtraFilters;
     void SetFilters()
     {
         watcher.Filters.Clear();
         if (TargetPath != null)
             watcher.Filters.Add(Path.GetFileName(TargetPath));
-        if (ExtraFilters != null)
-            foreach (var f in ExtraFilters) watcher.Filters.Add(f);
     }
     public void Register()
     {
         watcher = new(Directory)
         {
-            NotifyFilter = NotifyFilters.LastWrite
+            NotifyFilter = NotifyFilters.LastWrite,
+            IncludeSubdirectories = true
         };
         SetFilters();
         var reloadId = 0;

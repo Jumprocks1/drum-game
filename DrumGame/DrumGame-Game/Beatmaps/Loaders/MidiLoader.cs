@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using DrumGame.Game.Beatmaps.Data;
+using DrumGame.Game.Beatmaps.Formats;
 using DrumGame.Game.Channels;
 using DrumGame.Game.IO.Midi;
+using DrumGame.Game.Utils;
+using osu.Framework.Logging;
 
 namespace DrumGame.Game.Beatmaps.Loaders;
 
@@ -38,6 +41,10 @@ public static class MidiLoader
 
         var hasChannel9 = midi.Tracks.Any(e => e.events.Any(e => e is MidiTrack.MidiEvent me && me.channel == 9));
 
+        var pendingNotes = new List<(int t, HitObjectData data, byte velocity)>();
+
+        var usedMappings = new Dictionary<HitObjectData, HashSet<byte>>();
+
         var maxT = 0;
         foreach (var track in midi.Tracks)
         {
@@ -52,7 +59,8 @@ public static class MidiLoader
                         if (me.parameter2 > 0)
                         {
                             var channel = DrumChannel.None;
-                            if (me.channel != 9 && hasChannel9) continue;
+                            if (me.channel != 9 && hasChannel9 || track.Name == "Sample Electronic Beat"
+                                || track.Name == "Sample Perc.") continue;
                             if (me.channel == 0)
                             {
                                 BRSNoteMapping.TryGetValue(me.parameter1, out channel);
@@ -64,18 +72,13 @@ public static class MidiLoader
                             if (channel != DrumChannel.None)
                             {
                                 var modifiers = NoteModifiers.None;
-                                // if (me.parameter2 >= 120)
-                                //     modifiers = NoteModifiers.Accented;
-                                // if (me.parameter2 <= 40)
-                                // modifiers = NoteModifiers.Ghost;
-
-                                // if (me.parameter1 == 57)
-                                // modifiers |= NoteModifiers.Left;
-
-                                // if (me.parameter2 > 20)
-                                hitObjects.Add(new HitObject(t, new HitObjectData(channel, modifiers)));
-                                // else
-                                // Console.WriteLine($"Skipping low velocity: {me.parameter1} at {(double)t / tickRate} {me.parameter2}");
+                                if (me.parameter1 == 49)
+                                    modifiers |= NoteModifiers.Left;
+                                if (me.parameter1 == 57 || me.parameter1 == 52)
+                                    modifiers |= NoteModifiers.Right;
+                                var data = new HitObjectData(channel, modifiers);
+                                pendingNotes.Add((t, data, me.parameter2));
+                                usedMappings.HashAdd(data, me.parameter1);
                             }
                             else
                             {
@@ -96,6 +99,80 @@ public static class MidiLoader
             }
             maxT = Math.Max(maxT, t);
         }
+        foreach (var (data, usedMidi) in usedMappings)
+        {
+            if (usedMidi.Count > 1)
+                Console.WriteLine($"{string.Join(", ", usedMidi)} mapped to {data}");
+        }
+        var noteMap = new Dictionary<(HitObjectData data, byte velocity), HitObjectData>();
+        var groupedPending = pendingNotes.GroupBy(e => e.data).Select(e => new
+        {
+            Data = e.Key,
+            Velocities = e.GroupBy(e => e.velocity).OrderBy(e => e.Key).Select(e => (e.Key, e.Count())).ToList()
+        }).ToList();
+        const int velocityResolution = 5; // ignore velocities that are closer than this
+        foreach (var group in groupedPending)
+        {
+            var vs = group.Velocities;
+            if (vs.Count == 1) continue;
+
+            var remove = new List<int>();
+
+            var target = vs.Count - 1;
+            var weightedTotal = vs[target].Key * vs[target].Item2;
+
+            for (var i = vs.Count - 2; i >= 0; i--)
+            {
+                var v = vs[i];
+                if (Math.Abs(vs[target].Key - v.Key) <= velocityResolution)
+                {
+                    weightedTotal += v.Key * v.Item2;
+                    var newCount = vs[target].Item2 + v.Item2;
+                    vs[target] = ((byte)(weightedTotal / newCount), newCount);
+                    remove.Add(i);
+                }
+                else
+                {
+                    target = i;
+                    weightedTotal = v.Key * v.Item2;
+                }
+            }
+            foreach (var i in remove) vs.RemoveAt(i);
+        }
+        (map.NotePresets ??= new()).Clear();
+        foreach (var channelGroup in groupedPending)
+        {
+            var data = channelGroup.Data;
+            var velocities = channelGroup.Velocities;
+            if (velocities.Count == 1) continue;
+            if (velocities.Count > 1)
+            {
+                var baseLine = velocities[^1].Key; // TODO should probably be the mode
+                foreach (var velocity in velocities)
+                {
+                    if (velocity.Key == baseLine)
+                        noteMap[(data, velocity.Key)] = data;
+                    else
+                    {
+                        var preset = new NotePreset
+                        {
+                            Key = $"{data.Channel}_{velocity.Key}",
+                            Channel = data.Channel,
+                            // ^0.75 makes the size not so extreme
+                            Size = (float)Math.Round(Math.Pow((double)velocity.Key / baseLine, 0.75), 2),
+                            Volume = (float)Math.Round((double)velocity.Key / baseLine, 2),
+                        };
+                        map.NotePresets.Add(preset);
+                        noteMap[(data, velocity.Key)] = new HitObjectData(data.Channel, data.Modifiers, preset: preset);
+                    }
+                }
+            }
+        }
+        foreach (var (t, data, velocity) in pendingNotes)
+        {
+            var mappedData = noteMap.TryGetValue((data, velocity), out var o) ? o : data;
+            hitObjects.Add(new HitObject(t, mappedData));
+        }
         map.TickRate = tickRate;
         map.QuarterNotes = Math.Ceiling((double)maxT / tickRate);
         // We use OrderBy instead of List.Sort since OrderBy is stable sort
@@ -105,6 +182,22 @@ public static class MidiLoader
         map.RemoveExtras<TempoChange>();
         map.RemoveExtras<MeasureChange>();
         map.RemoveDuplicates();
+        map.Print3Hands();
+        return map;
+    }
+
+    public static Beatmap ImportFileAndSave(string path)
+    {
+        var name = Path.GetFileNameWithoutExtension(path) + ".bjson";
+        var outputTarget = Path.Join(Util.MapStorage.AbsolutePath, name);
+
+        var map = Beatmap.Create();
+        map.TempoChanges = [];
+        LoadMidi(map, path);
+        map.Source = new BJsonSource(outputTarget, BJsonFormat.Instance);
+        map.Export();
+        map.SaveToDisk(Util.MapStorage);
+        Logger.Log($"imported {path} to {outputTarget}");
         return map;
     }
 }

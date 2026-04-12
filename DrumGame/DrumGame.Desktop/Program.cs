@@ -8,6 +8,8 @@ using System.Globalization;
 using osu.Framework.Graphics;
 using DrumGame.Game.Commands;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Allocation;
+using osu.Framework.Input;
 
 namespace DrumGame.Desktop;
 
@@ -80,6 +82,23 @@ public static class Program
                     {
                         var commandInfo = CommandInfo.FromString(command);
                         Util.CommandController.ActivateCommand(commandInfo);
+                    };
+                }
+            }
+            else if (arg == "--text")
+            {
+                if (nextArg(out var text))
+                {
+                    OnLoad += _ =>
+                    {
+                        void addText(Drawable _)
+                        {
+                            Util.InputManager.OnUpdate -= addText;
+                            var textInput = Util.DrumGame.Dependencies.Get<TextInputSource>();
+                            Util.Call(textInput, "TriggerTextInput", [text]);
+                        }
+                        // have to wait for 1 input manager update before focus is set to relevant text box
+                        Util.InputManager.OnUpdate += addText;
                     };
                 }
             }

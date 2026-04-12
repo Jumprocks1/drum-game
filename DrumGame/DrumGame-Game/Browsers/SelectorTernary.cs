@@ -1,3 +1,4 @@
+using System.Globalization;
 using DrumGame.Game.Commands;
 using DrumGame.Game.Components;
 using DrumGame.Game.Utils;
@@ -32,7 +33,7 @@ public partial class BeatmapSelector
             Render();
         }
         char ch(int v) => v == 26 ? ' ' : (char)('a' + v);
-        char cu(int v) => char.ToUpper(ch(v));
+        char cu(int v) => char.ToUpper(ch(v), CultureInfo.InvariantCulture);
         void Render()
         {
             Container.Clear();

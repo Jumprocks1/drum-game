@@ -3,14 +3,18 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using DrumGame.Game.Beatmaps.Practice;
 using DrumGame.Game.Beatmaps.Scoring;
 using DrumGame.Game.Browsers;
+using DrumGame.Game.Commands;
 using DrumGame.Game.Input;
+using DrumGame.Game.Interfaces;
+using DrumGame.Game.Timing;
 using DrumGame.Game.Utils;
+using osu.Framework;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Extensions.TypeExtensions;
-using osu.Framework.Graphics;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 
@@ -35,13 +39,15 @@ public class DrumGameConfigManager : IniConfigManager<DrumGameSetting>
     public Bindable<double> KeyboardInputOffset;
     public Bindable<double> MidiOutputOffset;
     public BindableNumber<double> SampleVolume;
+    public BindableNumber<double> MetronomeVolume;
+    public BindableBool MetronomeMuted;
     public BindableNumber<double> SoundfontVolume;
     public BindableChannelEquivalents ChannelEquivalents;
     public BindableMidiMapping MidiMapping;
     public Bindable<SortMethod> ReplaySort;
     public Bindable<string> FileSystemResources;
     public BindableJson<MapLibraries> MapLibraries;
-    public BindableJson<Beatmaps.Practice.PracticeMode.PracticeConfig> PracticeConfig;
+    public BindableJson<PracticeMode.PracticeConfig> PracticeConfig;
     public Bindable<string> FFmpegLocation;
     public Bindable<double> MinimumLeadIn; // in seconds
     public Bindable<bool> PlaySamplesFromMidi;
@@ -51,18 +57,31 @@ public class DrumGameConfigManager : IniConfigManager<DrumGameSetting>
     public Bindable<bool> HiHatCrossTalkCancel;
     public ParsableBindable<KeyboardMapping> KeyboardMapping;
     public Bindable<DisplayPreference> DisplayMode;
+    public Bindable<bool> PreferDecibelSlider;
+    public Bindable<float> DrawScale;
+    public Bindable<MetronomeMode> MetronomeModeBindable; // awkward name to avoid name collision with enum
+    public Bindable<double> MetronomeLeadIn;
+
+    public static string GetDescription(DrumGameSetting setting) => setting switch
+    {
+        // Couldn't really find a better place to put these unfortunately
+        // they aren't compile-time constant, so attributes didn't work
+        DrumGameSetting.TrackVolume => $"Volume of music.\nVolume for individual maps can be adjusted with \"Map Relative Volume\" (available in editor)",
+        DrumGameSetting.HitVolume => $"Volume of hit samples played from the game.\nTypically used with {IHasCommand.GetMarkupTooltip(Command.ToggleAutoPlayHitSounds)}.",
+        _ => null
+    };
 
     protected override void InitialiseDefaults()
     {
-        SetDefault(DrumGameSetting.MasterVolume, 1.0, 0.0, 1.0, 0.01);
+        SetDefault(DrumGameSetting.MasterVolume, 1.0, 0.0, 1.0);
         SetDefault(DrumGameSetting.MasterMuted, false);
-        SetDefault(DrumGameSetting.TrackVolume, 1.0, 0.0, 1.0, 0.01);
+        SetDefault(DrumGameSetting.TrackVolume, 1.0, 0.0, 1.0);
         SetDefault(DrumGameSetting.TrackMuted, false);
         SampleVolume = SetDefault(DrumGameSetting.SampleVolume, 1.0, 0.0, 1.0);
         SetDefault(DrumGameSetting.SampleMuted, false);
-        SetDefault(DrumGameSetting.MetronomeVolume, 1.0, 0.0, 1.0, 0.01);
-        SetDefault(DrumGameSetting.MetronomeMuted, true);
-        SetDefault(DrumGameSetting.HitVolume, 1.0, 0.0, 1.0, 0.01);
+        MetronomeVolume = SetDefault(DrumGameSetting.MetronomeVolume, 1.0, 0.0, 1.0);
+        MetronomeMuted = SetDefault(DrumGameSetting.MetronomeMuted, true);
+        SetDefault(DrumGameSetting.HitVolume, 1.0, 0.0, 1.0);
         SetDefault(DrumGameSetting.HitMuted, false);
         SoundfontVolume = SetDefault(DrumGameSetting.SoundfontVolume, 1.5, 0.0, 3);
         SetDefault(DrumGameSetting.SoundfontUseMidiVelocity, false);
@@ -92,7 +111,7 @@ public class DrumGameConfigManager : IniConfigManager<DrumGameSetting>
         PlaySamplesFromMidi = SetDefault(DrumGameSetting.PlaySamplesFromMidi, false);
         SetDefault<string>(DrumGameSetting.MinimumDtxLevel, null);
         AddBindable(DrumGameSetting.MapLibraries, MapLibraries = new BindableJson<MapLibraries>());
-        AddBindable(DrumGameSetting.PracticeConfig, PracticeConfig = new BindableJson<Beatmaps.Practice.PracticeMode.PracticeConfig>());
+        AddBindable(DrumGameSetting.PracticeConfig, PracticeConfig = new BindableJson<PracticeMode.PracticeConfig>());
         DiscordRichPresence = SetDefault<bool>(DrumGameSetting.DiscordRichPresence, false);
         MidiThreshold = SetDefault(DrumGameSetting.MidiThreshold, 0, -1, 127);
         PreservePitch = SetDefault(DrumGameSetting.PreservePitch, true);
@@ -104,6 +123,10 @@ public class DrumGameConfigManager : IniConfigManager<DrumGameSetting>
         SetDefault(DrumGameSetting.HitWindowPreference, HitWindowPreference.Standard);
         SetDefault(DrumGameSetting.CustomHitWindows, HitWindows.DefaultCustomHitWindowString);
         SetDefault(DrumGameSetting.Version, "0.0.0");
+        MetronomeLeadIn = SetDefault(DrumGameSetting.MetronomeLeadIn, 0d, 0d);
+        MetronomeModeBindable = SetDefault(DrumGameSetting.MetronomeMode, MetronomeMode.Disabled);
+        PreferDecibelSlider = SetDefault(DrumGameSetting.PreferDecibelSliders, false);
+        DrawScale = SetDefault(DrumGameSetting.DrawScale, RuntimeInfo.IsMobile ? 1.3f : 1f, 0.5f, 2f);
     }
 
     public static int[] ParseVersion(string version) => version.Split('.').Select(e => int.TryParse(e, out var o) ? o : -1).ToArray();
@@ -226,6 +249,38 @@ public class DrumGameConfigManager : IniConfigManager<DrumGameSetting>
         MidiMapping.Value ??= new MidiMapping(null);
         MapLibraries.Value ??= new MapLibraries();
         PracticeConfig.Value ??= new();
+
+        // these seem to work really well, hopefully I don't create any infinite loops
+        // register order matters a little bit if people have weird values in their .ini file
+        MetronomeMuted.BindValueChanged(e =>
+        {
+            if (e.NewValue) MetronomeModeBindable.Value = MetronomeMode.Disabled;
+            else
+            {
+                if (MetronomeModeBindable.Value == MetronomeMode.Disabled)
+                    MetronomeModeBindable.Value = MetronomeMode.Always;
+            }
+        }, true);
+        MetronomeModeBindable.BindValueChanged(e =>
+        {
+            var disabled = e.NewValue == MetronomeMode.Disabled;
+            MetronomeMuted.Value = disabled;
+            if (!disabled)
+            {
+                // moving from disabled => not disabled. Doesn't trigger on first first run since Old == New
+                if (e.OldValue == MetronomeMode.Disabled && MetronomeVolume.Value < 0.1)
+                    MetronomeVolume.Value = 0.1;
+                if (e.NewValue == MetronomeMode.LeadIn && MetronomeLeadIn.Value == 0)
+                    MetronomeLeadIn.Value = 4;
+            }
+        }, true);
+        MetronomeLeadIn.BindValueChanged(e =>
+        {
+            if (e.OldValue <= 0 && e.NewValue > 0 && MetronomeModeBindable.Value == MetronomeMode.Disabled)
+                MetronomeModeBindable.Value = MetronomeMode.LeadIn;
+            if (e.NewValue <= 0 && MetronomeModeBindable.Value == MetronomeMode.LeadIn)
+                MetronomeModeBindable.Value = MetronomeMode.Disabled;
+        }, true);
     }
 
     public DrumGameConfigManager(Storage storage, IDictionary<DrumGameSetting, object> defaultOverrides = null)
@@ -246,7 +301,11 @@ public enum SortMethod
     Misses,
     MaxCombo
 }
-
+public enum MetronomeSetting
+{
+    Muted,
+    Always
+}
 public enum DrumGameSetting
 {
     MasterVolume,
@@ -295,6 +354,10 @@ public enum DrumGameSetting
     PlaySoundfontOutsideMaps,
     SoundfontUseMidiVelocity,
     HiHatCrossTalkCancel,
-    Version
+    Version,
+    PreferDecibelSliders,
+    DrawScale,
+    MetronomeLeadIn,
+    MetronomeMode
 }
 

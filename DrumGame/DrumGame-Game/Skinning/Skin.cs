@@ -15,9 +15,13 @@ public class Skin
     [Description("Can be a semver range for more warnings/compatibility hints")]
     public string GameVersion;
     public string SkinVersion;
-    public string Name;
+    public string Name = "Default";
     public string Description;
     public string Comments;
+    [JsonIgnore] public List<string> LoadedExtensions; // extensions list below gets cleared after they're loaded
+    // note, extension don't really work with the in-game partial save methods currently
+    // think I could fix this but will be tricky. would need to save partial edits to a matching file (if found)
+    public List<string> Extensions;
     public class Skin_HitColors
     {
         public Colour4 EarlyMiss;
@@ -112,6 +116,12 @@ public class Skin
                 }
             }
         }
+    }
+    // should only been used when reloading a portion of the skin from disk
+    public void MarkClean(string path)
+    {
+        if (DirtyPaths == null) return;
+        DirtyPaths.RemoveAll(e => e.StartsWith(path));
     }
     public void UnloadStores()
     {

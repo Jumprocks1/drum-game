@@ -54,7 +54,7 @@ public class NotationJudgementInfo
         public Colour4 BackgroundColor = DrumColors.Black00;
         public Colour4 EarlyColor = Colour4.Red;
         public Colour4 LateColor = Colour4.Lime;
-        public float MinmumAspectRatio = 1.62f;
+        public float MinimumAspectRatio = 1.62f;
         public void LoadDefaults(NotationJudgementInfo info)
         {
             // should consider moving this logic to a property and letting the skin values be nullable

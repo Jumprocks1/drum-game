@@ -87,6 +87,22 @@ public class MapLibraries : IChangedEvent
         if (!foundMain)
             ValidLibraries.Insert(0, MapLibrary.Main());
     }
+
+    // TODO we use this sort of matching in a lot of places, should move to Util
+    // we use it for filters, libraries, collections, and generic filters
+    // performance doesn't really matter tbh, since it's usually called a max of once per key press
+    public MapLibrary GetLibraryByQuery(string query)
+    {
+        if (string.IsNullOrWhiteSpace(query)) return null;
+        var libraries = ValidLibraries;
+        foreach (var f in libraries)
+            if (f.FriendlyName.Equals(query, StringComparison.InvariantCultureIgnoreCase)) return f;
+        foreach (var f in libraries)
+            if (f.FriendlyName.StartsWith(query, StringComparison.InvariantCultureIgnoreCase)) return f;
+        foreach (var f in libraries)
+            if (f.FriendlyName.Contains(query, StringComparison.InvariantCultureIgnoreCase)) return f;
+        return null;
+    }
 }
 
 
@@ -111,7 +127,19 @@ public class MapLibrary
     public bool Disabled;
 
     string _absolutePath;
-    [JsonIgnore] public string AbsolutePath => _absolutePath ??= (Path == null ? null : Util.Resources.GetAbsolutePath(Path));
+    [JsonIgnore]
+    public string AbsolutePath
+    {
+        get
+        {
+            if (_absolutePath != null || Path == null) return _absolutePath;
+            // Bit sketchy, but AbsolutePath can't end in `/`
+            _absolutePath = Util.Resources.GetAbsolutePath(Path)
+                .TrimEnd(System.IO.Path.AltDirectorySeparatorChar)
+                .TrimEnd(System.IO.Path.DirectorySeparatorChar);
+            return _absolutePath;
+        }
+    }
 
     public static MapLibrary Main() => new();
 
@@ -173,7 +201,7 @@ public class MapLibrary
     };
     public IEnumerable<string> GetMaps()
     {
-        if (Disabled) return Enumerable.Empty<string>();
+        if (Disabled) return [];
         if (IsMain)
         {
             var path = Util.MapStorage.AbsolutePath;

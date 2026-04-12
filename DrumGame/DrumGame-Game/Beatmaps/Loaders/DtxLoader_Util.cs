@@ -47,7 +47,7 @@ public partial class DtxLoader
         "DTXC_LANEBINDEDCHIP" or "DTXC_LANEBINDEDCHIP_AL" or "DTXC_CHIPPALETTE" or
         "DTXC_WAVBACKCOLOR" or "GLEVEL" or "DTXVPLAYSPEED" or
         "BACKGROUND" or "RESULTIMAGE" or "HIDDENLEVEL" or
-        "BLEVEL" or "STAGEFILE" => true,
+        "BLEVEL" or "STAGEFILE" or "" => true,
         _ => false
     };
     // make sure to use this. We can't use default double.Parse since it doesn't always work with decimals ie `0.5`
@@ -72,7 +72,7 @@ public partial class DtxLoader
                 }
             }
         }
-        beatmap.DifficultyName = Path.GetFileNameWithoutExtension(localFileName).ToUpper();
+        beatmap.DifficultyName = Path.GetFileNameWithoutExtension(localFileName).ToUpper(CultureInfo.InvariantCulture);
         if (beatmap.DifficultyName == "MSTR") beatmap.DifficultyName = "MASTER";
         return true;
     }
@@ -94,7 +94,7 @@ public partial class DtxLoader
         "1C" => DrumChannel.BassDrum,
         _ => DrumChannel.None
     };
-    static int DifficultyInt(string dtxDifficulty) => dtxDifficulty.ToUpper() switch
+    static int DifficultyInt(string dtxDifficulty) => dtxDifficulty.ToUpper(CultureInfo.InvariantCulture) switch
     { // just used for sorting, value not important
         "NOVICE" => 1,
         "BASIC" => 2,

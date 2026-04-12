@@ -132,7 +132,11 @@ public partial class DtxLoader
 
             // no idea what these numbers are, but they sounded open to me
             if (path == "_override_clipped_108_103_hh3_.ogg" ||
-                path == "_override_clipped_110_103_hh3_.ogg") Open = true;
+                path == "_override_clipped_110_103_hh3_.ogg" ||
+                path == "_override_clipped_103_101_hh_lim.ogg" ||
+                path == "_override_clipped_104_101_hh_lim.ogg" ||
+                path == "101_hh_lim.ogg" ||
+                path.Contains("hat_op", StringComparison.OrdinalIgnoreCase)) Open = true;
 
             if (path.Contains("Open", StringComparison.InvariantCultureIgnoreCase)) Open = true;
             if (path.Contains("OHH", StringComparison.InvariantCultureIgnoreCase)) Open = true;
@@ -661,7 +665,7 @@ public partial class DtxLoader
 
         using var file = Provider.Open(localFileName);
         var (o, info) = ImportDtxStream(file);
-        o.CreationTimeUtc = Provider.CreationTimeUtc(localFileName);
+        o.CreationTimeUtc = Provider.WriteTimeUtc(localFileName);
 
         if (!string.IsNullOrWhiteSpace(MinimumLevel) && dtxDef != null && dtxDef.DifficultyInt != -1)
         {

@@ -1,0 +1,1 @@
+dotnet publish -c Release -p:AndroidPackageFormats=apk

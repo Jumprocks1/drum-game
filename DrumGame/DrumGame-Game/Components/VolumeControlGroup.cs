@@ -6,6 +6,7 @@ using DrumGame.Game.Commands;
 using DrumGame.Game.Containers;
 using DrumGame.Game.Interfaces;
 using DrumGame.Game.Skinning;
+using DrumGame.Game.Stores;
 using DrumGame.Game.Utils;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
@@ -21,16 +22,23 @@ public class VolumeControlGroup : AdjustableSkinElement
     {
         public bool HideWhenNotHovered;
     }
-    public override Expression<Func<Skin, AdjustableSkinData>> SkinPathExpression => e => e.Notation.VolumeControlGroup;
+
+
+    readonly bool Mania;
+    public override Expression<Func<Skin, AdjustableSkinData>> SkinPathExpression =>
+        Mania ? e => e.Mania.VolumeControlGroup : e => e.Notation.VolumeControlGroup;
     public new CustomSkinData SkinData => (CustomSkinData)base.SkinData;
-    public override CustomSkinData DefaultData() => new()
+    public static CustomSkinData DefaultData(bool mania) => mania ? new() { Anchor = Anchor.BottomRight, Hide = true } : new()
     {
         Anchor = Anchor.BottomRight,
         Y = -BeatmapTimeline.Height - 20
     };
+    public override CustomSkinData DefaultData() => DefaultData(Mania);
     public BindableNumber<double> RelativeSongVolume;
-    public VolumeControlGroup(BeatmapEditor editor = null)
+    public VolumeControlGroup(bool mania, BeatmapEditor editor = null) : base(skipInit: true)
     {
+        Mania = mania;
+        InitializeSkinData();
         AutoSizeAxes = Axes.Both;
         if (editor != null)
         {
@@ -58,13 +66,13 @@ public class VolumeControlGroup : AdjustableSkinElement
             menu.Add("Always show", _ =>
             {
                 SkinData.HideWhenNotHovered = false;
-                SkinPathExpression.Set(SkinData);
+                SkinPathExpression.SetAndDirty(SkinData);
             });
         else
             menu.Add("Hide when not hovered", _ =>
             {
                 SkinData.HideWhenNotHovered = true;
-                SkinPathExpression.Set(SkinData);
+                SkinPathExpression.SetAndDirty(SkinData);
             })
                 .Tooltip("Recommended if this control gets in the way.\nClick <brightGreen>Save changes to skin</> afterwards to save.");
     }
@@ -99,17 +107,20 @@ public class VolumeControlGroup : AdjustableSkinElement
     {
         UpdateColor();
         AddInternal(new VolumeControl(controller.MasterVolume, "Master", FontAwesome.Solid.VolumeDown,
-            new VolumeButton { Command = Command.ToggleMute }));
-        AddInternal(new VolumeControl(controller.TrackVolume, "Music", FontAwesome.Solid.Music)
+            new VolumeButton { Command = Command.ToggleMute },
+            helperText: DrumGameConfigManager.GetDescription(DrumGameSetting.MasterVolume)));
+        AddInternal(new VolumeControl(controller.TrackVolume, "Music", FontAwesome.Solid.Music,
+            helperText: DrumGameConfigManager.GetDescription(DrumGameSetting.TrackVolume))
         {
             X = VolumeControl.Thickness * 1
         });
         AddInternal(new VolumeControl(controller.HitVolume, "Hit", FontAwesome.Solid.Drum,
-            helperText: $"Controls volume of hit samples played from the game.\nTypically used with {IHasCommand.GetMarkupTooltip(Command.ToggleAutoPlayHitSounds)}.")
+            helperText: DrumGameConfigManager.GetDescription(DrumGameSetting.HitVolume))
         {
             X = VolumeControl.Thickness * 2
         });
-        AddInternal(new VolumeControl(controller.MetronomeVolume, "Metronome", FontAwesome.Solid.Clock, new VolumeButton { Command = Command.ToggleMetronome })
+        AddInternal(new VolumeControl(controller.MetronomeVolume, "Metronome", FontAwesome.Solid.Clock, new VolumeButton { Command = Command.ToggleMetronome },
+            helperText: DrumGameConfigManager.GetDescription(DrumGameSetting.MetronomeVolume))
         {
             X = VolumeControl.Thickness * 3
         });

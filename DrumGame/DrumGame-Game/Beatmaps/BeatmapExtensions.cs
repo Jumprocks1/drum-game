@@ -14,12 +14,14 @@ using DrumGame.Game.Beatmaps.Loaders;
 using DrumGame.Game.Channels;
 using DrumGame.Game.Commands.Requests;
 using DrumGame.Game.Interfaces;
+using DrumGame.Game.Midi;
 using DrumGame.Game.Stores;
 using DrumGame.Game.Timing;
 using DrumGame.Game.Utils;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
+using osu.Framework.Extensions;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Logging;
 
@@ -81,6 +83,9 @@ public partial class Beatmap
     public double MillisecondsFromTick(int tick) => MillisecondsFromBeat((double)tick / TickRate);
     public double MillisecondsFromTick(ITickTime tick) => MillisecondsFromTick(tick.Time);
     public double ToMilliseconds(ITickTime o) => MillisecondsFromBeat((double)o.Time / TickRate);
+    // I think a lot of these methods round to handle things like measure length = 3.3333
+    // Not sure though, would be best if we cast the measure length to a tick amount first before doing any math
+    // Then we'd never end up with rounding something like beat 7.99999
     public int TickFromBeat(double beat) => (int)(beat * TickRate + 0.5); // works best for positive beats
     public static int TickFromBeat(double beat, int tickRate) => (int)(beat * tickRate + 0.5);
     public int TickFromBeatSlow(double beat) => (int)Math.Round(beat * TickRate);
@@ -158,6 +163,25 @@ public partial class Beatmap
             }
         }
     }
+
+    public void Print3Hands()
+    {
+        var t = 0;
+        var hands = 0;
+        foreach (var ho in HitObjects)
+        {
+            if (ho.Time != t)
+            {
+                t = ho.Time;
+                hands = 0;
+            }
+            if (!ho.IsFoot)
+            {
+                hands += 1;
+                if (hands > 2) Console.WriteLine($"{hands} hands at beat {(double)t / TickRate}");
+            }
+        }
+    }
     public void SnapMeasureChanges()
     {
         var prev = MeasureChange.Default;
@@ -225,6 +249,12 @@ public partial class Beatmap
         return false;
     }
 
+    public void WriteTo(Stream stream) // disposes stream
+    {
+        using var writer = new StreamWriter(stream);
+        JsonSerializer.Create(SerializerSettings).Serialize(writer, this);
+    }
+
     // Make sure to call .Export() before this
     public string SaveToDisk(MapStorage mapStorage, MapImportContext context = null)
     {
@@ -234,7 +264,6 @@ public partial class Beatmap
         var target = Source.AbsolutePath;
         if (!Source.Format.CanSave) throw new UserException("Can only save .bjson files");
         using var stream = mapStorage.GetStream(target, FileAccess.Write, FileMode.Create);
-        using var writer = new StreamWriter(stream);
         context ??= MapImportContext.Current;
         if (context != null)
         {
@@ -243,8 +272,8 @@ public partial class Beatmap
         }
         var s = stream as FileStream;
         Logger.Log($"Saving to {s.Name}", level: LogLevel.Important);
-        JsonSerializer.Create(SerializerSettings).Serialize(writer, this);
-        mapStorage.ReplaceMetadata(Source.MapStoragePath, this);
+        WriteTo(stream);
+        mapStorage.ReplaceMetadata(this);
         // Logger.Log($"Save complete", level: LogLevel.Important); // expected that the caller will log this
         return s.Name;
     }
@@ -329,11 +358,12 @@ public partial class Beatmap
         }
         return true;
     }
-    // returns false if we found an exact match
-    // if toggle is true, this causes that exact match to be removed
-    // if toggle is false, this means we did nothing
+    // returns false if an exact match is found
+    //   if toggle is true, this causes that exact match to be removed
+    //   if toggle is false, we do nothing
     public bool AddHit(int tick, HitObjectData data, bool toggle = true, bool stack = false)
     {
+        if (data.Channel == DrumChannel.None) return false;
         // this has a few basic rules:
         //   1. if data already exists at tick, do nothing (unless toggle is set, then remove) - return false
         //   2. if data matches other objects at this tick based on group (not exact), remove all other objects and add data
@@ -978,29 +1008,81 @@ public partial class Beatmap
 
     public string Simplify(BeatSelection selection)
     {
+        var hosI = GetHitObjectsIn(selection).ToList();
+        if (hosI.Count == 0) return null;
+        var hos = hosI.Select(i => HitObjects[i]).ToList();
         var remove = new List<int>();
+        var add = new List<HitObject>();
         bool RemovePending()
         {
             if (remove.Count == 0) return false;
             for (var i = remove.Count - 1; i >= 0; i--)
                 HitObjects.RemoveAt(remove[i]);
+            foreach (var ho in add)
+                AddHit(ho.Time, ho.Data, false);
             return true;
         }
-        var hos = GetHitObjectsIn(selection).ToList();
-        if (hos.Count == 0) return null;
-        foreach (var i in hos)
+        // TODO this won't work if we make `Voice` configurable
+        // would also be nice to make this work for other channels
+        var groups = MidiExport.GetGroups(TickRate, hos, MeasureChanges).ToList();
+        bool checkBassGroup(int target, int replace, out string message)
+        {
+            var bassGroups = groups.Where(e => e.NoteIndices.Count == target && e.NoteIndices.All(i =>
+                    hos[i].Channel == DrumChannel.BassDrum && (hos[i].Time - e.StartTick) % (TickRate / target) == 0)).ToList();
+            if (bassGroups.Count > 0)
+            {
+                foreach (var group in bassGroups)
+                {
+                    remove.AddRange(group.NoteIndices.Select(i => hosI[i]));
+                    for (var i = 0; i < replace; i++)
+                        add.Add(new HitObject(group.StartTick + i * TickRate / replace, new HitObjectData(DrumChannel.BassDrum, i % 2 == 0 ? NoteModifiers.None : NoteModifiers.Left)));
+                }
+                RemovePending();
+                message = $"reduce bass {target} groups => {replace}";
+                return true;
+            }
+            message = null;
+            return false;
+        }
+        if (checkBassGroup(8, 6, out var message)) return message;
+        if (checkBassGroup(6, 4, out message)) return message;
+        if (checkBassGroup(4, 2, out message)) return message;
+
+        var bassHits = hosI.Where(i => HitObjects[i].Channel == DrumChannel.BassDrum).ToList();
+        for (var i = 0; i < bassHits.Count - 4; i++)
+        {
+            var t = HitObjects[bassHits[i]].Time;
+            var b = false;
+            for (var j = 1; j < 4; j++)
+            {
+                if (HitObjects[bassHits[i + j]].Time != t + TickRate * j / 4)
+                {
+                    b = true;
+                    break;
+                }
+            }
+            if (!b)
+            {
+                remove.Add(bassHits[i + 1]);
+                remove.Add(bassHits[i + 3]);
+                i += 3;
+            }
+        }
+        if (RemovePending()) return "remove offbeat 4 bass groups";
+
+        foreach (var i in hosI)
         {
             if (HitObjects[i].Channel == DrumChannel.BassDrum && HitObjects[i].Modifiers.HasFlag(NoteModifiers.Left))
                 remove.Add(i);
         }
         if (RemovePending()) return "remove left bass";
-        foreach (var i in hos)
+        foreach (var i in hosI)
         {
             if (HitObjects[i].Modifiers.HasFlag(NoteModifiers.Ghost))
                 remove.Add(i);
         }
         if (RemovePending()) return "remove ghost";
-        var hoDiff = hos
+        var hoDiff = hosI
             .Select(i =>
             {
                 var ho = HitObjects[i];
@@ -1063,9 +1145,9 @@ public partial class Beatmap
         var slash = ImageUrl.LastIndexOf('/');
         var dot = ImageUrl.LastIndexOf('.');
         if (slash > dot)
-            Image = "images/" + Util.MD5(ImageUrl).ToLower();
+            Image = "images/" + Util.MD5(ImageUrl).ToLower(CultureInfo.InvariantCulture);
         else
-            Image = "images/" + Util.MD5(ImageUrl).ToLower() + ImageUrl[dot..];
+            Image = "images/" + Util.MD5(ImageUrl).ToLower(CultureInfo.InvariantCulture) + ImageUrl[dot..];
     }
     public void ComputeStats()
     {

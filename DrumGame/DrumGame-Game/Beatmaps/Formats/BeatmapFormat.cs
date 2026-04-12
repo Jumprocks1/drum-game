@@ -66,10 +66,7 @@ public abstract class BeatmapFormat
             o.Title = fullPath;
             o.Tags = $"{Tag}-failed-load";
             o.DisableSaving = true;
-            o.Source = new BJsonSource(fullPath, this)
-            {
-                MapStoragePath = mapStoragePath
-            };
+            o.Source = new BJsonSource(fullPath, this) { MapStoragePath = mapStoragePath };
             Logger.Error(e, $"Failed to load {fullPath}");
         }
         return o;

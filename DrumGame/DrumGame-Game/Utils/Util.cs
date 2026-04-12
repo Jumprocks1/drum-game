@@ -224,7 +224,7 @@ public static class Util
     {
         try
         {
-            using FileStream inputStream = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.None);
+            using var inputStream = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.None);
             return inputStream.Length > 0;
         }
         catch (Exception)
@@ -372,7 +372,7 @@ public static class Util
                 {
                     o.Append('-');
                 }
-                o.Append(char.ToLower(c));
+                o.Append(char.ToLower(c, CultureInfo.InvariantCulture));
                 lastChar = c;
             }
             else
@@ -967,6 +967,13 @@ public static class Util
             return o;
         }
         return stream;
+    }
+
+    public static void HashAdd<K, V>(this Dictionary<K, HashSet<V>> dict, K key, V value)
+    {
+        if (dict.TryGetValue(key, out var v))
+            v.Add(value);
+        else dict[key] = [value];
     }
 }
 

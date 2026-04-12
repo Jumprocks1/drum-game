@@ -19,13 +19,6 @@ namespace DrumGame.Game.Beatmaps.Practice;
 
 public partial class PracticeMode
 {
-    public enum PracticeMetronomeSetting
-    {
-        // what value = 0 is the default
-        LeadIn,
-        Disabled,
-        Always
-    }
     public class PracticeConfig : IInit, IChangedEvent // should be saved to file
     {
         [DefaultValue(4d)]
@@ -47,7 +40,7 @@ public partial class PracticeMode
         public double TargetAccuracyPercent = 95;
         public int TargetMisses;
 
-        public PracticeMetronomeSetting Metronome;
+        public MetronomeMode Metronome;
         [DefaultValue(20d)]
         public double MetronomeVolumePercent = 20;
         [JsonIgnore] public double MetronomeVolume => MetronomeVolumePercent / 100;
@@ -247,9 +240,9 @@ public class PracticeMetronome(PracticeMode PracticeMode, DrumsetAudioPlayer dru
     {
         var next = base.GetNextBeat(currentMeasure, currentBeat);
         var config = PracticeMode.Config;
-        if (config.Metronome == PracticeMode.PracticeMetronomeSetting.Disabled || config.MetronomeVolume == 0)
+        if (config.Metronome == MetronomeMode.Disabled || config.MetronomeVolume == 0)
             return double.PositiveInfinity;
-        if (config.Metronome == PracticeMode.PracticeMetronomeSetting.LeadIn)
+        if (config.Metronome == MetronomeMode.LeadIn)
         {
             // we will still trigger metronome on start beat, especially if it's a measure start
             if (next > PracticeMode.StartBeat)

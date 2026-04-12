@@ -37,6 +37,13 @@ public class Spotify : OAuth<Spotify>, IOAuth<Spotify>
     }
     public static async Task<TrackResponse> GetTrack(string id) => await Get<TrackResponse>($"tracks/{id}");
 
+    public static async Task<TrackOembedResponse> GetTrackOembed(string id)
+    {
+        var url = $"https://open.spotify.com/oembed?url=https://open.spotify.com/track/{id}";
+        var message = new HttpRequestMessage(HttpMethod.Get, url);
+        return await Send<TrackOembedResponse>(message);
+    }
+
     public static async Task<List<TrackResponse>> Search(BeatmapMetadata metadata)
     {
         var search = $"track:\"{metadata.Title}\" artist:\"{metadata.Artist}\"";
@@ -76,7 +83,7 @@ public class Spotify : OAuth<Spotify>, IOAuth<Spotify>
         // ID is base-62, it should be 22 characters, but we will just assume 15 or greater
         const string idRegex = @"(?<id>[A-Za-z0-9]{15,})"; // note that both of these create capture groups
         const string resRegex = @"(?<res>track|album|artist)";
-        public static Regex Regex => new Regex($"^{idRegex}$|^https?://open.spotify.com/{resRegex}/{idRegex}|^spotify:{resRegex}:{idRegex}$");
+        public static Regex Regex => new Regex($"^{idRegex}$|^https?://open.spotify.com(/intl-\\w+)?/{resRegex}/{idRegex}|^spotify:{resRegex}:{idRegex}$");
         public SpotifyReference(SpotifyResource resource, string id)
         {
             Resource = resource;
@@ -92,6 +99,14 @@ public class Spotify : OAuth<Spotify>, IOAuth<Spotify>
             return new SpotifyReference(Enum.Parse<SpotifyResource>(res.ValueSpan, true), id);
         }
         public static SpotifyReference From(string s) => From(Regex.Match(s));
+    }
+
+    public class TrackOembedResponse
+    {
+        public string thumbnail_url;
+        public string thumbnail_width;
+        public string thumbnail_height;
+        public string CleanedThumbnailUrl => thumbnail_url.Replace("https://image-cdn-fa.spotifycdn.com/image/", "https://i.scdn.co/image/");
     }
 
     public class TrackResponse

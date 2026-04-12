@@ -44,7 +44,7 @@ public class ModeSelector : CompositeDrawable
     public new const float Height = 80;
     public const float Slope = Height / WedgeSides;
     public static double MaxRotation = Math.Atan(Height / WedgeSides);
-    public readonly ModeOption[] Options;
+    public readonly List<ModeOption> Options;
     public BeatmapOpenMode Mode => Options[Target].Mode;
     public BeatmapSelectorState State;
     new const float Padding = 5;
@@ -56,7 +56,7 @@ public class ModeSelector : CompositeDrawable
         State.OpenMode = Mode;
     }
     List<WedgeOption> Wedges = new();
-    public ModeSelector(ModeOption[] options, BeatmapSelectorState state)
+    public ModeSelector(List<ModeOption> options, BeatmapSelectorState state)
     {
         State = state;
         Scale = new Vector2(1);
@@ -73,7 +73,7 @@ public class ModeSelector : CompositeDrawable
         var maxW = (Height - Padding * 2) / (float)Math.Sin(MaxRotation) - FontSize / Slope;
 
         var x = 0f;
-        for (int i = 0; i < options.Length; i++)
+        for (var i = 0; i < options.Count; i++)
         {
             var option = options[i];
             if (option.Mode == state.OpenMode) Target = i;
@@ -96,9 +96,8 @@ public class ModeSelector : CompositeDrawable
     {
         var dt = hard ? 0 : Clock.TimeInfo.Elapsed;
         var x = 0f;
-        for (int i = 0; i < Options.Length; i++)
+        for (var i = 0; i < Options.Count; i++)
         {
-            var option = Options[i];
             var wedge = Wedges[i];
             wedge.X = x;
             var selected = Target == i;
@@ -134,8 +133,8 @@ public class ModeSelector : CompositeDrawable
         base.Dispose(isDisposing);
     }
 
-    [CommandHandler] public void SwitchMode() => SetTarget((Target + 1) % Options.Length);
-    [CommandHandler] public void SwitchModeBack() => SetTarget(Util.Mod(Target - 1, Options.Length));
+    [CommandHandler] public void SwitchMode() => SetTarget((Target + 1) % Options.Count);
+    [CommandHandler] public void SwitchModeBack() => SetTarget(Util.Mod(Target - 1, Options.Count));
 
     public class CenteredSpriteText : CompositeDrawable
     {

@@ -6,6 +6,7 @@ using DrumGame.Game.Beatmaps.Loaders;
 using DrumGame.Game.Channels;
 using DrumGame.Game.Commands;
 using DrumGame.Game.Components;
+using osu.Framework.Logging;
 
 namespace DrumGame.Game.Beatmaps.Editor;
 
@@ -29,12 +30,18 @@ public class BeatmapFilter
             return Operation switch
             {
                 Operation.Delete => new DeleteOperation(),
+                Operation.Insert => new InsertFilterOperation(),
                 Operation.LeftSticking => new ModifierFilterOperation(e => e.With(e.Modifiers & ~NoteModifiers.Right | NoteModifiers.Left)),
                 Operation.RightSticking => new ModifierFilterOperation(e => e.With(e.Modifiers & ~NoteModifiers.Left | NoteModifiers.Right)),
                 Operation.Accent => new ModifierFilterOperation(e => e.With(e.Modifiers & ~NoteModifiers.Ghost | NoteModifiers.Accented)),
                 Operation.Ghost => new ModifierFilterOperation(e => e.With(e.Modifiers & ~NoteModifiers.Accented | NoteModifiers.Ghost)),
                 _ => throw new NotSupportedException(Operation.ToString())
             };
+        }
+        public void Apply(BeatmapEditor editor)
+        {
+            if (!editor.Editing) return;
+            GetOperation().Apply(this, editor, editor.Display?.Selection);
         }
     }
     public class Condition
@@ -76,69 +83,28 @@ public class BeatmapFilter
     }
     public enum Modifier { None, Accent, Ghost, Roll };
     public enum Sticking { Left, Right };
-    public enum Operation { Delete, Replace, LeftSticking, RightSticking, Ghost, Accent };
+    public enum Operation { Delete, Insert, Replace, LeftSticking, RightSticking, Ghost, Accent };
     public enum Target { Stride, All, Selection, SelectionOrAll, StrideOrAll };
+
+    public void Apply(BeatmapEditor editor)
+    {
+        using var _ = editor.UseCompositeChange($"{Name} filter");
+        foreach (var action in Actions)
+            action.Apply(editor);
+    }
 }
 
 public abstract class FilterOperation
 {
-    public abstract bool ApplyTo(Beatmap beatmap, List<int> hits);
+    public abstract bool Apply(BeatmapFilter.FilterAction action, BeatmapEditor editor, BeatSelection selection);
 }
+public abstract class ModifyFilterOperation : FilterOperation
+{
+    public override bool Apply(BeatmapFilter.FilterAction action, BeatmapEditor editor, BeatSelection selection)
+    {
+        if (!editor.Editing) return false;
 
-public class DeleteOperation : FilterOperation
-{
-    public override bool ApplyTo(Beatmap beatmap, List<int> hits)
-    {
-        var HitObjects = beatmap.HitObjects;
-        for (var i = hits.Count - 1; i >= 0; i--) // reverse order to keep indices in original list
-            HitObjects.RemoveAt(hits[i]);
-        return true;
-    }
-}
-public class ModifierFilterOperation : FilterOperation
-{
-    Func<HitObject, HitObject> Modify;
-    public ModifierFilterOperation(Func<HitObject, HitObject> modify)
-    {
-        Modify = modify;
-    }
-    public override bool ApplyTo(Beatmap beatmap, List<int> hits)
-    {
-        var HitObjects = beatmap.HitObjects;
-        foreach (var hit in hits)
-            HitObjects[hit] = Modify(HitObjects[hit]);
-        return true;
-    }
-}
-
-public partial class BeatmapEditor
-{
-    [CommandHandler]
-    public bool ApplyFilter(CommandContext context)
-    {
-        var modal = context.GetString(FilterManager.GetFilterList().Select(e => e.Name), filterName =>
-        {
-            var filter = FilterManager.GetFilter(filterName);
-            if (filter == null) return;
-            ApplyFilter(filter);
-        }, "Applying Filter", "Filter");
-        modal?.AddFooterButtonSpaced(new DrumButton
-        {
-            Text = "View Filter File",
-            Action = FilterManager.RevealFilterFile,
-            AutoSize = true
-        });
-        return true;
-    }
-    void ApplyFilter(BeatmapFilter filter)
-    {
-        using var _ = UseCompositeChange($"{filter.Name} filter");
-        foreach (var action in filter.Actions) ApplyFilterAction(action);
-    }
-    void ApplyFilterAction(BeatmapFilter.FilterAction action) => ApplyFilterAction(action, Display.Selection);
-    public void ApplyFilterAction(BeatmapFilter.FilterAction action, BeatSelection selection)
-    {
-        if (!Editing) return;
+        var beatmap = editor.Beatmap;
 
         var target = action.Target;
 
@@ -159,14 +125,14 @@ public partial class BeatmapEditor
         if (target == BeatmapFilter.Target.Stride || target == BeatmapFilter.Target.Selection)
             // pretty awkward passing around the input selection like this
             // I think ideally we would move the selection field to BeatmapEditor to make this easier to test (without a display)
-            selection = GetSelectionOrCursor(sel: selection);
+            selection = editor.GetSelectionOrCursor(sel: selection);
 
         IEnumerable<int> hitsEnum = null;
-        var hitObjects = Beatmap.HitObjects;
+        var hitObjects = beatmap.HitObjects;
         if (target == BeatmapFilter.Target.Stride)
-            hitsEnum = Beatmap.GetHitObjectsAt(selection, TickStride);
+            hitsEnum = beatmap.GetHitObjectsAt(selection, editor.TickStride);
         else if (target == BeatmapFilter.Target.Selection)
-            hitsEnum = Beatmap.GetHitObjectsIn(selection);
+            hitsEnum = beatmap.GetHitObjectsIn(selection);
         else if (target == BeatmapFilter.Target.All)
             hitsEnum = Enumerable.Range(0, hitObjects.Count);
         else throw new NotSupportedException(target.ToString());
@@ -175,19 +141,86 @@ public partial class BeatmapEditor
         if (condition != null) hitsEnum = hitsEnum.Where(e => condition.Matches(hitObjects[e]));
         var hits = hitsEnum.ToList();
 
-        var op = action.GetOperation();
         // needs to be captured for undo stack purposes
         AffectedRange doChange()
         {
             if (hits.Count == 0) return false;
-            if (!op.ApplyTo(Beatmap, hits)) return false;
+            if (!ApplyTo(beatmap, hits)) return false;
 
             if (target == BeatmapFilter.Target.All)
                 return true;
-            return AffectedRange.FromSelection(selection, Beatmap);
+            return AffectedRange.FromSelection(selection, beatmap);
         }
-        if (hits.Count > 0)
-            PushChange(new NoteBeatmapChange(doChange, ""));
+        return editor.PushChange(new NoteBeatmapChange(doChange, ""));
+    }
+    public abstract bool ApplyTo(Beatmap beatmap, List<int> hits);
+}
+
+public class DeleteOperation : ModifyFilterOperation
+{
+    public override bool ApplyTo(Beatmap beatmap, List<int> hits)
+    {
+        var HitObjects = beatmap.HitObjects;
+        for (var i = hits.Count - 1; i >= 0; i--) // reverse order to keep indices in original list
+            HitObjects.RemoveAt(hits[i]);
+        return true;
+    }
+}
+public class ModifierFilterOperation : ModifyFilterOperation
+{
+    Func<HitObject, HitObject> Modify;
+    public ModifierFilterOperation(Func<HitObject, HitObject> modify)
+    {
+        Modify = modify;
+    }
+    public override bool ApplyTo(Beatmap beatmap, List<int> hits)
+    {
+        var HitObjects = beatmap.HitObjects;
+        foreach (var hit in hits)
+            HitObjects[hit] = Modify(HitObjects[hit]);
+        return true;
+    }
+}
+
+public class InsertFilterOperation : FilterOperation
+{
+    public override bool Apply(BeatmapFilter.FilterAction action, BeatmapEditor editor, BeatSelection selection)
+    {
+        if (action.Condition != null)
+            Logger.Log("`Condition` not supported for insert filters", level: LogLevel.Error);
+        if (action.Target != BeatmapFilter.Target.Stride)
+            Logger.Log($"Target `{action.Target}` not supported for insert filters. Use \"stride\"", level: LogLevel.Error);
+        selection = editor.GetSelectionOrCursor(sel: selection);
+
+        var stride = editor.TickStride;
+        var beatmap = editor.Beatmap;
+        var newData = action.NewNote.ToHitObjectData();
+
+        // needs to be captured for undo stack purposes
+        AffectedRange doChange() => Apply(beatmap, selection, stride, newData);
+        return editor.PushChange(new NoteBeatmapChange(doChange, ""));
+    }
+
+    public AffectedRange Apply(Beatmap beatmap, BeatSelection selection, int stride, HitObjectData newData)
+        => beatmap.ApplyStrideAction(selection, stride, (tick, toggle) => beatmap.AddHit(tick, newData, toggle), true);
+}
+
+public partial class BeatmapEditor
+{
+    [CommandHandler]
+    public bool ApplyFilter(CommandContext context)
+    {
+        var modal = context.GetString(FilterManager.GetFilterList().Select(e => e.Name), filterName =>
+        {
+            FilterManager.GetFilter(filterName)?.Apply(this);
+        }, "Applying Filter", "Filter");
+        modal?.AddFooterButtonSpaced(new DrumButton
+        {
+            Text = "View Filter File",
+            Action = FilterManager.RevealFilterFile,
+            AutoSize = true
+        });
+        return true;
     }
 }
 

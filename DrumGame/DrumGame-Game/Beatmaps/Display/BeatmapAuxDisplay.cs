@@ -114,8 +114,8 @@ public class BeatmapAuxDisplay : Container
                 var cameraSize = CameraFeed.DrawSize;
                 if (showInputDisplay)
                 {
-                    InputDisplay.Anchor = Anchor.TopLeft;
-                    InputDisplay.Origin = Anchor.TopLeft;
+                    InputDisplay.Anchor = Anchor.TopRight;
+                    InputDisplay.Origin = Anchor.TopRight;
                     InputDisplay.RelativeSizeAxes = Axes.Y;
                     InputDisplay.Width = areaSize.X - cameraSize.X;
                     InputDisplay.Height = videoAndInput ? 0.5f : 1f;
@@ -271,8 +271,8 @@ public class BeatmapAuxDisplay : Container
         AddInternal(CameraFeed = new SyncedVideo(Track, path)
         {
             RelativeSizeAxes = Axes.Both,
-            Anchor = Anchor.TopRight,
-            Origin = Anchor.TopRight,
+            Anchor = Anchor.TopLeft,
+            Origin = Anchor.TopLeft,
             FillMode = FillMode.Fit,
             Depth = -0.9f
         });

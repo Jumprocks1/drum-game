@@ -1,4 +1,6 @@
 using DrumGame.Game.Components.Abstract;
+using DrumGame.Game.Components.Fields;
+using DrumGame.Game.Utils;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
@@ -12,8 +14,12 @@ public class VolumeOverlay : FadeContainer
     Circle Bar;
     SpriteIcon Icon;
     SpriteText Text;
+    public int DisableCount = 0;
+    public void Disable() => DisableCount += 1;
+    public void Enable() => DisableCount -= 1;
     public void VolumeUpdated(ValueChangedEvent<double> e)
     {
+        if (DisableCount > 0) return;
         GenerateInternals();
         var value = e.NewValue;
         Icon.Icon = value == 0 ? FontAwesome.Solid.VolumeMute :
@@ -24,8 +30,16 @@ public class VolumeOverlay : FadeContainer
             0.67f;
         Icon.Height = baseVolumeSize * iconSize;
         Icon.Width = baseVolumeSize * iconSize;
-        Text.Text = value.ToString("0%");
-        Bar.Width = (float)((Width - Padding * 2) * value);
+        if (Util.ConfigManager.PreferDecibelSlider.Value)
+        {
+            Text.Text = VolumeSlider.FormatAsDb(value, false);
+            Bar.Width = (Width - Padding * 2) * VolumeSlider.ValueToDbX(value);
+        }
+        else
+        {
+            Text.Text = value.ToString("0%");
+            Bar.Width = (float)((Width - Padding * 2) * value);
+        }
         Touch();
     }
     public new const float Width = 324;

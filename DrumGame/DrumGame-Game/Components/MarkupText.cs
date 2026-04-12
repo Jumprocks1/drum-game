@@ -35,6 +35,7 @@ public class MarkupText : TextFlowContainer, IHasText
     public MarkupText(string source) : this()
     {
         Data = source;
+        ParagraphSpacing = 0;
         Validate();
     }
 

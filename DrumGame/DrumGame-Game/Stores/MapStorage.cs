@@ -129,7 +129,7 @@ public class MapStorage : NativeStorage, IDisposable
     {
         if (mapStoragePath == null) return null;
         var o = LoadedMetadata.Maps.GetValueOrDefault(mapStoragePath);
-        o ??= MakeAndStoreMetadata(LoadForQuickMetadata(mapStoragePath), mapStoragePath);
+        o ??= MakeAndStoreMetadata(LoadForQuickMetadata(mapStoragePath));
         return o;
     }
     public BeatmapMetadata GetMetadataFromId(string id) => LoadedMetadata.Maps.Values.FirstOrDefault(e => e.Id == id);
@@ -214,24 +214,27 @@ public class MapStorage : NativeStorage, IDisposable
 
     public void Dispose() => SaveMapCache();
     public long GetWriteTime(string mapStoragePath) => Directory.GetLastWriteTimeUtc(GetFullPath(mapStoragePath)).Ticks;
-    public void ReplaceMetadata(string mapStoragePath, Beatmap beatmap)
+    public long GetCreationTime(string mapStoragePath) => Directory.GetCreationTimeUtc(GetFullPath(mapStoragePath)).Ticks;
+    public void ReplaceMetadata(Beatmap beatmap)
     {
+        var mapStoragePath = beatmap.MapStoragePath;
         if (string.IsNullOrWhiteSpace(mapStoragePath)) return;
         if (LoadedMetadata.Maps.TryGetValue(mapStoragePath, out var v))
         {
             var oldMapSetId = v.MapSetId;
-            v.Update(beatmap, GetWriteTime(mapStoragePath));
+            v.Update(beatmap);
             MapSets.MapSetIdChanged(mapStoragePath, v, oldMapSetId);
         }
-        else MakeAndStoreMetadata(beatmap, mapStoragePath);
+        else MakeAndStoreMetadata(beatmap);
         dirty = true;
     }
 
     // beatmap doesn't have to be a fully loaded map
     // `LoadForQuickMetadata` is sufficient
-    BeatmapMetadata MakeAndStoreMetadata(Beatmap beatmap, string mapStoragePath)
+    BeatmapMetadata MakeAndStoreMetadata(Beatmap beatmap)
     {
-        var o = new BeatmapMetadata(beatmap, GetWriteTime(mapStoragePath));
+        var mapStoragePath = beatmap.MapStoragePath;
+        var o = new BeatmapMetadata(beatmap);
         LoadedMetadata.Maps[mapStoragePath] = o;
         if (RatingsLoaded && !o.RatingLoaded)
             // only issue with this is if we GetMetadata multiple times before this loads, it will schedule multiple loads
@@ -325,7 +328,21 @@ public class MapStorage : NativeStorage, IDisposable
         // not sure why this uses File.Open instead of GetStream
         // I think I like File.Open better, but above we use GetStream
         var intent = savingPlanned ? LoadMapIntent.QuickEdit : LoadMapIntent.MetadataPreview;
-        var stream = File.Open(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+        FileStream stream;
+        try
+        {
+            stream = File.Open(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+        }
+        catch (Exception ex)
+        {
+            var failed = Beatmap.Create();
+            failed.Description = "Error opening file";
+            failed.Title = fullPath;
+            failed.Source = new(fullPath, null) { MapStoragePath = mapStoragePath };
+            Logger.Error(ex, $"Error loading {fullPath}");
+            return failed;
+        }
+        using var _ = stream;
 
         foreach (var format in BeatmapFormat.Formats)
         {
@@ -336,12 +353,14 @@ public class MapStorage : NativeStorage, IDisposable
                 return format.TryLoad(stream, mapStoragePath, fullPath, intent);
             }
         }
-
-        var failed = Beatmap.Create();
-        failed.Description = "File not recognized";
-        failed.Title = fullPath;
-        Logger.Log($"File not recognized: {fullPath}", level: LogLevel.Error);
-        return failed;
+        {
+            var failed = Beatmap.Create();
+            failed.Description = "File not recognized";
+            failed.Title = fullPath;
+            failed.Source = new(fullPath, null) { MapStoragePath = mapStoragePath };
+            Logger.Log($"File not recognized: {fullPath}", level: LogLevel.Error);
+            return failed;
+        }
     }
     // Used for quick edits, typically done on the selection screen
     public Beatmap LoadForQuickEdit(string mapStoragePath) => LoadMapForMetadata(mapStoragePath, true);

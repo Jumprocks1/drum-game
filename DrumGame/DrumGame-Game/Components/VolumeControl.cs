@@ -1,6 +1,8 @@
 using System;
 using DrumGame.Game.Commands;
+using DrumGame.Game.Components.Fields;
 using DrumGame.Game.Interfaces;
+using DrumGame.Game.Utils;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
@@ -22,7 +24,7 @@ public class VolumeControl : CompositeDrawable
     public readonly string Label;
     protected override bool OnScroll(ScrollEvent e)
     {
-        Target.Aggregate.Value = Math.Clamp(Math.Round(Target.Aggregate.Value + Math.Sign(e.ScrollDelta.Y) * 0.02, 2), 0, 1);
+        Target.Aggregate.Value = VolumeSlider.AdjustVolumeLevel(Target.Aggregate.Value, e.ScrollDelta.Y > 0);
         return true;
     }
     public VolumeControl(IVolumeBinding target, string label, IconUsage icon, VolumeButton customButton = null,
@@ -40,7 +42,7 @@ public class VolumeControl : CompositeDrawable
             Colour = new Colour4(100, 4, 4, 220),
             RelativeSizeAxes = Axes.Both
         });
-        AddInternal(new VolumeSlider(this)
+        AddInternal(new VolumeControlSlider(this)
         {
             Y = topIconHeight
         });
@@ -86,34 +88,38 @@ public class LabelSpriteContainer : CompositeDrawable, IHasMarkupTooltip
         AddInternal(sprite);
     }
 }
-public class VolumeSlider : BasicSlider<double>, IHasMarkupTooltip
+public class VolumeControlSlider : VolumeSlider, IHasMarkupTooltip
 {
     protected override void UpdateThumb(double _) => base.UpdateThumb(Control.Target.ComputedValue);
     public override Colour4 BackgroundColour => Colour4.Transparent;
 
-    public string MarkupTooltip => $"<brightGreen>{Control.Label}</c>: {Value.Value * 100:0.#}%";
+    public string MarkupTooltip => Util.ConfigManager.PreferDecibelSlider.Value ?
+        $"<brightGreen>{Control.Label}</c>: {FormatAsDb(Value.Value)} <faded>({Value.Value * 100:0.0}%)</c>"
+        : $"<brightGreen>{Control.Label}</c>: {Value.Value * 100:0.#}%";
     public readonly VolumeControl Control;
-    public VolumeSlider(VolumeControl control) : base(control.Target.Aggregate)
+    public VolumeControlSlider(VolumeControl control) : base(control.Target.Aggregate)
     {
         Control = control;
         Direction = Direction.Vertical;
         Thickness = VolumeControl.Thickness;
         Length = VolumeControl.SliderHeight;
         Control.Target.ComputedValueChanged += UpdateThumb;
+        ThumbColor = DrumColors.BrightBlue;
+        HoverThumbColor = DrumColors.BrightBlue.Lighten(0.1f);
+        FillLeft = true;
     }
     protected override void Dispose(bool isDisposing)
     {
         Control.Target.ComputedValueChanged -= UpdateThumb;
         base.Dispose(isDisposing);
     }
-    protected override Drawable CreateThumb() => new Circle
+    protected override Container CreateThumb()
     {
-        Colour = Colour4.CornflowerBlue,
-        Origin = Anchor.Centre,
-        Width = 14,
-        Height = 14,
-        RelativePositionAxes = SlideAxis
-    };
+        var thumb = base.CreateThumb();
+        thumb.Width = 14;
+        thumb.Height = 14;
+        return thumb;
+    }
 }
 public class VolumeButton : CompositeDrawable, IHasCommand
 {

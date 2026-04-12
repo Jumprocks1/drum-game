@@ -201,7 +201,7 @@ public class DrumPopoverContainer : TooltipContainer
                 else if (content is MultilineTooltipData ml)
                 {
                     text.Alpha = 0;
-                    AddInternal(new TextFlowContainer { Padding = InnerPadding, Text = ml.Data, AutoSizeAxes = Axes.Both });
+                    AddInternal(new TextFlowContainer { Padding = InnerPadding, Text = ml.Data, AutoSizeAxes = Axes.Both, ParagraphSpacing = 0 });
                 }
                 else
                 {

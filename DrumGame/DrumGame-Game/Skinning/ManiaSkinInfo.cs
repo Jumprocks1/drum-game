@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using DrumGame.Game.Beatmaps.Loaders;
 using DrumGame.Game.Channels;
+using DrumGame.Game.Components;
 using DrumGame.Game.Stores;
 using DrumGame.Game.Utils;
 using Newtonsoft.Json;
@@ -50,6 +51,7 @@ public class ManiaSkinInfo
     public AdjustableSkinData PracticeInfoPanel;
     public AdjustableSkinData LaneContainer;
     public AdjustableSkinData Video;
+    public VolumeControlGroup.CustomSkinData VolumeControlGroup;
     public List<ExtraSkinElementData> ExtraElements;
     public SkinTexture Background = new()
     {
@@ -83,6 +85,7 @@ public class ManiaSkinInfo
         HitErrorDisplay?.LoadDefaults();
         PositionIndicator?.LoadDefaults();
         PracticeInfoPanel?.LoadDefaults();
+        VolumeControlGroup?.LoadDefaults();
         LaneContainer?.LoadDefaults();
         Judgements?.LoadDefaults();
         if (ExtraElements != null) foreach (var e in ExtraElements) e.Placement?.LoadDefaults();

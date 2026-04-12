@@ -47,6 +47,7 @@ public class BeatmapMetadata
     public string BpmRange;
     public string MapSetId;
     public string PreviewAudio;
+    public long CreationTime;
     [JsonIgnore] public int PlayCount => Util.MapStorage.GetPlayCount(Id);
     [JsonIgnore] public bool HasAudio; // depends on if the user has the audio files or not, loaded during runtime (not cached)
     // this is loaded from replay information. If we eventually upgrade to database metadata, we should be able to store this in the database
@@ -60,7 +61,7 @@ public class BeatmapMetadata
     // if we want to do that, we should create a BeatmapDifficulty => string mapping
     public string FilterString() => $"{Title} {Artist} {Mapper} {DifficultyString} {Tags} {RomanTitle} {RomanArtist}";
     public BeatmapMetadata() { } // used by Newtonsoft
-    public void Update(Beatmap beatmap, long writeTime)
+    public void Update(Beatmap beatmap)
     {
         _dtxLevel = null; // reset cache if needed
         Id = beatmap.Id;
@@ -71,7 +72,14 @@ public class BeatmapMetadata
         Audio = beatmap.Audio;
         RomanTitle = beatmap.RomanTitle;
         RomanArtist = beatmap.RomanArtist;
-        WriteTime = writeTime;
+        CreationTime = beatmap.CreationTimeUtc?.Ticks ?? 0;
+        var mapStoragePath = beatmap.Source?.MapStoragePath;
+        if (mapStoragePath != null)
+        {
+            WriteTime = Util.MapStorage.GetWriteTime(mapStoragePath);
+            if (CreationTime == 0)
+                CreationTime = Util.MapStorage.GetCreationTime(mapStoragePath);
+        }
         DifficultyString = beatmap.DifficultyName ?? beatmap.Difficulty.ToDifficultyString();
         Difficulty = beatmap.Difficulty;
         Tags = beatmap.Tags;
@@ -96,9 +104,9 @@ public class BeatmapMetadata
             }
         }
     }
-    public BeatmapMetadata(Beatmap beatmap, long writeTime) // write time is separate since it isn't stored in the beatmap
+    public BeatmapMetadata(Beatmap beatmap)
     {
-        Update(beatmap, writeTime);
+        Update(beatmap);
     }
     public string[] SplitTags() => Tags?.Split(' ', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries) ?? [];
 

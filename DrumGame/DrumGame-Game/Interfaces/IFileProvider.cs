@@ -13,6 +13,7 @@ public interface IFileProvider
     public bool Copy(string path, string absolutePath); // false if copy fails
     public bool Exists(string path);
     public DateTime? CreationTimeUtc(string path);
+    public DateTime? WriteTimeUtc(string path);
     public IEnumerable<string> List(string path = null);
     public Stream TryOpen(params string[] paths)
     {

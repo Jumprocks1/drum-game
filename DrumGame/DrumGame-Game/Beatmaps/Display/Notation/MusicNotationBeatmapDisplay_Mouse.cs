@@ -107,6 +107,14 @@ public partial class MusicNotationBeatmapDisplay : IHasMarkupTooltip
             }
         }
 
-        return $"<midi>{hitObject.Channel}</c>{sticking}{velocityModifier}{preset}";
+        var beat = hitObject.Time / tickRate;
+        var rem = hitObject.Time - beat * tickRate;
+        // ideally this would look at other notes in the beat so that
+        // if there's a set of 6 notes, they should all show x/6 instead of 1/3, 1/2, etc
+        var gcd = Util.GCD(rem, tickRate);
+        var snap = rem > 0 ? $" + {rem / gcd}/{tickRate / gcd}" : "";
+        var time = $"\n<brightGreen>Time:</c> {beat}{snap}";
+
+        return $"<midi>{hitObject.Channel}</c>{sticking}{velocityModifier}{preset}{time}";
     }
 }

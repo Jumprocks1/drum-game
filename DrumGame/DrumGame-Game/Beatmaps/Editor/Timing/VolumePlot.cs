@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using DrumGame.Game.Beatmaps.Data;
 using DrumGame.Game.Media;
+using DrumGame.Game.Utils;
 using ManagedBass;
 using osu.Framework.Allocation;
 using osu.Framework.Audio.Callbacks;
@@ -85,12 +86,21 @@ public class VolumePlot : WaveformPlot
         return offset;
     }
 
+    public string DrumOnlyPath()
+    {
+        if (Beatmap.DrumOnlyAudio == null) return null;
+        var drumOnlyPath = Util.Resources.GetAbsolutePath(Beatmap.DrumOnlyAudio);
+        if (!File.Exists(drumOnlyPath)) return null;
+        return drumOnlyPath;
+    }
+
+    public bool DrumOnly;
     protected override WaveformData LoadData()
     {
         var data = new WaveformData();
 
-
-        using var audioStream = File.OpenRead(Editor.CurrentAudioPath);
+        var path = DrumOnly ? DrumOnlyPath() ?? Editor.CurrentAudioPath : Editor.CurrentAudioPath;
+        using var audioStream = File.OpenRead(path);
 
         var fileCallbacks = new FileCallbacks(new DataStreamFileProcedures(audioStream));
         var decodeStream = Bass.CreateStream(StreamSystem.NoBuffer, BassFlags.Decode | BassFlags.Float, fileCallbacks.Callbacks, fileCallbacks.Handle);

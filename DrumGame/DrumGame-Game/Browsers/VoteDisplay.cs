@@ -9,7 +9,7 @@ using osu.Framework.Input.Events;
 
 namespace DrumGame.Game.Browsers;
 
-public class VoteDisplay : CompositeDrawable, IHasCommandInfo
+public class VoteDisplay : CompositeDrawable, IHasCommand
 {
     SpriteText Text = new SpriteText
     {
@@ -44,10 +44,9 @@ public class VoteDisplay : CompositeDrawable, IHasCommandInfo
 
     bool upvote;
 
-    public CommandInfo CommandInfo => new CommandInfo(upvote ? Command.UpvoteMap : Command.DownvoteMap, upvote ? "Upvote" : "Downvote")
-    {
-        Parameter = this.FindClosestParent<BeatmapCard>()?.Map
-    };
+    public Command Command => upvote ? Command.UpvoteMap : Command.DownvoteMap;
+    public string CommandName => upvote ? "Upvote" : "Downvote";
+    public object[] CommandParameters => [this.FindClosestParent<BeatmapCard>()?.Map];
 
     protected override bool OnMouseMove(MouseMoveEvent e)
     {

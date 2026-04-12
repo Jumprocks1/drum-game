@@ -15,8 +15,6 @@ public class NotationSkinInfo
     public Colour4 NotationColor = Colour4.Black;
     [Description("Default color for noteheads. If not supplied, defaults to match notation color.")]
     public Colour4 NoteColor;
-    [Description("Enable to show measures lines in the notation view while playing")]
-    public bool MeasureLines;
 
     [Description("Increases or decreases spacing between notes. Higher values will make denser maps easier to read.\nRecommended between 1 and 2. Defaults to 1.")]
     [DefaultValue(1d)]
@@ -34,10 +32,16 @@ public class NotationSkinInfo
     [DefaultValue(true)]
     public bool SmoothScroll = true;
 
-    public Colour4 MeasureLineColor;
+    [Description("When set, centers noteheads on the beat lines.\nBy default, their left edge is aligned with the center of the beat line.")]
+    public bool CenterNoteheads;
+
+    [Description("Enable to show beat lines in the notation view while playing")]
+    public bool AlwaysShowBeatLines;
+    public NotationBeatLineInfo MeasureLines;
+    public NotationBeatLineInfo BeatLines;
     public Colour4 StaffLineColor;
     public Colour4 PlayfieldBackground = Colour4.White;
-    public Colour4 InputDisplayBackground = Colour4.Gainsboro;
+    public Colour4 InputDisplayBackground { set => (InputDisplay ??= new()).BackgroundColor = value; }
     public Colour4 LeftNoteColor = DrumColors.BrightCyan;
     public Colour4 RightNoteColor = DrumColors.BrightRed;
     public AdjustableSkinData SongInfoPanel;
@@ -47,8 +51,12 @@ public class NotationSkinInfo
     public AdjustableSkinData HitErrorDisplay;
     public List<ExtraSkinElementData> ExtraElements;
     public NotationJudgementInfo Judgements = new();
+    public SkinNotationInputDisplayInfo InputDisplay;
     public void LoadDefaults()
     {
+        (BeatLines ??= new()).LoadDefaults(false);
+        (MeasureLines ??= new()).LoadDefaults(true);
+
         Judgements?.LoadDefaults();
         SongInfoPanel?.LoadDefaults();
         EventContainer?.LoadDefaults();
@@ -58,7 +66,6 @@ public class NotationSkinInfo
         if (ExtraElements != null) foreach (var e in ExtraElements) e.Placement?.LoadDefaults();
         if (NoteColor == default) NoteColor = NotationColor;
         if (StaffLineColor == default) StaffLineColor = NotationColor;
-        if (MeasureLineColor == default) MeasureLineColor = DrumColors.Blue.MultiplyAlpha(0.4f);
         foreach (var channel in Channels.Values)
         {
             if (channel.Color == default)
@@ -80,6 +87,7 @@ public class NotationSkinInfo
                     channel.RightColor = channel.IsHollow() ? RightNoteColor : PlayfieldBackground;
             }
         }
+        (InputDisplay ??= new()).LoadDefaults(this);
     }
     // we could add an array version of this since dictionary is much slower
     [JsonConverter(typeof(SkinManager.SkinChannelConverter))]

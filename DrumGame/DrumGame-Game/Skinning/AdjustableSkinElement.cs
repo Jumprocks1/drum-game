@@ -53,6 +53,7 @@ public class AdjustableSkinData // this should be serialized to the skin
     public bool ShouldSerializeOrigin() => Origin != Anchor;
 
     public bool Hide;
+    [JsonIgnore] public bool Show { get => !Hide; set => Hide = !value; }
     [DefaultValue(1f)]
     public float Scale = 1;
     public float Rotation;
@@ -212,23 +213,25 @@ public abstract class AdjustableSkinElement : CompositeDrawable
     public ElementLayout Layout => SkinData.Layout;
     public Drawable AnchorTarget;
 
-    public virtual void ResetData()
+    public virtual void ResetData() // resets to defaults
     {
-        SkinData = DefaultData().LoadDefaults();
-        SkinPathExpression.Set(null);
-        LayoutChanged();
-        ApplySkinData(writeToSkin: false);
+        SkinPathExpression.SetAndDirty(null);
+        LoadFromCurrentSkin();
     }
-    public void ReloadFromSkin()
+    public void ReloadFromDiskSkin()
     {
         var diskSkin = SkinManager.ParseSkin(SkinManager.CurrentSkin);
         if (diskSkin != null)
         {
-            SkinPathExpression.Set(SkinPathExpression.Get(diskSkin));
-            SkinData = SkinPathExpression.GetOrDefault() ?? DefaultData().LoadDefaults();
-            LayoutChanged();
-            ApplySkinData(writeToSkin: false);
+            SkinPathExpression.SetAndClean(SkinPathExpression.Get(diskSkin));
+            LoadFromCurrentSkin();
         }
+    }
+    public void LoadFromCurrentSkin()
+    {
+        SkinData = SkinPathExpression.GetOrDefault() ?? DefaultData().LoadDefaults();
+        LayoutChanged();
+        ApplySkinData(writeToSkin: false);
     }
 
     public void UpdateAnchorPosition()
@@ -300,6 +303,7 @@ public abstract class AdjustableSkinElement : CompositeDrawable
     }
     // layout changed occurs when we change things that aren't simple drawable properties
     // this should include the Layout value and Size (once we add it)
+    // not called on initial load
     public virtual void LayoutChanged() { }
     // will need a fancy way of applying resizes eventually if we add those
     public void ApplyTarget()
@@ -314,7 +318,7 @@ public abstract class AdjustableSkinElement : CompositeDrawable
     public virtual void ApplySkinData(bool initial = false, bool writeToSkin = true)
     {
         if (writeToSkin)
-            SkinPathExpression.Set(SkinData);
+            SkinPathExpression.SetAndDirty(SkinData);
         ApplyTarget();
         if (AnchorTarget == null)
         {

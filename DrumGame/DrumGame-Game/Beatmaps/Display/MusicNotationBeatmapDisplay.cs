@@ -125,7 +125,7 @@ public partial class MusicNotationBeatmapDisplay : BeatmapDisplay
     }
     public void ReloadNotes(int start, int end)
     {
-        var hadMeasureLines = MeasureLines != null;
+        var hadBeatLines = BeatLines != null;
         Beatmap.UpdateLength();
         var length = Beatmap.QuarterNotes;
 
@@ -155,7 +155,7 @@ public partial class MusicNotationBeatmapDisplay : BeatmapDisplay
             for (var i = start; i < end; i++) OutsideNoteContainer.Clear(i);
         }
 
-        // this will orphan some MeasureLines, but they will be cleared whenever we toggle lines off
+        // this will orphan some beatLines, but they will be cleared whenever we toggle lines off
         for (var i = start; i < end; i++) NoteGroupContainers[i].Clear();
 
         var startBeat = start * ContainerSize;
@@ -170,9 +170,9 @@ public partial class MusicNotationBeatmapDisplay : BeatmapDisplay
             Font.RenderGroup(container, group, containerI * ContainerSize, OutsideNoteContainer);
         }
 
-        if (hadMeasureLines)
+        if (hadBeatLines)
         {
-            AddMeasureLines(Math.Min(oldContainerCount, start), end);
+            AddBeatLines(Math.Min(oldContainerCount, start), end);
         }
     }
     public void LoadNotes()
@@ -324,7 +324,7 @@ public partial class MusicNotationBeatmapDisplay : BeatmapDisplay
             ExtraTooltip = () => $"Beat: {Math.Floor(Track.CurrentBeat + Beatmap.BeatEpsilon):0} / {Beatmap.QuarterNotes}\nMeasure: {Track.CurrentMeasure} / {Beatmap.MeasureFromBeat(Beatmap.QuarterNotes)}"
         });
         AddInternal(StatusContainer);
-        AddInternal(VolumeControls = new VolumeControlGroup(Player as BeatmapEditor));
+        AddInternal(VolumeControls = new VolumeControlGroup(mania: false, Player as BeatmapEditor));
         if (Player is BeatmapEditor && !Util.Skin.Streaming)
         {
             AddInternal(new CommandIconButton(Command.EditorTools, FontAwesome.Solid.Tools, 40)
@@ -558,10 +558,10 @@ public partial class MusicNotationBeatmapDisplay : BeatmapDisplay
         }
     }
 
-    public List<MeasureLine> MeasureLines = null;
-    public void AddMeasureLines(int start, int end)
+    public List<NotationBeatLine> BeatLines = null;
+    public void AddBeatLines(int start, int end)
     {
-        // this takes 2ms for TTFAF, but this is all just caused by the MeasureLine instantiation
+        // this takes 2ms for TTFAF, but this is all just caused by the BeatLine instantiation
         // I could not measure any noticable difference caused by the math for BeatsPerMeasure
         var containerSize = Beatmap.TickRate * ContainerSize;
         var startTick = start * containerSize;
@@ -570,7 +570,7 @@ public partial class MusicNotationBeatmapDisplay : BeatmapDisplay
         var j = 0;
         var nextMeasureChange = Beatmap.MeasureChanges.Count > j ? Beatmap.MeasureChanges[j].Time : int.MaxValue;
         var gap = Beatmap.TickFromBeat(beats);
-        // note that since gap is only updated when playing a measure line,
+        // note that since gap is only updated when placing a measure line,
         //    putting a timing change in the middle of a measure will result
         //    in inaccurate lines. We will want to restrict the user in the future
         for (var i = 0; i < endTick; i += gap)
@@ -583,20 +583,34 @@ public partial class MusicNotationBeatmapDisplay : BeatmapDisplay
                 nextMeasureChange = Beatmap.MeasureChanges.Count > j ? Beatmap.MeasureChanges[j].Time : int.MaxValue;
             }
             if (i < startTick) continue; // TODO optimize
+            if ((double)i / Beatmap.TickRate > Beatmap.QuarterNotes) break;
             var container = i / containerSize;
-            var line = new MeasureLine(NoteGroupContainers[container])
+            var line = new NotationBeatLine(NoteGroupContainers[container], true)
             {
                 X = ((float)i / Beatmap.TickRate - container * ContainerSize) * Font.Spacing
             };
-            MeasureLines.Add(line);
+            BeatLines.Add(line);
+            if (Util.Skin.Notation.BeatLines.Alpha > 0)
+            {
+                for (var k = i + Beatmap.TickRate; k < i + gap; k += Beatmap.TickRate)
+                {
+                    if ((double)k / Beatmap.TickRate > Beatmap.QuarterNotes) break;
+                    container = k / containerSize;
+                    line = new NotationBeatLine(NoteGroupContainers[container], false)
+                    {
+                        X = ((float)k / Beatmap.TickRate - container * ContainerSize) * Font.Spacing
+                    };
+                    BeatLines.Add(line);
+                }
+            }
         }
     }
     [CommandHandler]
-    public void ToggleMeasureLines()
+    public void ToggleBeatLines()
     {
-        if (MeasureLines != null)
+        if (BeatLines != null)
         {
-            foreach (var line in MeasureLines)
+            foreach (var line in BeatLines)
             {
                 if (line.LineParent != null)
                 {
@@ -605,18 +619,18 @@ public partial class MusicNotationBeatmapDisplay : BeatmapDisplay
                 }
                 line.Dispose();
             }
-            MeasureLines = null;
+            BeatLines = null;
         }
         else
         {
             if (NoteGroupContainers == null)
             {
-                MeasureLines = new List<MeasureLine>();
+                BeatLines = new List<NotationBeatLine>();
             }
             else
             {
-                MeasureLines = new List<MeasureLine>(NoteGroupContainers.Count);
-                AddMeasureLines(0, NoteGroupContainers.Count);
+                BeatLines = new List<NotationBeatLine>(NoteGroupContainers.Count);
+                AddBeatLines(0, NoteGroupContainers.Count);
             }
         }
     }
@@ -724,14 +738,16 @@ public partial class MusicNotationBeatmapDisplay : BeatmapDisplay
     float MainNoteheadWidth => Font.MainNoteheadWidth;
     public override void OnDrumTrigger(DrumChannelEvent ev) => AuxDisplay.InputDisplay?.Hit(ev);
 }
-public class MeasureLine : Box
+public class NotationBeatLine : Box
 {
-    public MeasureLine(Container parent)
+    public NotationBeatLine(Container parent, bool measureLine)
     {
-        Colour = Util.Skin.Notation.MeasureLineColor;
-        Width = 0.5f;
-        Height = 8;
-        Y = -2;
+        var info = measureLine ? Util.Skin.Notation.MeasureLines : Util.Skin.Notation.BeatLines;
+        Colour = info.Color;
+        Alpha = info.Alpha;
+        Width = info.Width;
+        Height = info.Height * 4;
+        Y = -(info.Height - 1) * 2;
         Depth = -20;
         Origin = Anchor.TopCentre;
         LineParent = parent;

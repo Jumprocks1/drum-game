@@ -30,6 +30,7 @@ public class FileProvider : IFileProvider
     public string BuildPath(string path) => Path.Join(Folder, path);
 
     public DateTime? CreationTimeUtc(string path) => File.GetCreationTimeUtc(BuildPath(path));
+    public DateTime? WriteTimeUtc(string path) => File.GetLastWriteTimeUtc(BuildPath(path));
 
     public bool Exists(string path) => File.Exists(BuildPath(path));
 

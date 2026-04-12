@@ -7,6 +7,8 @@ public interface IHistoryChange
     public bool Do(BeatmapEditor editor);
     public void Undo(BeatmapEditor editor);
     public string Description { get; }
+    // could add a "Failed" property here for exception handling with composite changes
+    // it would undo any succeessful changes after a failure is hit
 }
 public class CompositeHistoryChange : IHistoryChange
 {

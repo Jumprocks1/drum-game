@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using DrumGame.Game.Browsers.BeatmapSelection;
+using DrumGame.Game.Components;
 using DrumGame.Game.Components.Basic;
 using DrumGame.Game.Containers;
 using DrumGame.Game.Stores;
@@ -35,7 +36,20 @@ public class BeatmapCard : CompositeDrawable, IHasContextMenu
             var audio = e.LoadedMetadata.Audio;
             Util.RevealInFileExplorer(Util.DrumGame.MapStorage.GetFullPath(audio));
         })
-        .Add(Commands.Command.RemoveFromCollection).Disabled(carousel.Selector.State.Collection == null)
+        .Add(Commands.Command.RemoveFromCollection)
+        .Add(Commands.Command.RemoveFromCurrentCollection)
+            .ModifyLast(e =>
+            {
+                var colName = carousel.Selector.State.Collection;
+                if (colName != null)
+                {
+                    var col = carousel.Selector.CollectionStorage.GetCollection(colName);
+                    var name = MarkupText.Color(MarkupText.Escape(col.Name), DrumColors.BrightBlue);
+                    e.MarkupText = true;
+                    e.Text.Value = $"Remove From {name} Collection";
+                }
+            })
+            .Hide(carousel.Selector.State.Collection == null)
         .Add(Commands.Command.DeleteMap).Danger()
         .Build();
     public Colour4 DifficultyColor(BeatmapDifficulty difficulty) => difficulty switch

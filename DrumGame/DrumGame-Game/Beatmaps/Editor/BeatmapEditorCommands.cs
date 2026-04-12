@@ -200,6 +200,11 @@ public partial class BeatmapEditor
     [CommandHandler]
     public void OffsetWizard()
     {
+        if (CurrentAudioPath == null)
+        {
+            Util.Palette.ShowMessage("Please add an audio track before using the offset wizard");
+            return;
+        }
         Util.Palette.Push(offsetWizard ??= new OffsetWizard(this), true);
         // If paused when opening, it's almost always preferred to seek to the current target beat
         // without this I instinctively press `,.` to snap manually
@@ -359,6 +364,9 @@ public partial class BeatmapEditor
             if (res != null)
             {
                 c.OverwriteDescription($"{desc}: {res}");
+                // TODO returning true isn't great since it forces a full reload
+                // should work on restricting Simplify to only the target range (with a function that guarentees it)
+                // once that's set up, we can safely return based on the selection
                 return true;
             }
             return false;
@@ -616,6 +624,22 @@ public partial class BeatmapEditor
         });
     }
 
+    public void PromptDrumOnlyAudio(Action afterLoad = null)
+    {
+        Util.Palette.RequestFile("Drum Only Audio", "Drum only audio not found, please drop in an audio file to load", e =>
+        {
+            var oldAudio = Beatmap.DrumOnlyAudio;
+            string newDrumAudioPath;
+            if (Util.Resources.Contains(e))
+                newDrumAudioPath = Util.Resources.GetRelativePath(e);
+            else
+                newDrumAudioPath = MapStorage.StoreOrHash(e, Util.Resources.AbsolutePath, "temp");
+            PushChange(() => Beatmap.DrumOnlyAudio = newDrumAudioPath,
+                () => Beatmap.DrumOnlyAudio = oldAudio, $"set drum only audio to {newDrumAudioPath}");
+            afterLoad?.Invoke();
+        });
+    }
+
     Track DrumOnlyAudio;
     CommandIconButton DrumOnlyAudioIcon;
     [CommandHandler]
@@ -625,18 +649,7 @@ public partial class BeatmapEditor
             DrumOnlyAudio ??= Resources.GetTrack(Util.Resources.GetAbsolutePath(Beatmap.DrumOnlyAudio));
         if (DrumOnlyAudio == null)
         {
-            Util.Palette.RequestFile("Drum Only Audio", "Drum only audio not found, please drop in an audio file to load", e =>
-            {
-                var oldAudio = Beatmap.DrumOnlyAudio;
-                string newDrumAudioPath;
-                if (Util.Resources.Contains(e))
-                    newDrumAudioPath = Util.Resources.GetRelativePath(e);
-                else
-                    newDrumAudioPath = MapStorage.StoreOrHash(e, Util.Resources.AbsolutePath, "temp");
-                PushChange(() => Beatmap.DrumOnlyAudio = newDrumAudioPath,
-                    () => Beatmap.DrumOnlyAudio = oldAudio, $"set drum only audio to {newDrumAudioPath}");
-                ListenToDrumOnlyAudio();
-            });
+            PromptDrumOnlyAudio(ListenToDrumOnlyAudio);
             return;
         }
         if (Track.PrimaryTrack == null)
@@ -658,4 +671,63 @@ public partial class BeatmapEditor
     }
 
     [CommandHandler] public void ConfigureNotePresets() => Util.Palette.Push(new NotePresetsView(this));
+
+    [CommandHandler]
+    public void SplitMeasure()
+    {
+        var selection = GetSelectionOrCursor();
+        if (!selection.HasVolume)
+        {
+            var point = selection.Left;
+            var currentMeasure = Beatmap.MeasureFromBeat(point);
+            var measureStart = Beatmap.BeatFromMeasure(currentMeasure);
+            var measureEnd = Beatmap.BeatFromMeasure(currentMeasure + 1);
+            var endLength = Beatmap.ChangeAt<MeasureChange>(measureEnd).Beats;
+
+            var splitAt = point == measureStart ? (measureEnd + measureStart) / 2 : point; // split in middle if split point is at the very start
+            var description = $"split measure {currentMeasure} at {splitAt}";
+            PushChange(new MeasureBeatmapChange(Beatmap, () =>
+            {
+                Beatmap.UpdateChangePoint<MeasureChange>(Beatmap.TickFromBeat(measureStart), e => e.WithBeats(splitAt - measureStart));
+                Beatmap.UpdateChangePoint<MeasureChange>(Beatmap.TickFromBeat(splitAt), e => e.WithBeats(measureEnd - splitAt));
+                Beatmap.UpdateChangePoint<MeasureChange>(Beatmap.TickFromBeat(measureEnd), e => e.WithBeats(endLength));
+                Beatmap.SnapMeasureChanges(); // shouldn't do anything
+                Beatmap.RemoveExtras<MeasureChange>();
+            }, description)
+            { CatchExceptions = true });
+        }
+        else
+        {
+            var left = selection.Left;
+            var right = selection.Right;
+            var firstMeasure = Beatmap.MeasureFromBeat(left);
+            var firstMeasureStart = Beatmap.BeatFromMeasure(firstMeasure);
+
+            var lastMeasure = Beatmap.MeasureFromBeat(right) + 1;
+            var lastMeasureStart = Beatmap.BeatFromMeasure(lastMeasure);
+            var lastMeasureLength = Beatmap.ChangeAt<MeasureChange>(lastMeasureStart).Beats;
+
+            // have to do all computations before adjusting, since these functions stop working after adjusting
+            var firstBeats = left - firstMeasureStart;
+            var clearStart = Beatmap.TickFromMeasure(firstMeasure);
+            var clearEnd = Beatmap.TickFromMeasure(lastMeasure);
+            var endBeats = Beatmap.BeatFromMeasure(lastMeasure) - right;
+
+            var length = right - left;
+            var description = $"insert measure at beat {left} of length {length}";
+            PushChange(new MeasureBeatmapChange(Beatmap, () =>
+            {
+                Beatmap.MeasureChanges.RemoveAll(e => e.Time >= clearStart && e.Time < clearEnd);
+                if (firstBeats > 0)
+                    Beatmap.UpdateChangePoint<MeasureChange>(Beatmap.TickFromBeat(firstMeasureStart), e => e.WithBeats(firstBeats));
+                Beatmap.UpdateChangePoint<MeasureChange>(Beatmap.TickFromBeat(left), e => e.WithBeats(length));
+                if (endBeats > 0)
+                    Beatmap.UpdateChangePoint<MeasureChange>(Beatmap.TickFromBeat(right), e => e.WithBeats(endBeats));
+                Beatmap.UpdateChangePoint<MeasureChange>(Beatmap.TickFromBeat(lastMeasureStart), e => e.WithBeats(lastMeasureLength));
+                Beatmap.SnapMeasureChanges(); // shouldn't do anything
+                Beatmap.RemoveExtras<MeasureChange>();
+            }, description)
+            { CatchExceptions = true });
+        }
+    }
 }

@@ -3,6 +3,7 @@ using System.Linq.Expressions;
 using System.Numerics;
 using DrumGame.Game.Channels;
 using DrumGame.Game.Commands;
+using DrumGame.Game.Components;
 using DrumGame.Game.Interfaces;
 using DrumGame.Game.Skinning;
 using DrumGame.Game.Stores;
@@ -23,8 +24,20 @@ public static class SkinSettingsList
         view.AddSetting(new ColorSettingInfo("Good Color", Bind(e => e.HitColors.Good)));
         view.AddSetting(new ColorSettingInfo("Bad Color", Bind(e => e.HitColors.Bad)));
         view.AddSetting(new ColorSettingInfo("Miss Color", Bind(e => e.HitColors.Miss)));
-        view.AddBlockHeader("Notation Display Settings");
-        view.AddSetting(new BooleanSettingInfo("Show Measure Lines", Bind(e => e.Notation.MeasureLines)));
+        new SettingsListBuilder()
+            .AddBlockHeader("Notation Display Settings")
+            .Add(new BooleanSettingInfo("Show Beat Lines", Bind(e => e.Notation.AlwaysShowBeatLines)))
+            .AdvancedMenu("Beat Line Settings", e => e
+                .Add("Beat Line Color", e => e.Notation.BeatLines.Color)
+                .AddParsable("Beat Line Alpha", e => e.Notation.BeatLines.Alpha)
+                .AddParsable("Beat Line Width", e => e.Notation.BeatLines.Width)
+                .AddParsable("Beat Line Height", e => e.Notation.BeatLines.Height)
+                .Add("Measure Line Color", e => e.Notation.MeasureLines.Color)
+                .AddParsable("Measure Line Alpha", e => e.Notation.MeasureLines.Alpha)
+                .AddParsable("Measure Line Width", e => e.Notation.MeasureLines.Width)
+                .AddParsable("Measure Line Height", e => e.Notation.MeasureLines.Height)
+            )
+            .BuildTo(view);
         view.AddSetting(new DoubleSettingInfo("Note Spacing Multiplier", Bind(e => e.Notation.NoteSpacingMultiplier)));
         view.AddSetting(new BooleanSettingInfo("Smooth Scroll", Bind(e => e.Notation.SmoothScroll)));
         new SettingsListBuilder()
@@ -36,13 +49,11 @@ public static class SkinSettingsList
                 .Add("Medium Tom Color", e => e.Notation.Channels[DrumChannel.MediumTom].Color)
                 .Add("Large Tom Color", e => e.Notation.Channels[DrumChannel.LargeTom].Color)
             )
-            .BuildTo(view);
-        view.AddSetting(new DoubleSettingInfo("Zoom Multiplier", Bind(e => e.Notation.ZoomMultiplier)));
-        view.AddSetting(new DoubleSettingInfo("Cursor Inset", Bind(e => e.Notation.CursorInset)));
-        new SettingsListBuilder()
+            .AddParsable("Zoom Multiplier", e => e.Notation.ZoomMultiplier)
+            .AddParsable("Cursor Inset", e => e.Notation.CursorInset)
+            .Add(e => e.Notation.CenterNoteheads)
             .AddEnum(e => e.Notation.Judgements.Bar.Style)
             .AdvancedMenu("Advanced Bar Judgement Settings", e => e
-
                 .Add(e => e.Notation.Judgements.Bar.EarlyColor)
                 .Add(e => e.Notation.Judgements.Bar.LateColor)
                 .Add(e => e.Notation.Judgements.Bar.BackgroundColor)
@@ -54,7 +65,7 @@ public static class SkinSettingsList
                 .AddParsable(e => e.Notation.Judgements.Bar.LaneOffset)
                 .AddParsable(e => e.Notation.Judgements.Bar.SharedPosition)
                 .AddParsable(e => e.Notation.Judgements.Bar.SharedPositionFeet)
-                .AddParsable(e => e.Notation.Judgements.Bar.MinmumAspectRatio)
+                .AddParsable(e => e.Notation.Judgements.Bar.MinimumAspectRatio)
                 .AddParsable(e => e.Notation.Judgements.Bar.Padding)
             )
             .BuildTo(view);
@@ -73,6 +84,13 @@ public static class SkinSettingsList
                 + $"{IHasCommand.GetMarkupTooltipNoModify(Command.OpenExternally)}";
             view.AddSetting(new SliderSettingInfo<float>("Background Alpha", bind));
         }
+        view.AddSetting(new BooleanSettingInfo("Show Volume Controls", BindCustom(
+            () => Util.Skin.Mania.VolumeControlGroup?.Show ?? false,
+            e =>
+            {
+                (Util.Skin.Mania.VolumeControlGroup ??= VolumeControlGroup.DefaultData(mania: true)).Show = e;
+                SkinPathUtil.Dirty(e => e.Mania.VolumeControlGroup);
+            })));
 
         view.AddBlockHeader("Other Settings");
         view.AddSetting(new EnumSettingInfo<LayoutPreference>("Layout Preference", Bind(e => e.LayoutPreference)));
@@ -92,7 +110,15 @@ public static class SkinSettingsList
         {
             Description = path.GetDescriptionFromExpression()
         };
+        // Would be good to add a one way binding that updated when skin changed
+        // problem was I had no good way of unbinding when the settings menu was closed
         res.BindValueChanged(e => path.SetAndDirty(e.NewValue));
+        return res;
+    }
+    public static Bindable<T> BindCustom<T>(Func<T> get, Action<T> set)
+    {
+        var res = new Bindable<T>(get());
+        res.BindValueChanged(e => set(e.NewValue));
         return res;
     }
     public static BindableNumber<T> BindNumber<T>(Expression<Func<Skin, T>> path) where T : struct, INumber<T>, IMinMaxValue<T>

@@ -93,6 +93,7 @@ public static class FileImporters
             else if (ext == ".dtx") await DtxLoader.ImportDtx(path);
             else if (fileName.Equals("song.ini", StringComparison.OrdinalIgnoreCase)) SongIniLoader.ImportSongIni(path);
             else if (fileName.Equals("set.def", StringComparison.OrdinalIgnoreCase)) await DtxLoader.ImportDef(path);
+            else if (ext == ".mid" || ext == ".midi") MidiLoader.ImportFileAndSave(path);
             else if (ext == ".zip")
             {
                 using var provider = new ZipFileProvider(path);

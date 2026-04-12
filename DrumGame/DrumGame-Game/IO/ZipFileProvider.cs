@@ -36,7 +36,7 @@ public class ZipFileProvider : IFileProvider, IDisposable
 
     public bool Copy(string path, string absolutePath)
     {
-        var entry = Zip.GetEntryCaseless(BuildPath(path));
+        var entry = Entry(path);
         if (entry == null) return false;
         try
         {
@@ -48,8 +48,9 @@ public class ZipFileProvider : IFileProvider, IDisposable
     }
     public void Dispose() => Zip?.Dispose();
 
-    public bool Exists(string path) => Zip.GetEntryCaseless(BuildPath(path)) != null;
-    public Stream Open(string path) => Zip.GetEntryCaseless(BuildPath(path)).Open();
+    public bool Exists(string path) => Entry(path) != null;
+    public Stream Open(string path) => Entry(path).Open();
+    public ZipArchiveEntry Entry(string path) => Zip.GetEntryCaseless(BuildPath(path));
     public Stream OpenCreate(string path)
     {
         if (Zip.Mode == ZipArchiveMode.Read) throw new NotSupportedException("Writing to readonly ZipArchive not supported.");
@@ -67,5 +68,20 @@ public class ZipFileProvider : IFileProvider, IDisposable
         return Zip.Entries.Where(e => e.FullName.StartsWith(basePath, StringComparison.InvariantCultureIgnoreCase))
             .Select(e => e.FullName.Substring(basePath.Length));
     }
-    public DateTime? CreationTimeUtc(string path) => ZipFileLocation == null ? null : File.GetCreationTimeUtc(ZipFileLocation);
+    public DateTime? CreationTimeUtc(string path)
+    {
+        var entry = Entry(path);
+        // write time is close enough in most cases
+        // if you think about it, the write time is the "creation time of entry", assume you get a new "entry" with each write
+        if (entry != null && entry.LastWriteTime != default)
+            return entry.LastWriteTime.UtcDateTime;
+        return ZipFileLocation == null ? null : File.GetCreationTimeUtc(ZipFileLocation);
+    }
+    public DateTime? WriteTimeUtc(string path)
+    {
+        var entry = Entry(path);
+        if (entry != null && entry.LastWriteTime != default)
+            return entry.LastWriteTime.UtcDateTime;
+        return ZipFileLocation == null ? null : File.GetLastWriteTimeUtc(ZipFileLocation);
+    }
 }

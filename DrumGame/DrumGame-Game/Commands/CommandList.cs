@@ -90,13 +90,14 @@ public enum Command
     SetPlaybackBPM,
     IncreasePlaybackSpeed,
     DecreasePlaybackSpeed,
-    ToggleMeasureLines,
+    ToggleBeatLines,
     ToggleMute,
     Delete,
     DeleteNotes,
     CropMeasure,
     InsertMeasure,
     InsertMeasureAtStart,
+    SplitMeasure,
     ApplyFilter,
     CycleModifier,
     CycleSticking,
@@ -133,6 +134,7 @@ public enum Command
     SelectCollection,
     AddToCollection,
     RemoveFromCollection,
+    RemoveFromCurrentCollection,
     NewCollection,
     ConvertSearchToCollection,
     ExportSearchToFile,
@@ -209,6 +211,7 @@ public enum Command
     RefreshMidi,
     ReloadSkin,
     OpenSkinSettings,
+    SavePendingSkinChanges,
     ExportCurrentSkin,
     ReloadSoundFont,
     SetWindowSize,
@@ -240,7 +243,8 @@ public static class CommandList
         controller.RegisterCommand(Command.MidiMonitor, "MIDI Monitor")
             .HelperMarkup = "Allows viewing the currently connected MIDI devices.\nAlso allows setting preferred input and output devices.";
         controller.RegisterCommand(Command.ViewRepositories);
-        controller.RegisterCommand(Command.ConfigureMapLibraries);
+        controller.RegisterCommand(Command.ConfigureMapLibraries)
+            .SearchTags = "storage files folders";
         controller.RegisterCommand(Command.InputOffsetWizard);
         controller.RegisterCommand(Command.Notifications);
         controller.RegisterCommand(Command.Save, new KeyCombo(ModifierKey.Ctrl, InputKey.S));
@@ -438,7 +442,9 @@ public static class CommandList
         controller.SetParameterInfo(Command.AddToCollection, typeof(string));
         controller.RegisterCommandInfo(new CommandInfo(Command.AddToCollection, "Add to Favorites", new KeyCombo(ModifierKey.Ctrl, InputKey.D))
         { Parameter = "Favorites" });
-        controller.RegisterCommand(Command.RemoveFromCollection, new KeyCombo(ModifierKey.CtrlShift, InputKey.D));
+        controller.RegisterCommand(Command.RemoveFromCollection);
+        controller.SetParameterInfo(Command.RemoveFromCollection, typeof(string));
+        controller.RegisterCommand(Command.RemoveFromCurrentCollection, new KeyCombo(ModifierKey.CtrlShift, InputKey.D));
         controller.RegisterCommand(Command.NewCollection);
         controller.RegisterCommand(Command.ConvertSearchToCollection);
         controller[Command.SelectCollection].HelperMarkup =
@@ -501,7 +507,7 @@ public static class CommandList
         controller.RegisterCommand(Command.ABLoop, "Set/Clear A-B Loop", InputKey.L);
         controller.RegisterCommand(Command.ImportMidi);
 
-        controller.RegisterCommand(Command.ToggleMeasureLines);
+        controller.RegisterCommand(Command.ToggleBeatLines);
         controller.RegisterCommand(Command.ToggleMute, new KeyCombo(ModifierKey.Ctrl, InputKey.M));
         controller.RegisterCommand(Command.ShowEventLog);
         controller.RegisterCommand(Command.ControlCamera);
@@ -510,6 +516,7 @@ public static class CommandList
         controller.RegisterCommand(Command.CropMeasure, new KeyCombo(ModifierKey.CtrlShift, InputKey.Delete));
         controller.RegisterCommand(Command.InsertMeasure, new KeyCombo(ModifierKey.Ctrl, InputKey.Enter));
         controller.RegisterCommand(Command.InsertMeasureAtStart);
+        controller.RegisterCommand(Command.SplitMeasure);
         controller.RegisterCommand(Command.ApplyFilter);
         controller.SetParameterInfo(Command.ApplyFilter, typeof(string));
         controller.RegisterCommand(Command.CycleModifier, InputKey.KeypadMultiply);
@@ -579,6 +586,7 @@ public static class CommandList
         controller.RegisterCommand(Command.RefreshMidi);
         controller.RegisterCommand(Command.ReloadSkin);
         controller.RegisterCommand(Command.OpenSkinSettings);
+        controller.RegisterCommand(Command.SavePendingSkinChanges);
         controller.RegisterCommand(Command.ExportCurrentSkin);
         controller.RegisterCommand(Command.ReloadSoundFont);
         controller.RegisterCommand(Command.SetWindowSize);
@@ -658,6 +666,7 @@ public static class CommandList
         Command.DeleteNotes,
         Command.CropMeasure,
         Command.InsertMeasure,
+        Command.SplitMeasure,
 
         // Note commands
         Command.CycleModifier,

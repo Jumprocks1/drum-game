@@ -27,10 +27,10 @@ public class SkinSetting : SettingInfo
         // after this occurs, we probably don't want to show "Default" in this skin list anymore since it may be confusing to show 2 defaults
         var def = new Pair(null, "Default");
         var skins = SkinManager.ListSkinsWithNames();
-        var options = skins.Select(e => new Pair(e.skin, $"{e.name} ({e.skin})"));
+        var options = skins
+            .Where(e => e.skin != SkinManager.DefaultSkinFilename).Select(e => new Pair(e.skin, $"{e.name} ({e.skin})"))
+            .Prepend(def);
         var value = binding.Value;
-        if (!skins.Any(e => e.skin == SkinManager.DefaultSkinFilename) || string.IsNullOrWhiteSpace(value))
-            options = options.Prepend(def);
         var autocomplete = new Autocomplete<Pair>()
         {
             Options = options,
@@ -42,7 +42,11 @@ public class SkinSetting : SettingInfo
             CommittedTarget = string.IsNullOrWhiteSpace(value) ? def : options.FirstOrDefault(e => e.Skin == value),
             ClearOnFocus = true
         };
-        autocomplete.OnSelect += option => binding.Value = option.Skin;
+        // technically if the user hits cancel on the popup from this, the skin won't be changed but the dropdown will still be updated
+        // not too worried about it, but technically a bug
+        // would have to change the autocomplete to only change itself once the target bindable actually updated, but that's a bit complicated
+        // also, when changing skin scroll rate field doesn't update to new value. binding still works though
+        autocomplete.OnSelect += option => SkinManager.TryChangeSkin(option.Skin);
         var editButton = new IconButton(() =>
         {
             var source = Util.Skin.Source;
@@ -52,7 +56,7 @@ public class SkinSetting : SettingInfo
                 Util.RevealInFileExplorer(source);
             // make sure we are watching the skin after we open it
             // this makes it easier to make quick changes without having to manually reload
-            SkinManager.SetHotWatcher(Util.Skin);
+            SkinManager.StartHotWatcher();
         }, FontAwesome.Solid.FolderOpen, Height)
         {
             Anchor = Anchor.TopRight,

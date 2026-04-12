@@ -18,7 +18,7 @@ public class CameraPlaceholder : CompositeDrawable, IHasContextMenu, IHasMarkupT
     {
         AddInternal(Background = new Box
         {
-            Colour = Util.Skin.Notation.InputDisplayBackground * 0.98f + Util.Skin.Notation.NotationColor * 0.02f,
+            Colour = Util.Skin.Notation.InputDisplay.BackgroundColor * 0.98f + Util.Skin.Notation.NotationColor * 0.02f,
             RelativeSizeAxes = Axes.Both,
         });
         AddInternal(new SpriteText

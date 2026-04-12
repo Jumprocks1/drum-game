@@ -32,10 +32,12 @@ public class OffsetWizard : RequestModal
 
     public double TargetBeat => Editor.SnapTarget;
 
-    FillFlowContainer body;
+    Container body;
     SpriteText targetBeatText;
     VolumePlot Plot;
     double WindowWidth = 0.008;
+
+    float NextY;
 
     DrumButton ComputeButton;
 
@@ -62,20 +64,20 @@ public class OffsetWizard : RequestModal
             MarkupTooltip = $"Calculates the offset with the maximum average on-beat volume.\nThe tempo must be set perfectly before using this.\nCurrently only works for maps with a single tempo event.\n\n{TimingWorflow}"
         });
         ComputeButton.Enabled.Value = false; // gets enabled after we are done loading
-        Add(body = new FillFlowContainer
+        Add(body = new Container
         {
             RelativeSizeAxes = Axes.X,
-            Direction = FillDirection.Vertical,
             AutoSizeAxes = Axes.Y
         });
         body.Add(targetBeatText = new TooltipSpriteText("Current snap position in editor"));
+        NextY += targetBeatText.Font.Size + 3;
         var windowWidthText = new DrumTextBox
         {
             Text = (WindowWidth * 1000).ToString("0.0"),
             CommitOnFocusLost = true,
             Height = 30,
             Width = 100,
-            Margin = new MarginPadding { Top = 3 }
+            Y = NextY
         };
         windowWidthText.OnCommit += (_, __) =>
         {
@@ -89,13 +91,50 @@ public class OffsetWizard : RequestModal
             windowWidthText.Text = (WindowWidth * 1000).ToString("0.0");
         };
         body.Add(windowWidthText);
+        var checkbox = new DrumCheckbox
+        {
+            LabelText = "Drum Only",
+            X = windowWidthText.Width + 5,
+            Width = 110,
+            Height = 30,
+            Y = NextY
+        };
+        body.Add(checkbox);
+        NextY += windowWidthText.Height;
+        checkbox.Current.ValueChanged += _ =>
+        {
+            var newValue = checkbox.Current.Value;
+            if (newValue)
+            {
+                if (Plot.DrumOnlyPath() != null)
+                    DrumOnly = true;
+                else
+                {
+                    checkbox.Current.Value = false;
+                    Editor.PromptDrumOnlyAudio();
+                }
+            }
+            else DrumOnly = false;
+        };
         LoadNewPlot();
     }
 
     bool loadingComplete = true;
 
+    bool _drumOnly;
+    public bool DrumOnly
+    {
+        get => _drumOnly; set
+        {
+            if (_drumOnly == value) return;
+            _drumOnly = value;
+            LoadNewPlot();
+        }
+    }
+
     void LoadNewPlot()
     {
+        // TODO should really cancel previous load instead of skipping
         if (!loadingComplete) return;
         loadingComplete = false;
         if (Plot != null) body.Remove(Plot, true);
@@ -104,13 +143,16 @@ public class OffsetWizard : RequestModal
             Width = 50,
             Height = 50,
             Anchor = Anchor.TopCentre,
-            Origin = Anchor.TopCentre
+            Origin = Anchor.TopCentre,
+            Y = NextY
         };
         body.Add(progress);
         Plot = new VolumePlot(Editor, WindowWidth, 300)
         {
             RelativeSizeAxes = Axes.X,
-            Progress = progress
+            Progress = progress,
+            DrumOnly = DrumOnly,
+            Y = NextY
         };
         LoadComponentAsync(Plot, e =>
         {
@@ -118,6 +160,8 @@ public class OffsetWizard : RequestModal
             progress = null;
             body.Add(e);
             loadingComplete = true;
+            // TODO should relax this condition or add an override
+            // Ideally would also just make the offset calc work even if there's tempo changes
             if (Beatmap.TempoChanges.Count == 0 || (Beatmap.TempoChanges.Count == 1 && Beatmap.TempoChanges[0].Time == 0))
                 ComputeButton.Enabled.Value = true;
         });

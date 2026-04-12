@@ -152,7 +152,10 @@ public class MidiTrack : MidiFile.Chunk
                 }
                 else if (type == 89 && length == 2)
                 {
-                    Console.WriteLine($"Key signature: {reader.ReadByte()} {reader.ReadByte()}");
+                    var k1 = reader.ReadByte();
+                    var k2 = reader.ReadByte();
+                    if (k1 != 0 || k2 != 0)
+                        Console.WriteLine($"Key signature: {k1} {k2}");
                 }
                 else if (type == 47 && length == 0) // end of track
                 {
@@ -200,6 +203,7 @@ public class MidiTrack : MidiFile.Chunk
                     9 => true,
                     0xB => true,
                     0xC => false,
+                    0xE => true, // pitch bend
                     _ => throw new Exception($"Unknown MIDI event {midiEventType}")
                 };
                 var parameter2 = hasP2 ? reader.ReadByte() : (byte)0;

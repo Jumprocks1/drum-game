@@ -40,24 +40,22 @@ public class SearchTextBox : NonPositionalTextBox
             {
                 Title = $"{name} Info"
             });
-            var paragraph = new TextFlowContainer();
+            var paragraph = new DrumTextFlowContainer();
             paragraph.AddParagraph("You can use advanced filters by specifying a field, operator and a search value. When specifying a field, you only need enough characters to uniquely identify the field. For example, you can filter difficulty with ");
             paragraph.AddText("d=3", e => { e.Colour = DrumColors.Code; });
             paragraph.AddText(".");
-            paragraph.AddParagraph("");
             paragraph.AddParagraph("To search using multiple fields, add a space between filters (AND operation). To perform an OR operation, use | between filters.");
-            paragraph.AddParagraph("");
             paragraph.AddParagraph("All fields can be used for filtering or sorting, the operator symbols are: =, !=, >, >=, <, <=, ^, ^^");
-            paragraph.AddParagraph("");
             paragraph.AddParagraph("The following fields are available in this search bar (hover for more info + examples):");
             paragraph.RelativeSizeAxes = Axes.X;
             paragraph.AutoSizeAxes = Axes.Y;
             foreach (var field in T.Fields)
             {
-                paragraph.AddParagraph<MarkupTooltipSpriteText>(field.Name, s =>
+                paragraph.AddLine(new MarkupTooltipSpriteText
                 {
-                    s.MarkupTooltip = field.MarkupDescription;
-                    s.Padding = new() { Left = 10 };
+                    Text = field.Name,
+                    MarkupTooltip = field.MarkupDescription,
+                    Padding = new() { Left = 10 }
                 });
             }
             modal.Add(paragraph);

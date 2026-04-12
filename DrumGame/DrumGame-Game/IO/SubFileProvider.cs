@@ -32,4 +32,5 @@ public class SubFileProvider : IFileProvider
     public Stream Open(string path) => Parent.Open(BuildPath(path));
     public Stream OpenCreate(string path) => Parent.OpenCreate(BuildPath(path));
     public DateTime? CreationTimeUtc(string path) => Parent.CreationTimeUtc(BuildPath(path));
+    public DateTime? WriteTimeUtc(string path) => Parent.WriteTimeUtc(BuildPath(path));
 }

@@ -315,14 +315,15 @@ public class SkinElementOverlay : CompositeDrawable, IHasMarkupTooltip, IHasCont
         .Add("Copy configuration to clipboard", e => Util.SetClipboard(JsonConvert.SerializeObject(Element.SkinData, SkinManager.SerializerSettings)))
             .Tooltip("Useful for storing these settings in a skin")
         .Add("Reset", e => e.ResetData()).Color(DrumColors.BrightYellow)
-            .Tooltip("This will reset all adjustments made to this element.\nThis does not save the reset to the skin.")
-        .Add("Reload from skin", e => e.ReloadFromSkin()).Color(DrumColors.BrightYellow)
-            .Tooltip("This will reset all unsaved adjustments made to this element.")
+            .Tooltip("Restores default values for this element")
+        // also marks path/subpath as clean
+        .Add("Reload from skin", e => e.ReloadFromDiskSkin()).Color(DrumColors.BrightYellow)
+            .Tooltip("Resets unsaved changes for this element.")
         .Add("Hide", e =>
         {
             e.SkinData.Hide = true;
             e.ApplySkinData();
-        }).Color(DrumColors.BrightRed).Tooltip("The only way to undo this is by editing the current skin directly.\nI plan to improve this in the future.")
+        }).Color(DrumColors.BrightRed).Tooltip("This can be undone by editing the skin file directly")
         .Modify(Element.ModifyOverlayContextMenu)
         .Build();
 }

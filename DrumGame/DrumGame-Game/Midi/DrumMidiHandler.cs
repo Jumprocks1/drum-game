@@ -12,6 +12,7 @@ using DrumGame.Game.Stores;
 using DrumGame.Game.Utils;
 using ManagedBass;
 using ManagedBass.Midi;
+using osu.Framework;
 using osu.Framework.Input;
 using osu.Framework.Input.Bindings;
 using osu.Framework.Logging;
@@ -151,7 +152,7 @@ public static class DrumMidiHandler
             {
                 while (OutputBuffer.TryDequeue(out var res)) SendBytes(res);
                 OutputBuffer = null;
-            };
+            }
         }
         catch (Exception e)
         {
@@ -163,6 +164,7 @@ public static class DrumMidiHandler
     static byte currentProgram;
     static byte hiRes;
     static byte hiHatPosition; // current position we think the hi hat is in
+    public static byte HiHatPosition => hiHatPosition;
     static int logErrors;
     // this is the known state of the input MIDI device
     static void ResetInputState()
@@ -189,9 +191,10 @@ public static class DrumMidiHandler
 
     static void onMessage(object sender, MidiReceivedEventArgs ev)
     {
-        var s = (IMidiInput)sender;
         try
         {
+            if (ev.Length == 0 && RuntimeInfo.OS == RuntimeInfo.Platform.Android)
+                ev.Length = ev.Data.Length;
             // this parsing logic is very similar to what we have in MidiTrack.cs
             // it would be cool if we could combine them
             // this parser is newer and therefore preferrred
@@ -284,7 +287,8 @@ public static class DrumMidiHandler
                 var bytes = ev.Data.AsSpan(ev.Start..(ev.Start + ev.Length));
                 var o = new StringBuilder();
                 foreach (var b in bytes) o.Append($"{b:x2} ");
-                Logger.Error(e, $"MIDI exception: [{s.Details.Id}: {ev.Timestamp}]: {o}");
+                var s = sender as IMidiInput;
+                Logger.Error(e, $"MIDI exception: [{s?.Details.Id}: {ev.Timestamp}]: {o}");
                 logErrors -= 1;
             }
         }

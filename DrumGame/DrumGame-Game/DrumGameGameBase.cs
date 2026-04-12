@@ -30,6 +30,8 @@ using DrumGame.Game.Skinning;
 using osu.Framework.Input.Handlers.Mouse;
 using osu.Framework.Input.Handlers.Keyboard;
 using DrumGame.Game.Input;
+using osu.Framework;
+using osu.Framework.Input.Handlers.Touch;
 
 namespace DrumGame.Game;
 
@@ -65,15 +67,17 @@ public class DrumGameGameBase : osu.Framework.Game
         dependencies.Cache(LocalConfig);
         dependencies.Cache(command);
 
-        base.Content.Add(new DrawSizePreservingFillContainer
+        var sizedContainer = new DrawSizePreservingFillContainer
         {
-            TargetDrawSize = new Vector2(1280, 720),
             Strategy = DrawSizePreservationStrategy.Minimum,
             Child = new DrumPopoverContainer
             {
                 Child = content = new DrumContextMenuContainer()
             }
-        });
+        };
+        LocalConfig.DrawScale.BindValueChanged(
+            _ => sizedContainer.TargetDrawSize = new Vector2(1280, 720) / LocalConfig.DrawScale.Value, true);
+        base.Content.Add(sizedContainer);
 
         dependencies.Cache(KeybindConfig = new KeybindConfigManager(Storage));
         if (InputManager != null) dependencies.Cache(InputManager);
@@ -84,6 +88,8 @@ public class DrumGameGameBase : osu.Framework.Game
         DrumMidiHandler.RefreshMidi();
         loadResources();
     }
+
+    protected string ExtraResourcesPath;
     void loadResources()
     {
         // everything below here depends on the resources folder in some way
@@ -92,7 +98,7 @@ public class DrumGameGameBase : osu.Framework.Game
         string resLocation = null;
         if (resLocation == null)
         {
-            var searchPaths = new string[] {
+            var searchPaths = new List<string> {
                 LocalConfig.FileSystemResources.Value,
                 "resources/",
                 "../resources/",
@@ -100,6 +106,7 @@ public class DrumGameGameBase : osu.Framework.Game
                 "../../../resources/",
                 "../../../../resources/",
             };
+            if (!string.IsNullOrWhiteSpace(ExtraResourcesPath)) searchPaths.Insert(1, ExtraResourcesPath);
             foreach (var path in searchPaths)
             {
                 if (!string.IsNullOrWhiteSpace(path) && Directory.Exists(path))
@@ -159,11 +166,11 @@ public class DrumGameGameBase : osu.Framework.Game
 
         dependencies.Cache(VolumeController = new VolumeController(Audio, command, LocalConfig));
 
-        var volumeOverlay = new VolumeOverlay { Depth = -11 }; // command palette has -10 currently
-        Add(volumeOverlay);
-        VolumeController.MasterVolume.Aggregate.ValueChanged += volumeOverlay.VolumeUpdated;
+        Add(VolumeOverlay = new VolumeOverlay { Depth = -11 }); // command palette has -10 currently
+        VolumeController.MasterVolume.Aggregate.ValueChanged += VolumeOverlay.VolumeUpdated;
         SkinManager.Initialize();
     }
+    public VolumeOverlay VolumeOverlay;
     protected Storage Storage { get; set; }
     public DrumGameConfigManager LocalConfig { get; private set; }
     protected KeybindConfigManager KeybindConfig { get; private set; }
@@ -219,11 +226,18 @@ public class DrumGameGameBase : osu.Framework.Game
         }
     }
 
+    void SaveBeforeSuspend()
+    {
+        // for mobile, there are some things that will never save, since Dispose() is never called
+        // we have to put those here instead
+        // most things queue background saves, so it's not a huge issue
+        MapStorage?.SaveMapCache();
+    }
+
     protected override void Dispose(bool isDisposing)
     {
         base.Dispose(isDisposing);
         Util.GameDisposed();
-        SkinManager.Cleanup(); // saves dirty skins
         MapStorage?.Dispose(); // saves map cache
         CollectionStorage?.Dispose(); // saves dirty collections
         LocalConfig?.Dispose(); // save settings
@@ -261,6 +275,17 @@ public class DrumGameGameBase : osu.Framework.Game
             return false;
         }
         return base.OnPressed(e);
+    }
+
+    [CommandHandler]
+    public bool Close(CommandContext context)
+    {
+        if (RuntimeInfo.IsMobile)
+        {
+            context.ActivateCommand(Command.QuitGame);
+            return true;
+        }
+        return false;
     }
 
     [CommandHandler]
@@ -364,10 +389,23 @@ public class DrumGameGameBase : osu.Framework.Game
         }
         return false;
     }
-    [CommandHandler] public void QuitGame() => ForceQuitGame();
+    [CommandHandler]
+    public void QuitGame()
+    {
+        if (!SkinManager.TryQuit()) return;
+        ForceQuitGame();
+    }
     [CommandHandler]
     public void ForceQuitGame()
     {
+        if (!Host.CanExit)
+        {
+            if (Host.CanSuspendToBackground)
+            {
+                SaveBeforeSuspend();
+                Host.SuspendToBackground();
+            }
+        }
         allowQuit = true;
         Exit();
     }
@@ -444,6 +482,7 @@ public class DrumGameGameBase : osu.Framework.Game
         //    to make sure these are disabled before they are initialized
         foreach (var input in Util.Host.AvailableInputHandlers)
         {
+            if (RuntimeInfo.IsMobile && input is TouchHandler) continue;
             if (input is not MouseHandler and not KeyboardHandler)
                 input.Enabled.Value = false;
         }

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using DrumGame.Game.Utils;
+using System.Globalization;
 
 namespace DrumGame.Game.Stores.Repositories;
 
@@ -101,7 +102,7 @@ public class JsonRepoRefresher : RepoRefresherBase
         foreach (var path in paths)
         {
             if (path == null) continue;
-            var token = obj.SelectToken(path) ?? obj.SelectToken(char.ToUpper(path[0]) + path[1..]);
+            var token = obj.SelectToken(path) ?? obj.SelectToken(char.ToUpper(path[0], CultureInfo.InvariantCulture) + path[1..]);
             if (token != null)
                 return token;
         }

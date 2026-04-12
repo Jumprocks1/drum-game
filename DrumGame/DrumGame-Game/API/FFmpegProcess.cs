@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
 using DrumGame.Game.Utils;
@@ -41,20 +42,20 @@ public class FFmpegProcess
     public void OffsetMs(double offsetMs)
     {
         if (offsetMs == 0) return;
-        AddArguments("-af", $"adelay={offsetMs}ms:all=true");
+        AddArguments("-af", $"adelay={offsetMs.ToString(CultureInfo.InvariantCulture)}ms:all=true");
     }
     public void Vorbis(double q = 3)
     {
         AddArguments("-c:a", "libvorbis");
         // See https://en.wikipedia.org/wiki/Vorbis#Technical_details for bitrates
         if (q != 3)
-            AddArguments("-q:a", q.ToString()); // default is 3, q6 targets 192kbps
+            AddArguments("-q:a", q.ToString(CultureInfo.InvariantCulture)); // default is 3, q6 targets 192kbps
     }
     public void MultiplyVolume(double mult)
     {
         mult = Math.Clamp(mult, 0, 1);
         if (mult == 1) return;
-        AddArguments("-af", $"volume={mult}");
+        AddArguments("-af", $"volume={mult.ToString(CultureInfo.InvariantCulture)}");
     }
 
     public void ExtractImage(string outputPath)

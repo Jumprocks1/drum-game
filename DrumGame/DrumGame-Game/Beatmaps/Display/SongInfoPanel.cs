@@ -36,7 +36,7 @@ public class SongInfoPanel : AdjustableSkinElement, IHasCommandInfo
     public override Expression<Func<Skin, AdjustableSkinData>> SkinPathExpression =>
         Mania ? e => e.Mania.SongInfoPanel : e => e.Notation.SongInfoPanel;
 
-    bool Mania;
+    readonly bool Mania;
 
     public CommandInfo CommandInfo => Util.GetParent<BeatmapEditor>(this) != null ? Util.CommandController[Command.EditBeatmapMetadata] : null;
 

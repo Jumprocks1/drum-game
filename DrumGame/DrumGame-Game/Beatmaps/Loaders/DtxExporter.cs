@@ -583,7 +583,7 @@ public class DtxExporter
 
     WavChip BgmChip;
 
-    const double GlobalBoost = 5.2; // this is just what I decided on, it's pretty arbitrary
+    const double GlobalBoost = 6; // this is just what I decided on, it's pretty arbitrary
 
     void MakeBgmChip()
     {
@@ -686,7 +686,7 @@ public class DtxExporter
             process.AddInput(CurrentBeatmap.FullAudioPath());
             var mult = Math.Clamp(BgmChip.Volume / 100, 0, 1);
             if (mult != 1)
-                process.AddArguments("-af", $"volume={mult}, afade=t=out:st=12:d=3");
+                process.AddArguments("-af", $"volume={mult.ToString(CultureInfo.InvariantCulture)}, afade=t=out:st=12:d=3");
             else
                 process.AddArguments("-af", "afade=t=out:st=12:d=3");
             process.Vorbis();
@@ -716,7 +716,12 @@ public class DtxExporter
     string ChipInfoPath => Output.BuildPath("samples.json");
     void MakeSamples()
     {
-        using var renderer = BassUtil.HasMidi ? new SoundFontRenderer("soundfonts/main.sf2") : null;
+        if (!BassUtil.HasMidi)
+        {
+            Util.Palette.ShowMessage("bassmidi plugin not found, exporting without samples. See log for details.");
+            return;
+        }
+        using var renderer = new SoundFontRenderer("soundfonts/main.sf2");
         var hitSampleChips = new List<WavChip>();
         foreach (var sample in Samples)
         {
@@ -776,7 +781,10 @@ public class DtxExporter
                 Filenames[orderedSet[j].Metadata.Id] = filename;
             }
 
-            var i = 1;
+            // if there's only 2 maps, we start at i = 3
+            // this puts the master/max diff at level 4
+            // if there's 5 maps, we'd start at 1 and count up like you would expect
+            var i = orderedSet.Count < 4 ? 5 - orderedSet.Count : 1;
             foreach (var diff in orderedSet)
             {
                 var filename = Filenames[diff.Metadata.Id];
@@ -938,6 +946,7 @@ public class DtxExporter
         "bsc" => "BASIC",
         "adv" => "ADVANCED",
         "ext" => "EXTREME",
+        "real" => "REAL",
         _ => "MASTER"
     };
     static readonly string[] Levels = ["bsc", "adv", "ext", "mstr"];

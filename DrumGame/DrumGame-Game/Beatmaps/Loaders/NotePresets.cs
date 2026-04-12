@@ -50,4 +50,10 @@ public class NotePresets : Dictionary<string, NotePreset>
     public void Remove(NotePreset e) => RemovePreset(e.Key);
     public void RemoveInternal(string key) => Remove(key);
     public void RemoveInternal(NotePreset preset) => RemoveInternal(preset.Key);
+
+    public new void Clear()
+    {
+        foreach (var key in Keys)
+            RemovePreset(key);
+    }
 }

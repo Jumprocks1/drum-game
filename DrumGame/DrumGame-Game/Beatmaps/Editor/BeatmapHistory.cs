@@ -24,7 +24,7 @@ public partial class BeatmapEditor
     public int? MaxDepth;
     public List<IHistoryChange> HistoryStack = new();
     // index of the top element on the stack. Note that when pressing Redo, this will move up the stack
-    public void PushChange(IHistoryChange change, bool triggerDo = true)
+    public bool PushChange(IHistoryChange change, bool triggerDo = true)
     {
         var changed = !triggerDo || change.Do(this);
         if (changed)
@@ -46,6 +46,7 @@ public partial class BeatmapEditor
                 OnHistoryChange?.Invoke();
             }
         }
+        return changed;
     }
 
     public void PushChange(Action action, Action undo, string description) => PushChange(new BeatmapChange(action, undo, description));

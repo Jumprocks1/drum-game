@@ -1,23 +1,9 @@
 {
-  "notePresets": {
-    "1": {
-      "volume": 0.9,
-      "channel": "crash",
-      "modifiers": "right",
-      "size": 0.9,
-      "keybind": "Ctrl+KeypadEnter"
-    },
-    "2": {
-      "volume": 0.9,
-      "channel": "china",
-      "modifiers": "right",
-      "size": 0.9,
-      "keybind": "Ctrl+Keypad9"
-    }
-  },
   "relativeVolume": 0.4095,
   "audio": "audio\\01 - Lies playing Truth (feat. Itsuki Natsume).mp3",
   "drumOnlyAudio": "temp/lies-playing-truth.wav",
+  "video": "video/XYxT0Np6X3k.mp4",
+  "videoOffset": -611.92,
   "image": "images/a459c639ab157f856b37a340f9f1c4c8",
   "imageUrl": "https://i.scdn.co/image/ab67616d00001e02fca324fc95132b3f3235483e",
   "id": "9572288b-35cd-44f0-bfc7-e8933639281e",
@@ -37,6 +23,22 @@
   "playableDuration": 282335.0,
   "medianBPM": 197.0,
   "creationTimeUtc": "2024-11-26T00:50:56.1476989Z",
+  "notePresets": {
+    "1": {
+      "volume": 0.9,
+      "channel": "crash",
+      "modifiers": "right",
+      "size": 0.9,
+      "keybind": "Ctrl+KeypadEnter"
+    },
+    "2": {
+      "volume": 0.9,
+      "channel": "china",
+      "modifiers": "right",
+      "size": 0.9,
+      "keybind": "Ctrl+Keypad9"
+    }
+  },
   "notes": [
     {
       "time": 3.5,

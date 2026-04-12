@@ -20,6 +20,7 @@
   "relativeVolume": 0.3401,
   "audio": "audio/Rn-SqlHESU8.ogg",
   "drumOnlyAudio": "temp/stellar-stellar-nick.wav",
+  "video": "video/Rn-SqlHESU8.mp4",
   "image": "images/18ec07cae568185b700015401ab2b55e_3.jpg",
   "imageUrl": "https://pbs.twimg.com/amplify_video_thumb/1959146608291094528/img/Q2H8MZKvELBeNpqL?format=jpg&name=small",
   "id": "a72321e2-32cb-4412-977a-0ed089261a66",
@@ -8435,7 +8436,8 @@
     },
     {
       "time": 734.0,
-      "channel": "open-hihat"
+      "channel": "crash",
+      "sticking": "right"
     },
     {
       "time": 734.5,

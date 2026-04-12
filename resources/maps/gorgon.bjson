@@ -1,17 +1,8 @@
 {
-  "notePresets": {
-    "1": {
-      "volume": 0.9,
-      "channel": "crash",
-      "modifiers": "right",
-      "size": 0.9,
-      "keybind": "Ctrl+KeypadEnter"
-    }
-  },
   "relativeVolume": 0.4038,
   "audio": "audio/isXoiYfoDd8.ogg",
   "drumOnlyAudio": "temp/gorgon.wav",
-  "video": "video\\d41d8cd98f00b204e9800998ecf8427e.mp4",
+  "video": "video/isXoiYfoDd8.mp4",
   "image": "images/4f286b4a84161a1f9a0c49ff2fb2a3ea",
   "imageUrl": "https://i.scdn.co/image/ab67616d00001e02a76904a59c31c3da11f162ca",
   "id": "1900ec93-b4b6-4a97-ae2f-2380965856f4",
@@ -62,6 +53,15 @@
   "playableDuration": 242806.0,
   "medianBPM": 180.0,
   "creationTimeUtc": "2025-02-13T00:13:34.0104821Z",
+  "notePresets": {
+    "1": {
+      "volume": 0.9,
+      "channel": "crash",
+      "modifiers": "right",
+      "size": 0.9,
+      "keybind": "Ctrl+KeypadEnter"
+    }
+  },
   "notes": [
     {
       "time": 8.0,

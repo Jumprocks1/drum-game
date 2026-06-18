@@ -118,13 +118,29 @@ export default class NotationDisplay extends Component {
         this.Context.fillStyle = "rgba(100, 149, 237, 0.5)"
         this.Context.fillRect(this.Track.CurrentBeat * this.Spacing - 0.25, -2, 0.5, 8)
 
-        if (this.DrawMeasureLines) { // this only works for 4/4 maps
-            // draw measure lines
-            const firstMeasureLine = Math.max(0, Math.ceil(overdrawStart / 4));
-            const lastMeasureLineInclusive = Math.floor(overdrawEnd / 4);
+        if (this.DrawMeasureLines) {
             this.Context.fillStyle = "rgba(70, 110, 160, 0.4)"
-            for (let i = firstMeasureLine; i <= lastMeasureLineInclusive; i++) {
-                this.Context.fillRect(i * 4 * this.Spacing - 0.25, -2, 0.5, 8)
+            if (!this.Beatmap.MeasureChanges || this.Beatmap.MeasureChanges.length === 0) {
+                // draw measure lines
+                const firstMeasureLine = Math.max(0, Math.ceil(overdrawStart / 4));
+                const lastMeasureLineInclusive = Math.floor(overdrawEnd / 4);
+                for (let i = firstMeasureLine; i <= lastMeasureLineInclusive; i++) {
+                    this.Context.fillRect(i * 4 * this.Spacing - 0.25, -2, 0.5, 8)
+                }
+            } else {
+                let currentBeat = 0;
+                let currentTick = 0;
+                let i = 0; // next measure change index
+                let beatsPerMeasure = 4;
+                while (currentBeat < overdrawEnd) {
+                    if (currentBeat >= overdrawStart) this.Context.fillRect(currentBeat * this.Spacing - 0.25, -2, 0.5, 8)
+                    while (i < this.Beatmap.MeasureChanges.length && this.Beatmap.MeasureChanges[i].tick <= currentTick) {
+                        beatsPerMeasure = this.Beatmap.MeasureChanges[i].beats
+                        i += 1
+                    }
+                    currentBeat += beatsPerMeasure
+                    currentTick += beatsPerMeasure * this.Beatmap.TickRate
+                }
             }
         }
 

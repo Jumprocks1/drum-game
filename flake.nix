@@ -13,7 +13,12 @@
       appPkg = pkgs.callPackage ./package.nix { };
     in
     {
-      packages.${system}.default = appPkg;
+      packages.${system} = {
+        default = appPkg;
+        local = appPkg.overrideAttrs (_: {
+          src = builtins.path { path = ./.; };
+        });
+      };
       devShells.${system}.default = pkgs.mkShell {
         inputsFrom = [ appPkg ];
         buildInputs = with pkgs; [

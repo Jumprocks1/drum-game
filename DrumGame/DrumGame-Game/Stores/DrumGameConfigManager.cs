@@ -99,7 +99,7 @@ public class DrumGameConfigManager : IniConfigManager<DrumGameSetting>
         AddBindable(DrumGameSetting.MidiMapping, MidiMapping = new BindableMidiMapping());
         AddBindable(DrumGameSetting.SyncTarget, new Bindable<string>(""));
         ReplaySort = SetDefault(DrumGameSetting.ReplaySort, SortMethod.Score);
-        FileSystemResources = SetDefault<string>(DrumGameSetting.FileSystemResources, null);
+        FileSystemResources = SetDefault<string>(DrumGameSetting.FileSystemResources, TryGetFullPath(Environment.GetEnvironmentVariable("DRUMGAME_RESOURCE_DIR")));
         FFmpegLocation = SetDefault<string>(DrumGameSetting.FFmpegLocation, null);
         SetDefault(DrumGameSetting.MinimumLeadIn, 1d, 0d);
         AddBindable(DrumGameSetting.HiHatRange, HiHatRange = new BindableRange((255, 255)));
@@ -127,6 +127,26 @@ public class DrumGameConfigManager : IniConfigManager<DrumGameSetting>
         MetronomeModeBindable = SetDefault(DrumGameSetting.MetronomeMode, MetronomeMode.Disabled);
         PreferDecibelSlider = SetDefault(DrumGameSetting.PreferDecibelSliders, false);
         DrawScale = SetDefault(DrumGameSetting.DrawScale, RuntimeInfo.IsMobile ? 1.3f : 1f, 0.5f, 2f);
+    }
+
+    public static string? TryGetFullPath(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return null;
+        }
+
+        try
+        {
+            return Path.GetFullPath(path);
+        }
+        catch (Exception ex) when (ex is ArgumentException
+                                      or NotSupportedException
+                                      or PathTooLongException
+                                      or System.Security.SecurityException)
+        {
+            return null;
+        }
     }
 
     public static int[] ParseVersion(string version) => version.Split('.').Select(e => int.TryParse(e, out var o) ? o : -1).ToArray();

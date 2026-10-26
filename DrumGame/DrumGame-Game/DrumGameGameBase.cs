@@ -99,6 +99,7 @@ public class DrumGameGameBase : osu.Framework.Game
         if (resLocation == null)
         {
             var searchPaths = new List<string> {
+                DrumGameConfigManager.TryGetFullPath(Environment.GetEnvironmentVariable("DRUMGAME_RESOURCE_DIR")),
                 LocalConfig.FileSystemResources.Value,
                 "resources/",
                 "../resources/",

@@ -1,0 +1,64 @@
+name: Check and update deps.json
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: deps.json-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  deps:
+    name: Update deps.json if stale
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+          persist-credentials: true
+
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+
+      - name: Regenerate deps.json
+        run: |
+          set -euo pipefail
+          nix build .#local.fetch-deps
+          ./result nix/deps.json
+
+      - name: Detect changes
+        id: diff
+        run: |
+          set -euo pipefail
+          if [ -z "$(git status --porcelain -- deps.json)" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "::notice file=deps.json::deps.json is up to date"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "::notice file=deps.json::deps.json needs regeneration"
+          fi
+
+      - name: Commit regenerated deps.json
+        id: commit
+        if: steps.diff.outputs.changed == 'true'
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git diff --cached --quiet || git commit -m "chore: update deps.json"
+          git push
+
+      - name: Fail if commit failed
+        if: steps.diff.outputs.changed == 'true' && steps.commit.outcome != 'success'
+        run: |
+          echo "::error file=deps.json::deps.json is out of date"
+          echo "::notice::Run this action in the repository the PR originates from to update it"
+          exit 1

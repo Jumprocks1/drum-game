@@ -19,6 +19,12 @@ There is also a web version available [here](https://jumprocks1.github.io/drum-g
 ## Running Drum Game
 To start, download the latest [release](https://github.com/Jumprocks1/drum-game/releases). On Windows, you should download the `win-x64` version, unzip it, and run either `DrumGame.exe` or `DrumGame.bat`. For other desktop platforms (Linux/macOS), download the `net8.0` version, unzip, and then run it using the command `dotnet DrumGame.dll`. The cross-platform version requires .NET 8.0 to be installed. If you have any trouble, please [submit an issue](https://github.com/Jumprocks1/drum-game/issues) or post in the [Discord](https://discord.gg/RTc3xDKabU).
 
+Alternatively, there is a Nix flake you can use to run the game:
+```bash
+nix run "github:Jumprocks1/drum-game" --impure --refresh --extra-experimental-features 'nix-command flakes'
+```
+`--refresh` fetches the latest version of the flake from the repository. Run without it to use a locally cached copy.
+
 To download maps, I recommend using the in-game repository browser. This can be accessed by pressing <kbd>F1</kbd> and typing `View Repositories`, then pressing enter. YouTubeDL is required to load audio for some maps - the game should instruct you accordingly if this is necessary.
 
 You can also load an existing map library of `.dtx` files by running the command `Configure Map Libraries`. This should work for thousands of files.

@@ -98,15 +98,20 @@ public class DrumGameGameBase : osu.Framework.Game
         string resLocation = null;
         if (resLocation == null)
         {
-            var searchPaths = new List<string> {
-                LocalConfig.FileSystemResources.Value,
-                "resources/",
-                "../resources/",
-                "../../resources/",
-                "../../../resources/",
-                "../../../../resources/",
-            };
-            if (!string.IsNullOrWhiteSpace(ExtraResourcesPath)) searchPaths.Insert(1, ExtraResourcesPath);
+            var searchPaths = new List<string>();
+            searchPaths.Add(Environment.GetEnvironmentVariable("DRUMGAME_RESOURCES_DIR"));
+            searchPaths.Add(LocalConfig.FileSystemResources.Value);
+            searchPaths.Add(ExtraResourcesPath);
+            foreach (var path in Host.UserStoragePaths)
+                searchPaths.Add(Path.Join(path, Host.Name, "resources/"));
+            searchPaths.Add("resources/");
+            searchPaths.Add("../resources/");
+            searchPaths.Add("../../resources/");
+            searchPaths.Add("../../../resources/");
+            searchPaths.Add("../../../../resources/");
+            var exeLocation = AppContext.BaseDirectory;
+            searchPaths.Add(Path.Join(exeLocation, "resources/"));
+            searchPaths.Add(Path.Join(exeLocation, "../resources/"));
             foreach (var path in searchPaths)
             {
                 if (!string.IsNullOrWhiteSpace(path) && Directory.Exists(path))

@@ -59,7 +59,9 @@ buildDotnetModule (finalAttrs: {
 
   postInstall = ''
     mkdir -p $out/share/DrumGame
+    mkdir -p $out/share/DrumGame/resources/lib
     cp -r "$release/resources" $out/share/DrumGame/
+    cp resources/lib/* $out/share/DrumGame/resources/lib/
   '';
 
   fixupPhase = ''

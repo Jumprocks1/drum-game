@@ -64,7 +64,7 @@ buildDotnetModule (finalAttrs: {
         d="''${XDG_DATA_HOME:-$HOME/.local/share}/DrumGame"
         if [ ! -e "$d/.seeded-${finalAttrs.version}" ]; then
           mkdir -p "$d"
-          cp -r --no-preserve=mode,ownership ${placeholder "out"}/share/DrumGame/resources "$d/"
+          cp -r --no-preserve=mode,ownership --update=none ${placeholder "out"}/share/DrumGame/resources "$d/"
           touch "$d/.seeded-${finalAttrs.version}"
         fi
       '

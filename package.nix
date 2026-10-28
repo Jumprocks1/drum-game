@@ -36,6 +36,24 @@ buildDotnetModule (finalAttrs: {
     stripRoot = false;
   };
 
+  bassOPUS = fetchzip {
+    url = "https://www.un4seen.com/files/bassopus24-linux.zip";
+    sha256 = "hF4En9lxP8lec162kD1sCSu9BhvLeJRJMXJFxvxeHw8=";
+    stripRoot = false;
+  };
+
+  bassWEBM = fetchzip {
+    url = "https://www.un4seen.com/files/basswebm24-linux.zip";
+    sha256 = "TQARFSYm1zRgYr4INkQ/kQ9uFu6ne/FRfSm243gB2bQ=";
+    stripRoot = false;
+  };
+
+  bassAAC = fetchzip {
+    url = "https://www.un4seen.com/files/z/2/bass_aac24-linux.zip";
+    sha256 = "8oTVnZUMyWCaUUPTap9sVr50fidFQbUFDhxCNDIB+l4=";
+    stripRoot = false;
+  };
+
   projectFile = "DrumGame/DrumGame.Desktop/DrumGame.Desktop.csproj";
   nugetDeps = ./deps.json;
 
@@ -61,7 +79,9 @@ buildDotnetModule (finalAttrs: {
     mkdir -p $out/share/DrumGame
     mkdir -p $out/share/DrumGame/resources/lib
     cp -r "$release/resources" $out/share/DrumGame/
-    cp resources/lib/* $out/share/DrumGame/resources/lib/
+    cp "$bassOPUS/libs/x86_64/libbassopus.so" $out/share/DrumGame/resources/lib/
+    cp "$bassWEBM/libs/x86_64/libbasswebm.so" $out/share/DrumGame/resources/lib/
+    cp "$bassAAC/libs/x86_64/libbass_aac.so" $out/share/DrumGame/resources/lib/
   '';
 
   fixupPhase = ''
@@ -87,8 +107,15 @@ buildDotnetModule (finalAttrs: {
   executables = [ "DrumGame" ];
 
   meta = {
-    description = "An open-source rhythm game for electronic drums that is meant to be used as a practice and performance tool.";
+    description = "Free rhythm game for electronic drummers";
     homepage = "https://github.com/Jumprocks1/drum-game";
     mainProgram = "DrumGame";
+    license = with lib.licenses; [
+      mit
+      unfreeRedistributable # bass plugins
+    ];
+    platforms = [
+      "x86_64-linux"
+    ];
   };
 })

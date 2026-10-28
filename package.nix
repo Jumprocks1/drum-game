@@ -2,9 +2,10 @@
   lib,
   buildDotnetModule,
   fetchFromGitHub,
+  fetchzip,
+  unzip,
   dotnetCorePackages,
   stdenvNoCC,
-  coreutils,
   ffmpeg,
   alsa-lib,
   SDL2,
@@ -29,13 +30,19 @@ buildDotnetModule (finalAttrs: {
     sha256 = "sha256-c5FvD2m3mkP8/IYpG82Ib5mlfsoFBTwAeNTbg8WUsjw=";
   };
 
+  release = fetchzip {
+    url = "https://github.com/Jumprocks1/drum-game/releases/download/v${finalAttrs.version}/DrumGame-v${finalAttrs.version}-net8.0.zip";
+    sha256 = "s3h3wvdyXWKnbo0OxpsUxDIJnPcdIhoS5M7VCxnP8a8=";
+    stripRoot = false;
+  };
+
   projectFile = "DrumGame/DrumGame.Desktop/DrumGame.Desktop.csproj";
   nugetDeps = ./deps.json;
 
   dotnet-sdk = dotnetCorePackages.sdk_8_0;
   dotnet-runtime = dotnetCorePackages.runtime_8_0;
 
-  nativeBuildInputs = [ coreutils ];
+  nativeBuildInputs = [ unzip ];
 
   runtimeDeps = [
     ffmpeg
@@ -52,7 +59,7 @@ buildDotnetModule (finalAttrs: {
 
   postInstall = ''
     mkdir -p $out/share/DrumGame
-    cp -r resources $out/share/DrumGame/
+    cp -r "$release/resources" $out/share/DrumGame/
   '';
 
   fixupPhase = ''

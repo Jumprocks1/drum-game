@@ -15,6 +15,7 @@ public struct MapSetEntry
         MapStoragePath = mapStoragePath;
         Metadata = metadata;
     }
+    public MapSetEntry(Beatmap beatmap) : this(beatmap.MapStoragePath, new BeatmapMetadata(beatmap)) { }
 
     public readonly void Deconstruct(out string mapStoragePath, out BeatmapMetadata metadata)
     {

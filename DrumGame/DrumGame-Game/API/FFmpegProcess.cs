@@ -65,7 +65,7 @@ public class FFmpegProcess
         AddOutput(outputPath);
     }
 
-    public void SwapChannels() => AddArguments("-map_channel", "0.0.1", "-map_channel", "0.0.0");
+    public void SwapChannels() => AddArguments("-af", "pan=stereo|c0=c1|c1=c0");
     public void SimpleAudio() // removes images
     {
         AddArgument("-map_metadata");

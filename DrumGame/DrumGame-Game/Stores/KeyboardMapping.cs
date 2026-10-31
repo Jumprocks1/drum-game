@@ -29,7 +29,6 @@ public class KeyboardMapping : ICanBind<KeyboardMapping>, IEnumerable<KeyValuePa
         _inner.Add(InputKey.U, DrumChannel.MediumTom);
         _inner.Add(InputKey.I, DrumChannel.MediumTom);
         _inner.Add(InputKey.O, DrumChannel.LargeTom);
-        _inner.Add(InputKey.P, DrumChannel.LargeTom);
         _inner.Add(InputKey.LShift, DrumChannel.HiHatPedal);
         _inner.Add(InputKey.D, DrumChannel.HalfOpenHiHat);
         _inner.Add(InputKey.K, DrumChannel.HalfOpenHiHat);

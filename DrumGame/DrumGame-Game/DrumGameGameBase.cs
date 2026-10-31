@@ -32,6 +32,7 @@ using osu.Framework.Input.Handlers.Keyboard;
 using DrumGame.Game.Input;
 using osu.Framework;
 using osu.Framework.Input.Handlers.Touch;
+using System.Runtime.InteropServices;
 
 namespace DrumGame.Game;
 
@@ -348,7 +349,9 @@ public class DrumGameGameBase : osu.Framework.Game
             }
         }
         safeAdd("Version", () => Util.VersionString);
-        safeAdd("OS", () => System.Runtime.InteropServices.RuntimeInformation.OSDescription);
+        safeAdd("OS", () => RuntimeInformation.OSDescription);
+        safeAdd("OS Enum", () => RuntimeInfo.OS.ToString());
+        safeAdd("Runtime Identifier", () => RuntimeInformation.RuntimeIdentifier.ToString());
         var y = 0;
         foreach (var kv in list)
         {
@@ -493,7 +496,7 @@ public class DrumGameGameBase : osu.Framework.Game
         }
 
         return new Dictionary<FrameworkSetting, object> {
-            { FrameworkSetting.FrameSync, FrameSync.VSync }
+            { FrameworkSetting.FrameSync,  RuntimeInfo.IsDesktop ? FrameSync.VSync : FrameSync.Limit2x }
         };
     }
 }

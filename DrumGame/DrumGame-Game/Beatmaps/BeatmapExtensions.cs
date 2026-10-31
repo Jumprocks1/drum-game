@@ -654,6 +654,15 @@ public partial class Beatmap
     }
     public double BeatFromMeasure(int measure)
     {
+        if (measure < 0)
+        {
+            double measureBeats;
+            if (MeasureChanges.Count == 0 || MeasureChanges[0].Time != 0)
+                measureBeats = 4;
+            else
+                measureBeats = MeasureChanges[0].Beats;
+            return measureBeats * measure;
+        }
         if (MeasureChanges.Count == 0)
         {
             return measure * 4;
@@ -983,6 +992,9 @@ public partial class Beatmap
                 else if (e.Channel == DrumChannel.BassDrum)
                 {
                     var time = e.Time;
+                    // this feels really bad
+                    if (GetHitObjectsAtTick(time).Any(e => HitObjects[e].Channel == DrumChannel.ClosedHiHat || HitObjects[e].Channel == DrumChannel.HiHatPedal))
+                        lastCloseHH = e.Time;
                     if (removeExisting)
                         HitObjects[i] = e.With(e.Modifiers & ~NoteModifiers.LeftRight);
 

@@ -13,6 +13,8 @@ public class SyncQueue
     {
         lock (BassEvents.l_HashSet)
         {
+            // I've had this freeze during practice mode on Linux PC
+            // Not sure how
             foreach (var (handle, sync) in BassEvents.l_HashSet)
                 BassMix.ChannelRemoveSync(handle, sync);
             BassEvents.Clear();

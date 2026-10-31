@@ -501,7 +501,7 @@ public partial class BeatmapSelector : CompositeDrawable
             try
             {
                 sshSync.CopyRemoteFile("database.db", local);
-                using var RemoteDb = new DrumDbContext($"Data Source={local};Mode=ReadOnly;");
+                using var RemoteDb = new DrumDbContext($"Data Source={local};");
                 using var localContext = Util.GetDbContext();
                 localContext.SyncWith(RemoteDb, syncType);
                 RemoteDb.Database.EnsureDeleted();
@@ -1076,6 +1076,9 @@ public partial class BeatmapSelector : CompositeDrawable
 
     [CommandHandler]
     public bool ExportMap(CommandContext context) => BeatmapExporter.Export(context, MapStorage.LoadMapForPlay(TargetMap.MapStoragePath));
+
+    [CommandHandler]
+    public bool ExportVisibleMaps(CommandContext context) => BeatmapExporter.Export(context, [.. FilteredMaps.Select(e => MapStorage.LoadMapForPlay(e.MapStoragePath))]);
 
 
     bool ModifyRating(CommandContext context, int inc)

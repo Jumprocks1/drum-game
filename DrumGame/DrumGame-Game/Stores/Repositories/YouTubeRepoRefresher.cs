@@ -44,10 +44,13 @@ public class YouTubeRepoRefresher : RepoRefresherBase
             pageToken = nextPageToken;
         else throw new Exception($"Cannot download page {page} from YouTube repository");
 
+        if (pageToken == null && page != 0) return maps; // this breaks the outer loop
+
         var playlistId = PlaylistId;
 
         var videos = await YouTubeAPI.LookupVideos(playlistId, pageToken);
         nextPageToken = videos.NextPageToken;
+        nextPage = page + 1;
 
         // Example for くだむの
         // "snippet": {
@@ -93,28 +96,27 @@ public class YouTubeRepoRefresher : RepoRefresherBase
             // {
             //     newMap.Index = i;
             // }
-
+            newMap.Title = video.Snippet.Title;
             newMap.Comments = video.Snippet.Description;
             if (newMap.Comments.Length > 300)
                 newMap.Comments = newMap.Comments.Substring(0, 300);
             newMap.PublishedOn = new DateTimeOffset(video.Snippet.PublishedAt).ToUniversalTime();
-            // newMap.UpdatedOn = DateTimeOffset.Parse(GetT(map, "updated")).ToUniversalTime();
             // foreach (var t in map["link"])
             // {
             //     if (t.Value<string>("rel") == "alternate")
             //         newMap.Url = t.Value<string>("href");
             // }
 
-            newMap.Title = newMap.Title.Trim();
+            newMap.Title = newMap.Title?.Trim();
             newMap.Mapper = Repo.Mapper;
-            // newMap.Artist = newMap.Artist?.Trim();
+            newMap.Artist = newMap.Artist?.Trim();
 
             // var checkStr = newMap.Artist + " - ";
             // if (newMap.Title.StartsWith(checkStr))
             //     newMap.Title = newMap.Title[checkStr.Length..];
 
-            // newMap.DownloadUrl = newMap.DownloadUrl?.Trim();
-            // maps.Add(newMap);
+            newMap.DownloadUrl = newMap.DownloadUrl?.Trim();
+            maps.Add(newMap);
         }
 
         return maps;

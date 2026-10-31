@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 using DrumGame.Game.Utils;
-using osu.Framework.Audio;
+using osu.Framework;
 using osu.Framework.Audio.Track;
 using osu.Framework.Graphics.Textures;
 using osu.Framework.IO.Stores;
@@ -84,6 +86,21 @@ public class FileSystemResources : StorageBackedResourceStore
     // Could add security check here
     public string GetAbsolutePath(string path) => Path.GetFullPath(path, AbsolutePath);
     public string GetRelativePath(string path) => Path.GetRelativePath(AbsolutePath, path);
+
+    public List<string> LibFolders => field ??= _libFolders();
+    List<string> _libFolders()
+    {
+        var o = new List<string>();
+        void add(string s)
+        {
+            s = GetAbsolutePath(s);
+            if (Directory.Exists(s)) o.Add(s);
+        }
+        add($"lib/{RuntimeInformation.RuntimeIdentifier.ToLowerInvariant()}");
+        add($"lib/{RuntimeInfo.OS.ToString().ToLowerInvariant()}");
+        add("lib");
+        return o;
+    }
     public bool Contains(string path) => Path.GetFullPath(path).StartsWith(AbsolutePath);
     public bool Exists(string path) => Storage.Exists(path);
 
@@ -112,12 +129,15 @@ public class FileSystemResources : StorageBackedResourceStore
         foreach (var location in locations)
         {
             // prefer our lib folder
-            var libPath = GetAbsolutePath(Path.Join("lib", location));
-            if (File.Exists(libPath))
-                return libPath;
-            libPath += extension;
-            if (File.Exists(libPath))
-                return libPath;
+            foreach (var lib in LibFolders)
+            {
+                var libPath = Path.Join(lib, location);
+                if (File.Exists(libPath))
+                    return libPath;
+                libPath += extension;
+                if (File.Exists(libPath))
+                    return libPath;
+            }
         }
         foreach (var location in locations)
         {

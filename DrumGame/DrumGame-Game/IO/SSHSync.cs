@@ -85,6 +85,7 @@ public class SSHSync
         if (files.TryGetNonEnumeratedCount(out var c) && c == 0) return;
         var remote = Path.GetFullPath(directory, RemotePath);
         var startInfo = new ProcessStartInfo { FileName = "scp" };
+        startInfo.ArgumentList.Add("-q");
         startInfo.ArgumentList.Add("-OT");
         foreach (var file in files) startInfo.ArgumentList.Add(Path.GetFullPath(Path.Join(directory, file), LocalPath));
         startInfo.ArgumentList.Add($"{Host}:{remote}");
@@ -106,7 +107,6 @@ public class SSHSync
         if (!string.IsNullOrWhiteSpace(error))
         {
             Logger.Log($"Failed to run with arguments: {string.Join(", ", proc.StartInfo.ArgumentList)}", level: LogLevel.Error);
-            Logger.Log(proc.StandardOutput.ReadToEnd(), level: LogLevel.Error);
             Logger.Log(error, level: LogLevel.Error);
             throw new BackgroundTaskException("Connection failed.");
         }
@@ -126,6 +126,7 @@ public class SSHSync
         if (files.TryGetNonEnumeratedCount(out var c) && c == 0) return;
         var local = Path.GetFullPath(directory, LocalPath);
         var startInfo = new ProcessStartInfo { FileName = "scp" };
+        startInfo.ArgumentList.Add("-q");
         startInfo.ArgumentList.Add("-OT");
         var fileList = string.Join(' ', files.Select(e => $"\"{Path.Join(RemotePath, Path.Join(directory, e))}\""));
         startInfo.ArgumentList.Add($"{Host}:{fileList}");

@@ -31,7 +31,7 @@ public class TrackClock : IClock, IDisposable
     public double AbsoluteTime => IsRunning && Track.IsRunning && !IsAsyncSeeking ? Track.CurrentTime + LatencyFactor : CurrentTime;
     public AdjustableProperty PreferredTempoAdjustment;
     // frequency adjustment doesn't seem to need this
-    double LatencyCorrection => PreferredTempoAdjustment == AdjustableProperty.Tempo ? 60 : 0;
+    double LatencyCorrection => PreferredTempoAdjustment == AdjustableProperty.Tempo ? 40 : 0;
     // incremented on update thread when seeking. Use to handle events that originate from different threads
     public int TimeVersion = 1;
     double LatencyFactor => IsRunning ? -LatencyCorrection * (Rate - 1) : 0;

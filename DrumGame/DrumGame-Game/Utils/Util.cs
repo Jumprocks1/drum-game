@@ -320,6 +320,18 @@ public static class Util
         }
         return a;
     }
+    // must be full paths
+    public static string PathGCD(string a, string b)
+    {
+        if (a == null || b == null) return null;
+        while (!a.StartsWith(b))
+        {
+            var c = Path.GetDirectoryName(b);
+            if (c == b) return null;
+            b = c;
+        }
+        return b;
+    }
     public static string FormatTime(double ms)
     {
         var t = ms > 0 ? (int)ms / 1000 : 0;

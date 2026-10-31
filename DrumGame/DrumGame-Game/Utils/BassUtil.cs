@@ -28,7 +28,13 @@ public static class BassUtil
         {
             var plugin = Bass.PluginLoad(pluginName);
             if (plugin == 0)
-                plugin = Bass.PluginLoad(Util.Resources.GetAbsolutePath(Path.Join("lib", pluginName)));
+            {
+                foreach (var folder in Util.Resources.LibFolders)
+                {
+                    plugin = Bass.PluginLoad(Path.Join(folder, pluginName));
+                    if (plugin != 0) break;
+                }
+            }
             if (plugin == 0)
             {
                 Logger.Log($"Failed to load {pluginName}. See https://github.com/Jumprocks1/drum-game/blob/main/docs/Dependencies.md", level: LogLevel.Error);

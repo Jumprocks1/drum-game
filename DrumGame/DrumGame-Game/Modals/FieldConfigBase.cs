@@ -15,6 +15,7 @@ public abstract class FieldConfigBase : IFieldConfig
     public abstract bool HasCommit { get; }
     public abstract void SetDefault(object value);
     public abstract IDrawableField Render(RequestModal modal);
+    // TODO think this could be a lot better (see FieldBuilder)
     public static FieldConfigBase GetConfigFor(Type t)
     {
         var under = System.Nullable.GetUnderlyingType(t);

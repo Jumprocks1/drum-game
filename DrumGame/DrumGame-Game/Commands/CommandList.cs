@@ -70,6 +70,7 @@ public enum Command
     CollapseFlams,
     SetLeftBassSticking,
     SimplifyNotes,
+    DrillMaker,
     StackDrumChannel,
     InsertPresetNote,
     InsertRoll,
@@ -192,6 +193,7 @@ public enum Command
     ExportMap,
     ExportToMidi,
     ExportToDtx,
+    ExportVisibleMaps,
     ConvertAudioToOgg,
     LoadYouTubeAudio,
     FixAudio,
@@ -348,6 +350,7 @@ public static class CommandList
         controller.RegisterCommand(Command.SetLeftBassSticking)
             .SearchTags = "double-bass db";
         controller.RegisterCommand(Command.SimplifyNotes);
+        controller.RegisterCommand(Command.DrillMaker);
         controller.RegisterCommand(Command.StackDrumChannel);
         controller.SetParameterInfo(Command.StackDrumChannel, typeof(DrumChannel));
         controller.RegisterCommand(Command.InsertPresetNote);
@@ -548,7 +551,7 @@ public static class CommandList
             new KeyCombo(ModifierKey.Ctrl, InputKey.W), new KeyCombo(ModifierKey.Ctrl, InputKey.Q));
         controller.RegisterCommand(Command.ForceQuitGame);
         controller.RegisterCommand(Command.ToggleFullscreen, InputKey.F11, new KeyCombo(ModifierKey.Alt, InputKey.Enter));
-        controller.RegisterCommand(Command.MaximizeWindow, DrumChannel.Ride);
+        controller.RegisterCommand(Command.MaximizeWindow);
         controller.RegisterCommand(Command.CycleFrameSync, new KeyCombo(ModifierKey.Ctrl, InputKey.F7));
         controller.RegisterCommand(Command.CycleFrameStatistics, new KeyCombo(ModifierKey.Ctrl, InputKey.F11));
         controller.RegisterCommand(Command.ToggleLogOverlay, new KeyCombo(ModifierKey.Ctrl, InputKey.F10));
@@ -566,6 +569,7 @@ public static class CommandList
         controller.RegisterCommand(Command.ExportMap);
         controller.RegisterCommand(Command.ExportToMidi);
         controller.RegisterCommand(Command.ExportToDtx);
+        controller.RegisterCommand(Command.ExportVisibleMaps);
         controller.RegisterCommand(Command.ConvertAudioToOgg)
             .SearchTags = "reencode";
         controller.RegisterCommand(Command.LoadYouTubeAudio, "Load YouTube Audio");

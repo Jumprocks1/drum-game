@@ -20,9 +20,16 @@ public class SettingsView : SettingsViewBase
 {
     public override string Title => "Settings";
 
+    protected override void Dispose(bool isDisposing)
+    {
+        Util.CommandController.RemoveHandlers(this);
+        base.Dispose(isDisposing);
+    }
+
     [BackgroundDependencyLoader]
     private void load()
     {
+        Util.CommandController.RegisterHandlers(this);
         var y = 5f;
         var x = -10f;
         const float spacing = 6;

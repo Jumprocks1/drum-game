@@ -152,7 +152,7 @@ public class Plot : Drawable, IBufferedDrawable, IHasMarkupTooltip
         return base.OnClick(e);
     }
 
-    private readonly BufferedDrawNodeSharedData sharedData = new BufferedDrawNodeSharedData(new[] { RenderBufferFormat.D16 }, clipToRootNode: true);
+    private readonly BufferedDrawNodeSharedData sharedData = new(formats: [RenderBufferFormat.D16], clipToRootNode: true);
 
     protected override DrawNode CreateDrawNode() => new BufferedDrawNode(this, new PlotDrawNode(this), sharedData);
 

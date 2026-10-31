@@ -33,6 +33,7 @@
         }
     ],
     "dotnet.server.useOmnisharp": false,
+    "dotnet.defaultSolution": "DrumGame.sln",
     "search.exclude": {
         "resources/maps": true
     },

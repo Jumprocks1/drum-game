@@ -29,8 +29,8 @@ public enum PasteTarget
 }
 public class CopyBuffer
 {
-    public List<HitObject> hitObjects = new();
-    public PasteTarget Target;
+    public readonly List<HitObject> hitObjects = new();
+    public PasteTarget Target { get; init; }
 }
 public partial class BeatmapEditor : BeatmapPlayer
 {
@@ -274,19 +274,19 @@ public partial class BeatmapEditor : BeatmapPlayer
         Display.SnapIndicator = !Display.SnapIndicator;
         Display.SongCursorVisible = !Display.SnapIndicator;
     }
-    [CommandHandler]
-    public void Copy()
+    [CommandHandler] public void Copy() => CopyBuffer = NewCopyBufferFromSelection();
+    public CopyBuffer NewCopyBufferFromSelection()
     {
         var (from, to) = GetCurrentRange();
-        CopyBuffer = new CopyBuffer { Target = PasteTarget.Measure };
+        var res = new CopyBuffer { Target = PasteTarget.Measure };
         foreach (var hit in Beatmap.HitObjects)
         {
+            // Could use binary search here
             if (hit.Time >= to) break;
             if (hit.Time >= from)
-            {
-                CopyBuffer.hitObjects.Add(hit.WithTime(hit.Time - from));
-            }
+                res.hitObjects.Add(hit.WithTime(hit.Time - from));
         }
+        return res;
     }
     [CommandHandler]
     public void InsertRoll()
@@ -306,35 +306,37 @@ public partial class BeatmapEditor : BeatmapPlayer
     public void Paste()
     {
         if (CopyBuffer == null || CopyBuffer.hitObjects.Count == 0) return;
-        // TODO look at PasteTarget
         var toBeat = Beatmap.BeatFromMeasure(Track.CurrentMeasure);
         var to = Beatmap.TickFromBeat(toBeat);
-        // we have to clone so that if we undo + redo this operation, we have the CopyBuffer stored
-        var paste = new List<HitObject>(CopyBuffer.hitObjects);
         var desc = $"paste at beat {toBeat}";
-        PushChange(new NoteBeatmapChange(() =>
+        var buffer = CopyBuffer; // this captures the current buffer to the lambda
+        PushChange(new NoteBeatmapChange(() => WriteBufferAt(buffer, to), desc));
+    }
+    public AffectedRange WriteBufferAt(CopyBuffer buffer, int to)
+    {
+        if (buffer == null || buffer.hitObjects.Count == 0) return false;
+        var objects = buffer.hitObjects;
+        // TODO look at PasteTarget
+        // this should follow similar rules to regularly adding notes with one exception
+        // if we already have stacked hits in the copy buffer, we must paste them stacked
+        // this is very tricky since AddHit likes to remove stacked hits - we still want this behavior, just with the other hits in the copy buffer excluded
+        // this only requires special logic for hits after the first
+        // it gets further complicated though because the first hit might not even remove the stacked hits, since stacked hits aren't removed if there's an exact match
+        var toAdd = new List<HitObjectData>();
+        foreach (var (t, group) in objects.SortedGroupBy(e => e.Time))
         {
-            // this should follow similar rules to regularly adding notes with one exception
-            // if we already have stacked hits in the copy buffer, we must paste them stacked
-            // this is very tricky since AddHit likes to remove stacked hits - we still want this behavior, just with the other hits in the copy buffer excluded
-            // this only requires special logic for hits after the first
-            // it gets further complicated though because the first hit might not even remove the stacked hits, since stacked hits aren't removed if there's an exact match
-            var toAdd = new List<HitObjectData>();
-            foreach (var (t, group) in paste.SortedGroupBy(e => e.Time))
+            toAdd.Clear();
+            foreach (var hit in group)
             {
-                toAdd.Clear();
-                foreach (var hit in group)
+                if (hit is RollHitObject roll)
                 {
-                    if (hit is RollHitObject roll)
-                    {
-                        Beatmap.AddRoll(hit.Time + to, roll.Duration, hit.Data);
-                    }
-                    else toAdd.Add(hit.Data);
+                    Beatmap.AddRoll(hit.Time + to, roll.Duration, hit.Data);
                 }
-                Beatmap.AddHitsAt(t + to, toAdd);
+                else toAdd.Add(hit.Data);
             }
-            return new AffectedRange(to, paste[^1].Time + to + 1);
-        }, desc));
+            Beatmap.AddHitsAt(t + to, toAdd);
+        }
+        return new AffectedRange(to, objects[^1].Time + to + 1);
     }
     [CommandHandler] public void Cut() { Copy(); Delete(); }
     [CommandHandler]

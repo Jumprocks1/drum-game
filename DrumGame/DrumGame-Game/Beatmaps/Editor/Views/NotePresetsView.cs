@@ -164,7 +164,7 @@ public class NotePresetsView : RequestModal
             for (var i = 0; i < hitObjects.Count; i++)
             {
                 var ho = hitObjects[i];
-                if (canRemove(ho.Preset))
+                if (ho.Preset != null && canRemove(ho.Preset))
                     hitObjects[i] = ho.With(new HitObjectData(ho.Channel, ho.Modifiers));
             }
             return true;

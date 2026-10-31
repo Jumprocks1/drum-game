@@ -671,6 +671,7 @@ public partial class BeatmapEditor
     }
 
     [CommandHandler] public void ConfigureNotePresets() => Util.Palette.Push(new NotePresetsView(this));
+    [CommandHandler] public void DrillMaker() => DrillMakerView.Open(this);
 
     [CommandHandler]
     public void SplitMeasure()

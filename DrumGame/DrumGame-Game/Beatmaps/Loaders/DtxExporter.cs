@@ -800,6 +800,7 @@ public class DtxExporter
     void Export()
     {
         var set = Config.ExportMapSet ? MapStorage.GetMapSet(TargetBeatmap) : [];
+        if (set.Count == 0) set = [new MapSetEntry(TargetBeatmap)];
 
         string commonString;
         if (set.Count > 1)
@@ -810,8 +811,7 @@ public class DtxExporter
         var basename = Util.Resources.GetAbsolutePath(Path.Join("dtx-exports", commonString + "-dtx"));
         Output = new FileProvider(Directory.CreateDirectory(basename));
 
-        if (set.Count > 1)
-            MakeSetDef(set);
+        MakeSetDef(set);
 
         var exports = new List<(BeatmapMetadata, Beatmap)>();
         exports.Add((null, TargetBeatmap));

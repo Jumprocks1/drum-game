@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using DrumGame.Game.Beatmaps;
+using DrumGame.Game.Beatmaps.Loaders;
 using DrumGame.Game.Channels;
 
 namespace DrumGame.Game.Timing;
@@ -22,79 +23,88 @@ public abstract class BookmarkEvent
         foreach (var bookmark in beatmap.Bookmarks)
         {
             if (string.IsNullOrWhiteSpace(bookmark.Title)) continue;
-            if (!bookmark.Title.StartsWith("!")) continue;
+            if (!bookmark.Title.StartsWith('!')) continue;
 
-            var spl = bookmark.Title.Split(' ');
-            var next = 1;
-            var key = spl[0][1..];
-
-            HitObjectData? ReadFilter()
+            foreach (var part in bookmark.Title.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
             {
-                HitObjectData? filter = null;
-                if (spl.Length > next && char.IsLetter(spl[next][0]) && Enum.TryParse<DrumChannel>(spl[next], out var dc))
-                {
-                    filter = new HitObjectData(dc);
-                    next += 1;
-                }
-                if (spl.Length > next && char.IsLetter(spl[next][0]) && Enum.TryParse<NoteModifiers>(spl[next], out var nm))
-                {
-                    if (filter is HitObjectData h)
-                        filter = new HitObjectData(h.Channel, nm);
-                    else
-                        filter = new HitObjectData(DrumChannel.None, nm);
-                    next += 1;
-                }
-                return filter;
-            }
-
-            double? ReadNumber()
-            {
-                if (spl.Length > next && double.TryParse(spl[next], out var d))
-                {
-                    next += 1;
-                    return d;
-                }
-                return null;
-            }
-
-            if (key == JumpKey)
-            {
-                var target = bookmark.Title.AsSpan(JumpKey.Length);
-                foreach (var b in beatmap.Bookmarks)
-                {
-                    if (target.Equals(b.Title, StringComparison.OrdinalIgnoreCase))
-                    {
-                        o.Add(new BookmarkJumpEvent(bookmark.Time, b.Time));
-                        break;
-                    }
-                }
-            }
-            else if (key == VolumeKey)
-            {
-                o.Add(new BookmarkVolumeEvent(bookmark.Time)
-                {
-                    Filter = ReadFilter(),
-                    Volume = (ReadNumber() ?? 100) / 100
-                });
-            }
-            else if (key == CrescendoKey)
-            {
-                o.Add(new BookmarkCrescendoEvent(bookmark.Time)
-                {
-                    Filter = ReadFilter(),
-                    LengthBeats = ReadNumber() ?? 4,
-                    StartVolume = (ReadNumber() ?? 0) / 100,
-                    Volume = (ReadNumber() ?? 100) / 100
-                });
-            }
-            else if (key == EndKey)
-            {
-                o.Add(new BookmarkEndEvent(bookmark.Time));
+                var ev = ReadEvent(beatmap, part, bookmark.Time);
+                if (ev != null) o.Add(ev);
             }
         }
         return o;
     }
     public virtual void Trigger(BeatClock clock) { }
+
+    public static BookmarkEvent ReadEvent(Beatmap beatmap, string title, double time)
+    {
+        if (!title.StartsWith('!')) return null;
+        var spl = title.Split(' ');
+        var next = 1;
+        var key = spl[0][1..];
+
+        (HitObjectData?, bool) ReadFilter()
+        {
+            HitObjectData? data = null;
+            var all = true;
+            if (spl.Length > next && char.IsLetter(spl[next][0]) && Enum.TryParse<DrumChannel>(spl[next], out var dc))
+            {
+                data = new HitObjectData(dc);
+                next += 1;
+            }
+            if (spl.Length > next && char.IsLetter(spl[next][0]) && Enum.TryParse<NoteModifiers>(spl[next], out var nm))
+            {
+                all = false;
+                if (data is HitObjectData h)
+                    data = new HitObjectData(h.Channel, nm);
+                else
+                    data = new HitObjectData(DrumChannel.None, nm);
+                next += 1;
+            }
+            return (data, all);
+        }
+
+        double? ReadNumber()
+        {
+            if (spl.Length > next && double.TryParse(spl[next], out var d))
+            {
+                next += 1;
+                return d;
+            }
+            return null;
+        }
+
+        if (key == JumpKey)
+        {
+            var target = title.AsSpan(JumpKey.Length);
+            foreach (var b in beatmap.Bookmarks)
+            {
+                if (target.Equals(b.Title, StringComparison.OrdinalIgnoreCase))
+                {
+                    return new BookmarkJumpEvent(time, b.Time);
+                }
+            }
+        }
+        else if (key == VolumeKey)
+        {
+            return new BookmarkVolumeEvent(time)
+            {
+                Filter = ReadFilter(),
+                Volume = (ReadNumber() ?? 100) / 100
+            };
+        }
+        else if (key == CrescendoKey)
+        {
+            return new BookmarkCrescendoEvent(time)
+            {
+                Filter = ReadFilter(),
+                LengthBeats = ReadNumber() ?? 4,
+                StartVolume = (ReadNumber() ?? 0) / 100,
+                Volume = (ReadNumber() ?? 100) / 100
+            };
+        }
+        else if (key == EndKey) return new BookmarkEndEvent(time);
+        return null;
+    }
 }
 
 public class BookmarkCrescendoEvent : BookmarkVolumeEvent
@@ -121,7 +131,16 @@ public class BookmarkEndEvent(double beat) : BookmarkEvent(beat) { }
 public class BookmarkVolumeEvent : BookmarkEvent
 {
     public double Volume;
-    public HitObjectData? Filter;
+    public HitObjectData? FilterData;
+    public bool All;
+    public (HitObjectData? Data, bool All) Filter
+    {
+        set
+        {
+            FilterData = value.Data;
+            All = value.All;
+        }
+    }
     public BookmarkVolumeEvent(double beat) : this(beat, 1) { }
     public BookmarkVolumeEvent(double beat, double volume) : base(beat)
     {
@@ -140,9 +159,9 @@ public class BookmarkVolumeEvent : BookmarkEvent
 
     public bool Matches(HitObjectData data)
     {
-        if (Filter is HitObjectData f)
+        if (FilterData is HitObjectData f)
         {
-            if (data.Channel == f.Channel && data.Modifiers == f.Modifiers)
+            if (data.Channel == f.Channel && (All || data.Modifiers == f.Modifiers))
             {
                 return true;
             }

@@ -30,6 +30,9 @@ public class BeatmapReplay : IBeatEventHandler
 
     public BeatmapReplay(IEnumerable<IReplayEvent> events)
     {
+        // Had this crash once
+        // Think it would happen if events was modified on another thread while ToList was executing
+        // The error was inside ToList, so it wasn't something we could control directly
         Events = events.OrderBy(e => e.Time).ToList();
     }
 

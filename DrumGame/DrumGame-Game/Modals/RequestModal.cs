@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using DrumGame.Game.Commands;
 using DrumGame.Game.Components;
 using DrumGame.Game.Components.Basic;
@@ -59,6 +60,27 @@ public class FieldBuilder // could make a fancy field builder that keeps track o
     }
     List<IFieldConfig> Fields = new();
     public IFieldConfig[] Build() => Fields.ToArray();
+    public FieldBuilder AddClass<T>(T instance)
+    {
+        foreach (var field in typeof(T).GetFields())
+            Add(field, field.GetValue(instance));
+        return this;
+    }
+    public FieldBuilder Add(FieldInfo field, object defaultValue)
+    {
+        var type = field.FieldType;
+        FieldConfigBase config;
+        if (type == typeof(int))
+            config = new IntFieldConfig();
+        else if (type == typeof(double))
+            config = new NumberFieldConfig();
+        else throw new NotSupportedException();
+        config.Label = field.Name;
+        config.Key = field.Name;
+        config.SetDefault(defaultValue);
+        Add(config);
+        return this;
+    }
 }
 
 // TODO could make a reflection method for generating a RequestConfig from a class
@@ -174,7 +196,16 @@ public class RequestModal : TabbableContainer, IModal, IAcceptFocus
         return ((IDrawableField<T>)GetField(key)).Value;
     }
     public IDrawableField this[string key] => GetField(key) ?? throw new KeyNotFoundException($"Key not found: {key}");
-
+    public void ToObject<T>(T o)
+    {
+        foreach (var field in typeof(T).GetFields())
+        {
+            var v = GetField(field.Name).Value;
+            if (v?.GetType() == typeof(string))
+                v = CommandParameters.ParseOrDefault((string)v, field.FieldType);
+            field.SetValue(o, v);
+        }
+    }
 
     public RequestModal(string title, string description = null) : this(new RequestConfig
     {

@@ -19,7 +19,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <TargetFramework>net8.0-android</TargetFramework>
+    <TargetFramework>net10.0-android</TargetFramework>
     <OutputType>Exe</OutputType>
     <RootNamespace>DrumGame.Android</RootNamespace>
     <AssemblyName>DrumGame.Android</AssemblyName>
@@ -28,14 +28,14 @@
     <EnablePreviewFeatures>True</EnablePreviewFeatures>
 
     <!-- TODO auto set these somehow -->
-    <ApplicationVersion>3</ApplicationVersion>
-    <ApplicationDisplayVersion>0.9.4</ApplicationDisplayVersion>
+    <ApplicationVersion>4</ApplicationVersion>
+    <ApplicationDisplayVersion>0.9.5</ApplicationDisplayVersion>
   </PropertyGroup>
   <ItemGroup Condition="Exists('..\..\osu-framework\osu.Framework.Android\osu.Framework.Android.csproj')">
     <ProjectReference Include="..\..\osu-framework\osu.Framework.Android\osu.Framework.Android.csproj" />
   </ItemGroup>
   <ItemGroup Condition="!Exists('..\..\osu-framework\osu.Framework.Android\osu.Framework.Android.csproj')">
-    <PackageReference Include="ppy.osu.Framework.Android" Version="2026.318.0" />
+    <PackageReference Include="ppy.osu.Framework.Android" Version="2026.1030.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DrumGame-Game\DrumGame.Game.csproj" />

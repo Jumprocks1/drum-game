@@ -40,7 +40,7 @@ public class BeatmapShaderContainer : Container, IBufferedDrawable
         Player = player;
         AddInternal(player);
         FragmentShader = fragmentShader;
-        sharedData = new BufferedDrawNodeSharedData(null, false, true);
+        sharedData = new BufferedDrawNodeSharedData(clipToRootNode: true);
     }
 
     [BackgroundDependencyLoader]

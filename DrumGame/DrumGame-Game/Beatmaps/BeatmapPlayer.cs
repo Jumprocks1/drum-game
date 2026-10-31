@@ -285,6 +285,7 @@ public class BeatmapPlayer : CompositeDrawable
             }
         }
         track.Volume.Value = Beatmap.CurrentRelativeVolume;
+        if (Beatmap.LeadIn < 0) track.Seek(-Beatmap.LeadIn);
         return track;
     }
 

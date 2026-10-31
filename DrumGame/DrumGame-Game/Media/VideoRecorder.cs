@@ -256,7 +256,7 @@ public class VideoRecorder : IVideoRecorder
         var bytes = 4 * width * height;
 
         var pbo = GetPBO(bytes);
-        GL.ReadPixels(0, 0, width, height, PixelFormat.Rgba, PixelType.UnsignedByte, (IntPtr)null);
+        GL.ReadPixels(0, 0, width, height, PixelFormat.Rgba, PixelType.UnsignedByte, IntPtr.Zero);
         // GL.BindBuffer(BufferTarget.PixelPackBuffer, 0); // probably don't need to do this
         var sync = GL.FenceSync(SyncCondition.SyncGpuCommandsComplete, WaitSyncFlags.None);
         void Check()

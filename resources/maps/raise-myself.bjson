@@ -1414,7 +1414,7 @@
     {
       "time": 148.5,
       "channel": "high-tom",
-      "sticking": "right"
+      "sticking": "left"
     },
     {
       "time": 148.75,
@@ -1423,7 +1423,7 @@
     {
       "time": 149.0,
       "channel": "high-tom",
-      "sticking": "right"
+      "sticking": "left"
     },
     {
       "time": 149.25,
@@ -1436,11 +1436,12 @@
     {
       "time": 149.75,
       "channel": "mid-tom",
-      "sticking": "left"
+      "sticking": "right"
     },
     {
       "time": 150.0,
-      "channel": "mid-tom"
+      "channel": "mid-tom",
+      "sticking": "right"
     },
     {
       "time": 150.25,
@@ -4254,8 +4255,7 @@
     },
     {
       "time": 380.75,
-      "channel": "mid-tom",
-      "sticking": "right"
+      "channel": "mid-tom"
     },
     {
       "time": 381.0,
@@ -4264,13 +4264,11 @@
     },
     {
       "time": 381.25,
-      "channel": "high-tom",
-      "sticking": "right"
+      "channel": "high-tom"
     },
     {
       "time": 381.5,
-      "channel": "high-tom",
-      "sticking": "left"
+      "channel": "high-tom"
     },
     {
       "time": 381.75,

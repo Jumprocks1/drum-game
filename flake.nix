@@ -2,19 +2,40 @@
   description = "drum-game environement";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
+    nixgl = {
+      url = "github:nix-community/nixGL";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
-    { self, nixpkgs }:
+    {
+      self,
+      nixpkgs,
+      nixgl,
+    }:
     let
       system = "x86_64-linux";
       pkgs = import nixpkgs { inherit system; };
+      gl = nixgl.packages.${system};
       appPkg = pkgs.callPackage ./package.nix { };
+      mesaApp = pkgs.writeShellScriptBin "DrumGame" ''
+        exec ${gl.nixVulkanIntel}/bin/nixVulkanIntel \
+             ${gl.nixGLIntel}/bin/nixGLIntel \
+             ${appPkg}/bin/DrumGame "$@"
+      '';
+      nvidiaApp = pkgs.writeShellScriptBin "DrumGame" ''
+        exec ${gl.nixVulkanNvidia}/bin/nixVulkanNvidia \
+             ${gl.nixGLNvidia}/bin/nixGLNvidia \
+             ${appPkg}/bin/DrumGame "$@"
+      '';
     in
     {
       packages.${system} = {
         default = appPkg;
+        mesa = mesaApp;
+        nvidia = nvidiaApp;
         local = appPkg.overrideAttrs (_: {
           src = builtins.path { path = ./.; };
         });

@@ -48,9 +48,6 @@
       game = pkgs.callPackage ./package.nix { alsa-lib = alsa; };
 
       run = pkgs.writeShellScript "drum-game" ''
-        if [[ $(${pkgs.vulkan-tools}/bin/vulkaninfo --summary 2>/dev/null) == *DEVICE_TYPE_*_GPU* ]]; then
-          export OSU_GRAPHICS_SURFACE=Vulkan OSU_GRAPHICS_RENDERER=deferred
-        fi
         if [[ -S $XDG_RUNTIME_DIR/pipewire-0 && ! -e /etc/asound.conf && ! -e ~/.asoundrc
               && ! -e ''${XDG_CONFIG_HOME:-~/.config}/alsa/asoundrc ]]; then
           export ALSA_CONFIG_PATH=${alsa}/share/alsa/alsa.conf:${pkgs.pipewire}/share/alsa/alsa.conf.d/99-pipewire-default.conf

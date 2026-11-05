@@ -29,8 +29,7 @@ jobs:
       - name: Regenerate deps.json
         run: |
           set -euo pipefail
-          export NIXPKGS_ALLOW_UNFREE=1
-          nix build --impure .#default.fetch-deps
+          nix build .#local.fetch-deps
           ./result deps.json
 
       - name: Detect changes

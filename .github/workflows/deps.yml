@@ -38,7 +38,7 @@ jobs:
           set -euo pipefail
           if [ -z "$(git status --porcelain -- deps.json)" ]; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
-            echo "deps.json is up to date"
+            echo "::notice file=deps.json::deps.json is up to date"
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
             echo "::notice file=deps.json::deps.json needs regeneration"

@@ -19,13 +19,23 @@
         config.allowUnfree = true;
       };
       mesa = import nixgl { inherit pkgs; };
-      nvidia =
-        (import nixgl {
-          pkgs = import nixgl.inputs.nixpkgs {
-            inherit system;
-            config.allowUnfree = true;
-          };
-        }).auto;
+      nvidiaVersion = builtins.head (
+        builtins.match ".*Module .* ([0-9.]+)  .*" (
+          builtins.readFile (
+            pkgs.runCommand "nvidia-version" {
+              time = builtins.currentTime;
+              preferLocalBuild = true;
+            } "cp /proc/driver/nvidia/version $out"
+          )
+        )
+      );
+      nvidia = import nixgl {
+        pkgs = import nixgl.inputs.nixpkgs {
+          inherit system;
+          config.allowUnfree = true;
+        };
+        inherit nvidiaVersion;
+      };
 
       nvidiaLoaded =
         assert

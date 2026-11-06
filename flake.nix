@@ -27,11 +27,16 @@
           };
         }).auto;
 
+      nvidiaLoaded =
+        assert
+          builtins ? currentSystem || throw "DrumGame: run with --impure so the GPU driver can be detected";
+        builtins.pathExists "/proc/driver/nvidia/version";
+
       drivers = [
         mesa.nixGLIntel
         mesa.nixVulkanIntel
       ]
-      ++ pkgs.lib.optionals (builtins.pathExists "/proc/driver/nvidia/version") [
+      ++ pkgs.lib.optionals nvidiaLoaded [
         nvidia.nixGLNvidia
         nvidia.nixVulkanNvidia
       ];

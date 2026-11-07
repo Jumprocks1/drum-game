@@ -23,6 +23,7 @@ Alternatively, there is a Nix flake you can use to run the game:
 ```bash
 nix run "github:Jumprocks1/drum-game" --impure --refresh --extra-experimental-features 'nix-command flakes'
 ```
+`--impure` is required only on systems with Nvidia drivers that are not running NixOS.
 `--refresh` fetches the latest version of the flake from the repository. Run without it to use a locally cached copy.
 
 To download maps, I recommend using the in-game repository browser. This can be accessed by pressing <kbd>F1</kbd> and typing `View Repositories`, then pressing enter. YouTubeDL is required to load audio for some maps - the game should instruct you accordingly if this is necessary.

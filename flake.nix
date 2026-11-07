@@ -38,9 +38,7 @@
       };
 
       nvidiaLoaded =
-        assert
-          builtins ? currentSystem || throw "DrumGame: run with --impure so the GPU driver can be detected";
-        builtins.pathExists "/proc/driver/nvidia/version";
+        builtins.pathExists "/proc/driver/nvidia/version" && !builtins.pathExists "/run/opengl-driver";
 
       drivers = [
         mesa.nixGLIntel
@@ -70,6 +68,11 @@
     {
       packages.${system} = {
         default = pkgs.writeShellScriptBin "DrumGame" ''
+          [[ -e /run/opengl-driver ]] && exec ${run} "$@"
+          ${pkgs.lib.optionalString (!nvidiaLoaded) ''
+            [[ -e /proc/driver/nvidia/version ]] \
+              && { echo "DrumGame: run with --impure to detect the NVIDIA driver" >&2; exit 1; }
+          ''}
           exec ${pkgs.lib.concatMapStringsSep " " (d: "${d}/bin/*") drivers} ${run} "$@"
         '';
         local = game.overrideAttrs (_: {
